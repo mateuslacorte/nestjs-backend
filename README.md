@@ -35,7 +35,7 @@ Create a `.env` file in the root of the project and add the following environmen
 # .env
 LOGTAIL_SOURCE_TOKEN=your_logtail_source_token
 
-APP_NAME=DecideBet
+APP_NAME=Backend
 NODE_ENV=development
 PORT=3000
 LOG_LEVEL=info
@@ -47,9 +47,9 @@ LOGTAIL_SOURCE_TOKEN=your_betterstack_source_token
 JWT_SECRET=secret
 JWT_EXPIRATION_TIME=1h
 
-KAFKA_CLIENT_ID=decide-bet-client
+KAFKA_CLIENT_ID=my-client
 KAFKA_BROKERS=localhost:9092,localhost:9093
-KAFKA_GROUP_ID=decide-bet-group
+KAFKA_GROUP_ID=my-group
 KAFKA_SSL=false
 KAFKA_SASL_MECHANISM=plain
 KAFKA_SASL_USERNAME=my_username
@@ -61,8 +61,8 @@ REDIS_PASSWORD=my_redis_password
 REDIS_DB=0
 REDIS_TTL=3600
 
-MONGO_URI=mongodb://localhost:27017/decide_bet
-POSTGRES_URI=postgres://user:password@localhost:5432/decide_bet
+MONGO_URI=mongodb://localhost:27017/mongo
+POSTGRES_URI=postgres://user:password@localhost:5432/postgres
 
 BCRYPT_HASH_FACTOR=16
 ```
@@ -113,7 +113,7 @@ query {
 
 ## Logging
 
-We use **Logtail** for centralized logging. Logs will be sent to your Logtail dashboard, where you can monitor the performance and health of the platform.
+We use **Logtail** for centralized logging. Logs will be sent to your Logtail dashboard, where you can monitor the performance and health of the platform.`
 
 ## Testing
 
