@@ -1,27 +1,4 @@
-# Decide.Bet Backend
-
-Decide.Bet is a decentralized betting platform built on the Solana blockchain, enabling users to place bets on a wide variety of topics. The backend of the platform is powered by NestJS and uses Kafka for messaging, Redis for caching, MongoDB for writing, PostgreSQL for reading, and integrates with Stripe and Pix for payment processing. This project also includes integration with Logtail for logging and scalability via GraphQL.
-
-## Features
-
-- **User-Created Bets**: Users can create new betting options, subject to admin approval.
-- **Solana Blockchain**: The platform leverages the Solana blockchain for seamless transactions and coin management.
-- **Betting Marketplace**: Users can bet on a variety of predefined or user-generated betting options.
-- **Peer-to-Peer Selling**: Users can sell their betting coins back to the platform.
-- **Admin Dashboard**: Admins can approve or reject user-created betting options.
-- **Payment Integrations**: Payments can be processed via Stripe (USD) and Pix (BRL).
-- **Scalable Backend**: The backend is built to scale horizontally and integrates Redis for caching, Kafka for messaging, and MongoDB/PostgreSQL for database operations.
-
-## Architecture
-
-The backend uses the following technologies and tools:
-- **NestJS**: A TypeScript-based framework for building scalable and maintainable applications.
-- **Kafka**: A distributed event streaming platform for managing real-time data streams.
-- **MongoDB**: Used for writing data and providing a flexible schema for fast development.
-- **PostgreSQL**: Used for reading data, ensuring consistency and scalability for complex queries.
-- **Redis**: For session management and caching to speed up responses.
-- **GraphQL**: Provides an API for easy and flexible querying of platform data.
-- **Solana Blockchain**: Manages the betting coins (BET), ensuring decentralized transaction and staking.
+# Backend
 
 ## Setup
 
@@ -38,8 +15,8 @@ Before setting up the project, make sure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/decide-bet-backend.git
-cd decide-bet-backend
+git clone https://github.com/mateuslacorte/nestjs-backend.git
+cd nestjs-backend
 ```
 
 ## 2. Install Dependencies
@@ -57,16 +34,38 @@ Create a `.env` file in the root of the project and add the following environmen
 ```bash
 # .env
 LOGTAIL_SOURCE_TOKEN=your_logtail_source_token
-MONGO_URI=mongodb://localhost:27017/decide_bet
-POSTGRES_URI=postgres://user:password@localhost:5432/decide_bet
+
+APP_NAME=DecideBet
+NODE_ENV=development
+PORT=3000
+LOG_LEVEL=info
+API_PREFIX=api
+GRAPHQL_PLAYGROUND=true
+
+LOGTAIL_SOURCE_TOKEN=your_betterstack_source_token
+
+JWT_SECRET=secret
+JWT_EXPIRATION_TIME=1h
+
+KAFKA_CLIENT_ID=decide-bet-client
+KAFKA_BROKERS=localhost:9092,localhost:9093
+KAFKA_GROUP_ID=decide-bet-group
+KAFKA_SSL=false
+KAFKA_SASL_MECHANISM=plain
+KAFKA_SASL_USERNAME=my_username
+KAFKA_SASL_PASSWORD=my_password
+
 REDIS_HOST=localhost
 REDIS_PORT=6379
-STRIPE_SECRET_KEY=your_stripe_secret_key
-PIX_API_KEY=your_pix_api_key
-SOLANA_NETWORK=devnet
-```
+REDIS_PASSWORD=my_redis_password
+REDIS_DB=0
+REDIS_TTL=3600
 
-This will properly format the setup instructions for environment variables in Markdown.
+MONGO_URI=mongodb://localhost:27017/decide_bet
+POSTGRES_URI=postgres://user:password@localhost:5432/decide_bet
+
+BCRYPT_HASH_FACTOR=16
+```
 
 ## 4. Start the Development Server
 
@@ -114,27 +113,7 @@ query {
 
 ## Logging
 
-We use **Logtail** for centralized logging. Logs will be sent to your Logtail dashboard, where you can monitor the performance and health of the platform.
-
-## Features Roadmap
-
-### Phase 1: Beta Release
-- Launch basic betting platform with predefined betting options.
-- Implement user registration and authentication.
-- Integrate Solana blockchain for BET coin transactions.
-- Admin panel for approving user-generated betting options.
-
-### Phase 2: Full Launch
-- Enable user-to-user coin exchange and selling.
-- Add more payment gateways (Stripe, Pix).
-- Improve backend scalability for higher load.
-- Enhance security and add audit logging.
-
-### Phase 3: Advanced Features
-- Advanced analytics and reporting.
-- Multi-currency support.
-- Introduce betting on live events and real-time odds adjustment.
-- Implement a mobile app for users.
+We use **Logtail** for centralized logging. Logs will be sent to your Logtail dashboard, where you can monitor the performance and health of the platform.`
 
 ## Testing
 
