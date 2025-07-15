@@ -7,9 +7,11 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { SessionSerializer } from './session.serializer';
 import { ConfigService } from '@nestjs/config';
+import { UsersModule } from '../users/users.module'; // Add this import
 
 @Module({
     imports: [
+        UsersModule, // Add this line to import UsersModule
         MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
         JwtModule.registerAsync({
             imports: [],
@@ -28,7 +30,7 @@ import { ConfigService } from '@nestjs/config';
         SessionSerializer,
         {
             provide: 'BCRYPT_SALT_ROUNDS',
-            useValue: 10, // You can change this value if needed
+            useValue: 16,
         },
     ],
     controllers: [AuthController],

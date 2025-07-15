@@ -7,6 +7,7 @@ import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { UserMongoRepository } from './repositories/mongo.repository';
 import { UserPostgresRepository } from './repositories/postgres.repository';
+import {UsersResolver} from "@modules/users/resolvers/users.resolver";
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { UserPostgresRepository } from './repositories/postgres.repository';
     TypeOrmModule.forFeature([UserEntity]),
   ],
   providers: [
+    UsersResolver,
     UsersService,
     UserMongoRepository,
     UserPostgresRepository,

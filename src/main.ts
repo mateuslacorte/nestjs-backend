@@ -26,10 +26,19 @@ async function bootstrap() {
         .setDescription('API for the betting platform')
         .setVersion('1.0')
         .addTag('bets')
-        .addBearerAuth()
+        .addBearerAuth(
+            {
+                type: 'http',
+                scheme: 'bearer',
+                bearerFormat: 'JWT',
+                name: 'Authorization',
+                in: 'header',
+            },
+            'access-token', // <- esse nome tem que bater com @ApiBearerAuth('access-token')
+        )
         .build();
     const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api', app, document);
+    SwaggerModule.setup('docs', app, document);
 
     // Enable CORS for cross-origin requests
     app.enableCors();

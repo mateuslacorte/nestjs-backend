@@ -11,6 +11,10 @@ export class UserPostgresRepository {
         private userRepository: Repository<UserEntity>
     ) {}
 
+    async findAll(): Promise<UserEntity[] | null> {
+        return this.userRepository.find({});
+    }
+
     async findById(id: string): Promise<UserEntity | null> {
         return this.userRepository.findOne({ where: { id } });
     }
@@ -20,7 +24,6 @@ export class UserPostgresRepository {
     }
 
     async upsert(userData: IUser): Promise<UserEntity> {
-        // Check if user exists
         let user: UserEntity | null = null;
 
         if (userData.id) {
@@ -32,11 +35,16 @@ export class UserPostgresRepository {
         }
 
         if (user) {
-            // Update existing user
-            Object.assign(user, userData);
+            // Update existing user, but don't overwrite password if it's missing
+            const { password, ...dataToUpdate } = userData;
+            Object.assign(user, dataToUpdate);
             return this.userRepository.save(user);
         } else {
-            // Create new user
+            console.log('Creating new user', userData);
+            // For new users, password is required
+            if (!userData.password) {
+                throw new Error('Password is required for new users');
+            }
             const newUser = this.userRepository.create(userData);
             return this.userRepository.save(newUser);
         }

@@ -6,6 +6,7 @@ import { User, UserSchema } from '../schemas/user.schema';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { UpdateUserDto } from '../dtos/update-user.dto';
 import { IUser } from '../interfaces/user.interface';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class UserMongoRepository {
@@ -16,7 +17,7 @@ export class UserMongoRepository {
     ) {}
 
 
-    async create(createUserDto: CreateUserDto): Promise<IUser> {
+    async create(createUserDto: CreateUserDto, includePassword = false): Promise<IUser> {
         const { username, email, password } = createUserDto;
 
         // Check if the user already exists
@@ -31,12 +32,14 @@ export class UserMongoRepository {
         // Create and save the new user
         const newUser = new this.userModel({
             ...createUserDto,
+            id: uuidv4(), // Store UUID as a separate field
             password: hashedPassword,
         });
+
         await newUser.save();
 
         // Return the user data excluding password
-        return this.omitPassword(newUser);
+        return includePassword ? newUser.toObject() : this.omitPassword(newUser);;
     }
 
     async findAll(): Promise<IUser[]> {
@@ -96,11 +99,9 @@ export class UserMongoRepository {
 
     // Helper method to omit password from user data
     private omitPassword(user: User): IUser {
-        const { password, _id, ...userWithoutPassword } = user.toObject();
+        const { password, ...userWithoutPassword } = user.toObject();
         return {
             ...userWithoutPassword,
-            // @ts-ignore
-            id: _id.toString(),
         } as IUser;
     }
 }
