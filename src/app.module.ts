@@ -1,4 +1,3 @@
-// src/app.module.ts
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -22,10 +21,7 @@ import { LogtailModule } from '@common/logtail/logtail.module';
         LogtailModule,
 
         // MongoDB connection for betting data using Mongoose
-        MongooseModule.forRoot(process.env.MONGO_URI!, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        }),
+        MongooseModule.forRoot(process.env.MONGO_URI!),
 
         // PostgreSQL connection using TypeORM for read-heavy operations
         TypeOrmModule.forRoot({
