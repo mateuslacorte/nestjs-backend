@@ -6,6 +6,8 @@ import { JwtAuthGuard } from './guards/jwtauth.guard';
 import { Request } from 'express';
 import {ApiTags, ApiResponse, ApiBody, ApiHeaders, ApiBearerAuth} from '@nestjs/swagger'; // Add ApiBody here
 import { Public } from './decorators/public.decorator';
+import {ForgotPasswordDto} from "./dtos/forgot-password.dto";
+import {ResetPasswordDto} from "./dtos/reset-password.dto";
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -70,5 +72,30 @@ export class AuthController {
     @Post('verify-token')
     verifyToken(@Req() req: Request) {
         return { message: 'Token is valid', user: req.user };
+    }
+
+    @Public()
+    @Post('forgot-password')
+    @ApiResponse({ status: 200, description: 'Password reset email sent.' })
+    @ApiResponse({ status: 404, description: 'User not found.' })
+    @ApiBody({ type: ForgotPasswordDto })
+    async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+        const resetToken = await this.authService.createPasswordResetToken(forgotPasswordDto.email);
+
+        // Here you would typically send an email with a link containing the token
+        // For example: `https://yourapp.com/reset-password?token=${resetToken}&email=${forgotPasswordDto.email}`
+
+        return { message: 'Password reset instructions sent to your email' };
+    }
+
+    @Public()
+    @Post('reset-password')
+    @ApiResponse({ status: 200, description: 'Password successfully reset.' })
+    @ApiResponse({ status: 400, description: 'Invalid or expired token.' })
+    @ApiResponse({ status: 404, description: 'User not found.' })
+    @ApiBody({ type: ResetPasswordDto })
+    async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+        await this.authService.resetPassword(resetPasswordDto);
+        return { message: 'Password successfully reset' };
     }
 }

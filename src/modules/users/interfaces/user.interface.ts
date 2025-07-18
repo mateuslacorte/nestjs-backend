@@ -7,4 +7,6 @@ export interface IUser {
     password: string;
     isActive: boolean;
     roles: string[];
+    passwordResetToken?: string;
+    passwordResetExpires?: Date;
 }

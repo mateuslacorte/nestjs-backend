@@ -23,6 +23,10 @@ export class UserPostgresRepository {
         return this.userRepository.findOne({ where: { email } });
     }
 
+    async findByPasswordToken(token: string): Promise<UserEntity | null> {
+        return this.userRepository.findOne({ where: {passwordResetToken: token } });
+    }
+
     async upsert(userData: IUser): Promise<UserEntity> {
         let user: UserEntity | null = null;
 

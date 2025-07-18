@@ -30,6 +30,10 @@ export class UsersService {
     return this.postgresRepo.findByEmail(email);
   }
 
+  async findByPasswordToken(email: string): Promise<IUser | null> {
+    return this.postgresRepo.findByPasswordToken(email);
+  }
+
   async update(id: string, updateUserDto: UpdateUserDto): Promise<IUser> {
     const updatedUser = await this.mongoRepo.update(id, updateUserDto);
     await this.postgresRepo.upsert(updatedUser);
@@ -40,6 +44,23 @@ export class UsersService {
     const removedUser = await this.mongoRepo.remove(id);
     // TODO: Consider how to handle deletion in PostgreSQL
     return removedUser;
+  }
+
+  async updateResetToken(userId: string | undefined, resetData: {
+    passwordResetToken: string | undefined;
+    passwordResetExpires: Date | undefined;
+  }): Promise<void> {
+    const updatedUser = await this.mongoRepo.update(userId!, resetData);
+    await this.postgresRepo.upsert(updatedUser);
+  }
+
+  async updatePassword(userId: string, passwordData: {
+    password: string;
+    passwordResetToken: string | undefined;
+    passwordResetExpires: Date | undefined;
+  }): Promise<void> {
+    const updatedUser = await this.mongoRepo.update(userId, passwordData);
+    await this.postgresRepo.upsert(updatedUser);
   }
 
   async syncUser(userId: string): Promise<void> {

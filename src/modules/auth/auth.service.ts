@@ -7,6 +7,8 @@ import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
 import { RefreshtokenDto } from './dtos/refreshtoken.dto';
 import { IUser } from '../users/interfaces/user.interface';
+import { randomBytes } from 'crypto';
+import {ResetPasswordDto} from "@modules/auth/dtos/reset-password.dto";
 
 @Injectable()
 export class AuthService {
@@ -138,6 +140,85 @@ export class AuthService {
     }
 
     /**
+     * Create a password reset token for the user
+     * @param email - User email to create reset token for
+     * @returns The reset token
+     */
+    async createPasswordResetToken(email: string): Promise<string> {
+        // Find the user
+        const user = await this.usersService.findByEmail(email);
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        // Generate a random token
+        const resetToken = randomBytes(32).toString('hex');
+
+        // Hash the token before storing it (for security)
+        const hashedToken = await bcrypt.hash(resetToken, this.saltRounds);
+
+        // Store the token with the user and set expiration (e.g., 1 hour from now)
+        const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
+
+        // Update user with reset token info
+        await this.usersService.updateResetToken(user.id, {
+            passwordResetToken: hashedToken,
+            passwordResetExpires: resetTokenExpiry
+        });
+
+        // Return the original (unhashed) token to be sent to the user
+        return resetToken;
+    }
+
+    /**
+     * Reset user password using the reset token
+     * @param resetPasswordDto - Data for resetting the password
+     * @returns True if password reset was successful
+     */
+    async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<boolean> {
+        const { token, password, confirmPassword } = resetPasswordDto;
+
+        // Check if passwords match
+        if (password !== confirmPassword) {
+            throw new BadRequestException('Passwords do not match');
+        }
+
+        // Find the user
+        const user = await this.usersService.findByPasswordToken(token);
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        // Check if user has a valid reset token
+        if (!user.passwordResetToken || !user.passwordResetExpires) {
+            throw new BadRequestException('Invalid or expired reset token');
+        }
+
+        // Check if token is expired
+        if (new Date() > new Date(user.passwordResetExpires)) {
+            throw new BadRequestException('Reset token has expired');
+        }
+
+        // Verify the token
+        const isTokenValid = await bcrypt.compare(token, user.passwordResetToken);
+        if (!isTokenValid) {
+            throw new BadRequestException('Invalid reset token');
+        }
+
+        // Hash the new password
+        const hashedPassword = await bcrypt.hash(password, this.saltRounds);
+
+        // Update the user's password and clear the reset token
+        await this.usersService.updatePassword(user.id!, {
+            password: hashedPassword,
+            passwordResetToken: undefined,
+            passwordResetExpires: undefined,
+        });
+
+        return true;
+    }
+
+    /**
      * Generate access and refresh tokens for a user
      * @param user - User to generate tokens for
      * @returns Access token and refresh token
@@ -172,4 +253,6 @@ export class AuthService {
         const { password, ...sanitizedUser } = user as any;
         return sanitizedUser;
     }
+
+
 }

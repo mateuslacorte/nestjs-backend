@@ -26,4 +26,10 @@ export class UserEntity implements IUser {
 
     @Column('simple-array')
     roles!: string[];
+
+    @Column({ nullable: true })
+    passwordResetToken?: string;
+
+    @Column({ type: 'timestamp', nullable: true })
+    passwordResetExpires?: Date;
 }

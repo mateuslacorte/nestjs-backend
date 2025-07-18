@@ -55,7 +55,7 @@ export class UserMongoRepository {
         return this.omitPassword(user);
     }
 
-    async update(id: string, updateUserDto: UpdateUserDto): Promise<IUser> {
+    async update(id: string, updateUserDto: Partial<IUser>): Promise<IUser> {
         // If password is provided, hash it
         if (updateUserDto.password) {
             updateUserDto.password = await bcrypt.hash(
