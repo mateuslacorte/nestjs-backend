@@ -89,26 +89,8 @@ This will set up the necessary services like MongoDB, PostgreSQL, Redis, and Kaf
 
 ## API Documentation
 
-The API is built using GraphQL. You can query the schema using Apollo Server at:
-
-```bash
-http://localhost:3000/graphql
 ```
-
-### Example Query:
-
-```graphql
-query {
-  getBettingOptions {
-    id
-    name
-    options {
-      id
-      description
-      odds
-    }
-  }
-}
+http://localhost:3000/docs
 ```
 
 ## Logging
