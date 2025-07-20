@@ -1,4 +1,4 @@
-import { IsEmail, IsString, IsBoolean, IsOptional, IsArray } from 'class-validator';
+import {IsEmail, IsString, IsBoolean, IsOptional, IsArray, IsDate} from 'class-validator';
 import { StrongPassword } from '../../auth/decorators/strongpassword.decorator';
 
 export class UpdateUserDto {
@@ -29,4 +29,12 @@ export class UpdateUserDto {
   @IsArray()
   @IsOptional()
   roles?: string[];
+
+  @IsString({ message: 'E-mail verification token must be a string' })
+  @IsOptional()
+  emailVerificationToken?: string;
+
+  @IsDate({ message: 'E-mail verification expiration must be a date' })
+  @IsOptional()
+  emailVerificationExpires?: Date;
 }

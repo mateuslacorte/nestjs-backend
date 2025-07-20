@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Req, UseGuards } from '@nestjs/common';
+import {Controller, Post, Body, Req, UseGuards, Get, Query} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
@@ -94,5 +94,40 @@ export class AuthController {
     async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
         await this.authService.resetPassword(resetPasswordDto);
         return { message: 'Password successfully reset' };
+    }
+
+    @Public()
+    @Get('verify-email')
+    @ApiResponse({ status: 200, description: 'Email verified successfully.' })
+    @ApiResponse({ status: 400, description: 'Invalid or expired token.' })
+    @ApiResponse({ status: 404, description: 'User not found.' })
+    async verifyEmail(@Query('token') token: string) {
+        const verified = await this.authService.verifyEmail(token);
+        if (verified) {
+            return { message: 'Email verified successfully. You can now log in.' };
+        }
+    }
+
+    @Public()
+    @ApiResponse({ status: 200, description: 'Verification email has been resent.' })
+    @ApiResponse({ status: 404, description: 'User not found.' })
+    @ApiBody({
+        type: String,
+        description: 'Email address to resend verification',
+        examples: {
+            resendVerification: {
+                summary: 'Resend Verification Email Example',
+                description: 'A sample request to resend verification email',
+                value: {
+                    email: 'john.doe@example.com'
+                }
+            }
+        }
+    })
+    @Post('resend-verification')
+    async resendVerification(@Body('email') email: string) {
+        const token = await this.authService.createEmailVerificationToken(email);
+        await this.authService.sendEmailVerification(email, token);
+        return { message: 'Verification email has been resent' };
     }
 }

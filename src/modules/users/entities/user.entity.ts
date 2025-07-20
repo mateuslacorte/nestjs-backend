@@ -32,4 +32,10 @@ export class UserEntity implements IUser {
 
     @Column({ type: 'timestamp', nullable: true })
     passwordResetExpires?: Date;
+
+    @Column({ nullable: true })
+    emailVerificationToken?: string;
+
+    @Column({ type: 'timestamp', nullable: true })
+    emailVerificationExpires?: Date;
 }

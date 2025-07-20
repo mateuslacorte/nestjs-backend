@@ -6,6 +6,27 @@ export class EmailService {
   constructor(private readonly mailerService: MailerService) {}
 
   /**
+   * Send an email confirmation to the user
+   * @param email
+   * @param token
+   */
+  async sendEmailConfirmation(email: string, token: string): Promise<void> {
+    const confirmUrl = `${process.env.FRONTEND_URL}/confirm-email?token=${token}`;
+
+    await this.mailerService.sendMail({
+      to: email,
+      subject: 'Email Confirmation',
+      html: `
+        <h3>Email Confirmation</h3>
+        <p>Thank you for registering!</p>
+        <p>Please click the link below to confirm your email address:</p>
+        <a href="${confirmUrl}">Confirm Email</a>
+        <p>This link will expire in 24 hours.</p>
+      `,
+    });
+  }
+
+  /**
    * Send a password reset email to the user
    * @param email
    * @param token

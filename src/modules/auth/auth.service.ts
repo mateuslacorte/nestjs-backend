@@ -43,13 +43,17 @@ export class AuthService {
         // Hash the password
         const hashedPassword = await bcrypt.hash(password, this.saltRounds);
 
-        // Create the user
+        // Create the user with isActive set to false
         const newUser = await this.usersService.create({
             ...userData,
             password: hashedPassword,
-            isActive: true,
+            isActive: false, // Set to false until email is confirmed
             roles: ['user'],
         });
+
+        // Generate email verification token and send confirmation email
+        const verificationToken = await this.createEmailVerificationToken(newUser.email);
+        await this.sendEmailVerification(newUser.email, verificationToken);
 
         // Generate tokens
         const tokens = await this.generateTokens(newUser);
@@ -57,7 +61,85 @@ export class AuthService {
         return {
             user: this.sanitizeUser(newUser),
             ...tokens,
+            message: 'Registration successful. Please check your email to confirm your account.',
         };
+    }
+
+    /**
+     * Create an email verification token for the user
+     * @param email - User email to create verification token for
+     * @returns The verification token
+     */
+    async createEmailVerificationToken(email: string): Promise<string> {
+        const user = await this.usersService.findByEmail(email);
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        // Generate a random token
+        const verificationToken = randomBytes(32).toString('hex');
+
+        // Hash the token before storing it (for security)
+        const hashedToken = await bcrypt.hash(verificationToken, this.saltRounds);
+
+        // Store the token with the user and set expiration (e.g., 24 hours from now)
+        const tokenExpiry = new Date(Date.now() + 86400000); // 24 hours
+
+        // Update user with verification token info
+        await this.usersService.update(user.id!, {
+            emailVerificationToken: hashedToken,
+            emailVerificationExpires: tokenExpiry
+        });
+
+        // Return the original (unhashed) token to be sent to the user
+        return verificationToken;
+    }
+
+    /**
+     * Send email verification token via email
+     * @param email - User email to send verification token to
+     * @param token - The verification token to send
+     */
+    async sendEmailVerification(email: string, token: string): Promise<void> {
+        await this.emailService.sendEmailConfirmation(email, token);
+    }
+
+    /**
+     * Verify user's email using the verification token
+     * @param token - The verification token
+     * @returns True if email verification was successful
+     */
+    async verifyEmail(token: string): Promise<boolean> {
+        // Find user by token (you'll need to add this method to UsersService)
+        const user = await this.usersService.findByEmailVerificationToken(token);
+        if (!user) {
+            throw new NotFoundException('Invalid verification token');
+        }
+
+        // Check if user has a valid verification token
+        if (!user.emailVerificationToken || !user.emailVerificationExpires) {
+            throw new BadRequestException('Invalid or expired verification token');
+        }
+
+        // Check if token is expired
+        if (new Date() > new Date(user.emailVerificationExpires)) {
+            throw new BadRequestException('Verification token has expired');
+        }
+
+        // Verify the token
+        const isTokenValid = await bcrypt.compare(token, user.emailVerificationToken);
+        if (!isTokenValid) {
+            throw new BadRequestException('Invalid verification token');
+        }
+
+        // Update the user to be active and clear the verification token
+        await this.usersService.update(user.id!, {
+            isActive: true,
+            emailVerificationToken: undefined,
+            emailVerificationExpires: undefined,
+        });
+
+        return true;
     }
 
     /**
@@ -98,6 +180,11 @@ export class AuthService {
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
             return null;
+        }
+
+        // Check if user has verified their email
+        if (!user.isActive) {
+            throw new UnauthorizedException('Please verify your email before logging in');
         }
 
         return user;

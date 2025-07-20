@@ -33,6 +33,12 @@ export class User extends Document {
 
   @Prop({type: Date, default: null})
   passwordResetExpires?: Date;
+
+  @Prop({type: String, default: null})
+  emailVerificationToken?: string;
+
+  @Prop({type: Date, default: null})
+  emailVerificationExpires?: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

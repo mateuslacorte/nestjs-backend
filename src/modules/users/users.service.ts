@@ -50,6 +50,15 @@ export class UsersService {
   }
 
   /**
+   * Find a user by email verification token
+   * @param token - User's email verification token
+   * @returns The user or null if not found
+   */
+  async findByEmailVerificationToken(token: string): Promise<IUser | null> {
+    return this.postgresRepo.findByEmailVerificationToken(token);
+  }
+
+  /**
    * Find a user by password reset token
    * @param token - User's password reset token
    * @returns The user or null if not found

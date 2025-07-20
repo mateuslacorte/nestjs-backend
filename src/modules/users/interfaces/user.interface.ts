@@ -9,4 +9,6 @@ export interface IUser {
     roles: string[];
     passwordResetToken?: string;
     passwordResetExpires?: Date;
+    emailVerificationToken?: string;
+    emailVerificationExpires?: Date;
 }
