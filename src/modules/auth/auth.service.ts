@@ -9,6 +9,7 @@ import { RefreshtokenDto } from './dtos/refreshtoken.dto';
 import { IUser } from '../users/interfaces/user.interface';
 import { randomBytes } from 'crypto';
 import {ResetPasswordDto} from "@modules/auth/dtos/reset-password.dto";
+import {EmailService} from "@modules/email/email.service";
 
 @Injectable()
 export class AuthService {
@@ -16,6 +17,7 @@ export class AuthService {
         private readonly usersService: UsersService,
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
+        private readonly emailService: EmailService,
         @Inject('BCRYPT_SALT_ROUNDS') private readonly saltRounds: number,
     ) {}
 
@@ -124,7 +126,6 @@ export class AuthService {
                 secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
             });
 
-            // Get the user
             const user = await this.usersService.findById(payload.id);
             if (!user) {
                 throw new NotFoundException('User not found');
@@ -145,7 +146,6 @@ export class AuthService {
      * @returns The reset token
      */
     async createPasswordResetToken(email: string): Promise<string> {
-        // Find the user
         const user = await this.usersService.findByEmail(email);
         if (!user) {
             throw new NotFoundException('User not found');
@@ -183,7 +183,6 @@ export class AuthService {
             throw new BadRequestException('Passwords do not match');
         }
 
-        // Find the user
         const user = await this.usersService.findByPasswordToken(token);
         if (!user) {
             throw new NotFoundException('User not found');
@@ -216,6 +215,17 @@ export class AuthService {
         });
 
         return true;
+    }
+
+    /**
+     * Send password reset token via email
+     * @param email - User email to send reset token to
+     * @param token - The reset token to send
+     * @returns The reset token sent to the user
+     */
+    async sendResetTokenEmail(email: string, token: string) {
+        await this.emailService.sendPasswordReset(email, token);
+        return token;
     }
 
     /**
@@ -253,6 +263,5 @@ export class AuthService {
         const { password, ...sanitizedUser } = user as any;
         return sanitizedUser;
     }
-
 
 }

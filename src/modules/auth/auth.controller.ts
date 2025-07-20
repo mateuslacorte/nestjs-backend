@@ -81,10 +81,7 @@ export class AuthController {
     @ApiBody({ type: ForgotPasswordDto })
     async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
         const resetToken = await this.authService.createPasswordResetToken(forgotPasswordDto.email);
-
-        // Here you would typically send an email with a link containing the token
-        // For example: `https://yourapp.com/reset-password?token=${resetToken}&email=${forgotPasswordDto.email}`
-
+        await this.authService.sendResetTokenEmail(forgotPasswordDto.email, resetToken);
         return { message: 'Password reset instructions sent to your email' };
     }
 
