@@ -8,6 +8,7 @@ import {ApiTags, ApiResponse, ApiBody, ApiHeaders, ApiBearerAuth} from '@nestjs/
 import { Public } from './decorators/public.decorator';
 import {ForgotPasswordDto} from "./dtos/forgot-password.dto";
 import {ResetPasswordDto} from "./dtos/reset-password.dto";
+import {RefreshtokenDto} from "@modules/auth/dtos/refreshtoken.dto";
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -72,6 +73,15 @@ export class AuthController {
     @Post('verify-token')
     verifyToken(@Req() req: Request) {
         return { message: 'Token is valid', user: req.user };
+    }
+
+    @Public()
+    @Post('refresh-token')
+    @ApiResponse({ status: 200, description: 'Tokens refreshed successfully.' })
+    @ApiResponse({ status: 401, description: 'Invalid refresh token.' })
+    @ApiBody({ type: RefreshtokenDto })
+    async refreshToken(@Body() refreshTokenDto: RefreshtokenDto) {
+        return await this.authService.refreshToken(refreshTokenDto);
     }
 
     @Public()
