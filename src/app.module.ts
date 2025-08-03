@@ -9,6 +9,7 @@ import { AuthModule } from '@modules/auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from "@modules/auth/guards/jwtauth.guard";
 import { LogtailModule } from '@common/logtail/logtail.module';
+import {EmailModule} from "@modules/email/email.module";
 
 @Module({
     imports: [
@@ -47,6 +48,7 @@ import { LogtailModule } from '@common/logtail/logtail.module';
         // Modules for the application
         UsersModule,
         AuthModule,
+        EmailModule,
     ],
     controllers: [],
     providers: [

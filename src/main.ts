@@ -22,8 +22,8 @@ async function bootstrap() {
 
     // Setup Swagger API documentation
     const config = new DocumentBuilder()
-        .setTitle('Decide.bet API')
-        .setDescription('API for the betting platform')
+        .setTitle('NestJS API')
+        .setDescription('API made with NestJS')
         .setVersion('1.0')
         .addTag('bets')
         .addBearerAuth(
