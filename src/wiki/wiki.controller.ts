@@ -15,7 +15,7 @@ export class WikiController {
     @Render('pages/home')
     getHome() {
         return {
-            title: 'AtalaHub - Documentação da API',
+            title: 'Backend - Documentação da API',
             currentPage: 'home'
         };
     }
