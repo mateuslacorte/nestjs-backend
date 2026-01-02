@@ -18,9 +18,9 @@ import {EmailModule} from "@modules/email/email.module"; // Add this import
         JwtModule.registerAsync({
             imports: [],
             useFactory: async (configService: ConfigService) => ({
-                secret: configService.get<string>('JWT_SECRET'),
+                secret: configService.get<string>('jwt.secret'),
                 signOptions: {
-                    expiresIn: configService.get<string>('JWT_EXPIRATION_TIME') || '1h',
+                    expiresIn: configService.get<string>('jwt.expirationTime'),
                 },
             }),
             inject: [ConfigService],
@@ -32,7 +32,8 @@ import {EmailModule} from "@modules/email/email.module"; // Add this import
         SessionSerializer,
         {
             provide: 'BCRYPT_SALT_ROUNDS',
-            useValue: 16,
+            useFactory: (configService: ConfigService) => configService.get<number>('bcrypt.saltRounds'),
+            inject: [ConfigService],
         },
     ],
     controllers: [AuthController],

@@ -1,4 +1,4 @@
-import { Injectable, Inject, BadRequestException, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
@@ -6,6 +6,7 @@ import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
 import { RefreshtokenDto } from './dtos/refreshtoken.dto';
+import { ChangePasswordDto } from './dtos/change-password.dto';
 import { IUser } from '../users/interfaces/user.interface';
 import { randomBytes } from 'crypto';
 import {ResetPasswordDto} from "@modules/auth/dtos/reset-password.dto";
@@ -18,7 +19,6 @@ export class AuthService {
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
         private readonly emailService: EmailService,
-        @Inject('BCRYPT_SALT_ROUNDS') private readonly saltRounds: number,
     ) {}
 
     /**
@@ -31,24 +31,21 @@ export class AuthService {
 
         // Check if passwords match
         if (password !== confirmPassword) {
-            throw new BadRequestException('Passwords do not match');
+            throw new BadRequestException('As senhas não coincidem');
         }
 
         // Check if user with email already exists
         const existingUser = await this.usersService.findByEmail(userData.email);
         if (existingUser) {
-            throw new BadRequestException('User with this email already exists');
+            throw new BadRequestException('Já existe um usuário com este e-mail');
         }
-
-        // Hash the password
-        const hashedPassword = await bcrypt.hash(password, this.saltRounds);
 
         // Create the user with isActive set to false
         const newUser = await this.usersService.create({
             ...userData,
-            password: hashedPassword,
+            password: password,
             isActive: false, // Set to false until email is confirmed
-            roles: ['user'],
+            roles: [],
         });
 
         // Generate email verification token and send confirmation email
@@ -61,7 +58,7 @@ export class AuthService {
         return {
             user: this.sanitizeUser(newUser),
             ...tokens,
-            message: 'Registration successful. Please check your email to confirm your account.',
+            message: 'Registro realizado com sucesso. Por favor, verifique seu e-mail para confirmar sua conta.',
         };
     }
 
@@ -73,21 +70,18 @@ export class AuthService {
     async createEmailVerificationToken(email: string): Promise<string> {
         const user = await this.usersService.findByEmail(email);
         if (!user) {
-            throw new NotFoundException('User not found');
+            throw new NotFoundException('Usuário não encontrado');
         }
 
         // Generate a random token
-        const verificationToken = randomBytes(32).toString('hex');
-
-        // Hash the token before storing it (for security)
-        const hashedToken = await bcrypt.hash(verificationToken, this.saltRounds);
+        const verificationToken = String(parseInt(randomBytes(4).toString('hex'), 16) % 1000000).padStart(6, '0');
 
         // Store the token with the user and set expiration (e.g., 24 hours from now)
         const tokenExpiry = new Date(Date.now() + 86400000); // 24 hours
 
         // Update user with verification token info
         await this.usersService.update(user.id!, {
-            emailVerificationToken: hashedToken,
+            emailVerificationToken: verificationToken,
             emailVerificationExpires: tokenExpiry
         });
 
@@ -127,7 +121,7 @@ export class AuthService {
         }
 
         // Verify the token
-        const isTokenValid = await bcrypt.compare(token, user.emailVerificationToken);
+        const isTokenValid = token === user.emailVerificationToken;
         if (!isTokenValid) {
             throw new BadRequestException('Invalid verification token');
         }
@@ -135,7 +129,7 @@ export class AuthService {
         // Update the user to be active and clear the verification token
         await this.usersService.update(user.id!, {
             isActive: true,
-            emailVerificationToken: undefined,
+            emailVerificationToken: "",
             emailVerificationExpires: undefined,
         });
 
@@ -153,7 +147,7 @@ export class AuthService {
         // Validate user credentials
         const user = await this.validateUser(email, password);
         if (!user) {
-            throw new UnauthorizedException('Invalid credentials');
+            throw new UnauthorizedException('Credenciais inválidas');
         }
 
         // Generate tokens
@@ -184,7 +178,7 @@ export class AuthService {
 
         // Check if user has verified their email
         if (!user.isActive) {
-            throw new UnauthorizedException('Please verify your email before logging in');
+            throw new UnauthorizedException('Por favor, verifique seu e-mail antes de fazer login');
         }
 
         return user;
@@ -210,12 +204,12 @@ export class AuthService {
         try {
             // Verify the refresh token
             const payload = this.jwtService.verify(refreshToken, {
-                secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+                secret: this.configService.get<string>('jwt.refreshSecret'),
             });
 
             const user = await this.usersService.findById(payload.id);
             if (!user) {
-                throw new NotFoundException('User not found');
+                throw new NotFoundException('Usuário não encontrado');
             }
 
             // Generate new tokens
@@ -223,7 +217,7 @@ export class AuthService {
 
             return tokens;
         } catch (error) {
-            throw new UnauthorizedException('Invalid refresh token');
+            throw new UnauthorizedException('Token de atualização inválido');
         }
     }
 
@@ -235,21 +229,18 @@ export class AuthService {
     async createPasswordResetToken(email: string): Promise<string> {
         const user = await this.usersService.findByEmail(email);
         if (!user) {
-            throw new NotFoundException('User not found');
+            throw new NotFoundException('Usuário não encontrado');
         }
 
         // Generate a random token
-        const resetToken = randomBytes(32).toString('hex');
-
-        // Hash the token before storing it (for security)
-        const hashedToken = await bcrypt.hash(resetToken, this.saltRounds);
+        const resetToken = String(parseInt(randomBytes(4).toString('hex'), 16) % 1000000).padStart(6, '0');
 
         // Store the token with the user and set expiration (e.g., 1 hour from now)
         const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
 
         // Update user with reset token info
         await this.usersService.updateResetToken(user.id, {
-            passwordResetToken: hashedToken,
+            passwordResetToken: resetToken,
             passwordResetExpires: resetTokenExpiry
         });
 
@@ -267,37 +258,34 @@ export class AuthService {
 
         // Check if passwords match
         if (password !== confirmPassword) {
-            throw new BadRequestException('Passwords do not match');
+            throw new BadRequestException('As senhas não coincidem');
         }
 
         const user = await this.usersService.findByPasswordToken(token);
         if (!user) {
-            throw new NotFoundException('User not found');
+            throw new NotFoundException('Usuário não encontrado');
         }
 
         // Check if user has a valid reset token
         if (!user.passwordResetToken || !user.passwordResetExpires) {
-            throw new BadRequestException('Invalid or expired reset token');
+            throw new BadRequestException('Token de recuperação inválido ou expirado');
         }
 
         // Check if token is expired
         if (new Date() > new Date(user.passwordResetExpires)) {
-            throw new BadRequestException('Reset token has expired');
+            throw new BadRequestException('Token de recuperação expirado');
         }
 
         // Verify the token
-        const isTokenValid = await bcrypt.compare(token, user.passwordResetToken);
+        const isTokenValid = token === user.passwordResetToken;
         if (!isTokenValid) {
-            throw new BadRequestException('Invalid reset token');
+            throw new BadRequestException('Token de recuperação inválido');
         }
-
-        // Hash the new password
-        const hashedPassword = await bcrypt.hash(password, this.saltRounds);
 
         // Update the user's password and clear the reset token
         await this.usersService.updatePassword(user.id!, {
-            password: hashedPassword,
-            passwordResetToken: undefined,
+            password: password,
+            passwordResetToken: "",
             passwordResetExpires: undefined,
         });
 
@@ -316,6 +304,47 @@ export class AuthService {
     }
 
     /**
+     * Change password for logged-in user
+     * @param userId - ID of the logged-in user
+     * @param changePasswordDto - Current and new password data
+     * @returns Success message
+     */
+    async changePassword(userId: string, changePasswordDto: ChangePasswordDto): Promise<{ message: string }> {
+        const { currentPassword, newPassword, confirmNewPassword } = changePasswordDto;
+
+        // Check if new passwords match
+        if (newPassword !== confirmNewPassword) {
+            throw new BadRequestException('A nova senha e a confirmação não coincidem');
+        }
+
+        // Check if new password is different from current
+        if (currentPassword === newPassword) {
+            throw new BadRequestException('A nova senha deve ser diferente da senha atual');
+        }
+
+        // Find the user
+        const user = await this.usersService.findById(userId);
+        if (!user) {
+            throw new NotFoundException('Usuário não encontrado');
+        }
+
+        // Verify current password
+        const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+        if (!isCurrentPasswordValid) {
+            throw new BadRequestException('Senha atual incorreta');
+        }
+
+        // Update password
+        await this.usersService.updatePassword(userId, {
+            password: newPassword,
+            passwordResetToken: undefined,
+            passwordResetExpires: undefined,
+        });
+
+        return { message: 'Senha alterada com sucesso' };
+    }
+
+    /**
      * Generate access and refresh tokens for a user
      * @param user - User to generate tokens for
      * @returns Access token and refresh token
@@ -325,14 +354,14 @@ export class AuthService {
 
         // Generate access token
         const accessToken = this.jwtService.sign(payload, {
-            secret: this.configService.get<string>('JWT_SECRET'),
-            expiresIn: this.configService.get<string>('JWT_EXPIRATION_TIME') || '1h',
+            secret: this.configService.get<string>('jwt.secret'),
+            expiresIn: this.configService.get<string>('jwt.expirationTime'),
         });
 
         // Generate refresh token
         const refreshToken = this.jwtService.sign(payload, {
-            secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-            expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRATION_TIME') || '7d',
+            secret: this.configService.get<string>('jwt.refreshSecret'),
+            expiresIn: this.configService.get<string>('jwt.refreshExpirationTime'),
         });
 
         return {

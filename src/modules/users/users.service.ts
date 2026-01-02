@@ -112,7 +112,7 @@ export class UsersService {
     passwordResetToken: string | undefined;
     passwordResetExpires: Date | undefined;
   }): Promise<void> {
-    const updatedUser = await this.mongoRepo.update(userId, passwordData);
+    const updatedUser = await this.mongoRepo.update(userId, passwordData, false);
     await this.postgresRepo.upsert(updatedUser);
   }
 
@@ -125,5 +125,72 @@ export class UsersService {
     if (user) {
       await this.postgresRepo.upsert(user);
     }
+  }
+
+  /**
+   * Update user roles
+   * @param userId - User's ID
+   * @param roles - New roles array
+   * @returns The updated user
+   */
+  async updateRoles(userId: string, roles: string[]): Promise<IUser> {
+    const updatedUser = await this.mongoRepo.update(userId, { roles });
+    await this.postgresRepo.upsert(updatedUser);
+    return updatedUser;
+  }
+
+  /**
+   * Add a role to the user if not already present
+   * @param userId - User's ID
+   * @param role - Role to add
+   * @returns The updated user
+   */
+  async addRole(userId: string, role: string): Promise<IUser> {
+    const user = await this.postgresRepo.findById(userId);
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+    
+    if (!user.roles.includes(role)) {
+      const newRoles = [...user.roles, role];
+      return this.updateRoles(userId, newRoles);
+    }
+    
+    return user;
+  }
+
+  /**
+   * Remove a role from the user
+   * @param userId - User's ID
+   * @param role - Role to remove
+   * @returns The updated user
+   */
+  async removeRole(userId: string, role: string): Promise<IUser> {
+    const user = await this.postgresRepo.findById(userId);
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+    
+    const newRoles = user.roles.filter(r => r !== role);
+    return this.updateRoles(userId, newRoles);
+  }
+
+  /**
+   * Replace one role with another
+   * @param userId - User's ID
+   * @param oldRole - Role to replace
+   * @param newRole - New role
+   * @returns The updated user
+   */
+  async replaceRole(userId: string, oldRole: string, newRole: string): Promise<IUser> {
+    const user = await this.postgresRepo.findById(userId);
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+    
+    const newRoles = user.roles.map(r => r === oldRole ? newRole : r);
+    // Ensure no duplicates
+    const uniqueRoles = [...new Set(newRoles)];
+    return this.updateRoles(userId, uniqueRoles);
   }
 }

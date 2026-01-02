@@ -77,12 +77,14 @@ export class UserPostgresRepository {
         }
 
         if (user) {
-            // Update existing user, but don't overwrite password if it's missing
-            const { password, ...dataToUpdate } = userData;
+            // Only exclude password if it's not provided in the update data
+            const dataToUpdate = userData.password
+                ? userData
+                : (({ password, ...rest }) => rest)(userData);
+
             Object.assign(user, dataToUpdate);
             return this.userRepository.save(user);
         } else {
-            console.log('Creating new user', userData);
             // For new users, password is required
             if (!userData.password) {
                 throw new Error('Password is required for new users');

@@ -6,22 +6,30 @@ export class EmailService {
   constructor(private readonly mailerService: MailerService) {}
 
   /**
+   * Send a generic email
+   * @param options Mail options including to, subject, and html content
+   */
+  async sendMail(options: any): Promise<void> {
+    await this.mailerService.sendMail(options);
+  }
+
+  /**
    * Send an email confirmation to the user
    * @param email
    * @param token
    */
   async sendEmailConfirmation(email: string, token: string): Promise<void> {
-    const confirmUrl = `${process.env.FRONTEND_URL}/confirm-email?token=${token}`;
 
     await this.mailerService.sendMail({
       to: email,
-      subject: 'Email Confirmation',
+      subject: 'Confirmação de E-mail - AtalaHub',
       html: `
-        <h3>Email Confirmation</h3>
-        <p>Thank you for registering!</p>
-        <p>Please click the link below to confirm your email address:</p>
-        <a href="${confirmUrl}">Confirm Email</a>
-        <p>This link will expire in 24 hours.</p>
+        <h3>Confirmação de E-mail</h3>
+        <p>Obrigado por se registrar!</p>
+        <p>Por favor, insira o código abaixo para confirmar seu endereço de e-mail:</p>
+        <strong style="font-size: 24px; letter-spacing: 4px; color: #2563eb;">${token}</strong>
+        <p>Este código expira em 24 horas.</p>
+        <p style="color: #666; font-size: 12px; margin-top: 20px;">Se você não se registrou nesta plataforma, por favor ignore este e-mail.</p>
       `,
     });
   }
@@ -32,17 +40,16 @@ export class EmailService {
    * @param token
    */
   async sendPasswordReset(email: string, token: string): Promise<void> {
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
-
     await this.mailerService.sendMail({
       to: email,
-      subject: 'Password Recovery',
+      subject: 'Recuperação de Senha - AtalaHub',
       html: `
-        <h3>Password Recovery</h3>
-        <p>You have requested a password reset.</p>
-        <p>Click on the link bellow to reset your password:</p>
-        <a href="${resetUrl}">Reset Password</a>
-        <p>Please ignore this e-mail if you didn't request a password reset.</p>
+        <h3>Recuperação de Senha</h3>
+        <p>Você solicitou a recuperação de senha.</p>
+        <p>Use o código abaixo para redefinir sua senha:</p>
+        <strong style="font-size: 24px; letter-spacing: 4px; color: #2563eb;">${token}</strong>
+        <p>Este código expira em 1 hora.</p>
+        <p style="color: #666; font-size: 12px; margin-top: 20px;">Se você não solicitou a recuperação de senha, por favor ignore este e-mail.</p>
       `,
     });
   }

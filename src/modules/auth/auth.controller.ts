@@ -4,11 +4,12 @@ import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
 import { JwtAuthGuard } from './guards/jwtauth.guard';
 import { Request } from 'express';
-import {ApiTags, ApiResponse, ApiBody, ApiHeaders, ApiBearerAuth} from '@nestjs/swagger'; // Add ApiBody here
+import {ApiTags, ApiResponse, ApiBody, ApiHeaders, ApiBearerAuth, ApiOperation} from '@nestjs/swagger'; // Add ApiBody here
 import { Public } from './decorators/public.decorator';
 import {ForgotPasswordDto} from "./dtos/forgot-password.dto";
 import {ResetPasswordDto} from "./dtos/reset-password.dto";
 import {RefreshtokenDto} from "@modules/auth/dtos/refreshtoken.dto";
+import {ChangePasswordDto} from "./dtos/change-password.dto";
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -77,9 +78,61 @@ export class AuthController {
 
     @Public()
     @Post('refresh-token')
-    @ApiResponse({ status: 200, description: 'Tokens refreshed successfully.' })
-    @ApiResponse({ status: 401, description: 'Invalid refresh token.' })
-    @ApiBody({ type: RefreshtokenDto })
+    @ApiOperation({
+        summary: 'Refresh access token',
+        description: 'Use a valid refresh token to generate new access and refresh tokens'
+    })
+    @ApiResponse({
+        status: 200,
+        description: 'Tokens refreshed successfully.',
+        schema: {
+            type: 'object',
+            properties: {
+                accessToken: {
+                    type: 'string',
+                    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMzQ1Njc4OTAiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJyb2xlcyI6WyJ1c2VyIl0sImlhdCI6MTYxNjEyMzYwMCwiZXhwIjoxNjE2MTI3MjAwfQ.new_signature_here'
+                },
+                refreshToken: {
+                    type: 'string',
+                    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMzQ1Njc4OTAiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJyb2xlcyI6WyJ1c2VyIl0sImlhdCI6MTYxNjEyMzYwMCwiZXhwIjoxNjE2NzI4NDAwfQ.new_refresh_signature_here'
+                }
+            }
+        }
+    })
+    @ApiResponse({
+        status: 401,
+        description: 'Invalid refresh token.',
+        schema: {
+            type: 'object',
+            properties: {
+                statusCode: {
+                    type: 'number',
+                    example: 401
+                },
+                message: {
+                    type: 'string',
+                    example: 'Invalid refresh token'
+                },
+                error: {
+                    type: 'string',
+                    example: 'Unauthorized'
+                }
+            }
+        }
+    })
+    @ApiBody({
+        type: RefreshtokenDto,
+        description: 'Refresh token data',
+        examples: {
+            refreshTokenExample: {
+                summary: 'Refresh Token Example',
+                description: 'A sample refresh token request',
+                value: {
+                    refreshToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMzQ1Njc4OTAiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJyb2xlcyI6WyJ1c2VyIl0sImlhdCI6MTYxNjEyMzYwMCwiZXhwIjoxNjE2NzI4NDAwfQ.signature_here'
+                }
+            }
+        }
+    })
     async refreshToken(@Body() refreshTokenDto: RefreshtokenDto) {
         return await this.authService.refreshToken(refreshTokenDto);
     }
@@ -92,7 +145,7 @@ export class AuthController {
     async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
         const resetToken = await this.authService.createPasswordResetToken(forgotPasswordDto.email);
         await this.authService.sendResetTokenEmail(forgotPasswordDto.email, resetToken);
-        return { message: 'Password reset instructions sent to your email' };
+        return { message: 'Instruções de recuperação de senha enviadas para seu e-mail' };
     }
 
     @Public()
@@ -103,7 +156,34 @@ export class AuthController {
     @ApiBody({ type: ResetPasswordDto })
     async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
         await this.authService.resetPassword(resetPasswordDto);
-        return { message: 'Password successfully reset' };
+        return { message: 'Senha redefinida com sucesso' };
+    }
+
+    @Post('change-password')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth('access-token')
+    @ApiOperation({ summary: 'Change password for logged-in user' })
+    @ApiResponse({ status: 200, description: 'Senha alterada com sucesso.' })
+    @ApiResponse({ status: 400, description: 'Senha atual incorreta ou senhas não coincidem.' })
+    @ApiResponse({ status: 401, description: 'Não autorizado - usuário não está logado.' })
+    @ApiBody({
+        type: ChangePasswordDto,
+        description: 'Dados para alteração de senha',
+        examples: {
+            changePassword: {
+                summary: 'Exemplo de alteração de senha',
+                description: 'Requisição para alterar a senha do usuário logado',
+                value: {
+                    currentPassword: 'SenhaAtual@123',
+                    newPassword: 'NovaSenha@456',
+                    confirmNewPassword: 'NovaSenha@456'
+                }
+            }
+        }
+    })
+    async changePassword(@Req() req: Request, @Body() changePasswordDto: ChangePasswordDto) {
+        const user = req.user as any;
+        return await this.authService.changePassword(user.id, changePasswordDto);
     }
 
     @Public()
@@ -114,7 +194,7 @@ export class AuthController {
     async verifyEmail(@Query('token') token: string) {
         const verified = await this.authService.verifyEmail(token);
         if (verified) {
-            return { message: 'Email verified successfully. You can now log in.' };
+            return { message: 'E-mail verificado com sucesso. Você já pode fazer login.' };
         }
     }
 
@@ -138,6 +218,6 @@ export class AuthController {
     async resendVerification(@Body('email') email: string) {
         const token = await this.authService.createEmailVerificationToken(email);
         await this.authService.sendEmailVerification(email, token);
-        return { message: 'Verification email has been resent' };
+        return { message: 'E-mail de verificação reenviado com sucesso' };
     }
 }

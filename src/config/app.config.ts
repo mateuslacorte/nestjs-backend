@@ -1,10 +1,8 @@
 import { registerAs } from '@nestjs/config';
 
 export default registerAs('app', () => ({
-    appName: process.env.APP_NAME || 'Backend',
+    name: process.env.APP_NAME || 'NestJS Backend API',
     environment: process.env.NODE_ENV || 'development',
+    host: process.env.HOST || 'localhost',
     port: parseInt(process.env.PORT!, 10) || 3000,
-    logLevel: process.env.LOG_LEVEL || 'info',
-    apiPrefix: process.env.API_PREFIX || 'api',
-    graphqlPlayground: process.env.GRAPHQL_PLAYGROUND === 'true',
 }));
