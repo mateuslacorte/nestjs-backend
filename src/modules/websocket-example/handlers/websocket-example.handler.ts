@@ -3,12 +3,12 @@ import { Injectable } from '@nestjs/common';
 import { Socket } from 'socket.io';
 import { MessageHandler, MessagePayload } from '@common/websocket/interfaces/message-handler.interface';
 import { validate } from 'class-validator';
-import {PingDto} from "@modules/board/dtos/ping.dto";
-import {BoardService} from "@modules/board/board.service";
+import {WebsocketExampleDto} from "@modules/websocket-example/dtos/websocket-example.dto";
+import {WebsocketExampleService} from "@modules/websocket-example/websocket-example.service";
 
 @Injectable()
-export class BoardHandler implements MessageHandler {
-    constructor(private readonly boardService: BoardService) {}
+export class WebsocketExampleHandler implements MessageHandler {
+    constructor(private readonly websocketExampleService: WebsocketExampleService) {}
 
     canHandle(type: string): boolean {
         return type === 'example';
@@ -18,7 +18,7 @@ export class BoardHandler implements MessageHandler {
         // Determine which DTO to use based on additional properties in the payload
         let dto;
 
-        dto = Object.assign(new PingDto(), payload);
+        dto = Object.assign(new WebsocketExampleDto(), payload);
 
         // Validate the DTO
         const errors = await validate(dto);
@@ -28,6 +28,6 @@ export class BoardHandler implements MessageHandler {
         }
 
         // Process the message based on its type
-        this.boardService.processMessage(client, dto);
+        this.websocketExampleService.processMessage(client, dto);
     }
 }
