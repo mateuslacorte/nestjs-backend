@@ -22,7 +22,7 @@ export class EmailService {
 
     await this.mailerService.sendMail({
       to: email,
-      subject: 'Confirmação de E-mail - AtalaHub',
+      subject: 'Confirmação de E-mail - Backend NestJS',
       html: `
         <h3>Confirmação de E-mail</h3>
         <p>Obrigado por se registrar!</p>
@@ -42,7 +42,7 @@ export class EmailService {
   async sendPasswordReset(email: string, token: string): Promise<void> {
     await this.mailerService.sendMail({
       to: email,
-      subject: 'Recuperação de Senha - AtalaHub',
+      subject: 'Recuperação de Senha - Backend NestJS',
       html: `
         <h3>Recuperação de Senha</h3>
         <p>Você solicitou a recuperação de senha.</p>

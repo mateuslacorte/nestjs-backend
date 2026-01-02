@@ -68,5 +68,5 @@ MINIO_PORT=9000
 MINIO_USE_SSL=false
 MINIO_ACCESS_KEY=minioadmin
 MINIO_SECRET_KEY=minioadmin
-MINIO_BUCKET=atalahub
+MINIO_BUCKET=backend-nestjs
 ```

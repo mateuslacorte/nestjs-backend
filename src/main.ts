@@ -47,7 +47,7 @@ async function bootstrap() {
 
     // Setup Swagger API documentation
     const config = new DocumentBuilder()
-        .setTitle('AtalaHub API')
+        .setTitle('Backend NestJS API')
         .setDescription(`
 ## Documentação da API
 
