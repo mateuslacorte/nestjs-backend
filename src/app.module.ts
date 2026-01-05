@@ -30,6 +30,7 @@ import smtpConfig from './config/smtp.config';
 import {WikiModule} from "./wiki/wiki.module";
 import {ScheduleModule} from "@nestjs/schedule";
 import {SecurityModule} from "@common/security/security.module";
+import { CacheModule } from '@common/cache/cache.module';
 
 @Module({
     imports: [
@@ -53,6 +54,9 @@ import {SecurityModule} from "@common/security/security.module";
 
         // Logtail module for logging
         LogtailModule,
+
+        // Cache module for Redis caching
+        CacheModule,
 
         WebsocketModule.forRoot(),
 

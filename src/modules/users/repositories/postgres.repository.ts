@@ -1,20 +1,26 @@
 import {InjectRepository} from "@nestjs/typeorm";
-import {Injectable} from "@nestjs/common";
+import {Injectable, Optional} from "@nestjs/common";
 import {UserEntity} from "@modules/users/entities/user.entity";
 import {Repository} from "typeorm";
 import {IUser} from "@modules/users/interfaces/user.interface";
+import {EnableCache, CacheTTL} from "@common/cache/decorators/cache.decorator";
+import {CacheService} from "@common/cache/cache.service";
 
 @Injectable()
 export class UserPostgresRepository {
     constructor(
         @InjectRepository(UserEntity)
-        private userRepository: Repository<UserEntity>
+        private userRepository: Repository<UserEntity>,
+        @Optional()
+        private cacheService?: CacheService
     ) {}
 
     /**
      * Find all users in the PostgreSQL database
      * @returns Array of IUser or null if no users found
      */
+    @EnableCache()
+    @CacheTTL(3600) // 1 hora
     async findAll(): Promise<UserEntity[] | null> {
         return this.userRepository.find({});
     }
@@ -24,6 +30,8 @@ export class UserPostgresRepository {
      * @param id - The user ID
      * @returns The user or null if not found
      */
+    @EnableCache()
+    @CacheTTL(3600) // 1 hora
     async findById(id: string): Promise<UserEntity | null> {
         return this.userRepository.findOne({ where: { id } });
     }
@@ -33,6 +41,8 @@ export class UserPostgresRepository {
      * @param email - The user's email
      * @returns The user or null if not found
      */
+    @EnableCache()
+    @CacheTTL(1800) // 30 minutos
     async findByEmail(email: string): Promise<UserEntity | null> {
         return this.userRepository.findOne({ where: { email } });
     }
@@ -65,6 +75,8 @@ export class UserPostgresRepository {
      * @param userData - The user data to upsert
      * @returns The created or updated user
      */
+    @EnableCache()
+
     async upsert(userData: IUser): Promise<UserEntity> {
         let user: UserEntity | null = null;
 

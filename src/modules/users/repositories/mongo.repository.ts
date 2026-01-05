@@ -1,12 +1,13 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, Optional } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { ConfigService } from '@nestjs/config';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { User } from '../schemas/user.schema';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { IUser } from '../interfaces/user.interface';
 import { v4 as uuidv4 } from 'uuid';
+import {EnableCache, CacheTTL} from "@common/cache/decorators/cache.decorator";
+import {CacheService} from "@common/cache/cache.service";
 
 @Injectable()
 export class UserMongoRepository {
@@ -14,8 +15,13 @@ export class UserMongoRepository {
     constructor(
         // @ts-ignore
         @InjectModel(User.name) private userModel: Model<User>,
-        private configService: ConfigService,
+        @Optional()
+        private cacheService?: CacheService
     ) {}
+
+
+    @EnableCache()
+
 
 
     async create(createUserDto: CreateUserDto, includePassword = false): Promise<IUser> {
@@ -28,8 +34,7 @@ export class UserMongoRepository {
         }
 
         // Hash the password
-        const saltRounds = this.configService.get<number>('bcrypt.saltRounds') || 10;
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        const hashedPassword = await bcrypt.hash(password, Number(process.env.BCRYPT_HASH_FACTOR));
         const userId = uuidv4();
         // Create and save the new user
         const newUser = new this.userModel({
@@ -45,11 +50,15 @@ export class UserMongoRepository {
         return includePassword ? newUser.toObject() : this.omitPassword(newUser);
     }
 
+    @EnableCache()
+    @CacheTTL(1800) // 30 minutos
     async findAll(): Promise<IUser[]> {
         const users = await this.userModel.find();
         return users.map(user => this.omitPassword(user));
     }
 
+    @EnableCache()
+    @CacheTTL(1800) // 30 minutos
     async findById(id: string) {
         const user = await this.userModel.findById(id);
         if (!user) {
@@ -58,15 +67,16 @@ export class UserMongoRepository {
         return this.omitPassword(user);
     }
 
+    @EnableCache()
+
+
     async update(id: string, updateUserDto: Partial<IUser>, shouldOmitPassword: boolean = true): Promise<IUser> {
         // If password is provided and is not already hashed, hash it
         if (updateUserDto.password && !this.isAlreadyHashed(updateUserDto.password)) {
-            const saltRounds = this.configService.get<number>('bcrypt.saltRounds') || 10;
-            const hashedPassword = await bcrypt.hash(
+            updateUserDto.password = await bcrypt.hash(
                 updateUserDto.password,
-                saltRounds,
+                Number(process.env.BCRYPT_HASH_FACTOR),
             );
-            updateUserDto.password = hashedPassword;
         }
 
         // Check if username or email is being updated and if they already exist
@@ -93,6 +103,9 @@ export class UserMongoRepository {
 
         return shouldOmitPassword ? this.omitPassword(updatedUser) : updatedUser.toObject() as IUser;
     }
+
+    @EnableCache()
+
 
     async remove(id: string): Promise<IUser> {
         const deletedUser = await this.userModel.findByIdAndDelete(id);

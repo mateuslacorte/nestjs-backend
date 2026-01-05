@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigService } from '@nestjs/config';
 import { User, UserSchema } from './schemas/user.schema';
 import { UserEntity } from './entities/user.entity';
 import { UsersService } from './users.service';
@@ -25,8 +24,7 @@ import {JwtAuthGuard} from "@modules/auth/guards/jwtauth.guard";
     UserPostgresRepository,
     {
       provide: 'BCRYPT_SALT_ROUNDS',
-      useFactory: (configService: ConfigService) => configService.get<number>('bcrypt.saltRounds'),
-      inject: [ConfigService],
+      useValue: 10, // You can change this value if needed
     },
     {
       provide: APP_GUARD,
