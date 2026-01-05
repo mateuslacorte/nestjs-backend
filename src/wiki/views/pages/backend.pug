@@ -1,0 +1,495 @@
+extends ../layouts/main
+
+block content
+  //- Header
+  .mb-12
+    .inline-flex.items-center.gap-2.px-3.py-1.bg-indigo-50.rounded-full.text-indigo-700.text-sm.font-medium.mb-4
+      svg(class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4")
+      span Guia de Instalação
+    h1(class="text-4xl font-bold text-gray-900 mb-4")
+      | Guia Backend - 
+      span.gradient-text Instalação e Configuração
+    p(class="text-xl text-gray-600 max-w-3xl")
+      | Tutorial completo para subir o projeto localmente ou em produção de forma funcional e segura.
+
+  //- Requisitos Mínimos
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6") Requisitos Mínimos
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      .alert.alert-info.mb-6
+        svg(class="w-5 h-5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+          path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z")
+        div
+          p.font-medium.text-blue-900 Sistema Operacional Recomendado
+          p.text-sm.text-blue-700 Ubuntu 22.04 LTS é o sistema recomendado para melhor compatibilidade e performance
+
+      div(class="grid grid-cols-1 md:grid-cols-2 gap-6")
+        div
+          h3(class="font-semibold text-gray-900 mb-4") Software Base
+          ul.space-y-3
+            li.flex.items-start.gap-3
+              svg(class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+                path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7")
+              div
+                span.font-medium.text-gray-900 Node.js
+                p.text-sm.text-gray-600 Versão 18.x ou superior (LTS recomendado)
+            li.flex.items-start.gap-3
+              svg(class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+                path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7")
+              div
+                span.font-medium.text-gray-900 npm ou yarn
+                p.text-sm.text-gray-600 Gerenciador de pacotes Node.js
+            li.flex.items-start.gap-3
+              svg(class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+                path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7")
+              div
+                span.font-medium.text-gray-900 TypeScript
+                p.text-sm.text-gray-600 Instalado globalmente ou via projeto
+            li.flex.items-start.gap-3
+              svg(class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+                path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7")
+              div
+                span.font-medium.text-gray-900 Git
+                p.text-sm.text-gray-600 Para clonar o repositório
+
+        div
+          h3(class="font-semibold text-gray-900 mb-4") Serviços Externos
+          ul.space-y-3
+            li.flex.items-start.gap-3
+              svg(class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+                path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z")
+              div
+                span.font-medium.text-gray-900 MongoDB
+                p.text-sm.text-gray-600 Versão 6.0+ ou MongoDB Atlas
+            li.flex.items-start.gap-3
+              svg(class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+                path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z")
+              div
+                span.font-medium.text-gray-900 PostgreSQL
+                p.text-sm.text-gray-600 Versão 14+ ou superior
+            li.flex.items-start.gap-3
+              svg(class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+                path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z")
+              div
+                span.font-medium.text-gray-900 Redis
+                p.text-sm.text-gray-600 Versão 6.0+ ou superior
+            li.flex.items-start.gap-3
+              svg(class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+                path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z")
+              div
+                span.font-medium.text-gray-900 Apache Kafka
+                p.text-sm.text-gray-600 Versão 3.0+ ou Confluent Cloud
+            li.flex.items-start.gap-3
+              svg(class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+                path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z")
+              div
+                span.font-medium.text-gray-900 MinIO
+                p.text-sm.text-gray-600 Storage S3-compatible
+
+  //- Instalação no Ubuntu 22.04 LTS
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6") Instalação no Ubuntu 22.04 LTS
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      h3(class="font-semibold text-gray-900 mb-4") 1. Atualizar o Sistema
+      .code-block.mb-6
+        .code-header
+          span Bash
+          span Terminal
+        .code-content
+          pre.
+            sudo apt update && sudo apt upgrade -y
+
+      h3(class="font-semibold text-gray-900 mb-4") 2. Instalar Node.js 18.x
+      .code-block.mb-6
+        .code-header
+          span Bash
+          span Terminal
+        .code-content
+          pre.
+            # Instalar Node.js via NodeSource
+            curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+            sudo apt install -y nodejs
+            
+            # Verificar instalação
+            node --version  # Deve mostrar v18.x.x
+            npm --version
+
+      h3(class="font-semibold text-gray-900 mb-4") 3. Instalar PostgreSQL
+      .code-block.mb-6
+        .code-header
+          span Bash
+          span Terminal
+        .code-content
+          pre.
+            # Instalar PostgreSQL
+            sudo apt install -y postgresql postgresql-contrib
+            
+            # Iniciar serviço
+            sudo systemctl start postgresql
+            sudo systemctl enable postgresql
+            
+            # Criar banco de dados e usuário
+            sudo -u postgres psql
+            # No prompt do PostgreSQL:
+            CREATE DATABASE backend_db;
+            CREATE USER backend_user WITH PASSWORD 'sua_senha_segura';
+            GRANT ALL PRIVILEGES ON DATABASE backend_db TO backend_user;
+            \q
+
+      h3(class="font-semibold text-gray-900 mb-4") 4. Instalar MongoDB
+      .code-block.mb-6
+        .code-header
+          span Bash
+          span Terminal
+        .code-content
+          pre.
+            # Importar chave GPG
+            curl -fsSL https://www.mongodb.org/static/pgp/server-6.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-6.0.gpg --dearmor
+            
+            # Adicionar repositório
+            echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-6.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+            
+            # Instalar MongoDB
+            sudo apt update
+            sudo apt install -y mongodb-org
+            
+            # Iniciar serviço
+            sudo systemctl start mongod
+            sudo systemctl enable mongod
+
+      h3(class="font-semibold text-gray-900 mb-4") 5. Instalar Redis
+      .code-block.mb-6
+        .code-header
+          span Bash
+          span Terminal
+        .code-content
+          pre.
+            # Instalar Redis
+            sudo apt install -y redis-server
+            
+            # Configurar Redis (opcional - para produção)
+            sudo nano /etc/redis/redis.conf
+            # Descomentar e configurar:
+            # requirepass sua_senha_redis
+            
+            # Reiniciar Redis
+            sudo systemctl restart redis-server
+            sudo systemctl enable redis-server
+            
+            # Testar conexão
+            redis-cli ping  # Deve retornar PONG
+
+      h3(class="font-semibold text-gray-900 mb-4") 6. Instalar Apache Kafka
+      .code-block.mb-6
+        .code-header
+          span Bash
+          span Terminal
+        .code-content
+          pre.
+            # Instalar Java (requisito do Kafka)
+            sudo apt install -y openjdk-17-jdk
+            
+            # Baixar Kafka
+            cd /opt
+            sudo wget https://downloads.apache.org/kafka/3.5.0/kafka_2.13-3.5.0.tgz
+            sudo tar -xzf kafka_2.13-3.5.0.tgz
+            sudo mv kafka_2.13-3.5.0 kafka
+            
+            # Criar usuário para Kafka
+            sudo useradd -r -s /bin/false kafka
+            sudo chown -R kafka:kafka /opt/kafka
+            
+            # Configurar systemd service (criar arquivo)
+            sudo nano /etc/systemd/system/kafka.service
+            # Conteúdo do arquivo:
+            # [Unit]
+            # Requires=zookeeper.service
+            # After=zookeeper.service
+            # 
+            # [Service]
+            # Type=simple
+            # User=kafka
+            # ExecStart=/opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/server.properties
+            # Restart=on-failure
+            # 
+            # [Install]
+            # WantedBy=multi-user.target
+            
+            # Iniciar Kafka
+            sudo systemctl start kafka
+            sudo systemctl enable kafka
+
+      h3(class="font-semibold text-gray-900 mb-4") 7. Instalar MinIO
+      .code-block.mb-6
+        .code-header
+          span Bash
+          span Terminal
+        .code-content
+          pre.
+            # Baixar MinIO
+            cd /opt
+            sudo wget https://dl.min.io/server/minio/release/linux-amd64/minio
+            sudo chmod +x minio
+            sudo mv minio /usr/local/bin/
+            
+            # Criar diretório para dados
+            sudo mkdir -p /data/minio
+            sudo chown -R $USER:$USER /data/minio
+            
+            # Criar systemd service
+            sudo nano /etc/systemd/system/minio.service
+            # Conteúdo do arquivo:
+            # [Unit]
+            # Description=MinIO
+            # After=network.target
+            # 
+            # [Service]
+            # Type=simple
+            # User=seu_usuario
+            # ExecStart=/usr/local/bin/minio server /data/minio --console-address ":9001"
+            # Restart=on-failure
+            # 
+            # [Install]
+            # WantedBy=multi-user.target
+            
+            # Iniciar MinIO
+            sudo systemctl start minio
+            sudo systemctl enable minio
+
+  //- Configuração do Projeto
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6") Configuração do Projeto
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      h3(class="font-semibold text-gray-900 mb-4") 1. Clonar o Repositório
+      .code-block.mb-6
+        .code-header
+          span Bash
+          span Terminal
+        .code-content
+          pre.
+            git clone https://github.com/seu-usuario/backend-nestjs.git
+            cd backend-nestjs
+
+      h3(class="font-semibold text-gray-900 mb-4") 2. Instalar Dependências
+      .code-block.mb-6
+        .code-header
+          span Bash
+          span Terminal
+        .code-content
+          pre.
+            npm install
+            # ou
+            yarn install
+
+      h3(class="font-semibold text-gray-900 mb-4") 3. Configurar Variáveis de Ambiente
+      p.text-gray-700.mb-4 Crie um arquivo <code class="px-2 py-1 bg-gray-100 rounded text-sm">.env</code> na raiz do projeto:
+      .code-block.mb-6
+        .code-header
+          span Environment Variables
+          span .env
+        .code-content
+          pre.
+            # Aplicação
+            NODE_ENV=development
+            PORT=3000
+            HOST=localhost
+            APP_NAME=Backend NestJS API
+            
+            # MongoDB
+            MONGO_URI=mongodb://localhost:27017/backend_db
+            
+            # PostgreSQL
+            POSTGRES_HOST=localhost
+            POSTGRES_PORT=5432
+            POSTGRES_USER=backend_user
+            POSTGRES_PASSWORD=sua_senha_segura
+            POSTGRES_DB=backend_db
+            POSTGRES_SYNCHRONIZE=false
+            
+            # Redis
+            REDIS_HOST=localhost
+            REDIS_PORT=6379
+            REDIS_PASSWORD=
+            REDIS_DB=0
+            REDIS_TTL=3600
+            
+            # Kafka
+            KAFKA_CLIENT_ID=backend-client
+            KAFKA_BROKERS=localhost:9092
+            KAFKA_GROUP_ID=backend-group
+            KAFKA_SSL=false
+            KAFKA_SASL_MECHANISM=plain
+            KAFKA_SASL_USERNAME=
+            KAFKA_SASL_PASSWORD=
+            
+            # JWT
+            JWT_SECRET=seu_jwt_secret_super_seguro_aqui
+            JWT_EXPIRATION_TIME=1h
+            JWT_REFRESH_SECRET=seu_refresh_secret_super_seguro
+            JWT_REFRESH_EXPIRATION_TIME=7d
+            
+            # Bcrypt
+            BCRYPT_SALT_ROUNDS=10
+            
+            # SMTP
+            SMTP_HOST=smtp.gmail.com
+            SMTP_PORT=587
+            SMTP_SECURE=false
+            SMTP_REQUIRE_TLS=true
+            SMTP_USER=seu_email@gmail.com
+            SMTP_PASSWORD=sua_senha_app
+            SMTP_FROM=seu_email@gmail.com
+            
+            # MinIO
+            MINIO_ENDPOINT=localhost
+            MINIO_PORT=9000
+            MINIO_USE_SSL=false
+            MINIO_ACCESS_KEY=minioadmin
+            MINIO_SECRET_KEY=minioadmin
+            MINIO_BUCKET=backend-nestjs
+            MINIO_PUBLIC_URL=http://localhost:9000
+            
+            # Logtail
+            LOGTAIL_SOURCE_TOKEN=seu_token_logtail
+            LOGTAIL_ENDPOINT=https://in.logtail.com
+            
+            # GraphQL
+            GRAPHQL_AUTO_SCHEMA_FILE=true
+            GRAPHQL_PLAYGROUND=true
+            GRAPHQL_INTROSPECTION=true
+            GRAPHQL_DEBUG=true
+            GRAPHQL_SORT_SCHEMA=true
+            GRAPHQL_PATH=/graphql
+            
+            # WhatsApp (opcional)
+            EVOLUTION_API_URL=http://localhost:8080
+            EVOLUTION_API_INSTANCE=default
+            EVOLUTION_API_KEY=sua_chave_api
+
+      .alert.alert-warning.mb-6
+        svg(class="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+          path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z")
+        div
+          p.font-medium.text-amber-900 Segurança em Produção
+          p.text-sm.text-amber-700 
+            | Em produção, use variáveis de ambiente seguras, senhas fortes e nunca commite o arquivo <code class="px-1 py-0.5 bg-amber-100 rounded">.env</code> no repositório.
+
+  //- Executar o Projeto
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6") Executar o Projeto
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      h3(class="font-semibold text-gray-900 mb-4") Modo Desenvolvimento
+      .code-block.mb-6
+        .code-header
+          span Bash
+          span Terminal
+        .code-content
+          pre.
+            npm run start:dev
+            # ou
+            yarn start:dev
+
+      h3(class="font-semibold text-gray-900 mb-4") Modo Produção
+      .code-block.mb-6
+        .code-header
+          span Bash
+          span Terminal
+        .code-content
+          pre.
+            # Build do projeto
+            npm run build
+            
+            # Executar
+            npm run start
+
+      h3(class="font-semibold text-gray-900 mb-4") Verificar Funcionamento
+      p.text-gray-700.mb-4 Após iniciar, acesse:
+      ul.space-y-2.text-gray-700.mb-6
+        li 
+          code.text-indigo-600 http://localhost:3000
+          span  - API REST
+        li 
+          code.text-indigo-600 http://localhost:3000/graphql
+          span  - GraphQL Playground
+        li 
+          code.text-indigo-600 http://localhost:3000/docs
+          span  - Swagger UI
+        li 
+          code.text-indigo-600 http://localhost:3000/wiki
+          span  - Documentação Wiki
+
+  //- Docker (Opcional)
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6") Docker (Opcional)
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p.text-gray-700.mb-4 O projeto também pode ser executado usando Docker e Docker Compose:
+      .code-block.mb-6
+        .code-header
+          span Bash
+          span Terminal
+        .code-content
+          pre.
+            # Build e executar containers
+            docker-compose up -d
+            
+            # Ver logs
+            docker-compose logs -f
+            
+            # Parar containers
+            docker-compose down
+
+      .alert.alert-info
+        svg(class="w-5 h-5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+          path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z")
+        div
+          p.font-medium.text-blue-900 Docker Compose
+          p.text-sm.text-blue-700 
+            | O arquivo <code class="px-1 py-0.5 bg-blue-100 rounded">docker-compose.yml</code> já está configurado com todos os serviços necessários 
+            | (MongoDB, PostgreSQL, Redis, Kafka, MinIO).
+
+  //- Troubleshooting
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6") Troubleshooting
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      div(class="space-y-6")
+        div
+          h4(class="font-semibold text-gray-900 mb-2") Erro de Conexão com Banco de Dados
+          p.text-gray-700 Verifique se os serviços estão rodando:
+          .code-block
+            .code-header
+              span Bash
+              span Terminal
+            .code-content
+              pre.
+                sudo systemctl status postgresql
+                sudo systemctl status mongod
+                sudo systemctl status redis-server
+
+        div
+          h4(class="font-semibold text-gray-900 mb-2") Porta já em uso
+          p.text-gray-700 Altere a porta no arquivo <code class="px-2 py-1 bg-gray-100 rounded text-sm">.env</code> ou pare o processo:
+          .code-block
+            .code-header
+              span Bash
+              span Terminal
+            .code-content
+              pre.
+                # Verificar processo na porta 3000
+                sudo lsof -i :3000
+                
+                # Matar processo
+                sudo kill -9 PID
+
+        div
+          h4(class="font-semibold text-gray-900 mb-2") Erro de Permissões
+          p.text-gray-700 Ajuste as permissões dos diretórios:
+          .code-block
+            .code-header
+              span Bash
+              span Terminal
+            .code-content
+              pre.
+                sudo chown -R $USER:$USER /data/minio
+                sudo chmod -R 755 /data/minio
+

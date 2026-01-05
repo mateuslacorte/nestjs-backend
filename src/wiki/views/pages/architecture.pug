@@ -1,0 +1,360 @@
+extends ../layouts/main
+
+block content
+  //- Header
+  .mb-12
+    .inline-flex.items-center.gap-2.px-3.py-1.bg-indigo-50.rounded-full.text-indigo-700.text-sm.font-medium.mb-4
+      svg(class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10")
+      span Arquitetura do Sistema
+    h1(class="text-4xl font-bold text-gray-900 mb-4")
+      | Arquitetura e 
+      span.gradient-text Tecnologias
+    p(class="text-xl text-gray-600 max-w-3xl")
+      | Entenda como as tecnologias se relacionam, o fluxo de requisições, cache e acesso aos bancos de dados.
+
+  //- Stack Tecnológico Completo
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6") Stack Tecnológico
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      div(class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6")
+        //- Framework e Core
+        div.p-4.bg-gradient-to-br.from-red-50.to-red-100.rounded-lg
+          h3(class="font-semibold text-gray-900 mb-3") Framework
+          ul.space-y-2.text-sm.text-gray-700
+            li.flex.items-center.gap-2
+              svg(class="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20")
+                path(fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd")
+              span NestJS 11.x
+            li.flex.items-center.gap-2
+              svg(class="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20")
+                path(fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd")
+              span TypeScript
+            li.flex.items-center.gap-2
+              svg(class="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20")
+                path(fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd")
+              span Node.js
+
+        //- Bancos de Dados
+        div.p-4.bg-gradient-to-br.from-green-50.to-green-100.rounded-lg
+          h3(class="font-semibold text-gray-900 mb-3") Bancos de Dados
+          ul.space-y-2.text-sm.text-gray-700
+            li.flex.items-center.gap-2
+              svg(class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20")
+                path(fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd")
+              span MongoDB (Mongoose)
+            li.flex.items-center.gap-2
+              svg(class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20")
+                path(fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd")
+              span PostgreSQL (TypeORM)
+
+        //- Cache e Mensageria
+        div.p-4.bg-gradient-to-br.from-orange-50.to-orange-100.rounded-lg
+          h3(class="font-semibold text-gray-900 mb-3") Cache & Mensageria
+          ul.space-y-2.text-sm.text-gray-700
+            li.flex.items-center.gap-2
+              svg(class="w-4 h-4 text-orange-600" fill="currentColor" viewBox="0 0 20 20")
+                path(fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd")
+              span Redis (ioredis)
+            li.flex.items-center.gap-2
+              svg(class="w-4 h-4 text-orange-600" fill="currentColor" viewBox="0 0 20 20")
+                path(fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd")
+              span Apache Kafka
+
+        //- Storage e APIs
+        div.p-4.bg-gradient-to-br.from-blue-50.to-blue-100.rounded-lg
+          h3(class="font-semibold text-gray-900 mb-3") Storage & APIs
+          ul.space-y-2.text-sm.text-gray-700
+            li.flex.items-center.gap-2
+              svg(class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20")
+                path(fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd")
+              span MinIO (S3 Compatible)
+            li.flex.items-center.gap-2
+              svg(class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20")
+                path(fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd")
+              span GraphQL (Apollo)
+            li.flex.items-center.gap-2
+              svg(class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20")
+                path(fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd")
+              span REST API
+
+        //- Autenticação e Segurança
+        div.p-4.bg-gradient-to-br.from-purple-50.to-purple-100.rounded-lg
+          h3(class="font-semibold text-gray-900 mb-3") Autenticação
+          ul.space-y-2.text-sm.text-gray-700
+            li.flex.items-center.gap-2
+              svg(class="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20")
+                path(fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd")
+              span JWT (Passport)
+            li.flex.items-center.gap-2
+              svg(class="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20")
+                path(fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd")
+              span Bcrypt
+
+        //- Serviços Externos
+        div.p-4.bg-gradient-to-br.from-indigo-50.to-indigo-100.rounded-lg
+          h3(class="font-semibold text-gray-900 mb-3") Serviços
+          ul.space-y-2.text-sm.text-gray-700
+            li.flex.items-center.gap-2
+              svg(class="w-4 h-4 text-indigo-600" fill="currentColor" viewBox="0 0 20 20")
+                path(fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd")
+              span Logtail (Logging)
+            li.flex.items-center.gap-2
+              svg(class="w-4 h-4 text-indigo-600" fill="currentColor" viewBox="0 0 20 20")
+                path(fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd")
+              span SMTP (Email)
+            li.flex.items-center.gap-2
+              svg(class="w-4 h-4 text-indigo-600" fill="currentColor" viewBox="0 0 20 20")
+                path(fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd")
+              span WhatsApp (Evolution API)
+
+  //- Configurações e Environment Variables
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6") Configurações e Environment Variables
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")
+        | Todas as configurações são centralizadas através de arquivos de config em <code class="px-2 py-1 bg-gray-100 rounded text-sm">src/config/</code> 
+        | e acessadas via <code class="px-2 py-1 bg-gray-100 rounded text-sm">ConfigService</code>. As variáveis de ambiente são carregadas automaticamente.
+      
+      div(class="grid grid-cols-1 md:grid-cols-2 gap-6")
+        div
+          h3(class="font-semibold text-gray-900 mb-4") Arquivos de Config
+          ul.space-y-2.text-sm.text-gray-700
+            li <code class="px-2 py-1 bg-gray-100 rounded">app.config.ts</code> - Configurações da aplicação
+            li <code class="px-2 py-1 bg-gray-100 rounded">database.config.ts</code> - MongoDB e PostgreSQL
+            li <code class="px-2 py-1 bg-gray-100 rounded">redis.config.ts</code> - Cache Redis
+            li <code class="px-2 py-1 bg-gray-100 rounded">kafka.config.ts</code> - Mensageria Kafka
+            li <code class="px-2 py-1 bg-gray-100 rounded">jwt.config.ts</code> - Autenticação JWT
+            li <code class="px-2 py-1 bg-gray-100 rounded">bcrypt.config.ts</code> - Hash de senhas
+            li <code class="px-2 py-1 bg-gray-100 rounded">smtp.config.ts</code> - Email SMTP
+            li <code class="px-2 py-1 bg-gray-100 rounded">minio.config.ts</code> - Storage MinIO
+            li <code class="px-2 py-1 bg-gray-100 rounded">logtail.config.ts</code> - Logging Logtail
+            li <code class="px-2 py-1 bg-gray-100 rounded">graphql.config.ts</code> - GraphQL
+            li <code class="px-2 py-1 bg-gray-100 rounded">whatsapp.config.ts</code> - WhatsApp API
+
+        div
+          h3(class="font-semibold text-gray-900 mb-4") Exemplo de Uso
+          .code-block
+            .code-header
+              span TypeScript
+              span ConfigService
+            .code-content
+              pre.
+                constructor(private configService: ConfigService) {}
+                
+                // Acessar configuração
+                const mongoUri = this.configService.get<string>('database.mongoUri');
+                const redisHost = this.configService.get<string>('redis.host');
+                const jwtSecret = this.configService.get<string>('jwt.secret');
+
+  //- Fluxo de Requisição
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6") Fluxo de Requisição
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      .flow-step.mb-6(data-step="1")
+        h3(class="font-semibold text-gray-900 mb-2") 1. Cliente faz requisição HTTP
+        p.text-gray-600 Requisição chega ao servidor NestJS com headers (Authorization, Content-Type, etc.)
+
+      .flow-step.mb-6(data-step="2")
+        h3(class="font-semibold text-gray-900 mb-2") 2. Middleware de Segurança
+        p.text-gray-600 
+          | <code class="px-2 py-1 bg-gray-100 rounded text-sm">SecurityModule</code> intercepta e valida requisições, 
+          | aplica rate limiting e proteções básicas
+
+      .flow-step.mb-6(data-step="3")
+        h3(class="font-semibold text-gray-900 mb-2") 3. Autenticação JWT
+        p.text-gray-600 
+          | <code class="px-2 py-1 bg-gray-100 rounded text-sm">JwtAuthGuard</code> valida o token JWT. 
+          | Rotas marcadas com <code class="px-2 py-1 bg-gray-100 rounded text-sm">@Public()</code> são ignoradas.
+
+      .flow-step.mb-6(data-step="4")
+        h3(class="font-semibold text-gray-900 mb-2") 4. Autorização por Roles
+        p.text-gray-600 
+          | <code class="px-2 py-1 bg-gray-100 rounded text-sm">RolesGuard</code> verifica se o usuário possui as roles necessárias 
+          | definidas via <code class="px-2 py-1 bg-gray-100 rounded text-sm">@Roles()</code>
+
+      .flow-step.mb-6(data-step="5")
+        h3(class="font-semibold text-gray-900 mb-2") 5. Interceptor de Cache
+        p.text-gray-600 
+          | <code class="px-2 py-1 bg-gray-100 rounded text-sm">TypeOrmCacheInterceptor</code> ou 
+          | <code class="px-2 py-1 bg-gray-100 rounded text-sm">MongooseCacheInterceptor</code> verifica se há dados em cache no Redis
+
+      .flow-step.mb-6(data-step="6")
+        h3(class="font-semibold text-gray-900 mb-2") 6. Controller/Resolver
+        p.text-gray-600 Requisição chega ao controller (REST) ou resolver (GraphQL)
+
+      .flow-step.mb-6(data-step="7")
+        h3(class="font-semibold text-gray-900 mb-2") 7. Service Layer
+        p.text-gray-600 Lógica de negócio é executada no service, que utiliza repositories para acesso a dados
+
+      .flow-step.mb-6(data-step="8")
+        h3(class="font-semibold text-gray-900 mb-2") 8. Repository Pattern
+        p.text-gray-600 
+          | Repository decide qual banco usar: <strong>MongoDB</strong> para escrita (CQRS Commands) 
+          | ou <strong>PostgreSQL</strong> para leitura (CQRS Queries)
+
+      .flow-step(data-step="9")
+        h3(class="font-semibold text-gray-900 mb-2") 9. Resposta e Cache
+        p.text-gray-600 
+          | Dados são retornados ao cliente e, se aplicável, armazenados no Redis para próximas requisições
+
+  //- Sistema de Cache
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6") Sistema de Cache
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      h3(class="font-semibold text-gray-900 mb-4") Como Funciona
+      p(class="text-gray-700 mb-6")
+        | O sistema de cache utiliza <strong>Redis</strong> como camada intermediária para armazenar resultados de consultas frequentes, 
+        | reduzindo a carga nos bancos de dados e melhorando o tempo de resposta.
+
+      div(class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6")
+        div
+          h4(class="font-semibold text-gray-900 mb-3") Interceptors de Cache
+          ul.space-y-2.text-sm.text-gray-700
+            li
+              code.text-indigo-600 TypeOrmCacheInterceptor
+              span.text-gray-600  - Cache para consultas TypeORM (PostgreSQL)
+            li
+              code.text-indigo-600 MongooseCacheInterceptor
+              span.text-gray-600  - Cache para consultas Mongoose (MongoDB)
+            li
+              code.text-indigo-600 CacheService
+              span.text-gray-600  - Serviço centralizado para gerenciar cache
+
+        div
+          h4(class="font-semibold text-gray-900 mb-3") Configuração Redis
+          .code-block
+            .code-header
+              span Environment
+              span Redis Config
+            .code-content
+              pre.
+                REDIS_HOST=localhost
+                REDIS_PORT=6379
+                REDIS_PASSWORD=
+                REDIS_DB=0
+                REDIS_TTL=3600  # Time to Live em segundos
+
+      h4(class="font-semibold text-gray-900 mb-3") Fluxo de Cache
+      ol.space-y-3.text-sm.text-gray-700.list-decimal.list-inside
+        li Requisição chega ao interceptor de cache
+        li Interceptor verifica se existe chave no Redis
+        li Se existe: retorna dados do cache (cache hit)
+        li Se não existe: executa query no banco, armazena no Redis e retorna (cache miss)
+        li Dados expiram automaticamente após TTL configurado
+
+  //- Escrita e Leitura de Bancos de Dados
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6") Escrita e Leitura de Bancos de Dados
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      h3(class="font-semibold text-gray-900 mb-4") Padrão CQRS (Command Query Responsibility Segregation)
+      p(class="text-gray-700 mb-6")
+        | O projeto implementa o padrão CQRS, separando operações de escrita (Commands) e leitura (Queries) em bancos diferentes.
+
+      div(class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6")
+        div.p-6.bg-green-50.rounded-lg.border.border-green-200
+          h4(class="font-semibold text-green-900 mb-3 flex items-center gap-2")
+            svg(class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+              path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z")
+            | MongoDB - Escrita (Commands)
+          ul.space-y-2.text-sm.text-green-800
+            li • Operações CREATE, UPDATE, DELETE
+            li • Schema flexível e documental
+            li • Ideal para dados não estruturados
+            li • Repository: <code class="px-1 py-0.5 bg-green-100 rounded">MongoRepository</code>
+            li • ORM: Mongoose / Typegoose
+
+        div.p-6.bg-blue-50.rounded-lg.border.border-blue-200
+          h4(class="font-semibold text-blue-900 mb-3 flex items-center gap-2")
+            svg(class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+              path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z")
+              path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z")
+            | PostgreSQL - Leitura (Queries)
+          ul.space-y-2.text-sm.text-blue-800
+            li • Operações SELECT e consultas complexas
+            li • Schema relacional e tipado
+            li • Ideal para relatórios e análises
+            li • Repository: <code class="px-1 py-0.5 bg-blue-100 rounded">PostgresRepository</code>
+            li • ORM: TypeORM
+
+      h4(class="font-semibold text-gray-900 mb-3") Repository Pattern
+      p(class="text-gray-700 mb-4")
+        | Cada módulo possui repositories separados para MongoDB e PostgreSQL, permitindo escolher o banco adequado para cada operação.
+      
+      .code-block.mb-4
+        .code-header
+          span TypeScript
+          span Repository Example
+        .code-content
+          pre.
+            // Service usa o repository apropriado
+            constructor(
+              private mongoRepo: UserMongoRepository,  // Escrita
+              private postgresRepo: UserPostgresRepository  // Leitura
+            ) {}
+            
+            async createUser(data: CreateUserDto) {
+              return this.mongoRepo.create(data);  // MongoDB
+            }
+            
+            async findUsers() {
+              return this.postgresRepo.findAll();  // PostgreSQL
+            }
+
+      .alert.alert-info
+        svg(class="w-5 h-5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+          path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z")
+        div
+          p.font-medium.text-blue-900 Sincronização entre Bancos
+          p.text-sm.text-blue-700 
+            | Os dados são sincronizados entre MongoDB e PostgreSQL através de processos assíncronos ou eventos Kafka, 
+            | garantindo consistência eventual entre os bancos.
+
+  //- Relacionamento entre Tecnologias
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6") Como as Tecnologias se Relacionam
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      .mb-6
+        h3(class="font-semibold text-gray-900 mb-4") Diagrama de Relacionamento
+        div(class="bg-gray-50 rounded-lg p-6")
+          div(class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center")
+            div.p-4.bg-white.rounded.border.border-gray-200
+              div.text-2xl.font-bold.text-indigo-600.mb-2 NestJS
+              p.text-xs.text-gray-600 Framework Core
+            div.p-4.bg-white.rounded.border.border-gray-200
+              div.text-2xl.font-bold.text-green-600.mb-2 MongoDB
+              p.text-xs.text-gray-600 Escrita
+            div.p-4.bg-white.rounded.border.border-gray-200
+              div.text-2xl.font-bold.text-blue-600.mb-2 PostgreSQL
+              p.text-xs.text-gray-600 Leitura
+          div.text-center.my-4
+            svg(class="w-6 h-6 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+              path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3")
+          div(class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center")
+            div.p-4.bg-white.rounded.border.border-gray-200
+              div.text-2xl.font-bold.text-orange-600.mb-2 Redis
+              p.text-xs.text-gray-600 Cache
+            div.p-4.bg-white.rounded.border.border-gray-200
+              div.text-2xl.font-bold.text-purple-600.mb-2 Kafka
+              p.text-xs.text-gray-600 Mensageria
+            div.p-4.bg-white.rounded.border.border-gray-200
+              div.text-2xl.font-bold.text-yellow-600.mb-2 MinIO
+              p.text-xs.text-gray-600 Storage
+
+      ul.space-y-4.text-gray-700
+        li
+          strong.text-gray-900 NestJS ↔ MongoDB/PostgreSQL:
+          span.ml-2 Framework se comunica com bancos através de Mongoose e TypeORM
+        li
+          strong.text-gray-900 NestJS ↔ Redis:
+          span.ml-2 Cache interceptors utilizam Redis para armazenar resultados
+        li
+          strong.text-gray-900 NestJS ↔ Kafka:
+          span.ml-2 Eventos e mensagens são publicados/consumidos via Kafka
+        li
+          strong.text-gray-900 NestJS ↔ MinIO:
+          span.ml-2 Upload e download de arquivos via API S3-compatible
+        li
+          strong.text-gray-900 MongoDB ↔ PostgreSQL:
+          span.ml-2 Sincronização via eventos Kafka ou processos assíncronos
+

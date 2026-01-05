@@ -19,6 +19,33 @@ export class WikiController {
             currentPage: 'home'
         };
     }
+
+    @Get('architecture')
+    @Render('pages/architecture')
+    getArchitecture() {
+        return {
+            title: 'Arquitetura - Backend NestJS',
+            currentPage: 'architecture'
+        };
+    }
+
+    @Get('backend')
+    @Render('pages/backend')
+    getBackend() {
+        return {
+            title: 'Guia Backend - Backend NestJS',
+            currentPage: 'backend-guide'
+        };
+    }
+
+    @Get('auth')
+    @Render('pages/auth')
+    getAuth() {
+        return {
+            title: 'Autenticação JWT - Backend NestJS',
+            currentPage: 'auth'
+        };
+    }
     // Serve static files
     @Get('static/*')
     serveStatic(@Param('0') filePath: string, @Res() res: Response) {

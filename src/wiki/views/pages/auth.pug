@@ -1,0 +1,468 @@
+extends ../layouts/main
+
+block content
+  //- Header
+  .mb-12
+    .inline-flex.items-center.gap-2.px-3.py-1.bg-indigo-50.rounded-full.text-indigo-700.text-sm.font-medium.mb-4
+      svg(class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z")
+      span Autenticação e Autorização
+    h1(class="text-4xl font-bold text-gray-900 mb-4")
+      | Autenticação 
+      span.gradient-text JWT & Roles
+    p(class="text-xl text-gray-600 max-w-3xl")
+      | Entenda como funciona a autenticação via JWT, sistema de roles e como usar decorators e guards.
+
+  //- Visão Geral
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6") Visão Geral
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")
+        | O sistema utiliza <strong>JWT (JSON Web Tokens)</strong> para autenticação e um sistema de <strong>roles</strong> para autorização. 
+        | Todas as rotas são protegidas por padrão, exceto aquelas marcadas com o decorator <code class="px-2 py-1 bg-gray-100 rounded text-sm">@Public()</code>.
+
+      div(class="grid grid-cols-1 md:grid-cols-2 gap-6")
+        div.p-6.bg-indigo-50.rounded-lg.border.border-indigo-200
+          h3(class="font-semibold text-indigo-900 mb-3") Autenticação (JWT)
+          ul.space-y-2.text-sm.text-indigo-800
+            li • Token de acesso (Access Token)
+            li • Token de refresh (Refresh Token)
+            li • Validação automática via Guards
+            li • Estratégia Passport JWT
+
+        div.p-6.bg-purple-50.rounded-lg.border.border-purple-200
+          h3(class="font-semibold text-purple-900 mb-3") Autorização (Roles)
+          ul.space-y-2.text-sm.text-purple-800
+            li • Sistema de roles flexível
+            li • Decorators para controle de acesso
+            li • Guards para validação de permissões
+            li • Múltiplas roles por usuário
+
+  //- Fluxo de Autenticação JWT
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6") Fluxo de Autenticação JWT
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      .flow-step.mb-6(data-step="1")
+        h3(class="font-semibold text-gray-900 mb-2") 1. Login do Usuário
+        p.text-gray-600 Usuário envia credenciais (email e senha) para o endpoint de login
+        .code-block.mt-3
+          .code-header
+            span HTTP Request
+            span POST /auth/login
+          .code-content
+            pre.
+              POST /auth/login
+              Content-Type: application/json
+              
+              {
+                "email": "usuario@example.com",
+                "password": "senha123"
+              }
+
+      .flow-step.mb-6(data-step="2")
+        h3(class="font-semibold text-gray-900 mb-2") 2. Validação de Credenciais
+        p.text-gray-600 
+          | O <code class="px-2 py-1 bg-gray-100 rounded text-sm">AuthService</code> valida email e senha usando bcrypt para comparar hash da senha
+
+      .flow-step.mb-6(data-step="3")
+        h3(class="font-semibold text-gray-900 mb-2") 3. Geração de Tokens
+        p.text-gray-600 
+          | Sistema gera dois tokens JWT:
+          ul.mt-2.ml-4.space-y-1.text-sm.text-gray-600
+            li • <strong>Access Token</strong>: Expira em 1h (configurável)
+            li • <strong>Refresh Token</strong>: Expira em 7d (configurável)
+        .code-block.mt-3
+          .code-header
+            span HTTP Response
+            span 200 OK
+          .code-content
+            pre.
+              {
+                "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                "user": {
+                  "id": "123",
+                  "email": "usuario@example.com",
+                  "roles": ["admin", "user"]
+                }
+              }
+
+      .flow-step.mb-6(data-step="4")
+        h3(class="font-semibold text-gray-900 mb-2") 4. Uso do Token
+        p.text-gray-600 Cliente inclui o Access Token no header Authorization de todas as requisições
+        .code-block.mt-3
+          .code-header
+            span HTTP Request
+            span Com Token
+          .code-content
+            pre.
+              GET /api/users
+              Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+              Content-Type: application/json
+
+      .flow-step.mb-6(data-step="5")
+        h3(class="font-semibold text-gray-900 mb-2") 5. Validação do Token
+        p.text-gray-600 
+          | <code class="px-2 py-1 bg-gray-100 rounded text-sm">JwtAuthGuard</code> intercepta a requisição, 
+          | extrai e valida o token usando a estratégia Passport JWT
+
+      .flow-step.mb-6(data-step="6")
+        h3(class="font-semibold text-gray-900 mb-2") 6. Refresh Token
+        p.text-gray-600 Quando o Access Token expira, use o Refresh Token para obter um novo Access Token
+        .code-block.mt-3
+          .code-header
+            span HTTP Request
+            span POST /auth/refresh
+          .code-content
+            pre.
+              POST /auth/refresh
+              Content-Type: application/json
+              
+              {
+                "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              }
+
+  //- Sistema de Roles
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6") Sistema de Roles
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")
+        | O sistema de roles permite controlar o acesso a rotas e recursos baseado nas permissões do usuário. 
+        | Cada usuário pode ter múltiplas roles.
+
+      h3(class="font-semibold text-gray-900 mb-4") Roles Disponíveis
+      div(class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6")
+        div.p-4.bg-purple-50.rounded-lg.border.border-purple-200
+          span.role-badge.role-super.mb-2 super
+          p.text-sm.text-gray-700 Super Administrador - Acesso total ao sistema
+        div.p-4.bg-red-50.rounded-lg.border.border-red-200
+          span.role-badge.role-admin.mb-2 admin
+          p.text-sm.text-gray-700 Administrador - Gestão de usuários e recursos
+        div.p-4.bg-blue-50.rounded-lg.border.border-blue-200
+          span.role-badge.role-manager.mb-2 manager
+          p.text-sm.text-gray-700 Gerente - Gestão de recursos específicos
+        div.p-4.bg-green-50.rounded-lg.border.border-green-200
+          span.role-badge.role-resident.mb-2 resident
+          p.text-sm.text-gray-700 Usuário - Acesso às funcionalidades básicas
+
+      h3(class="font-semibold text-gray-900 mb-4") Estrutura de Roles no Usuário
+      .code-block.mb-6
+        .code-header
+          span TypeScript
+          span User Entity
+        .code-content
+          pre.
+            interface User {
+              id: string;
+              email: string;
+              roles: string[];  // Array de roles
+              // ... outros campos
+            }
+            
+            // Exemplo de usuário
+            const user = {
+              id: "123",
+              email: "admin@example.com",
+              roles: ["admin", "user"]  // Múltiplas roles
+            };
+
+  //- Decorators e Guards
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6") Decorators e Guards
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      h3(class="font-semibold text-gray-900 mb-4") Decorators Disponíveis
+
+      div(class="space-y-6")
+        div
+          h4(class="font-semibold text-gray-900 mb-2 flex items-center gap-2")
+            code.text-indigo-600 @Public()
+            span.text-gray-600 - Tornar rota pública
+          p.text-gray-700.mb-3
+            | Marca uma rota como pública, permitindo acesso sem autenticação. 
+            | Útil para endpoints de login, registro, etc.
+          .code-block
+            .code-header
+              span TypeScript
+              span Controller
+            .code-content
+              pre.
+                import { Public } from '@modules/auth/decorators/public.decorator';
+                
+                @Controller('auth')
+                export class AuthController {
+                  @Public()  // Rota pública, não requer autenticação
+                  @Post('login')
+                  async login(@Body() loginDto: LoginDto) {
+                    return this.authService.login(loginDto);
+                  }
+                }
+
+        div
+          h4(class="font-semibold text-gray-900 mb-2 flex items-center gap-2")
+            code.text-indigo-600 @Roles()
+            span.text-gray-600 - Restringir por role
+          p.text-gray-700.mb-3
+            | Define quais roles são necessárias para acessar a rota. 
+            | O usuário deve ter pelo menos uma das roles especificadas.
+          .code-block
+            .code-header
+              span TypeScript
+              span Controller
+            .code-content
+              pre.
+                import { Roles } from '@modules/auth/decorators/roles.decorator';
+                
+                @Controller('users')
+                export class UsersController {
+                  @Roles('admin', 'super')  // Apenas admin ou super
+                  @Get()
+                  async findAll() {
+                    return this.usersService.findAll();
+                  }
+                  
+                  @Roles('admin')  // Apenas admin
+                  @Delete(':id')
+                  async delete(@Param('id') id: string) {
+                    return this.usersService.delete(id);
+                  }
+                }
+
+      h3(class="font-semibold text-gray-900 mb-4 mt-8") Guards Implementados
+
+      div(class="space-y-6")
+        div
+          h4(class="font-semibold text-gray-900 mb-2")
+            code.text-indigo-600 JwtAuthGuard
+          p.text-gray-700.mb-3
+            | Guard que valida o token JWT em todas as requisições. 
+            | Verifica se o token é válido, não expirado e extrai o payload para o request.
+          .code-block
+            .code-header
+              span TypeScript
+              span Guard Implementation
+            .code-content
+              pre.
+                @Injectable()
+                export class JwtAuthGuard extends AuthGuard('jwt') {
+                  constructor(private reflector: Reflector) {
+                    super();
+                  }
+                  
+                  canActivate(context: ExecutionContext) {
+                    // Verifica se a rota é pública
+                    const isPublic = this.reflector.getAllAndOverride<boolean>(
+                      IS_PUBLIC_KEY,
+                      [context.getHandler(), context.getClass()]
+                    );
+                    
+                    if (isPublic) {
+                      return true;  // Permite acesso sem autenticação
+                    }
+                    
+                    return super.canActivate(context);  // Valida JWT
+                  }
+                }
+
+        div
+          h4(class="font-semibold text-gray-900 mb-2")
+            code.text-indigo-600 RolesGuard
+          p.text-gray-700.mb-3
+            | Guard que valida se o usuário possui as roles necessárias para acessar a rota.
+          .code-block
+            .code-header
+              span TypeScript
+              span Guard Implementation
+            .code-content
+              pre.
+                @Injectable()
+                export class RolesGuard implements CanActivate {
+                  constructor(private reflector: Reflector) {}
+                  
+                  canActivate(context: ExecutionContext): boolean {
+                    // Obtém roles requeridas do decorator @Roles()
+                    const requiredRoles = this.reflector.getAllAndOverride<string[]>(
+                      ROLES_KEY,
+                      [context.getHandler(), context.getClass()]
+                    );
+                    
+                    if (!requiredRoles) {
+                      return true;  // Nenhuma role requerida, permite acesso
+                    }
+                    
+                    // Obtém usuário do request (adicionado pelo JwtAuthGuard)
+                    const { user } = context.switchToHttp().getRequest();
+                    
+                    // Verifica se usuário tem pelo menos uma das roles
+                    return user && user.roles && 
+                           requiredRoles.some(role => user.roles.includes(role));
+                  }
+                }
+
+  //- Exemplos Práticos
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6") Exemplos Práticos
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      h3(class="font-semibold text-gray-900 mb-4") Exemplo 1: Rota Pública
+      .code-block.mb-6
+        .code-header
+          span TypeScript
+          span Public Route
+        .code-content
+          pre.
+            @Controller('auth')
+            export class AuthController {
+              @Public()  // Não requer autenticação
+              @Post('register')
+              async register(@Body() registerDto: RegisterDto) {
+                return this.authService.register(registerDto);
+              }
+            }
+
+      h3(class="font-semibold text-gray-900 mb-4") Exemplo 2: Rota Protegida (Qualquer Usuário Autenticado)
+      .code-block.mb-6
+        .code-header
+          span TypeScript
+          span Protected Route
+        .code-content
+          pre.
+            @Controller('profile')
+            export class ProfileController {
+              // Não precisa de @Public(), então requer autenticação
+              // Não precisa de @Roles(), então qualquer usuário autenticado pode acessar
+              @Get()
+              async getProfile(@Request() req) {
+                return req.user;  // Usuário disponível via JwtAuthGuard
+              }
+            }
+
+      h3(class="font-semibold text-gray-900 mb-4") Exemplo 3: Rota com Role Específica
+      .code-block.mb-6
+        .code-header
+          span TypeScript
+          span Role-Based Route
+        .code-content
+          pre.
+            @Controller('admin')
+            export class AdminController {
+              @Roles('admin', 'super')  // Apenas admin ou super
+              @Get('users')
+              async getAllUsers() {
+                return this.usersService.findAll();
+              }
+              
+              @Roles('super')  // Apenas super admin
+              @Delete('users/:id')
+              async deleteUser(@Param('id') id: string) {
+                return this.usersService.delete(id);
+              }
+            }
+
+      h3(class="font-semibold text-gray-900 mb-4") Exemplo 4: Múltiplas Roles
+      .code-block.mb-6
+        .code-header
+          span TypeScript
+          span Multiple Roles
+        .code-content
+          pre.
+            @Controller('reports')
+            export class ReportsController {
+              // Usuário precisa ter 'admin' OU 'manager'
+              @Roles('admin', 'manager')
+              @Get('financial')
+              async getFinancialReport() {
+                return this.reportsService.getFinancial();
+              }
+              
+              // Usuário precisa ter 'admin' E 'super' (se tiver ambas)
+              // Nota: @Roles() usa OR, não AND
+              // Para AND, você precisaria criar um guard customizado
+              @Roles('super')
+              @Get('system')
+              async getSystemReport() {
+                return this.reportsService.getSystem();
+              }
+            }
+
+  //- Estratégia JWT
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6") Estratégia JWT (Passport)
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")
+        | A estratégia JWT utiliza Passport para validar tokens e extrair informações do usuário do payload.
+
+      .code-block.mb-6
+        .code-header
+          span TypeScript
+          span JWT Strategy
+        .code-content
+          pre.
+            @Injectable()
+            export class JwtStrategy extends PassportStrategy(Strategy) {
+              constructor(
+                private configService: ConfigService,
+                private authService: AuthService
+              ) {
+                super({
+                  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+                  ignoreExpiration: false,
+                  secretOrKey: configService.get<string>('jwt.secret'),
+                });
+              }
+              
+              async validate(payload: any) {
+                // Payload contém: { id, email, roles, ... }
+                // Valida se o usuário ainda existe no banco
+                const user = await this.authService.validateUserById(payload.id);
+                if (!user) {
+                  throw new UnauthorizedException();
+                }
+                return user;  // Adicionado ao request como req.user
+              }
+            }
+
+      h3(class="font-semibold text-gray-900 mb-4") Payload do Token
+      .code-block
+        .code-header
+          span JSON
+          span JWT Payload
+        .code-content
+          pre.
+            {
+              "id": "user123",
+              "email": "usuario@example.com",
+              "roles": ["admin", "user"],
+              "iat": 1234567890,  // Issued at
+              "exp": 1234571490   // Expiration
+            }
+
+  //- Configuração
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6") Configuração
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")
+        | As configurações de JWT são feitas através de variáveis de ambiente e acessadas via <code class="px-2 py-1 bg-gray-100 rounded text-sm">ConfigService</code>.
+
+      .code-block.mb-6
+        .code-header
+          span Environment Variables
+          span .env
+        .code-content
+          pre.
+            # JWT Configuration
+            JWT_SECRET=seu_jwt_secret_super_seguro_aqui
+            JWT_EXPIRATION_TIME=1h
+            JWT_REFRESH_SECRET=seu_refresh_secret_super_seguro
+            JWT_REFRESH_EXPIRATION_TIME=7d
+            
+            # Bcrypt Configuration
+            BCRYPT_SALT_ROUNDS=10
+
+      .alert.alert-warning
+        svg(class="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+          path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z")
+        div
+          p.font-medium.text-amber-900 Segurança
+          p.text-sm.text-amber-700 
+            | Use secrets fortes e únicos em produção. O <code class="px-1 py-0.5 bg-amber-100 rounded">JWT_SECRET</code> deve ser uma string longa e aleatória. 
+            | Nunca commite secrets no repositório.
+
