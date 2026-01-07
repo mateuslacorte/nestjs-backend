@@ -21,9 +21,6 @@ export class UserMongoRepository {
 
 
     @EnableCache()
-
-
-
     async create(createUserDto: CreateUserDto, includePassword = false): Promise<IUser> {
         const { username, email, password } = createUserDto;
 
@@ -45,20 +42,18 @@ export class UserMongoRepository {
         });
 
         await newUser.save();
-
+        this.cacheService?.delPattern("users:*");
         // Return the user data excluding password
         return includePassword ? newUser.toObject() : this.omitPassword(newUser);
     }
 
     @EnableCache()
-    @CacheTTL(1800) // 30 minutos
     async findAll(): Promise<IUser[]> {
         const users = await this.userModel.find();
         return users.map(user => this.omitPassword(user));
     }
 
     @EnableCache()
-    @CacheTTL(1800) // 30 minutos
     async findById(id: string) {
         const user = await this.userModel.findById(id);
         if (!user) {
@@ -68,8 +63,6 @@ export class UserMongoRepository {
     }
 
     @EnableCache()
-
-
     async update(id: string, updateUserDto: Partial<IUser>, shouldOmitPassword: boolean = true): Promise<IUser> {
         // If password is provided and is not already hashed, hash it
         if (updateUserDto.password && !this.isAlreadyHashed(updateUserDto.password)) {
@@ -101,17 +94,17 @@ export class UserMongoRepository {
             throw new NotFoundException(`User with ID ${id} not found`);
         }
 
+        this.cacheService?.delPattern("users:*");
         return shouldOmitPassword ? this.omitPassword(updatedUser) : updatedUser.toObject() as IUser;
     }
 
     @EnableCache()
-
-
     async remove(id: string): Promise<IUser> {
         const deletedUser = await this.userModel.findByIdAndDelete(id);
         if (!deletedUser) {
             throw new NotFoundException(`User with ID ${id} not found`);
         }
+        this.cacheService?.delPattern("users:*");
         return this.omitPassword(deletedUser);
     }
 

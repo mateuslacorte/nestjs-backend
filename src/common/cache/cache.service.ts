@@ -59,16 +59,69 @@ export class CacheService {
 
     /**
      * Remove todas as chaves que correspondem a um padrão
+     * Usa SCAN para ser mais seguro em produção (não bloqueia o Redis)
      */
     async delPattern(pattern: string): Promise<void> {
         try {
-            const keys = await this.redis.keys(pattern);
+            this.logger.debug(`[Cache] Buscando chaves com padrão: ${pattern}`);
+            
+            // Converte padrão glob para regex
+            const regexPattern = pattern
+                .replace(/\*/g, '.*')
+                .replace(/\?/g, '.');
+            const regex = new RegExp(`^${regexPattern}$`);
+            
+            const keys: string[] = [];
+            let cursor = '0';
+            
+            // Usa SCAN para iterar sobre as chaves (mais seguro que KEYS)
+            do {
+                const result = await this.redis.scan(cursor, 'MATCH', pattern, 'COUNT', 100);
+                cursor = result[0];
+                const foundKeys = result[1];
+                
+                // Filtra as chaves que realmente correspondem ao padrão
+                for (const key of foundKeys) {
+                    if (regex.test(key)) {
+                        keys.push(key);
+                    }
+                }
+            } while (cursor !== '0');
+            
+            this.logger.debug(`[Cache] Encontradas ${keys.length} chaves com padrão ${pattern}`);
+            
             if (keys.length > 0) {
-                await this.redis.del(...keys);
-                this.logger.debug(`Invalidados ${keys.length} caches com padrão ${pattern}`);
+                // Se houver muitas chaves, deleta em lotes para evitar problemas
+                const batchSize = 100;
+                for (let i = 0; i < keys.length; i += batchSize) {
+                    const batch = keys.slice(i, i + batchSize);
+                    await this.redis.del(...batch);
+                }
+                this.logger.log(`[Cache] ✅ Invalidados ${keys.length} caches com padrão ${pattern}`);
+                if (keys.length <= 10) {
+                    this.logger.debug(`[Cache] Chaves invalidadas: ${keys.join(', ')}`);
+                }
+            } else {
+                this.logger.debug(`[Cache] Nenhuma chave encontrada com padrão ${pattern}`);
             }
         } catch (error) {
-            this.logger.error(`Erro ao deletar cache com padrão ${pattern}:`, error);
+            this.logger.error(`[Cache] ❌ Erro ao deletar cache com padrão ${pattern}:`, error);
+            // Tenta usar KEYS como fallback se SCAN falhar
+            try {
+                this.logger.warn(`[Cache] Tentando usar KEYS como fallback para padrão ${pattern}`);
+                const keys = await this.redis.keys(pattern);
+                if (keys.length > 0) {
+                    const batchSize = 100;
+                    for (let i = 0; i < keys.length; i += batchSize) {
+                        const batch = keys.slice(i, i + batchSize);
+                        await this.redis.del(...batch);
+                    }
+                    this.logger.log(`[Cache] ✅ Invalidados ${keys.length} caches (fallback) com padrão ${pattern}`);
+                }
+            } catch (fallbackError) {
+                this.logger.error(`[Cache] ❌ Erro no fallback também:`, fallbackError);
+                throw error; // Re-throw o erro original
+            }
         }
     }
 

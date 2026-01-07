@@ -3,7 +3,7 @@ import {Injectable, Optional} from "@nestjs/common";
 import {UserEntity} from "@modules/users/entities/user.entity";
 import {Repository} from "typeorm";
 import {IUser} from "@modules/users/interfaces/user.interface";
-import {EnableCache, CacheTTL} from "@common/cache/decorators/cache.decorator";
+import {EnableCache, CacheTTL, NoCache} from "@common/cache/decorators/cache.decorator";
 import {CacheService} from "@common/cache/cache.service";
 
 @Injectable()
@@ -20,7 +20,6 @@ export class UserPostgresRepository {
      * @returns Array of IUser or null if no users found
      */
     @EnableCache()
-    @CacheTTL(3600) // 1 hora
     async findAll(): Promise<UserEntity[] | null> {
         return this.userRepository.find({});
     }
@@ -31,7 +30,6 @@ export class UserPostgresRepository {
      * @returns The user or null if not found
      */
     @EnableCache()
-    @CacheTTL(3600) // 1 hora
     async findById(id: string): Promise<UserEntity | null> {
         return this.userRepository.findOne({ where: { id } });
     }
@@ -40,9 +38,9 @@ export class UserPostgresRepository {
      * Find a user by email
      * @param email - The user's email
      * @returns The user or null if not found
+     * @NoCache - Não usar cache para evitar problemas com autenticação e verificação de e-mail
      */
-    @EnableCache()
-    @CacheTTL(1800) // 30 minutos
+    @NoCache()
     async findByEmail(email: string): Promise<UserEntity | null> {
         return this.userRepository.findOne({ where: { email } });
     }
@@ -51,7 +49,9 @@ export class UserPostgresRepository {
      * Find a user by email verification token
      * @param token - The email verification token
      * @returns The user or null if not found
+     * @NoCache - Não usar cache para garantir dados atualizados na verificação
      */
+    @NoCache()
     async findByEmailVerificationToken(token: string): Promise<IUser | null> {
         // Implementation depends on your database structure
         // Example with TypeORM:
@@ -65,7 +65,9 @@ export class UserPostgresRepository {
      * Find a user by password reset token
      * @param token - The password reset token
      * @returns The user or null if not found
+     * @NoCache - Não usar cache para garantir dados atualizados na recuperação de senha
      */
+    @NoCache()
     async findByPasswordToken(token: string): Promise<UserEntity | null> {
         return this.userRepository.findOne({ where: {passwordResetToken: token } });
     }
@@ -76,7 +78,6 @@ export class UserPostgresRepository {
      * @returns The created or updated user
      */
     @EnableCache()
-
     async upsert(userData: IUser): Promise<UserEntity> {
         let user: UserEntity | null = null;
 
@@ -95,14 +96,18 @@ export class UserPostgresRepository {
                 : (({ password, ...rest }) => rest)(userData);
 
             Object.assign(user, dataToUpdate);
-            return this.userRepository.save(user);
+            const userSaved = await this.userRepository.save(user);
+            this.cacheService?.delPattern("users:*");
+            return userSaved;
         } else {
             // For new users, password is required
             if (!userData.password) {
                 throw new Error('Password is required for new users');
             }
             const newUser = this.userRepository.create(userData);
-            return this.userRepository.save(newUser);
+            const newUserSaved = await this.userRepository.save(newUser);
+            this.cacheService?.delPattern("users:*");
+            return newUserSaved;
         }
     }
 }

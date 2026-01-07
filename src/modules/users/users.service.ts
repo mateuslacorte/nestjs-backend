@@ -4,6 +4,7 @@ import { UserMongoRepository } from "@modules/users/repositories/mongo.repositor
 import {Injectable} from "@nestjs/common";
 import { CreateUserDto } from "./dtos/create-user.dto";
 import { UpdateUserDto } from "./dtos/update-user.dto";
+import { CacheTTL, EnableCache, NoCache } from "@common/cache/decorators/cache.decorator";
 
 @Injectable()
 export class UsersService {
@@ -17,6 +18,8 @@ export class UsersService {
    * @param userData - User data to create
    * @returns The created user
    */
+  @EnableCache()
+  @CacheTTL(1800) // 30 minutos
   async create(userData: CreateUserDto): Promise<IUser> {
     const user = await this.mongoRepo.create(userData, true);
     await this.postgresRepo.upsert(user);
@@ -27,6 +30,8 @@ export class UsersService {
    * Find all users
    * @returns List of users or null if none found
    */
+  @EnableCache()
+  @CacheTTL(1800) // 30 minutos
   async findAll(): Promise<IUser[] | null> {
     return this.postgresRepo.findAll();
   }
@@ -36,6 +41,7 @@ export class UsersService {
    * @param id - User ID
    * @returns The user or null if not found
    */
+  @NoCache()
   async findById(id: string): Promise<IUser | null> {
     return this.postgresRepo.findById(id);
   }
@@ -45,6 +51,7 @@ export class UsersService {
    * @param email - User's email
    * @returns The user or null if not found
    */
+  @NoCache()
   async findByEmail(email: string): Promise<IUser | null> {
     return this.postgresRepo.findByEmail(email);
   }
@@ -54,6 +61,7 @@ export class UsersService {
    * @param token - User's email verification token
    * @returns The user or null if not found
    */
+  @NoCache()
   async findByEmailVerificationToken(token: string): Promise<IUser | null> {
     return this.postgresRepo.findByEmailVerificationToken(token);
   }
@@ -63,6 +71,7 @@ export class UsersService {
    * @param token - User's password reset token
    * @returns The user or null if not found
    */
+  @NoCache()
   async findByPasswordToken(token: string): Promise<IUser | null> {
     return this.postgresRepo.findByPasswordToken(token);
   }
@@ -72,6 +81,8 @@ export class UsersService {
    * @param id - User's ID
    * @returns The updated user
    */
+  @EnableCache()
+  @CacheTTL(1800) // 30 minutos
   async update(id: string, updateUserDto: UpdateUserDto): Promise<IUser> {
     const updatedUser = await this.mongoRepo.update(id, updateUserDto);
     await this.postgresRepo.upsert(updatedUser);
@@ -83,6 +94,8 @@ export class UsersService {
    * @param id
    * @returns The removed user
    */
+  @EnableCache()
+  @CacheTTL(1800) // 30 minutos
   async remove(id: string): Promise<IUser> {
     const removedUser = await this.mongoRepo.remove(id);
     // TODO: Consider how to handle deletion in PostgreSQL

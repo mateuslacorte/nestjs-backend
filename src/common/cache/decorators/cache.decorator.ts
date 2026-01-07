@@ -65,6 +65,9 @@ export function EnableCache() {
                 moduleName = inferModuleNameFromClassName(className);
             }
             const entityName = extractEntityName(className);
+            
+            // Log para debug
+            console.log(`[Cache] Método ${className}.${propertyName} - moduleName: ${moduleName}, entityName: ${entityName}`);
             // Obtém CacheService via injeção de dependência
             // O CacheService deve ser injetado no construtor do repositório
             const cacheService: CacheService | undefined = (this as any).cacheService;
@@ -119,16 +122,23 @@ export function EnableCache() {
             );
 
             if (isWriteMethod) {
-                console.log(`[Cache] Método de escrita detectado para ${className}.${propertyName}`);
+                console.log(`[Cache] ✅ Método de escrita detectado para ${className}.${propertyName}`);
                 const result = await originalMethod.apply(this, args);
-                await invalidateRelatedCache(
-                    cacheService,
-                    className,
-                    propertyName,
-                    args,
-                    moduleName,
-                    entityName,
-                );
+                console.log(`[Cache] Executando invalidação de cache para ${className}.${propertyName}...`);
+                try {
+                    await invalidateRelatedCache(
+                        cacheService,
+                        className,
+                        propertyName,
+                        args,
+                        moduleName,
+                        entityName,
+                    );
+                    console.log(`[Cache] ✅ Invalidação de cache concluída para ${className}.${propertyName}`);
+                } catch (error) {
+                    console.error(`[Cache] ❌ Erro ao invalidar cache para ${className}.${propertyName}:`, error);
+                    // Não falha a operação se a invalidação falhar
+                }
                 return result;
             }
 
@@ -225,10 +235,18 @@ async function invalidateRelatedCache(
         patterns.push(`${dbType}:${finalModuleName}:${entityName}:findById:${id}`);
     }
 
-    console.log(`[Cache] Invalidando cache com padrões: ${patterns.join(', ')}`);
+    console.log(`[Cache] 🔄 Invalidando cache com ${patterns.length} padrões: ${patterns.join(', ')}`);
+    console.log(`[Cache] Contexto: moduleName=${finalModuleName}, entityName=${entityName}, dbType=${dbType}, id=${id || 'N/A'}`);
+    
     for (const pattern of patterns) {
-        await cacheService.delPattern(pattern);
+        try {
+            await cacheService.delPattern(pattern);
+        } catch (error) {
+            console.error(`[Cache] ❌ Erro ao invalidar padrão ${pattern}:`, error);
+        }
     }
+    
+    console.log(`[Cache] ✅ Invalidação de cache concluída`);
 }
 
 /**
