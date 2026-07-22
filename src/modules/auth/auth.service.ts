@@ -49,14 +49,8 @@ export class AuthService {
         });
 
         // Generate email verification token and send confirmation email
-        // #region agent log
-        fetch('http://127.0.0.1:7819/ingest/fbe1cad3-998e-49ad-8e1a-b66eb8e3457b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'afbe56'},body:JSON.stringify({sessionId:'afbe56',runId:'pre-fix',hypothesisId:'C,D',location:'auth.service.ts:register:beforeSend',message:'register about to send confirmation',data:{userId:newUser.id,emailDomain:typeof newUser.email==='string'&&newUser.email.includes('@')?newUser.email.split('@')[1]:'invalid',emailLength:typeof newUser.email==='string'?newUser.email.length:0,hasWhitespace:typeof newUser.email==='string'&&/\s/.test(newUser.email),isActive:newUser.isActive},timestamp:Date.now()})}).catch(()=>{});
-        // #endregion
         const verificationToken = await this.createEmailVerificationToken(newUser.email);
         await this.sendEmailVerification(newUser.email, verificationToken);
-        // #region agent log
-        fetch('http://127.0.0.1:7819/ingest/fbe1cad3-998e-49ad-8e1a-b66eb8e3457b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'afbe56'},body:JSON.stringify({sessionId:'afbe56',runId:'pre-fix',hypothesisId:'B',location:'auth.service.ts:register:afterSend',message:'register confirmation send completed without throw',data:{userId:newUser.id,emailDomain:typeof newUser.email==='string'&&newUser.email.includes('@')?newUser.email.split('@')[1]:'invalid'},timestamp:Date.now()})}).catch(()=>{});
-        // #endregion
 
         // Generate tokens
         const tokens = await this.generateTokens(newUser);
@@ -74,9 +68,6 @@ export class AuthService {
      * @returns The verification token
      */
     async createEmailVerificationToken(email: string): Promise<string> {
-        // #region agent log
-        fetch('http://127.0.0.1:7819/ingest/fbe1cad3-998e-49ad-8e1a-b66eb8e3457b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'afbe56'},body:JSON.stringify({sessionId:'afbe56',runId:'pre-fix',hypothesisId:'C,D',location:'auth.service.ts:createEmailVerificationToken:entry',message:'create verification token entry',data:{emailDomain:typeof email==='string'&&email.includes('@')?email.split('@')[1]:'invalid',emailLength:typeof email==='string'?email.length:0,emailUndefined:email===undefined,emailNull:email===null,hasWhitespace:typeof email==='string'&&/\s/.test(email)},timestamp:Date.now()})}).catch(()=>{});
-        // #endregion
         const user = await this.usersService.findByEmail(email);
         if (!user) {
             throw new NotFoundException('Usuário não encontrado');
@@ -94,9 +85,6 @@ export class AuthService {
             emailVerificationExpires: tokenExpiry
         });
 
-        // #region agent log
-        fetch('http://127.0.0.1:7819/ingest/fbe1cad3-998e-49ad-8e1a-b66eb8e3457b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'afbe56'},body:JSON.stringify({sessionId:'afbe56',runId:'pre-fix',hypothesisId:'D',location:'auth.service.ts:createEmailVerificationToken:saved',message:'verification token saved',data:{userId:user.id,storedEmailDomain:typeof user.email==='string'&&user.email.includes('@')?user.email.split('@')[1]:'invalid',inputMatchesStored:typeof email==='string'&&typeof user.email==='string'&&email.toLowerCase()===user.email.toLowerCase(),tokenLength:verificationToken.length},timestamp:Date.now()})}).catch(()=>{});
-        // #endregion
 
         // Return the original (unhashed) token to be sent to the user
         return verificationToken;
