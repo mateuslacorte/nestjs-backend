@@ -9,6 +9,11 @@ import { SendWhatsappDto } from './dtos/send-whatsapp.dto';
 export class WhatsappController {
     constructor(private readonly whatsappService: WhatsappService) {}
 
+    /**
+     * Send a WhatsApp message
+     * @param sendWhatsappDto - WhatsApp message data
+     * @returns The WhatsApp message sent successfully
+     */
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth('access-token')
     @Post('send')
@@ -28,6 +33,12 @@ export class WhatsappController {
             }
         }
     })
+
+    /**
+     * Send a WhatsApp message
+     * @param sendWhatsappDto - WhatsApp message data
+     * @returns The WhatsApp message sent successfully
+     */
     async sendMessage(@Body() sendWhatsappDto: SendWhatsappDto) {
         await this.whatsappService.sendMessage(
             sendWhatsappDto.to,

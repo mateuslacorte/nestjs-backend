@@ -1,6 +1,5 @@
 import {IUser} from "@modules/users/interfaces/user.interface";
 import {UserPostgresRepository} from "@modules/users/repositories/postgres.repository";
-import { UserMongoRepository } from "@modules/users/repositories/mongo.repository";
 import {Injectable} from "@nestjs/common";
 import { CreateUserDto } from "./dtos/create-user.dto";
 import { UpdateUserDto } from "./dtos/update-user.dto";
@@ -9,21 +8,18 @@ import { CacheTTL, EnableCache, NoCache } from "@common/cache/decorators/cache.d
 @Injectable()
 export class UsersService {
   constructor(
-      private readonly mongoRepo: UserMongoRepository,
       private readonly postgresRepo: UserPostgresRepository
   ) {}
 
   /**
-   * Create a new user and synchronize with PostgreSQL
+   * Create a new user
    * @param userData - User data to create
    * @returns The created user
    */
   @EnableCache()
-  @CacheTTL(1800) // 30 minutos
+  @CacheTTL(1800)
   async create(userData: CreateUserDto): Promise<IUser> {
-    const user = await this.mongoRepo.create(userData, true);
-    await this.postgresRepo.upsert(user);
-    return user;
+    return this.postgresRepo.create(userData, true);
   }
 
   /**
@@ -31,7 +27,7 @@ export class UsersService {
    * @returns List of users or null if none found
    */
   @EnableCache()
-  @CacheTTL(1800) // 30 minutos
+  @CacheTTL(1800)
   async findAll(): Promise<IUser[] | null> {
     return this.postgresRepo.findAll();
   }
@@ -82,11 +78,9 @@ export class UsersService {
    * @returns The updated user
    */
   @EnableCache()
-  @CacheTTL(1800) // 30 minutos
+  @CacheTTL(1800)
   async update(id: string, updateUserDto: UpdateUserDto): Promise<IUser> {
-    const updatedUser = await this.mongoRepo.update(id, updateUserDto);
-    await this.postgresRepo.upsert(updatedUser);
-    return updatedUser;
+    return this.postgresRepo.update(id, updateUserDto);
   }
 
   /**
@@ -95,11 +89,9 @@ export class UsersService {
    * @returns The removed user
    */
   @EnableCache()
-  @CacheTTL(1800) // 30 minutos
+  @CacheTTL(1800)
   async remove(id: string): Promise<IUser> {
-    const removedUser = await this.mongoRepo.remove(id);
-    // TODO: Consider how to handle deletion in PostgreSQL
-    return removedUser;
+    return this.postgresRepo.remove(id);
   }
 
   /**
@@ -111,8 +103,7 @@ export class UsersService {
     passwordResetToken: string | undefined;
     passwordResetExpires: Date | undefined;
   }): Promise<void> {
-    const updatedUser = await this.mongoRepo.update(userId!, resetData);
-    await this.postgresRepo.upsert(updatedUser);
+    await this.postgresRepo.update(userId!, resetData);
   }
 
   /**
@@ -125,19 +116,7 @@ export class UsersService {
     passwordResetToken: string | undefined;
     passwordResetExpires: Date | undefined;
   }): Promise<void> {
-    const updatedUser = await this.mongoRepo.update(userId, passwordData, false);
-    await this.postgresRepo.upsert(updatedUser);
-  }
-
-  /**
-   * Synchronize a user from MongoDB to PostgreSQL
-   * @param userId - User ID to synchronize
-   */
-  async syncUser(userId: string): Promise<void> {
-    const user = await this.mongoRepo.findById(userId);
-    if (user) {
-      await this.postgresRepo.upsert(user);
-    }
+    await this.postgresRepo.update(userId, passwordData, false);
   }
 
   /**
@@ -147,9 +126,7 @@ export class UsersService {
    * @returns The updated user
    */
   async updateRoles(userId: string, roles: string[]): Promise<IUser> {
-    const updatedUser = await this.mongoRepo.update(userId, { roles });
-    await this.postgresRepo.upsert(updatedUser);
-    return updatedUser;
+    return this.postgresRepo.update(userId, { roles });
   }
 
   /**
@@ -202,7 +179,6 @@ export class UsersService {
     }
     
     const newRoles = user.roles.map(r => r === oldRole ? newRole : r);
-    // Ensure no duplicates
     const uniqueRoles = [...new Set(newRoles)];
     return this.updateRoles(userId, uniqueRoles);
   }

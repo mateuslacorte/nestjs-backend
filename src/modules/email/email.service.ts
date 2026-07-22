@@ -19,19 +19,22 @@ export class EmailService {
    * @param token
    */
   async sendEmailConfirmation(email: string, token: string): Promise<void> {
-
-    await this.mailerService.sendMail({
-      to: email,
-      subject: 'Confirmação de E-mail - Backend NestJS',
-      html: `
-        <h3>Confirmação de E-mail</h3>
-        <p>Obrigado por se registrar!</p>
-        <p>Por favor, insira o código abaixo para confirmar seu endereço de e-mail:</p>
-        <strong style="font-size: 24px; letter-spacing: 4px; color: #2563eb;">${token}</strong>
-        <p>Este código expira em 24 horas.</p>
-        <p style="color: #666; font-size: 12px; margin-top: 20px;">Se você não se registrou nesta plataforma, por favor ignore este e-mail.</p>
-      `,
-    });
+    try {
+      const result = await this.mailerService.sendMail({
+        to: email,
+        subject: 'E-mail Confirmation',
+        html: `
+          <h3>E-mail Confirmation</h3>
+          <p>Thank you for registering!</p>
+          <p>Please enter the code below to confirm your email address:</p>
+          <strong style="font-size: 24px; letter-spacing: 4px; color: #2563eb;">${token}</strong>
+          <p>This code expires in 24 hours.</p>
+          <p style="color: #666; font-size: 12px; margin-top: 20px;">If you did not register on this platform, please ignore this email.</p>
+        `,
+      });
+    } catch (error: unknown) {
+      throw error;
+    }
   }
 
   /**
@@ -42,14 +45,14 @@ export class EmailService {
   async sendPasswordReset(email: string, token: string): Promise<void> {
     await this.mailerService.sendMail({
       to: email,
-      subject: 'Recuperação de Senha - Backend NestJS',
+      subject: 'Password Reset',
       html: `
-        <h3>Recuperação de Senha</h3>
-        <p>Você solicitou a recuperação de senha.</p>
-        <p>Use o código abaixo para redefinir sua senha:</p>
+        <h3>Password Reset</h3>
+        <p>You requested a password reset.</p>
+        <p>Use the code below to reset your password:</p>
         <strong style="font-size: 24px; letter-spacing: 4px; color: #2563eb;">${token}</strong>
-        <p>Este código expira em 1 hora.</p>
-        <p style="color: #666; font-size: 12px; margin-top: 20px;">Se você não solicitou a recuperação de senha, por favor ignore este e-mail.</p>
+        <p>This code expires in 1 hour.</p>
+        <p style="color: #666; font-size: 12px; margin-top: 20px;">If you did not request a password reset, please ignore this email.</p>
       `,
     });
   }

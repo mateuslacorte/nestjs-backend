@@ -4,7 +4,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { LogtailLoggerService } from '@common/logtail/logtail-logger.service';
+import { GraylogLoggerService } from '@common/graylog/graylog-logger.service';
 import * as crypto from 'crypto';
 import { join } from 'path';
 import { existsSync } from 'fs';
@@ -32,11 +32,11 @@ async function bootstrap() {
     app.setViewEngine('pug');
     app.useStaticAssets(publicPath, { prefix: '/wiki/static' });
 
-    // Get the LogtailLoggerService from the app context
-    const logtailLogger = app.get(LogtailLoggerService);
+    // Get the GraylogLoggerService from the app context
+    const graylogLogger = app.get(GraylogLoggerService);
 
     // Use the custom logger
-    app.useLogger(logtailLogger);
+    app.useLogger(graylogLogger);
 
     // Enable global validation pipe to validate incoming requests and DTOs
     app.useGlobalPipes(new ValidationPipe({
@@ -90,7 +90,7 @@ Acesse a documentação completa com fluxos e exemplos em [/wiki](/wiki).
     const protocol = configService.get<string>('app.environment') === 'production' ? 'https' : 'http';
     
     await app.listen(port);
-    logtailLogger.log(`Application is running on: ${protocol}://${host}:${port}`);
+    graylogLogger.log(`Application is running on: ${protocol}://${host}:${port}`);
 }
 
 bootstrap();

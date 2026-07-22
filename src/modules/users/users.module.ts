@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User, UserSchema } from './schemas/user.schema';
@@ -24,8 +25,9 @@ import {JwtAuthGuard} from "@modules/auth/guards/jwtauth.guard";
     UserPostgresRepository,
     {
       provide: 'BCRYPT_SALT_ROUNDS',
-      useValue: 10, // You can change this value if needed
-    },
+      useFactory: (configService: ConfigService) => configService.get<number>('bcrypt.saltRounds'),
+      inject: [ConfigService],
+  },
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
@@ -35,7 +37,11 @@ import {JwtAuthGuard} from "@modules/auth/guards/jwtauth.guard";
       useClass: RolesGuard,
     },
   ],
-  controllers: [UsersController],
-  exports: [UsersService],
+  controllers: [
+    UsersController
+  ],
+  exports: [
+    UsersService
+  ],
 })
 export class UsersModule {}

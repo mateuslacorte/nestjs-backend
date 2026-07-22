@@ -9,6 +9,10 @@ import { JwtAuthGuard } from '../auth/guards/jwtauth.guard';
 export class WebsocketExampleController {
     constructor(private readonly websocketExampleService: WebsocketExampleService) {}
 
+    /**
+     * Get the online websocket examples
+     * @returns The online websocket examples
+     */
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth('access-token')
     @Get('online')

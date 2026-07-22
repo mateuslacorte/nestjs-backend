@@ -13,6 +13,11 @@ import { Roles } from '@modules/auth/decorators/roles.decorator';
 export class UsersController {
     constructor(private readonly usersService: UsersService) {}
 
+    /**
+     * Create a new user
+     * @param createUserDto - User data to create
+     * @returns The created user
+     */
     @Post()
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('super')
@@ -32,6 +37,10 @@ export class UsersController {
         return this.usersService.create(createUserDto);
     }
 
+    /**
+     * Get all users
+     * @returns All users
+     */
     @Get()
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('super')
@@ -46,6 +55,11 @@ export class UsersController {
         return this.usersService.findAll();
     }
 
+    /**
+     * Get a user by ID
+     * @param id - The ID of the user to get
+     * @returns The user
+     */
     @Get(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('super')
@@ -66,9 +80,15 @@ export class UsersController {
         return this.usersService.findById(id);
     }
 
+    /**
+     * Update a user by ID
+     * @param id - The ID of the user to update
+     * @param updateUserDto - The user data to update
+     * @returns The updated user
+     */
     @Patch(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('super', 'manager', 'provider')
+    @Roles('super')
     @ApiOperation({
         summary: 'Update a user by ID',
         description: 'Updates a specific user by their ID. Requires super or admin role.'
@@ -91,6 +111,11 @@ export class UsersController {
         return this.usersService.update(id, updateUserDto);
     }
 
+    /**
+     * Delete a user by ID
+     * @param id - The ID of the user to delete
+     * @returns The deleted user
+     */
     @Delete(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('super')

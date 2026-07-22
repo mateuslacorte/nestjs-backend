@@ -6,6 +6,7 @@
   "scripts": {
     "start": "rm -rf dist && rm -f tsconfig.tsbuildinfo && nest start",
     "start:dev": "rm -rf dist && rm -f tsconfig.tsbuildinfo && nest start --watch",
+    "start:prod": "node dist/main.js",
     "build": "nest build",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -16,7 +17,6 @@
   "dependencies": {
     "@apollo/server": "4.12.2",
     "@apollo/subgraph": "2.11.2",
-    "@logtail/node": "",
     "@m8a/nestjs-typegoose": "12.0.1",
     "@nestjs-modules/mailer": "2.0.2",
     "@nestjs/apollo": "13.1.0",
@@ -31,7 +31,7 @@
     "@nestjs/platform-socket.io": "11.1.6",
     "@nestjs/schedule": "6.0.1",
     "@nestjs/swagger": "",
-    "@nestjs/terminus": "",
+    "@nestjs/terminus": "11.1.1",
     "@nestjs/typeorm": "",
     "@nestjs/websockets": "11.1.6",
     "@solana/web3.js": "",
@@ -61,6 +61,7 @@
     "pg": "",
     "pg-hstore": "",
     "pino": "",
+    "pug": "3.0.4",
     "quagga": "0.12.1",
     "redis": "",
     "rxjs": "",
@@ -85,6 +86,6 @@
     "supertest": "",
     "ts-jest": "",
     "ts-node": "",
-    "typescript": ""
+    "typescript": "~5.8.3"
   }
 }

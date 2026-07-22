@@ -15,8 +15,9 @@ export class WhatsappService {
 
   /**
    * Send a WhatsApp message
-   * @param to
+   * @param to - The phone number to send the message to
    * @param message
+   * @returns The WhatsApp message sent successfully
    */
   async sendMessage(to: string, message: string): Promise<void> {
     const requestOptions = {

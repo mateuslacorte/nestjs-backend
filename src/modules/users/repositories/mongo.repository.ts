@@ -19,40 +19,51 @@ export class UserMongoRepository {
         private cacheService?: CacheService
     ) {}
 
-
+    /**
+     * Create a new user in the MongoDB database
+     * @param createUserDto - User data to create
+     * @param includePassword - Whether to return the password hash
+     * @returns The created user
+     */
     @EnableCache()
     async create(createUserDto: CreateUserDto, includePassword = false): Promise<IUser> {
         const { username, email, password } = createUserDto;
-
-        // Check if the user already exists
+        
         const existingUser = await this.userModel.findOne({ $or: [{ email }, { username }] });
         if (existingUser) {
             throw new ConflictException('User with this email or username already exists');
         }
 
-        // Hash the password
         const hashedPassword = await bcrypt.hash(password, Number(process.env.BCRYPT_HASH_FACTOR));
         const userId = uuidv4();
-        // Create and save the new user
+
         const newUser = new this.userModel({
             ...createUserDto,
-            _id: userId, // Use UUID as the MongoDB _id
-            id: userId, // Store UUID as a separate field
+            _id: userId, 
+            id: userId, 
             password: hashedPassword,
         });
 
         await newUser.save();
         this.cacheService?.delPattern("users:*");
-        // Return the user data excluding password
         return includePassword ? newUser.toObject() : this.omitPassword(newUser);
     }
 
+    /**
+     * Find all users in the MongoDB database
+     * @returns All users
+     */
     @EnableCache()
     async findAll(): Promise<IUser[]> {
         const users = await this.userModel.find();
         return users.map(user => this.omitPassword(user));
     }
 
+    /**
+     * Find a user by their ID
+     * @param id - The ID of the user to find
+     * @returns The user
+     */
     @EnableCache()
     async findById(id: string) {
         const user = await this.userModel.findById(id);
@@ -62,9 +73,15 @@ export class UserMongoRepository {
         return this.omitPassword(user);
     }
 
+    /**
+     * Update a user in the MongoDB database
+     * @param id - The ID of the user to update
+     * @param updateUserDto - The user data to update
+     * @param shouldOmitPassword - Whether to omit the password from the user data
+     * @returns The updated user
+     */
     @EnableCache()
     async update(id: string, updateUserDto: Partial<IUser>, shouldOmitPassword: boolean = true): Promise<IUser> {
-        // If password is provided and is not already hashed, hash it
         if (updateUserDto.password && !this.isAlreadyHashed(updateUserDto.password)) {
             updateUserDto.password = await bcrypt.hash(
                 updateUserDto.password,
@@ -72,7 +89,6 @@ export class UserMongoRepository {
             );
         }
 
-        // Check if username or email is being updated and if they already exist
         if (updateUserDto.username || updateUserDto.email) {
             const query: any = { _id: { $ne: id } };
             if (updateUserDto.username) query.username = updateUserDto.username;
@@ -98,6 +114,11 @@ export class UserMongoRepository {
         return shouldOmitPassword ? this.omitPassword(updatedUser) : updatedUser.toObject() as IUser;
     }
 
+    /**
+     * Remove a user from the MongoDB database
+     * @param id - The ID of the user to remove
+     * @returns The removed user
+     */
     @EnableCache()
     async remove(id: string): Promise<IUser> {
         const deletedUser = await this.userModel.findByIdAndDelete(id);
@@ -108,7 +129,6 @@ export class UserMongoRepository {
         return this.omitPassword(deletedUser);
     }
 
-    // Helper method to omit password from user data
     private omitPassword(user: User): IUser {
         const { password, ...userWithoutPassword } = user.toObject();
         return {
@@ -116,7 +136,6 @@ export class UserMongoRepository {
         } as IUser;
     }
 
-    // Helper method to check if a password is already hashed (bcrypt hashes start with $2a$, $2b$, or $2y$)
     private isAlreadyHashed(password: string): boolean {
         return /^\$2[aby]\$\d+\$/.test(password);
     }

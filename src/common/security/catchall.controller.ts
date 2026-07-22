@@ -9,7 +9,7 @@ import { Request, Response } from 'express';
 import { ApiExcludeController } from '@nestjs/swagger';
 import { SecurityService } from './security.service';
 import { Public } from '@modules/auth/decorators/public.decorator';
-import { NoLog } from '@common/logtail/decorators/no-log.decorator';
+import { NoLog } from '@common/graylog/decorators/no-log.decorator';
 
 @ApiExcludeController()
 @NoLog() // Não logar requisições para rotas inexistentes

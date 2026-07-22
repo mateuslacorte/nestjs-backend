@@ -1,5 +1,10 @@
 node_modules/
 .DS_Store
-package-lock.json
 dist/
-/tsconfig.tsbuildinfo
+tsconfig.tsbuildinfo
+.env
+.env.docker
+.env.development
+.env.production
+.env.test
+.env.local

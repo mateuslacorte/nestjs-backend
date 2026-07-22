@@ -8,12 +8,12 @@ import { UsersModule } from '@modules/users/users.module';
 import { AuthModule } from '@modules/auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from "@modules/auth/guards/jwtauth.guard";
-import { LogtailModule } from '@common/logtail/logtail.module';
-import {EmailModule} from "@modules/email/email.module";
-import {WhatsappModule} from "@modules/whatsapp/whatsapp.module";
-import {WebsocketModule} from "@common/websocket/websocket.module";
-import {FileUploadModule} from "@common/file-upload/file-upload.module";
-import {WebsocketExampleModule} from "@modules/websocket-example/websocket-example.module";
+import { GraylogModule } from '@common/graylog/graylog.module';
+import { EmailModule } from "@modules/email/email.module";
+import { WhatsappModule } from "@modules/whatsapp/whatsapp.module";
+import { WebsocketModule } from "@common/websocket/websocket.module";
+import { FileUploadModule } from "@common/file-upload/file-upload.module";
+import { WebsocketExampleModule } from "@modules/websocket-example/websocket-example.module";
 
 // Import configuration files
 import appConfig from './config/app.config';
@@ -22,15 +22,16 @@ import kafkaConfig from './config/kafka.config';
 import redisConfig from './config/redis.config';
 import whatsappConfig from './config/whatsapp.config';
 import minioConfig from './config/minio.config';
-import logtailConfig from './config/logtail.config';
+import graylogConfig from './config/graylog.config';
 import graphqlConfig from './config/graphql.config';
 import bcryptConfig from './config/bcrypt.config';
 import jwtConfig from './config/jwt.config';
 import smtpConfig from './config/smtp.config';
-import {WikiModule} from "./wiki/wiki.module";
-import {ScheduleModule} from "@nestjs/schedule";
-import {SecurityModule} from "@common/security/security.module";
+import { WikiModule } from "./wiki/wiki.module";
+import { ScheduleModule } from "@nestjs/schedule";
+import { SecurityModule} from "@common/security/security.module";
 import { CacheModule } from '@common/cache/cache.module';
+import { HealthModule } from '@modules/health/health.module';
 
 @Module({
     imports: [
@@ -44,7 +45,7 @@ import { CacheModule } from '@common/cache/cache.module';
                 redisConfig,
                 whatsappConfig,
                 minioConfig,
-                logtailConfig,
+                graylogConfig,
                 graphqlConfig,
                 bcryptConfig,
                 jwtConfig,
@@ -52,8 +53,8 @@ import { CacheModule } from '@common/cache/cache.module';
             ],
         }),
 
-        // Logtail module for logging
-        LogtailModule,
+        // Graylog module for logging
+        GraylogModule,
 
         // Cache module for Redis caching
         CacheModule,
@@ -102,6 +103,7 @@ import { CacheModule } from '@common/cache/cache.module';
         FileUploadModule,
         WebsocketExampleModule,
         WikiModule,
+        HealthModule,
         ScheduleModule.forRoot(),
         // SecurityModule deve ser o ÚLTIMO para o catch-all funcionar
         SecurityModule,

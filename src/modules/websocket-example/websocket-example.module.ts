@@ -10,7 +10,9 @@ import { WebsocketExampleController } from './websocket-example.controller';
     imports: [
         WebsocketModule,
     ],
-    controllers: [WebsocketExampleController],
+    controllers: [
+        WebsocketExampleController
+    ],
     providers: [
         WebsocketExampleService,
         WebsocketExampleHandler,
@@ -20,9 +22,14 @@ import { WebsocketExampleController } from './websocket-example.controller';
                 websocketService.registerMessageHandler(websocketExampleHandler);
                 return true;
             },
-            inject: [WebsocketService, WebsocketExampleHandler],
+            inject: [
+                WebsocketService,
+                WebsocketExampleHandler
+            ],
         }
     ],
-    exports: [WebsocketExampleService],
+    exports: [
+        WebsocketExampleService
+    ],
 })
 export class WebsocketExampleModule {}

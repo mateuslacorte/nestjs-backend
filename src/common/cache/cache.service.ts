@@ -17,6 +17,14 @@ export class CacheService {
     }
 
     /**
+     * Verifica a conectividade com o Redis
+     */
+    async ping(): Promise<boolean> {
+        const result = await this.redis.ping();
+        return result === 'PONG';
+    }
+
+    /**
      * Obtém um valor do cache
      */
     async get<T>(key: string): Promise<T | null> {

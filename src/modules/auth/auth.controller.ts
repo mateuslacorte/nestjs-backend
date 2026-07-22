@@ -16,7 +16,11 @@ import {ChangePasswordDto} from "./dtos/change-password.dto";
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
 
-    // Register new user
+    /**
+     * Register a new user
+     * @param createUserDto - User data to register
+     * @returns The registered user
+     */
     @Public()
     @Post('register')
     @ApiResponse({ status: 201, description: 'User successfully registered.' })
@@ -43,7 +47,11 @@ export class AuthController {
         return await this.authService.register(createUserDto);
     }
 
-    // Login user
+    /**
+     * Login a user
+     * @param loginDto - User data to login
+     * @returns The logged in user
+     */
     @Public()
     @Post('login')
     @ApiResponse({ status: 200, description: 'User successfully logged in.' })
@@ -66,16 +74,25 @@ export class AuthController {
         return await this.authService.login(loginDto);
     }
 
-    // Verify token (Protected route)
+    /**
+     * Verify a token
+     * @param req - Request object
+     * @returns The verified token
+     */
     @Post('verify-token')
     @UseGuards(JwtAuthGuard)
-    @ApiBearerAuth('access-token') // <- Precisa bater com o nome no main.ts
+    @ApiBearerAuth('access-token')
     @UseGuards(JwtAuthGuard)
     @Post('verify-token')
     verifyToken(@Req() req: Request) {
         return { message: 'Token is valid', user: req.user };
     }
 
+    /**
+     * Refresh a token
+     * @param refreshTokenDto - Token data to refresh
+     * @returns The refreshed token
+     */
     @Public()
     @Post('refresh-token')
     @ApiOperation({
@@ -137,6 +154,11 @@ export class AuthController {
         return await this.authService.refreshToken(refreshTokenDto);
     }
 
+    /**
+     * Forgot a password
+     * @param forgotPasswordDto - Password data to forgot
+     * @returns The forgot password
+     */
     @Public()
     @Post('forgot-password')
     @ApiResponse({ status: 200, description: 'Password reset email sent.' })
@@ -145,9 +167,14 @@ export class AuthController {
     async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
         const resetToken = await this.authService.createPasswordResetToken(forgotPasswordDto.email);
         await this.authService.sendResetTokenEmail(forgotPasswordDto.email, resetToken);
-        return { message: 'Instruções de recuperação de senha enviadas para seu e-mail' };
+        return { message: 'Password reset instructions sent to your email' };
     }
 
+    /**
+     * Reset a password
+     * @param resetPasswordDto - Password data to reset
+     * @returns The reset password
+     */
     @Public()
     @Post('reset-password')
     @ApiResponse({ status: 200, description: 'Password successfully reset.' })
@@ -156,27 +183,33 @@ export class AuthController {
     @ApiBody({ type: ResetPasswordDto })
     async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
         await this.authService.resetPassword(resetPasswordDto);
-        return { message: 'Senha redefinida com sucesso' };
+        return { message: 'Password reset successfully' };
     }
 
+    /**
+     * Change a password
+     * @param req - Request object
+     * @param changePasswordDto - Password data to change
+     * @returns The changed password
+     */
     @Post('change-password')
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth('access-token')
     @ApiOperation({ summary: 'Change password for logged-in user' })
-    @ApiResponse({ status: 200, description: 'Senha alterada com sucesso.' })
-    @ApiResponse({ status: 400, description: 'Senha atual incorreta ou senhas não coincidem.' })
-    @ApiResponse({ status: 401, description: 'Não autorizado - usuário não está logado.' })
+    @ApiResponse({ status: 200, description: 'Password changed successfully.' })
+    @ApiResponse({ status: 400, description: 'Current password is incorrect or passwords do not match.' })
+    @ApiResponse({ status: 401, description: 'Unauthorized - user is not logged in.' })
     @ApiBody({
         type: ChangePasswordDto,
-        description: 'Dados para alteração de senha',
+        description: 'Password change data',
         examples: {
             changePassword: {
-                summary: 'Exemplo de alteração de senha',
-                description: 'Requisição para alterar a senha do usuário logado',
+                summary: 'Password change example',
+                description: 'Request to change the logged in user\'s password',
                 value: {
-                    currentPassword: 'SenhaAtual@123',
-                    newPassword: 'NovaSenha@456',
-                    confirmNewPassword: 'NovaSenha@456'
+                    currentPassword: 'CurrentPassword@123',
+                    newPassword: 'NewPassword@456',
+                    confirmNewPassword: 'NewPassword@456'
                 }
             }
         }
@@ -186,6 +219,11 @@ export class AuthController {
         return await this.authService.changePassword(user.id, changePasswordDto);
     }
 
+    /**
+     * Verify an email
+     * @param token - Token to verify
+     * @returns The verified email
+     */
     @Public()
     @Get('verify-email')
     @ApiResponse({ status: 200, description: 'Email verified successfully.' })
@@ -194,10 +232,15 @@ export class AuthController {
     async verifyEmail(@Query('token') token: string) {
         const verified = await this.authService.verifyEmail(token);
         if (verified) {
-            return { message: 'E-mail verificado com sucesso. Você já pode fazer login.' };
+            return { message: 'Email verified successfully. You can now login.' };
         }
     }
 
+    /**
+     * Resend a verification email
+     * @param email - Email to resend
+     * @returns The resend verification email
+     */
     @Public()
     @ApiResponse({ status: 200, description: 'Verification email has been resent.' })
     @ApiResponse({ status: 404, description: 'User not found.' })
@@ -218,6 +261,6 @@ export class AuthController {
     async resendVerification(@Body('email') email: string) {
         const token = await this.authService.createEmailVerificationToken(email);
         await this.authService.sendEmailVerification(email, token);
-        return { message: 'E-mail de verificação reenviado com sucesso' };
+        return { message: 'Email verification resent successfully' };
     }
 }

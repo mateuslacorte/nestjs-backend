@@ -3,7 +3,7 @@ import { ApiExcludeController } from '@nestjs/swagger';
 import { Response } from 'express';
 import * as path from 'path';
 import { Public } from '../modules/auth/decorators/public.decorator';
-import { NoLog } from '@common/logtail/decorators/no-log.decorator';
+import { NoLog } from '@common/graylog/decorators/no-log.decorator';
 
 @ApiExcludeController()
 @NoLog()

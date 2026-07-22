@@ -10,24 +10,31 @@ import {WebsocketExampleService} from "@modules/websocket-example/websocket-exam
 export class WebsocketExampleHandler implements MessageHandler {
     constructor(private readonly websocketExampleService: WebsocketExampleService) {}
 
+    /**
+     * Check if the handler can handle the message
+     * @param type - The type of the message
+     * @returns True if the handler can handle the message, false otherwise
+     */
     canHandle(type: string): boolean {
         return type === 'example';
     }
 
+    /**
+     * Handle the message
+     * @param client - The client that sent the message
+     * @param payload - The payload of the message
+     */
     async handle(client: Socket, payload: MessagePayload): Promise<void> {
-        // Determine which DTO to use based on additional properties in the payload
         let dto;
 
         dto = Object.assign(new WebsocketExampleDto(), payload);
 
-        // Validate the DTO
         const errors = await validate(dto);
         if (errors.length > 0) {
             client.emit('error', { message: 'Validation failed', errors });
             return;
         }
 
-        // Process the message based on its type
         this.websocketExampleService.processMessage(client, dto);
     }
 }

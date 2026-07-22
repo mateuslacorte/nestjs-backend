@@ -23,7 +23,9 @@ import {EmailModule} from "@modules/email/email.module"; // Add this import
                     expiresIn: configService.get<string>('jwt.expirationTime'),
                 },
             }),
-            inject: [ConfigService],
+            inject: [
+                ConfigService
+            ],
         }),
     ],
     providers: [
@@ -33,10 +35,16 @@ import {EmailModule} from "@modules/email/email.module"; // Add this import
         {
             provide: 'BCRYPT_SALT_ROUNDS',
             useFactory: (configService: ConfigService) => configService.get<number>('bcrypt.saltRounds'),
-            inject: [ConfigService],
+            inject: [
+                ConfigService
+            ],
         },
     ],
-    controllers: [AuthController],
-    exports: [AuthService],
+    controllers: [
+        AuthController
+    ],
+    exports: [
+        AuthService
+    ],
 })
 export class AuthModule {}

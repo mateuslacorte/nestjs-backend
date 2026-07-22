@@ -7,7 +7,9 @@ import {RolesGuard} from "@modules/auth/guards/roles.guard";
 
 @Module({
   imports: [],
-  controllers: [WhatsappController],
+  controllers: [
+    WhatsappController
+  ],
   providers: [
       WhatsappService,
     {
@@ -19,6 +21,8 @@ import {RolesGuard} from "@modules/auth/guards/roles.guard";
       useClass: RolesGuard,
     },
   ],
-  exports: [WhatsappService],
+  exports: [
+    WhatsappService
+  ],
 })
-export class WhatsappModule {} // Fixed the module name from EmailModule to WhatsappModule
+export class WhatsappModule {}
