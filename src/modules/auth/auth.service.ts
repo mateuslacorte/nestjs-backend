@@ -85,7 +85,6 @@ export class AuthService {
             emailVerificationExpires: tokenExpiry
         });
 
-
         // Return the original (unhashed) token to be sent to the user
         return verificationToken;
     }
