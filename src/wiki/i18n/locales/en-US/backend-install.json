@@ -1,0 +1,156 @@
+{
+  "backendInstall": {
+    "meta": {
+      "title": "Installation and Configuration - Backend NestJS"
+    },
+    "badge": "Backend Guide",
+    "hero": {
+      "titlePrefix": "Installation and",
+      "titleHighlight": "Configuration",
+      "subtitle": "Bring up the stack with Docker Compose or install services on Ubuntu."
+    },
+    "requirements": {
+      "title": "Requirements",
+      "docker": {
+        "title": "For Docker",
+        "items": [
+          "Docker Engine + Compose v2",
+          "Git",
+          "(Optional) Node.js 20/22 LTS if running the API outside the container"
+        ]
+      },
+      "stackServices": {
+        "title": "Stack services",
+        "items": [
+          "NestJS API (multi-stage Dockerfile + HEALTHCHECK)",
+          "PostgreSQL 16 (TypeORM, connection pool)",
+          "MongoDB 7 (Mongoose, connection pool)",
+          "Redis 7",
+          "Apache Kafka <strong>KRaft</strong> (no Zookeeper)",
+          "MinIO, MailHog, OpenSearch, Graylog"
+        ]
+      }
+    },
+    "dockerCompose": {
+      "title": "1. Docker Compose",
+      "intro": "The <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env.docker</code> file already points to internal hosts (postgres, mongo, redis, kafka, mailhog, graylog) and test passwords. Containers use stable <code class=\"px-1 py-0.5 bg-gray-100 rounded\">container_name</code> values (no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">-1</code> suffix).",
+      "codeHeader": {
+        "language": "Bash",
+        "context": "Terminal"
+      },
+      "servicesAndPorts": {
+        "title": "Services and ports",
+        "api": "API · /swagger · / · /health",
+        "mailhog": "MailHog UI (SMTP 1025)",
+        "minio": "MinIO API / Console",
+        "graylog": "Graylog UI (GELF 12201)",
+        "kafka": "Internal Kafka: kafka:9092 (KRaft mode, no Zookeeper)"
+      },
+      "healthcheck": {
+        "title": "HEALTHCHECK",
+        "description": "The API image runs a health check against <code class=\"px-1 py-0.5 bg-green-100 rounded\">GET /health</code>, which includes ping + Postgres/Mongo pool metadata."
+      }
+    },
+    "projectSetup": {
+      "title": "2. Project configuration",
+      "clone": {
+        "title": "Clone and dependencies",
+        "codeHeader": {
+          "language": "Bash",
+          "context": "Terminal"
+        }
+      },
+      "envVars": {
+        "title": "Environment variables",
+        "intro": "Copy <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env.example</code> → <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> for local development. With Compose, use <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env.docker</code>.",
+        "codeHeader": {
+          "label": "Environment",
+          "context": "Relevant excerpt"
+        }
+      },
+      "connectionPools": {
+        "title": "Connection pools",
+        "description": "Postgres (TypeORM/<code class=\"px-1 py-0.5 bg-gray-100 rounded\">pg</code>) and Mongo (Mongoose) use a configurable pool. The pool reuses connections; <code class=\"px-1 py-0.5 bg-gray-100 rounded\">max</code>/<code class=\"px-1 py-0.5 bg-gray-100 rounded\">min</code> and timeouts control size and recycling. See also <a href=\"/architecture\" class=\"text-indigo-600 hover:underline\">Architecture</a>."
+      }
+    },
+    "devMode": {
+      "title": "3. API in development mode",
+      "intro": "With infrastructure in Compose (or local services), run the API on the host:",
+      "codeHeader": {
+        "language": "Bash",
+        "context": "Terminal"
+      },
+      "endpoints": {
+        "swagger": "Swagger",
+        "graphql": "GraphQL",
+        "health": "Health check",
+        "api": "REST API base path"
+      }
+    },
+    "nativeUbuntu": {
+      "title": "4. Native Ubuntu",
+      "intro": "Install Node, Postgres, Mongo, Redis, and MinIO on the host. Kafka (KRaft), Graylog, OpenSearch, and MailHog can remain in Compose for a hybrid setup.",
+      "nodejs": {
+        "title": "Node.js LTS (20 or 22)",
+        "codeHeader": { "language": "Bash", "context": "Terminal" }
+      },
+      "postgresql": {
+        "title": "PostgreSQL",
+        "codeHeader": { "language": "Bash", "context": "Terminal" }
+      },
+      "mongodb": {
+        "title": "MongoDB",
+        "codeHeader": { "language": "Bash", "context": "Terminal" }
+      },
+      "redis": {
+        "title": "Redis",
+        "codeHeader": { "language": "Bash", "context": "Terminal" }
+      },
+      "kafka": {
+        "title": "Kafka (KRaft — no Zookeeper)",
+        "intro": "This project uses Kafka in <strong>KRaft</strong> mode (no Zookeeper). Example using the Compose service:",
+        "codeHeader": { "language": "Bash", "context": "Terminal" }
+      },
+      "minio": {
+        "title": "MinIO",
+        "codeHeader": { "language": "Bash", "context": "Terminal" }
+      },
+      "mailhogGraylog": {
+        "title": "MailHog / Graylog / OpenSearch",
+        "description": "Use Compose: <code class=\"px-1 py-0.5 bg-gray-100 rounded\">docker compose --env-file .env.docker up -d mailhog opensearch graylog</code>."
+      }
+    },
+    "troubleshooting": {
+      "title": "Troubleshooting",
+      "composeHealth": {
+        "title": "Compose / health",
+        "codeHeader": { "language": "Bash", "context": "Terminal" }
+      },
+      "nativeServices": {
+        "title": "Native services",
+        "codeHeader": { "language": "Bash", "context": "Terminal" }
+      },
+      "portInUse": {
+        "title": "Port in use",
+        "codeHeader": { "language": "Bash", "context": "Terminal" }
+      }
+    },
+    "samples": {
+      "atRepoRoot": "# At the repository root",
+      "status": "# Status",
+      "apiLogs": "# API logs",
+      "stop": "# Stop",
+      "jwt": "# JWT",
+      "graylog": "# Graylog (GELF)",
+      "mongoPool": "# Mongo pool",
+      "postgresPool": "# Postgres pool",
+      "kafkaKRaft": "# Kafka (KRaft broker; no Zookeeper)",
+      "bcrypt": "# Bcrypt",
+      "adjustEnv": "# Adjust .env for localhost hosts (or published Compose ports)",
+      "production": "# Production (local build)",
+      "mongodbDoc": "# Follow the official 7.x docs for Ubuntu",
+      "minioBinary": "# Official binary or via Compose:",
+      "changePort": "# or change PORT in .env"
+    }
+  }
+}

@@ -53,28 +53,39 @@ export class UserPostgresRepository {
      * @returns Array of IUser or null if no users found
      */
     @EnableCache()
-    async findAll(): Promise<UserEntity[] | null> {
-        return this.userRepository.find({});
+    async findAll(): Promise<IUser[] | null> {
+        const users = await this.userRepository.find({});
+        return users.map((user) => this.omitPassword(user));
     }
 
     /**
      * Find a user by ID
      * @param id - The user ID
+     * @param includePassword - Whether to return the password hash
      * @returns The user or null if not found
      */
     @EnableCache()
-    async findById(id: string): Promise<UserEntity | null> {
-        return this.userRepository.findOne({ where: { id } });
+    async findById(id: string, includePassword = false): Promise<IUser | null> {
+        const user = await this.userRepository.findOne({ where: { id } });
+        if (!user) {
+            return null;
+        }
+        return includePassword ? user : this.omitPassword(user);
     }
 
     /**
      * Find a user by email
      * @param email - The user's email
+     * @param includePassword - Whether to return the password hash
      * @returns The user or null if not found
      */
     @NoCache()
-    async findByEmail(email: string): Promise<UserEntity | null> {
-        return this.userRepository.findOne({ where: { email } });
+    async findByEmail(email: string, includePassword = false): Promise<IUser | null> {
+        const user = await this.userRepository.findOne({ where: { email } });
+        if (!user) {
+            return null;
+        }
+        return includePassword ? user : this.omitPassword(user);
     }
 
     /**
@@ -87,7 +98,7 @@ export class UserPostgresRepository {
         const user = await this.userRepository.findOne({
             where: { emailVerificationToken: token }
         });
-        return user || null;
+        return user ? this.omitPassword(user) : null;
     }
 
     /**
@@ -96,8 +107,9 @@ export class UserPostgresRepository {
      * @returns The user or null if not found
      */
     @NoCache()
-    async findByPasswordToken(token: string): Promise<UserEntity | null> {
-        return this.userRepository.findOne({ where: {passwordResetToken: token } });
+    async findByPasswordToken(token: string): Promise<IUser | null> {
+        const user = await this.userRepository.findOne({ where: { passwordResetToken: token } });
+        return user ? this.omitPassword(user) : null;
     }
 
     /**

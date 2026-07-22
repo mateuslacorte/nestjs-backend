@@ -1,0 +1,196 @@
+{
+  "users": {
+    "meta": {
+      "title": "Users - Backend NestJS"
+    },
+    "badge": "Users module",
+    "hero": {
+      "titlePrefix": "User",
+      "titleHighlight": "management",
+      "subtitle": "Administrative CRUD over REST and GraphQL, dual-ready persistence, and authorization with the Role enum."
+    },
+    "overview": {
+      "title": "Overview",
+      "description": "The <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">users</code> module owns the administrative user lifecycle. Public registration, email verification, and password reset live in the <a href=\"/auth\" class=\"text-indigo-600 hover:underline\">Auth</a> module.",
+      "persistence": {
+        "title": "Persistence",
+        "items": [
+          "TypeORM entity (PostgreSQL) — active store used by UsersService",
+          "Mongoose schema (MongoDB) — dual-ready; repository registered but not injected into the service",
+          "Cache invalidation with the users:* pattern on writes"
+        ]
+      },
+      "surfaces": {
+        "title": "Surfaces",
+        "items": [
+          "REST under the API prefix /users — JWT + roles required by the route",
+          "GraphQL — same operations, JWT + roles required by the operation",
+          "No @Public() endpoints in this module"
+        ]
+      }
+    },
+    "roles": {
+      "title": "Role enum",
+      "description": "The <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">roles</code> field is <strong>optional</strong>. When provided, each value must be a member of the <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">Role</code> enum. Customize the enum in <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">src/modules/auth/enums/role.enum.ts</code> for your project.",
+      "values": {
+        "title": "Role enum values",
+        "intro": "These values are defined in <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">src/modules/auth/enums/role.enum.ts</code>. For new roles, <strong>extend the enum</strong> — do not use free-form strings.",
+        "super": "Super Administrator - Full system access",
+        "admin": "Administrator - User and resource management",
+        "manager": "Manager - Specific resource management",
+        "user": "User - Access to basic features"
+      },
+      "codeHeader": { "language": "TypeScript", "context": "role.enum.ts" }
+    },
+    "authorization": {
+      "title": "Authorization",
+      "description": "REST and GraphQL require a valid JWT. Protect operations with <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">@Roles(...)</code> using members of your <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">Role</code> enum. <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">RolesGuard</code> and <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">JwtAuthGuard</code> resolve the request for both HTTP and GraphQL.",
+      "rest": "REST: @UseGuards(JwtAuthGuard, RolesGuard) + @Roles(Role.YOUR_ROLE) on each route",
+      "graphql": "GraphQL: guards on the resolver + @Roles(Role.YOUR_ROLE) on queries and mutations"
+    },
+    "dataModel": {
+      "title": "Data model",
+      "description": "Main user fields (IUser interface / entity / schema):",
+      "fields": [
+        "id — UUID",
+        "username — unique",
+        "firstName, lastName",
+        "email — unique",
+        "password — bcrypt hash (not exposed in GraphQL)",
+        "isActive — default true (Auth registration creates inactive users)",
+        "roles — Role[] (Postgres default []; Mongo default follows your project's enum)",
+        "passwordResetToken / passwordResetExpires",
+        "emailVerificationToken / emailVerificationExpires"
+      ]
+    },
+    "dtos": {
+      "title": "DTOs",
+      "create": {
+        "title": "CreateUserDto",
+        "description": "Required: firstName, lastName, username, email, password (@StrongPassword). Optional: isActive, roles (Role[])."
+      },
+      "update": {
+        "title": "UpdateUserDto",
+        "description": "All fields optional. roles validates with @IsEnum(Role, { each: true }). Email verification token fields exist on the DTO but are not GraphQL fields."
+      },
+      "password": {
+        "title": "Strong password",
+        "description": "@StrongPassword requires upper, lower, digit, special character, and blocks obvious sequences (e.g. abc, 123)."
+      },
+      "codeHeader": { "label": "JSON", "context": "CreateUserDto" }
+    },
+    "rest": {
+      "title": "REST API",
+      "intro": "API global prefix: use a Bearer JWT from a user that has the roles required by the routes.",
+      "create": {
+        "title": "Create user",
+        "description": "Creates a user. Conflict (409) if email or username already exists.",
+        "codeHeader": { "label": "HTTP Request", "context": "POST" }
+      },
+      "list": {
+        "title": "List users",
+        "description": "Returns all users.",
+        "codeHeader": { "label": "HTTP Request", "context": "GET" }
+      },
+      "get": {
+        "title": "Get by ID",
+        "description": "Returns a user by UUID.",
+        "codeHeader": { "label": "HTTP Request", "context": "GET :id" }
+      },
+      "update": {
+        "title": "Update",
+        "description": "Partial update. Re-hashes password if sent and not already bcrypt.",
+        "codeHeader": { "label": "HTTP Request", "context": "PATCH" }
+      },
+      "delete": {
+        "title": "Delete",
+        "description": "Removes the user and returns a snapshot.",
+        "codeHeader": { "label": "HTTP Request", "context": "DELETE" }
+      }
+    },
+    "graphql": {
+      "title": "GraphQL",
+      "description": "Operations on the app GraphQL path. Send Authorization: Bearer &lt;token&gt;. The schema exposes the Role enum. Returned fields: id, username, firstName, lastName, email, isActive, roles (password is not exposed).",
+      "queries": {
+        "title": "Queries",
+        "users": {
+          "title": "users — list all",
+          "codeHeader": { "label": "GraphQL", "context": "query users" }
+        },
+        "user": {
+          "title": "user — get by ID",
+          "codeHeader": { "label": "GraphQL", "context": "query user" }
+        },
+        "userByEmail": {
+          "title": "userByEmail — get by email",
+          "codeHeader": { "label": "GraphQL", "context": "query userByEmail" }
+        }
+      },
+      "mutations": {
+        "title": "Mutations",
+        "createUser": {
+          "title": "createUser — create user",
+          "codeHeader": { "label": "GraphQL", "context": "mutation createUser" }
+        },
+        "updateUser": {
+          "title": "updateUser — update user",
+          "codeHeader": { "label": "GraphQL", "context": "mutation updateUser" }
+        },
+        "removeUser": {
+          "title": "removeUser — remove user",
+          "codeHeader": { "label": "GraphQL", "context": "mutation removeUser" }
+        }
+      }
+    },
+    "businessRules": {
+      "title": "Business rules",
+      "items": [
+        "Unique email and username (ConflictException)",
+        "Bcrypt with BCRYPT_HASH_FACTOR; skip re-hash if value is already bcrypt",
+        "Helpers: updateRoles, addRole, removeRole, replaceRole (typed with Role)",
+        "Cache @EnableCache / @CacheTTL(1800) on create, findAll, update, remove; @NoCache on point finders"
+      ]
+    },
+    "authVsUsers": {
+      "title": "Auth vs Users",
+      "auth": {
+        "title": "Auth",
+        "items": [
+          "Public registration, email verification, login, forgot/reset password",
+          "Sends email via EmailModule",
+          "Creates inactive users with roles: []"
+        ]
+      },
+      "users": {
+        "title": "Users",
+        "items": [
+          "Administrative CRUD (REST + GraphQL)",
+          "Assigns Role enum values",
+          "Does not send email"
+        ]
+      }
+    },
+    "alerts": {
+      "title": "Notes",
+      "passwordOmit": {
+        "title": "Password in responses",
+        "description": "REST GET and GraphQL do not expose password. The hash is loaded internally by Auth only when needed (login and password change)."
+      },
+      "extendEnum": {
+        "title": "Customize roles",
+        "description": "Adjust the Role enum and @Roles(...) decorators on routes/resolvers. Do not send strings outside the enum."
+      }
+    },
+    "cta": {
+      "title": "Explore",
+      "swagger": "Open Swagger (Users tag)",
+      "auth": "Auth & JWT docs",
+      "graphql": "Open GraphQL"
+    },
+    "samples": {
+      "bearer": "Authorization: Bearer <access_token>",
+      "createBody": "roles optional — Role enum values only",
+      "strongPassword": "Strong password required"
+    }
+  }
+}

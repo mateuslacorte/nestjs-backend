@@ -1,0 +1,306 @@
+extends ../layouts/main
+
+block content
+  .mb-12
+    .inline-flex.items-center.gap-2.px-3.py-1.bg-indigo-50.rounded-full.text-indigo-700.text-sm.font-medium.mb-4
+      svg(class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4")
+      span= t('backendInstall.badge')
+    h1(class="text-4xl font-bold text-gray-900 mb-4")
+      | #{t('backendInstall.hero.titlePrefix')} 
+      span.gradient-text= t('backendInstall.hero.titleHighlight')
+    p(class="text-xl text-gray-600 max-w-3xl")
+      = t('backendInstall.hero.subtitle')
+
+  //- Requisitos
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('backendInstall.requirements.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      div(class="grid grid-cols-1 md:grid-cols-2 gap-6")
+        div
+          h3(class="font-semibold text-gray-900 mb-4")= t('backendInstall.requirements.docker.title')
+          ul.space-y-2.text-gray-700
+            each item in tm('backendInstall.requirements.docker.items')
+              li • #{item}
+        div
+          h3(class="font-semibold text-gray-900 mb-4")= t('backendInstall.requirements.stackServices.title')
+          ul.space-y-2.text-sm.text-gray-700
+            each item in tm('backendInstall.requirements.stackServices.items')
+              li • 
+                != item
+
+  //- Docker primeiro
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('backendInstall.dockerCompose.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p.text-gray-700.mb-4
+        != t('backendInstall.dockerCompose.intro')
+
+      .code-block.mb-6
+        .code-header
+          span= t('backendInstall.dockerCompose.codeHeader.language')
+          span= t('backendInstall.dockerCompose.codeHeader.context')
+        .code-content
+          pre.
+            #{t('backendInstall.samples.atRepoRoot')}
+            docker compose --env-file .env.docker up -d --build
+
+            #{t('backendInstall.samples.status')}
+            docker compose --env-file .env.docker ps
+
+            #{t('backendInstall.samples.apiLogs')}
+            docker compose --env-file .env.docker logs -f api
+
+            #{t('backendInstall.samples.stop')}
+            docker compose --env-file .env.docker down
+
+      h3(class="font-semibold text-gray-900 mb-3")= t('backendInstall.dockerCompose.servicesAndPorts.title')
+      ul.space-y-2.text-gray-700.mb-6
+        li
+          a(href=apiBasePath class="text-indigo-600 hover:underline font-mono text-sm")= apiBasePath
+          span  — #{t('backendInstall.dockerCompose.servicesAndPorts.api')}
+          span  · 
+          a(href=swaggerPath class="text-indigo-600 hover:underline font-mono text-sm")= swaggerPath
+          span  · 
+          a(href=wikiPath('') class="text-indigo-600 hover:underline font-mono text-sm") /
+          span  · 
+          a(href=healthPath class="text-indigo-600 hover:underline font-mono text-sm")= healthPath
+        li
+          a(href="http://localhost:8025" target="_blank" class="text-indigo-600 hover:underline font-mono text-sm") http://localhost:8025
+          span  — #{t('backendInstall.dockerCompose.servicesAndPorts.mailhog')}
+        li
+          code.text-indigo-600 http://localhost:9000
+          span  / 
+          code.text-indigo-600 :9001
+          span  — #{t('backendInstall.dockerCompose.servicesAndPorts.minio')}
+        li
+          a(href="http://localhost:9009" target="_blank" class="text-indigo-600 hover:underline font-mono text-sm") http://localhost:9009
+          span  — #{t('backendInstall.dockerCompose.servicesAndPorts.graylog')}
+        li!= t('backendInstall.dockerCompose.servicesAndPorts.kafka').replace('kafka:9092', '<code class="text-indigo-600">kafka:9092</code>')
+
+      .alert.alert-success
+        svg(class="w-5 h-5 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+          path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z")
+        div
+          p.font-medium.text-green-900= t('backendInstall.dockerCompose.healthcheck.title')
+          p.text-sm.text-green-700
+            != t('backendInstall.dockerCompose.healthcheck.description')
+
+  //- Env / clone
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('backendInstall.projectSetup.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      h3(class="font-semibold text-gray-900 mb-4")= t('backendInstall.projectSetup.clone.title')
+      .code-block.mb-6
+        .code-header
+          span= t('backendInstall.projectSetup.clone.codeHeader.language')
+          span= t('backendInstall.projectSetup.clone.codeHeader.context')
+        .code-content
+          pre.
+            git clone https://github.com/mateuslacorte/backend-nestjs.git
+            cd backend-nestjs
+            npm install
+
+      h3(class="font-semibold text-gray-900 mb-4")= t('backendInstall.projectSetup.envVars.title')
+      p.text-gray-700.mb-4
+        != t('backendInstall.projectSetup.envVars.intro')
+      .code-block.mb-6
+        .code-header
+          span= t('backendInstall.projectSetup.envVars.codeHeader.label')
+          span= t('backendInstall.projectSetup.envVars.codeHeader.context')
+        .code-content
+          pre.
+            #{t('backendInstall.samples.jwt')}
+            API_VERSION=v1
+            JWT_SECRET=seu_jwt_secret
+            JWT_EXPIRATION_TIME=1h
+            JWT_REFRESH_SECRET=seu_refresh_secret
+            JWT_REFRESH_EXPIRATION_TIME=7d
+            JWT_JITTER_SECONDS=60
+
+            #{t('backendInstall.samples.graylog')}
+            GRAYLOG_ENABLED=true
+            GRAYLOG_ENDPOINT=http://localhost:12201/gelf
+            GRAYLOG_HOST=backend
+            GRAYLOG_FACILITY=nestjs
+
+            #{t('backendInstall.samples.mongoPool')}
+            MONGO_URI=mongodb://localhost:27017/mongo
+            MONGO_POOL_MAX=10
+            MONGO_POOL_MIN=0
+            MONGO_POOL_IDLE=30000
+            MONGO_POOL_TIMEOUT=5000
+
+            #{t('backendInstall.samples.postgresPool')}
+            POSTGRES_HOST=localhost
+            POSTGRES_PORT=5432
+            POSTGRES_USER=postgres
+            POSTGRES_PASSWORD=postgres
+            POSTGRES_DB=backend
+            POSTGRES_SYNCHRONIZE=false
+            POSTGRES_POOL_MAX=10
+            POSTGRES_POOL_MIN=2
+            POSTGRES_POOL_IDLE=30000
+            POSTGRES_POOL_TIMEOUT=5000
+
+            #{t('backendInstall.samples.kafkaKRaft')}
+            KAFKA_BROKERS=localhost:9092
+
+            #{t('backendInstall.samples.bcrypt')}
+            BCRYPT_HASH_FACTOR=12
+
+      h3(class="font-semibold text-gray-900 mb-4")= t('backendInstall.projectSetup.connectionPools.title')
+      p(class="text-gray-700 mb-2")
+        != t('backendInstall.projectSetup.connectionPools.description').replace('/architecture', wikiPath('/architecture'))
+
+  //- Dev fora do container
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('backendInstall.devMode.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p.text-gray-700.mb-4
+        = t('backendInstall.devMode.intro')
+      .code-block.mb-6
+        .code-header
+          span= t('backendInstall.devMode.codeHeader.language')
+          span= t('backendInstall.devMode.codeHeader.context')
+        .code-content
+          pre.
+            #{t('backendInstall.samples.adjustEnv')}
+            npm run start:dev
+
+            #{t('backendInstall.samples.production')}
+            npm run build
+            npm run start:prod
+
+      ul.space-y-2.text-gray-700
+        li
+          a(href=swaggerPath class="text-indigo-600 hover:underline font-mono text-sm")= swaggerPath
+          span  — #{t('backendInstall.devMode.endpoints.swagger')}
+        li
+          a(href=graphqlPath class="text-indigo-600 hover:underline font-mono text-sm")= graphqlPath
+          span  — #{t('backendInstall.devMode.endpoints.graphql')}
+        li
+          a(href=healthPath class="text-indigo-600 hover:underline font-mono text-sm")= healthPath
+          span  — #{t('backendInstall.devMode.endpoints.health')}
+        li
+          a(href=apiBasePath class="text-indigo-600 hover:underline font-mono text-sm")= apiBasePath
+          span  — #{t('backendInstall.devMode.endpoints.api')}
+
+  //- Ubuntu nativo (depois)
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('backendInstall.nativeUbuntu.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p.text-gray-700.mb-6
+        = t('backendInstall.nativeUbuntu.intro')
+
+      h3(class="font-semibold text-gray-900 mb-4")= t('backendInstall.nativeUbuntu.nodejs.title')
+      .code-block.mb-6
+        .code-header
+          span= t('backendInstall.nativeUbuntu.nodejs.codeHeader.language')
+          span= t('backendInstall.nativeUbuntu.nodejs.codeHeader.context')
+        .code-content
+          pre.
+            curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+            sudo apt install -y nodejs
+            node --version
+            npm --version
+
+      h3(class="font-semibold text-gray-900 mb-4")= t('backendInstall.nativeUbuntu.postgresql.title')
+      .code-block.mb-6
+        .code-header
+          span= t('backendInstall.nativeUbuntu.postgresql.codeHeader.language')
+          span= t('backendInstall.nativeUbuntu.postgresql.codeHeader.context')
+        .code-content
+          pre.
+            sudo apt update
+            sudo apt install -y postgresql postgresql-contrib
+            sudo systemctl enable --now postgresql
+            sudo -u postgres psql -c "CREATE USER backend_user WITH PASSWORD 'sua_senha';"
+            sudo -u postgres psql -c "CREATE DATABASE backend_db OWNER backend_user;"
+
+      h3(class="font-semibold text-gray-900 mb-4")= t('backendInstall.nativeUbuntu.mongodb.title')
+      .code-block.mb-6
+        .code-header
+          span= t('backendInstall.nativeUbuntu.mongodb.codeHeader.language')
+          span= t('backendInstall.nativeUbuntu.mongodb.codeHeader.context')
+        .code-content
+          pre.
+            #{t('backendInstall.samples.mongodbDoc')}
+            # https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
+            sudo systemctl enable --now mongod
+
+      h3(class="font-semibold text-gray-900 mb-4")= t('backendInstall.nativeUbuntu.redis.title')
+      .code-block.mb-6
+        .code-header
+          span= t('backendInstall.nativeUbuntu.redis.codeHeader.language')
+          span= t('backendInstall.nativeUbuntu.redis.codeHeader.context')
+        .code-content
+          pre.
+            sudo apt install -y redis-server
+            sudo systemctl enable --now redis-server
+            redis-cli ping
+
+      h3(class="font-semibold text-gray-900 mb-4")= t('backendInstall.nativeUbuntu.kafka.title')
+      p.text-gray-700.mb-4
+        != t('backendInstall.nativeUbuntu.kafka.intro')
+      .code-block.mb-6
+        .code-header
+          span= t('backendInstall.nativeUbuntu.kafka.codeHeader.language')
+          span= t('backendInstall.nativeUbuntu.kafka.codeHeader.context')
+        .code-content
+          pre.
+            docker compose --env-file .env.docker up -d kafka
+
+      h3(class="font-semibold text-gray-900 mb-4")= t('backendInstall.nativeUbuntu.minio.title')
+      .code-block.mb-6
+        .code-header
+          span= t('backendInstall.nativeUbuntu.minio.codeHeader.language')
+          span= t('backendInstall.nativeUbuntu.minio.codeHeader.context')
+        .code-content
+          pre.
+            #{t('backendInstall.samples.minioBinary')}
+            docker compose --env-file .env.docker up -d minio
+
+      h3(class="font-semibold text-gray-900 mb-4")= t('backendInstall.nativeUbuntu.mailhogGraylog.title')
+      p.text-gray-700
+        != t('backendInstall.nativeUbuntu.mailhogGraylog.description')
+
+  //- Troubleshooting
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('backendInstall.troubleshooting.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      div(class="space-y-6")
+        div
+          h4(class="font-semibold text-gray-900 mb-2")= t('backendInstall.troubleshooting.composeHealth.title')
+          .code-block
+            .code-header
+              span= t('backendInstall.troubleshooting.composeHealth.codeHeader.language')
+              span= t('backendInstall.troubleshooting.composeHealth.codeHeader.context')
+            .code-content
+              pre.
+                docker compose --env-file .env.docker ps
+                curl -s http://localhost:3000/health | jq
+                docker compose --env-file .env.docker logs -f api
+
+        div
+          h4(class="font-semibold text-gray-900 mb-2")= t('backendInstall.troubleshooting.nativeServices.title')
+          .code-block
+            .code-header
+              span= t('backendInstall.troubleshooting.nativeServices.codeHeader.language')
+              span= t('backendInstall.troubleshooting.nativeServices.codeHeader.context')
+            .code-content
+              pre.
+                sudo systemctl status postgresql
+                sudo systemctl status mongod
+                sudo systemctl status redis-server
+
+        div
+          h4(class="font-semibold text-gray-900 mb-2")= t('backendInstall.troubleshooting.portInUse.title')
+          .code-block
+            .code-header
+              span= t('backendInstall.troubleshooting.portInUse.codeHeader.language')
+              span= t('backendInstall.troubleshooting.portInUse.codeHeader.context')
+            .code-content
+              pre.
+                sudo lsof -i :3000
+                #{t('backendInstall.samples.changePort')}

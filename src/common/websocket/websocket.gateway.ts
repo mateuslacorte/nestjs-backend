@@ -1,4 +1,3 @@
-// src/common/websocket/websocket.gateway.ts
 import {
     WebSocketGateway as NestWebSocketGateway,
     SubscribeMessage,
@@ -7,13 +6,12 @@ import { Socket } from 'socket.io';
 import { ConfigService } from '@nestjs/config';
 import { WebsocketService } from './websocket.service';
 import { AbstractWebsocketGateway } from './abstract-websocket.gateway';
-import { PayloadValidationPipe } from './pipes/payload-validation.pipe';
 
 @NestWebSocketGateway({
     cors: {
         origin: '*',
     },
-    path: '/socket',
+    path: '/ws',
     port: 3000,
 })
 export class WebsocketGateway extends AbstractWebsocketGateway {

@@ -1,3 +1,7 @@
+# Variáveis de interpolação (${VAR}) e containers vêm de .env.docker.
+# Suba com: docker compose --env-file .env.docker up -d
+# (Compose também injeta .env.docker via env_file nos serviços.)
+
 name: nestjs-backend
 
 services:
@@ -5,10 +9,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: nestjs-backend:latest
+    image: nestjs-backend:local
+    pull_policy: never
+    container_name: nestjs-backend-api
     restart: unless-stopped
     env_file:
-      - .env
+      - .env.docker
     environment:
       NODE_ENV: production
       PORT: 3000
@@ -32,6 +38,13 @@ services:
       KAFKA_BROKERS: kafka:9092
       GRAYLOG_ENABLED: "true"
       GRAYLOG_ENDPOINT: http://graylog:12201/gelf
+      SMTP_HOST: mailhog
+      SMTP_PORT: 1025
+      SMTP_SECURE: "false"
+      SMTP_REQUIRE_TLS: "false"
+      SMTP_USER: ""
+      SMTP_PASSWORD: ""
+      SMTP_FROM: noreply@localhost
     ports:
       - "${PORT:-3000}:3000"
     depends_on:
@@ -43,12 +56,17 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+      mailhog:
+        condition: service_started
     networks:
       - backend
 
   postgres:
     image: postgres:16-alpine
+    container_name: nestjs-backend-postgres
     restart: unless-stopped
+    env_file:
+      - .env.docker
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
@@ -65,6 +83,7 @@ services:
 
   mongo:
     image: mongo:7
+    container_name: nestjs-backend-mongo
     restart: unless-stopped
     volumes:
       - mongo_data:/data/db
@@ -78,7 +97,10 @@ services:
 
   redis:
     image: redis:7-alpine
+    container_name: nestjs-backend-redis
     restart: unless-stopped
+    env_file:
+      - .env.docker
     command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:-redis}", "--appendonly", "yes"]
     volumes:
       - redis_data:/data
@@ -92,7 +114,10 @@ services:
 
   minio:
     image: minio/minio:latest
+    container_name: nestjs-backend-minio
     restart: unless-stopped
+    env_file:
+      - .env.docker
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
@@ -111,36 +136,54 @@ services:
       - backend
 
   kafka:
-    image: bitnami/kafka:3.7
+    image: apache/kafka:3.9.1
+    container_name: nestjs-backend-kafka
     restart: unless-stopped
     environment:
-      KAFKA_CFG_NODE_ID: "0"
-      KAFKA_CFG_PROCESS_ROLES: controller,broker
-      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka:9093
-      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
-      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      ALLOW_PLAINTEXT_LISTENER: "yes"
+      KAFKA_NODE_ID: "1"
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: "1"
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: "0"
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
     volumes:
-      - kafka_data:/bitnami/kafka
+      - kafka_data:/var/lib/kafka/data
     healthcheck:
-      test: ["CMD-SHELL", "/opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1"]
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 5
+      start_period: 30s
+    networks:
+      - backend
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: nestjs-backend-mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # UI web
     networks:
       - backend
 
   opensearch:
     image: opensearchproject/opensearch:2.15.0
+    container_name: nestjs-backend-opensearch
     restart: unless-stopped
     environment:
       discovery.type: single-node
       plugins.security.disabled: "true"
       bootstrap.memory_lock: "true"
       OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
+      # Exigido pelo entrypoint da imagem >=2.12, mesmo com security desabilitado
+      OPENSEARCH_INITIAL_ADMIN_PASSWORD: ${OPENSEARCH_INITIAL_ADMIN_PASSWORD:-Local_Dev_Password1!}
     ulimits:
       memlock:
         soft: -1
@@ -160,11 +203,12 @@ services:
 
   graylog:
     image: graylog/graylog:6.1
+    container_name: nestjs-backend-graylog
     restart: unless-stopped
+    env_file:
+      - .env.docker
     environment:
-      # Segredo p/ criptografia (>= 16 chars). Sobrescreva em produção.
       GRAYLOG_PASSWORD_SECRET: ${GRAYLOG_PASSWORD_SECRET:-changemechangemechangeme}
-      # SHA-256 de "admin" por padrão; troque a senha em produção.
       GRAYLOG_ROOT_PASSWORD_SHA2: ${GRAYLOG_ROOT_PASSWORD_SHA2:-8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918}
       GRAYLOG_HTTP_EXTERNAL_URI: http://localhost:9009/
       GRAYLOG_MONGODB_URI: mongodb://mongo:27017/graylog

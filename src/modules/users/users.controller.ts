@@ -6,6 +6,7 @@ import { UpdateUserDto } from './dtos/update-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwtauth.guard';
 import { RolesGuard } from '@modules/auth/guards/roles.guard';
 import { Roles } from '@modules/auth/decorators/roles.decorator';
+import { Role } from '@modules/auth/enums/role.enum';
 
 @ApiTags('Users')
 @ApiBearerAuth('access-token')
@@ -20,10 +21,10 @@ export class UsersController {
      */
     @Post()
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('super')
+    @Roles(Role.SUPER)
     @ApiOperation({
         summary: 'Create a new user',
-        description: 'Creates a new user in the system. Requires super or admin role.'
+        description: 'Creates a new user in the system. Requires the super role.',
     })
     @ApiBody({
         type: CreateUserDto,
@@ -32,7 +33,7 @@ export class UsersController {
     @ApiResponse({ status: 201, description: 'User successfully created.' })
     @ApiResponse({ status: 400, description: 'Invalid input.' })
     @ApiResponse({ status: 401, description: 'Unauthorized - JWT token is missing or invalid.' })
-    @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions, requires super or admin role.' })
+    @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions, requires super role.' })
     create(@Body() createUserDto: CreateUserDto) {
         return this.usersService.create(createUserDto);
     }
@@ -43,14 +44,14 @@ export class UsersController {
      */
     @Get()
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('super')
+    @Roles(Role.SUPER)
     @ApiOperation({
         summary: 'Get all users',
-        description: 'Retrieves a list of all users. Requires super or admin role.'
+        description: 'Retrieves a list of all users. Requires the super role.',
     })
     @ApiResponse({ status: 200, description: 'List of users retrieved successfully.' })
     @ApiResponse({ status: 401, description: 'Unauthorized - JWT token is missing or invalid.' })
-    @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions, requires super or admin role.' })
+    @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions, requires super role.' })
     findAll() {
         return this.usersService.findAll();
     }
@@ -62,10 +63,10 @@ export class UsersController {
      */
     @Get(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('super')
+    @Roles(Role.SUPER)
     @ApiOperation({
         summary: 'Get a user by ID',
-        description: 'Retrieves a specific user by their ID. Accessible by super, admin, or user roles.'
+        description: 'Retrieves a specific user by their ID. Requires the super role.',
     })
     @ApiParam({
         name: 'id',
@@ -88,10 +89,10 @@ export class UsersController {
      */
     @Patch(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('super')
+    @Roles(Role.SUPER)
     @ApiOperation({
         summary: 'Update a user by ID',
-        description: 'Updates a specific user by their ID. Requires super or admin role.'
+        description: 'Updates a specific user by their ID. Requires the super role.',
     })
     @ApiParam({
         name: 'id',
@@ -105,7 +106,7 @@ export class UsersController {
     @ApiResponse({ status: 200, description: 'User updated successfully.' })
     @ApiResponse({ status: 400, description: 'Invalid input.' })
     @ApiResponse({ status: 401, description: 'Unauthorized - JWT token is missing or invalid.' })
-    @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions, requires super or admin role.' })
+    @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions, requires super role.' })
     @ApiResponse({ status: 404, description: 'User not found.' })
     update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
         return this.usersService.update(id, updateUserDto);
@@ -118,10 +119,10 @@ export class UsersController {
      */
     @Delete(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('super')
+    @Roles(Role.SUPER)
     @ApiOperation({
         summary: 'Delete a user by ID',
-        description: 'Deletes a specific user by their ID. Requires super or admin role.'
+        description: 'Deletes a specific user by their ID. Requires the super role.',
     })
     @ApiParam({
         name: 'id',
@@ -130,7 +131,7 @@ export class UsersController {
     })
     @ApiResponse({ status: 200, description: 'User deleted successfully.' })
     @ApiResponse({ status: 401, description: 'Unauthorized - JWT token is missing or invalid.' })
-    @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions, requires super or admin role.' })
+    @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions, requires super role.' })
     @ApiResponse({ status: 404, description: 'User not found.' })
     remove(@Param('id') id: string) {
         return this.usersService.remove(id);

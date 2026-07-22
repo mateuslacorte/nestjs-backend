@@ -10,9 +10,9 @@ export default registerAs('graphql', () => {
 
     return {
         autoSchemaFile: getAutoSchemaFile(),
+        // Maps to Apollo Sandbox landing page (not the deprecated GraphQL Playground)
         playground: process.env.GRAPHQL_PLAYGROUND === 'true',
         introspection: process.env.GRAPHQL_INTROSPECTION === 'true',
-        debug: process.env.GRAPHQL_DEBUG === 'true',
         sortSchema: process.env.GRAPHQL_SORT_SCHEMA === 'true',
         path: process.env.GRAPHQL_PATH || '/graphql',
     };

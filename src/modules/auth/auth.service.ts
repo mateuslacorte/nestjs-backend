@@ -11,6 +11,7 @@ import { IUser } from '../users/interfaces/user.interface';
 import { randomBytes } from 'crypto';
 import {ResetPasswordDto} from "@modules/auth/dtos/reset-password.dto";
 import {EmailService} from "@modules/email/email.service";
+import { withJitter } from './utils/jwt-expiration.util';
 
 @Injectable()
 export class AuthService {
@@ -31,13 +32,13 @@ export class AuthService {
 
         // Check if passwords match
         if (password !== confirmPassword) {
-            throw new BadRequestException('As senhas não coincidem');
+            throw new BadRequestException('Passwords do not match');
         }
 
         // Check if user with email already exists
         const existingUser = await this.usersService.findByEmail(userData.email);
         if (existingUser) {
-            throw new BadRequestException('Já existe um usuário com este e-mail');
+            throw new BadRequestException('A user with this email already exists');
         }
 
         // Create the user with isActive set to false
@@ -58,7 +59,7 @@ export class AuthService {
         return {
             user: this.sanitizeUser(newUser),
             ...tokens,
-            message: 'Registro realizado com sucesso. Por favor, verifique seu e-mail para confirmar sua conta.',
+            message: 'Registration successful. Please check your email to confirm your account.',
         };
     }
 
@@ -70,7 +71,7 @@ export class AuthService {
     async createEmailVerificationToken(email: string): Promise<string> {
         const user = await this.usersService.findByEmail(email);
         if (!user) {
-            throw new NotFoundException('Usuário não encontrado');
+            throw new NotFoundException('User not found');
         }
 
         // Generate a random token
@@ -147,7 +148,7 @@ export class AuthService {
         // Validate user credentials
         const user = await this.validateUser(email, password);
         if (!user) {
-            throw new UnauthorizedException('Credenciais inválidas');
+            throw new UnauthorizedException('Invalid credentials');
         }
 
         // Generate tokens
@@ -166,7 +167,7 @@ export class AuthService {
      * @returns The validated user or null
      */
     async validateUser(email: string, password: string): Promise<IUser | null> {
-        const user = await this.usersService.findByEmail(email);
+        const user = await this.usersService.findByEmail(email, true);
         if (!user) {
             return null;
         }
@@ -178,10 +179,11 @@ export class AuthService {
 
         // Check if user has verified their email
         if (!user.isActive) {
-            throw new UnauthorizedException('Por favor, verifique seu e-mail antes de fazer login');
+            throw new UnauthorizedException('Please verify your email before logging in');
         }
 
-        return user;
+        const { password: _password, ...userWithoutPassword } = user;
+        return userWithoutPassword as IUser;
     }
 
     /**
@@ -209,7 +211,7 @@ export class AuthService {
 
             const user = await this.usersService.findById(payload.id);
             if (!user) {
-                throw new NotFoundException('Usuário não encontrado');
+                throw new NotFoundException('User not found');
             }
 
             // Generate new tokens
@@ -217,7 +219,7 @@ export class AuthService {
 
             return tokens;
         } catch (error) {
-            throw new UnauthorizedException('Token de atualização inválido');
+            throw new UnauthorizedException('Invalid refresh token');
         }
     }
 
@@ -229,7 +231,7 @@ export class AuthService {
     async createPasswordResetToken(email: string): Promise<string> {
         const user = await this.usersService.findByEmail(email);
         if (!user) {
-            throw new NotFoundException('Usuário não encontrado');
+            throw new NotFoundException('User not found');
         }
 
         // Generate a random token
@@ -258,28 +260,28 @@ export class AuthService {
 
         // Check if passwords match
         if (password !== confirmPassword) {
-            throw new BadRequestException('As senhas não coincidem');
+            throw new BadRequestException('Passwords do not match');
         }
 
         const user = await this.usersService.findByPasswordToken(token);
         if (!user) {
-            throw new NotFoundException('Usuário não encontrado');
+            throw new NotFoundException('User not found');
         }
 
         // Check if user has a valid reset token
         if (!user.passwordResetToken || !user.passwordResetExpires) {
-            throw new BadRequestException('Token de recuperação inválido ou expirado');
+            throw new BadRequestException('Invalid or expired reset token');
         }
 
         // Check if token is expired
         if (new Date() > new Date(user.passwordResetExpires)) {
-            throw new BadRequestException('Token de recuperação expirado');
+            throw new BadRequestException('Reset token has expired');
         }
 
         // Verify the token
         const isTokenValid = token === user.passwordResetToken;
         if (!isTokenValid) {
-            throw new BadRequestException('Token de recuperação inválido');
+            throw new BadRequestException('Invalid reset token');
         }
 
         // Update the user's password and clear the reset token
@@ -314,24 +316,24 @@ export class AuthService {
 
         // Check if new passwords match
         if (newPassword !== confirmNewPassword) {
-            throw new BadRequestException('A nova senha e a confirmação não coincidem');
+            throw new BadRequestException('New password and confirmation do not match');
         }
 
         // Check if new password is different from current
         if (currentPassword === newPassword) {
-            throw new BadRequestException('A nova senha deve ser diferente da senha atual');
+            throw new BadRequestException('New password must be different from the current password');
         }
 
         // Find the user
-        const user = await this.usersService.findById(userId);
+        const user = await this.usersService.findById(userId, true);
         if (!user) {
-            throw new NotFoundException('Usuário não encontrado');
+            throw new NotFoundException('User not found');
         }
 
         // Verify current password
         const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
         if (!isCurrentPasswordValid) {
-            throw new BadRequestException('Senha atual incorreta');
+            throw new BadRequestException('Current password is incorrect');
         }
 
         // Update password
@@ -341,7 +343,7 @@ export class AuthService {
             passwordResetExpires: undefined,
         });
 
-        return { message: 'Senha alterada com sucesso' };
+        return { message: 'Password changed successfully' };
     }
 
     /**
@@ -351,17 +353,24 @@ export class AuthService {
      */
     private async generateTokens(user: IUser): Promise<{ accessToken: string; refreshToken: string }> {
         const payload = { id: user.id, email: user.email, roles: user.roles };
+        const jitterSeconds = this.configService.get<number>('jwt.jitterSeconds') ?? 0;
 
-        // Generate access token
+        // Generate access token (base TTL + random jitter)
         const accessToken = this.jwtService.sign(payload, {
             secret: this.configService.get<string>('jwt.secret'),
-            expiresIn: this.configService.get<string>('jwt.expirationTime'),
+            expiresIn: withJitter(
+                this.configService.get<string>('jwt.expirationTime') ?? '1h',
+                jitterSeconds,
+            ),
         });
 
-        // Generate refresh token
+        // Generate refresh token (base TTL + random jitter)
         const refreshToken = this.jwtService.sign(payload, {
             secret: this.configService.get<string>('jwt.refreshSecret'),
-            expiresIn: this.configService.get<string>('jwt.refreshExpirationTime'),
+            expiresIn: withJitter(
+                this.configService.get<string>('jwt.refreshExpirationTime') ?? '7d',
+                jitterSeconds,
+            ),
         });
 
         return {

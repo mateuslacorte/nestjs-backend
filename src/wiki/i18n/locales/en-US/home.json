@@ -1,0 +1,109 @@
+{
+  "home": {
+    "meta": {
+      "title": "Backend - API Documentation"
+    },
+    "badge": "v1.0.0",
+    "hero": {
+      "titlePrefix": "API Documentation",
+      "titleHighlight": "Backend NestJS",
+      "subtitle": "Complete guide for integrating with the Backend NestJS API. Here you will find endpoint documentation, business flows, and practical examples."
+    },
+    "about": {
+      "title": "About the Project",
+      "description": "The <strong>Backend NestJS</strong> is a solid and scalable foundation for building projects with the NestJS framework. This project was developed as a complete, functional template incorporating software architecture best practices, design patterns, and integrations with modern technologies.",
+      "purpose": {
+        "title": "What is it for?",
+        "items": [
+          "Foundation for new NestJS projects",
+          "Template with complete architecture",
+          "Ready-made integrations (Redis, Kafka, MinIO, etc.)",
+          "Complete JWT authentication system",
+          "Repository pattern; CQRS-ready (Mongo and/or Postgres)"
+        ]
+      },
+      "features": {
+        "title": "Features",
+        "items": [
+          "Centralized configuration via environment",
+          "Persistence in MongoDB and/or PostgreSQL",
+          "Distributed cache with Redis",
+          "Structured logging with Graylog (GELF)",
+          "GraphQL and REST API",
+          "Complete Docker stack + /health endpoint"
+        ]
+      },
+      "repository": {
+        "title": "Git Repository",
+        "description": "The source code for this project is available in the Git repository. You can clone, fork, or contribute to the project.",
+        "codeHeader": {
+          "label": "Git Repository",
+          "action": "Clone"
+        }
+      }
+    },
+    "architecture": {
+      "title": "Architecture",
+      "techStack": {
+        "title": "Technology Stack",
+        "items": [
+          "NestJS (Framework)",
+          "MongoDB (optional / CQRS-ready)",
+          "PostgreSQL (current default)",
+          "MinIO (S3 Storage)",
+          "Graylog (GELF Logging)"
+        ]
+      },
+      "patterns": {
+        "title": "Patterns Used",
+        "cqrsReady": {
+          "name": "CQRS-ready",
+          "description": "Mongo and Postgres repositories ready; service uses one database by default"
+        },
+        "repositoryPattern": {
+          "name": "Repository Pattern",
+          "description": "Data access abstraction (Mongo and/or Postgres)"
+        },
+        "jwtAuth": {
+          "name": "JWT Authentication",
+          "description": "Token-based authentication"
+        },
+        "dockerCompose": {
+          "name": "Docker Compose",
+          "description": "Local stack with API, DBs, Kafka, MailHog, and Graylog"
+        }
+      }
+    },
+    "authentication": {
+      "title": "Authentication",
+      "alert": {
+        "title": "All routes require authentication",
+        "description": "Include the Authorization: Bearer {token} header in all requests"
+      },
+      "codeHeader": {
+        "label": "Headers",
+        "type": "HTTP"
+      }
+    },
+    "baseUrl": {
+      "title": "Base URL and useful endpoints",
+      "codeHeader": {
+        "label": "Base URL",
+        "environment": "Development"
+      },
+      "endpoints": {
+        "docs": "Swagger UI",
+        "wiki": "This documentation",
+        "api": "REST API base path",
+        "health": "Health check (Postgres, Mongo, Redis, Kafka, memory)",
+        "graphql": "GraphQL"
+      }
+    },
+    "swagger": {
+      "title": "Interactive Documentation",
+      "heading": "Swagger UI",
+      "description": "Access the interactive documentation to test endpoints directly in the browser.",
+      "cta": "Open Swagger"
+    }
+  }
+}

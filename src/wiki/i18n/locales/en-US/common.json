@@ -1,0 +1,54 @@
+{
+  "brand": {
+    "name": "Backend NestJS",
+    "docs": "Documentation v1.0"
+  },
+  "nav": {
+    "homeGroup": "Home",
+    "overview": "Overview",
+    "architecture": "Architecture",
+    "backendGroup": "Backend Guide",
+    "backendOverview": "Overview",
+    "backendInstall": "Installation and Configuration",
+    "authGroup": "Authentication",
+    "authJwt": "Auth & JWT",
+    "modulesGroup": "Modules",
+    "users": "Users",
+    "swagger": "Swagger UI"
+  },
+  "lang": {
+    "switchTo": "Switch language",
+    "current": "Current language"
+  },
+  "errors": {
+    "notFound": {
+      "meta": {
+        "title": "Page not found - Backend NestJS"
+      },
+      "hero": {
+        "titlePrefix": "Page",
+        "titleHighlight": "not found",
+        "subtitle": "The address you tried to open does not exist in this documentation."
+      },
+      "pathLabel": "Path",
+      "ctaHome": "Back to home",
+      "ctaSwagger": "Open Swagger"
+    },
+    "serverError": {
+      "meta": {
+        "title": "Internal error - Backend NestJS"
+      },
+      "hero": {
+        "titlePrefix": "Internal",
+        "titleHighlight": "error",
+        "subtitle": "Something went wrong while rendering this page. Please try again in a moment."
+      },
+      "alert": {
+        "title": "Unexpected failure",
+        "description": "The error was logged. If it persists, check the API logs."
+      },
+      "ctaHome": "Back to home",
+      "ctaRetry": "Try again"
+    }
+  }
+}

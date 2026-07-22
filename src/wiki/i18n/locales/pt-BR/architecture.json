@@ -1,0 +1,227 @@
+{
+  "architecture": {
+    "meta": {
+      "title": "Arquitetura - Backend NestJS"
+    },
+    "badge": "Arquitetura do Sistema",
+    "hero": {
+      "titlePrefix": "Arquitetura e",
+      "titleHighlight": "Tecnologias",
+      "subtitle": "Entenda como as tecnologias se relacionam, o fluxo de requisições, cache e acesso aos bancos de dados."
+    },
+    "techStack": {
+      "title": "Stack Tecnológico",
+      "framework": {
+        "title": "Framework",
+        "items": ["NestJS 11.x", "TypeScript", "Node.js"]
+      },
+      "databases": {
+        "title": "Bancos de Dados",
+        "items": ["MongoDB (Mongoose + pool)", "PostgreSQL (TypeORM + pool)"]
+      },
+      "cacheMessaging": {
+        "title": "Cache & Mensageria",
+        "items": ["Redis (ioredis)", "Apache Kafka"]
+      },
+      "storageApis": {
+        "title": "Storage & APIs",
+        "items": ["MinIO (S3 Compatible)", "GraphQL (Apollo)", "REST API"]
+      },
+      "authentication": {
+        "title": "Autenticação",
+        "items": ["JWT (Passport)", "Bcrypt"]
+      },
+      "services": {
+        "title": "Serviços",
+        "items": [
+          "Graylog (Logging GELF)",
+          "SMTP / MailHog (Email)",
+          "WhatsApp (Evolution API)",
+          "Terminus (/health)"
+        ]
+      }
+    },
+    "config": {
+      "title": "Configurações e Environment Variables",
+      "intro": "Todas as configurações são centralizadas através de arquivos de config em <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">src/config/</code> e acessadas via <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">ConfigService</code>. As variáveis de ambiente são carregadas automaticamente.",
+      "files": {
+        "title": "Arquivos de Config",
+        "items": {
+          "app": "<code class=\"px-2 py-1 bg-gray-100 rounded\">app.config.ts</code> - Configurações da aplicação",
+          "database": "<code class=\"px-2 py-1 bg-gray-100 rounded\">database.config.ts</code> - MongoDB e PostgreSQL (inclui pool)",
+          "redis": "<code class=\"px-2 py-1 bg-gray-100 rounded\">redis.config.ts</code> - Cache Redis",
+          "kafka": "<code class=\"px-2 py-1 bg-gray-100 rounded\">kafka.config.ts</code> - Mensageria Kafka",
+          "jwt": "<code class=\"px-2 py-1 bg-gray-100 rounded\">jwt.config.ts</code> - Autenticação JWT",
+          "bcrypt": "<code class=\"px-2 py-1 bg-gray-100 rounded\">bcrypt.config.ts</code> - Hash de senhas",
+          "smtp": "<code class=\"px-2 py-1 bg-gray-100 rounded\">smtp.config.ts</code> - Email SMTP",
+          "minio": "<code class=\"px-2 py-1 bg-gray-100 rounded\">minio.config.ts</code> - Storage MinIO",
+          "graylog": "<code class=\"px-2 py-1 bg-gray-100 rounded\">graylog.config.ts</code> - Logging Graylog (GELF)",
+          "graphql": "<code class=\"px-2 py-1 bg-gray-100 rounded\">graphql.config.ts</code> - GraphQL",
+          "whatsapp": "<code class=\"px-2 py-1 bg-gray-100 rounded\">whatsapp.config.ts</code> - WhatsApp API"
+        }
+      },
+      "usage": {
+        "title": "Exemplo de Uso",
+        "codeHeader": {
+          "language": "TypeScript",
+          "context": "ConfigService"
+        }
+      }
+    },
+    "requestFlow": {
+      "title": "Fluxo de Requisição",
+      "steps": {
+        "clientRequest": {
+          "title": "1. Cliente faz requisição HTTP",
+          "description": "Requisição chega ao servidor NestJS com headers (Authorization, Content-Type, etc.)"
+        },
+        "securityMiddleware": {
+          "title": "2. Middleware de Segurança",
+          "description": "<code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">SecurityModule</code> intercepta e valida requisições, aplica rate limiting e proteções básicas"
+        },
+        "jwtAuth": {
+          "title": "3. Autenticação JWT",
+          "description": "<code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">JwtAuthGuard</code> valida o token JWT. Rotas marcadas com <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">@Public()</code> são ignoradas."
+        },
+        "rolesAuth": {
+          "title": "4. Autorização por Roles",
+          "description": "<code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">RolesGuard</code> verifica se o usuário possui as roles necessárias definidas via <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">@Roles()</code>"
+        },
+        "cacheInterceptor": {
+          "title": "5. Interceptor de Cache",
+          "description": "<code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">TypeOrmCacheInterceptor</code> ou <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">MongooseCacheInterceptor</code> verifica se há dados em cache no Redis"
+        },
+        "controller": {
+          "title": "6. Controller/Resolver",
+          "description": "Requisição chega ao controller (REST) ou resolver (GraphQL)"
+        },
+        "serviceLayer": {
+          "title": "7. Service Layer",
+          "description": "Lógica de negócio é executada no service, que utiliza repositories para acesso a dados"
+        },
+        "repositoryPattern": {
+          "title": "8. Repository Pattern",
+          "description": "O service do módulo injeta o repositório escolhido — <strong>PostgreSQL</strong> (TypeORM) e/ou <strong>MongoDB</strong> (Mongoose) — conforme a necessidade do domínio. Os dois repositórios por domínio permitem um único banco ou CQRS (commands em um, queries em outro)."
+        },
+        "logging": {
+          "title": "9. Logging (Graylog)",
+          "description": "Interceptor e exception filter enviam logs estruturados em GELF para o Graylog (quando <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">GRAYLOG_ENABLED=true</code>)."
+        },
+        "responseCache": {
+          "title": "10. Resposta e Cache",
+          "description": "Dados são retornados ao cliente e, se aplicável, armazenados no Redis para próximas requisições"
+        }
+      }
+    },
+    "cache": {
+      "title": "Sistema de Cache",
+      "howItWorks": {
+        "title": "Como Funciona",
+        "description": "O sistema de cache utiliza <strong>Redis</strong> como camada intermediária para armazenar resultados de consultas frequentes, reduzindo a carga nos bancos de dados e melhorando o tempo de resposta."
+      },
+      "interceptors": {
+        "title": "Interceptors de Cache",
+        "typeOrm": "<code class=\"text-indigo-600\">TypeOrmCacheInterceptor</code> - Cache para consultas TypeORM (PostgreSQL)",
+        "mongoose": "<code class=\"text-indigo-600\">MongooseCacheInterceptor</code> - Cache para consultas Mongoose (MongoDB)",
+        "service": "<code class=\"text-indigo-600\">CacheService</code> - Serviço centralizado para gerenciar cache"
+      },
+      "redisConfig": {
+        "title": "Configuração Redis",
+        "codeHeader": {
+          "label": "Environment",
+          "context": "Redis Config"
+        }
+      },
+      "flow": {
+        "title": "Fluxo de Cache",
+        "steps": [
+          "Requisição chega ao interceptor de cache",
+          "Interceptor verifica se existe chave no Redis",
+          "Se existe: retorna dados do cache (cache hit)",
+          "Se não existe: executa query no banco, armazena no Redis e retorna (cache miss)",
+          "Dados expiram automaticamente após TTL configurado"
+        ]
+      }
+    },
+    "persistence": {
+      "title": "Persistência: Mongo, Postgres e CQRS-ready",
+      "templatePattern": {
+        "title": "Padrão do template",
+        "description": "O template mantém <strong>MongoDB</strong> e <strong>PostgreSQL</strong> no stack. Cada domínio pode ter dois repositórios; o service escolhe um banco ou ambos (CQRS). Não há split command/query obrigatório — a escolha é por módulo."
+      },
+      "connectionPools": {
+        "title": "Connection pools",
+        "description": "Ambas as conexões usam pool explícito (config em <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">database.config.ts</code>). O endpoint <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">GET /health</code> inclui metadados do pool nos checks de <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">postgres</code> e <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">mongo</code>.",
+        "codeHeader": {
+          "label": "Environment",
+          "context": "Pool"
+        }
+      },
+      "postgres": {
+        "title": "PostgreSQL",
+        "items": [
+          "Schema relacional e tipado (TypeORM)",
+          "Repository: <code class=\"px-1 py-0.5 bg-blue-100 rounded\">ResourcePostgresRepository</code>",
+          "Use como única fonte de verdade ou como lado de queries em CQRS"
+        ]
+      },
+      "mongo": {
+        "title": "MongoDB",
+        "items": [
+          "Schema flexível e documental (Mongoose)",
+          "Repository: <code class=\"px-1 py-0.5 bg-green-100 rounded\">ResourceMongoRepository</code>",
+          "Use sozinho ou como lado de commands em CQRS"
+        ]
+      },
+      "singleDbExample": {
+        "title": "Exemplo: um banco só",
+        "codeHeader": {
+          "language": "TypeScript",
+          "context": "ResourceService"
+        }
+      },
+      "cqrsExample": {
+        "title": "Exemplo: ativar CQRS",
+        "description": "Injete ambos os repositórios no service: commands em um banco, queries no outro. Opcionalmente sincronize com Kafka para consistência eventual.",
+        "codeHeader": {
+          "language": "TypeScript",
+          "context": "ResourceService (CQRS)"
+        }
+      },
+      "alert": {
+        "title": "Mongo ou Postgres",
+        "description": "Você pode usar só Postgres, só Mongo, ou ambos (CQRS). A escolha é no service/módulo, sem remover a infraestrutura do outro banco do projeto."
+      }
+    },
+    "relationships": {
+      "title": "Como as Tecnologias se Relacionam",
+      "diagram": {
+        "title": "Diagrama de Relacionamento",
+        "nodes": {
+          "nestjs": { "label": "NestJS", "subtitle": "Framework Core" },
+          "mongo": { "label": "MongoDB", "subtitle": "Disponível / CQRS" },
+          "postgres": { "label": "PostgreSQL", "subtitle": "Persistência / queries" },
+          "redis": { "label": "Redis", "subtitle": "Cache" },
+          "kafka": { "label": "Kafka", "subtitle": "Mensageria" },
+          "minio": { "label": "MinIO", "subtitle": "Storage" },
+          "graylog": { "label": "Graylog", "subtitle": "Logs GELF" }
+        }
+      },
+      "items": {
+        "nestjsDatabases": "<strong class=\"text-gray-900\">NestJS ↔ MongoDB/PostgreSQL:</strong> Framework se comunica com bancos através de Mongoose e TypeORM; o service escolhe qual repositório usar",
+        "nestjsRedis": "<strong class=\"text-gray-900\">NestJS ↔ Redis:</strong> Cache interceptors utilizam Redis para armazenar resultados",
+        "nestjsKafka": "<strong class=\"text-gray-900\">NestJS ↔ Kafka:</strong> Eventos e mensagens são publicados/consumidos via Kafka (útil para projetar dados em CQRS)",
+        "nestjsMinio": "<strong class=\"text-gray-900\">NestJS ↔ MinIO:</strong> Upload e download de arquivos via API S3-compatible",
+        "nestjsGraylog": "<strong class=\"text-gray-900\">NestJS ↔ Graylog:</strong> Logs estruturados via GELF HTTP (interceptor + exception filter)",
+        "mongoPostgres": "<strong class=\"text-gray-900\">MongoDB ↔ PostgreSQL (opcional):</strong> Em um desenho CQRS, sincronização via eventos Kafka ou processos assíncronos"
+      }
+    },
+    "samples": {
+      "accessConfig": "// Acessar configuração",
+      "redisTtl": "# Time to Live em segundos",
+      "commands": "// commands",
+      "queries": "// queries",
+      "publishKafkaEvent": "// publicar evento Kafka para projetar no Postgres..."
+    }
+  }
+}

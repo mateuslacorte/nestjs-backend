@@ -1,0 +1,36 @@
+{
+  "backend": {
+    "meta": {
+      "title": "Backend Guide - Backend NestJS"
+    },
+    "badge": "Backend Guide",
+    "hero": {
+      "titlePrefix": "Backend",
+      "titleHighlight": "Guide",
+      "subtitle": "How to run, configure, and operate the NestJS template with Docker Compose or a native setup."
+    },
+    "pages": {
+      "title": "Pages",
+      "install": {
+        "title": "Installation and Configuration",
+        "description": "Docker Compose, environment variables, connection pools, Kafka KRaft, Graylog, MailHog, and native Ubuntu setup."
+      },
+      "users": {
+        "title": "Users module",
+        "description": "Administrative CRUD over REST and GraphQL, Role enum, and persistence rules."
+      }
+    },
+    "shortcuts": {
+      "title": "Useful shortcuts",
+      "items": {
+        "swagger": "Swagger",
+        "health": "Health (includes Postgres/Mongo pool metadata)",
+        "wiki": "This documentation",
+        "api": "REST API base path",
+        "users": "Users module documentation",
+        "mailhog": "MailHog (test emails)",
+        "graylog": "Graylog"
+      }
+    }
+  }
+}

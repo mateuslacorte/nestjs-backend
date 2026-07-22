@@ -1,10 +1,14 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { GraylogService } from './graylog.service';
+import { WikiRenderService } from '../../wiki/wiki-render.service';
 
 @Catch()
 export class GraylogExceptionFilter implements ExceptionFilter {
-    constructor(private readonly graylogService: GraylogService) {}
+    constructor(
+        private readonly graylogService: GraylogService,
+        private readonly wikiRender: WikiRenderService,
+    ) {}
 
     catch(exception: unknown, host: ArgumentsHost): void {
         const context = host.switchToHttp();
@@ -27,6 +31,25 @@ export class GraylogExceptionFilter implements ExceptionFilter {
                 status,
             },
         );
+
+        const path = request.originalUrl || request.url;
+
+        // Wiki HTML errors only; API / health / GraphQL keep JSON responses.
+        if (
+            status === HttpStatus.NOT_FOUND &&
+            this.wikiRender.shouldRenderWikiNotFound(request, path)
+        ) {
+            this.wikiRender.renderNotFound(request, response);
+            return;
+        }
+
+        if (
+            status >= HttpStatus.INTERNAL_SERVER_ERROR &&
+            this.wikiRender.shouldRenderWikiServerError(request, path)
+        ) {
+            this.wikiRender.renderServerError(request, response);
+            return;
+        }
 
         response.status(status).json({
             statusCode: status,

@@ -1,0 +1,22 @@
+extends ../layouts/main
+
+block content
+  .mb-12.max-w-2xl
+    .inline-flex.items-center.gap-2.px-3.py-1.bg-amber-50.rounded-full.text-amber-800.text-sm.font-medium.mb-4
+      span= statusCode || 404
+    h1(class="text-4xl font-bold text-gray-900 mb-4")
+      | #{t('errors.notFound.hero.titlePrefix')} 
+      span.gradient-text= t('errors.notFound.hero.titleHighlight')
+    p(class="text-xl text-gray-600 mb-8")
+      = t('errors.notFound.hero.subtitle')
+
+    if requestPath
+      p(class="text-sm text-gray-500 mb-8 font-mono")
+        | #{t('errors.notFound.pathLabel')}: 
+        code(class="px-2 py-1 bg-gray-100 rounded text-sm")= requestPath
+
+    .flex.flex-wrap.gap-3
+      a(href=wikiPath('') class="inline-flex items-center gap-2 bg-indigo-600 text-white px-5 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors")
+        = t('errors.notFound.ctaHome')
+      a(href=swaggerPath class="inline-flex items-center gap-2 border border-gray-300 text-gray-700 px-5 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors")
+        = t('errors.notFound.ctaSwagger')

@@ -6,52 +6,47 @@ block content
     .inline-flex.items-center.gap-2.px-3.py-1.bg-indigo-50.rounded-full.text-indigo-700.text-sm.font-medium.mb-4
       svg(class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24")
         path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z")
-      span Autenticação e Autorização
+      span= t('auth.badge')
     h1(class="text-4xl font-bold text-gray-900 mb-4")
-      | Autenticação 
-      span.gradient-text JWT & Roles
+      | #{t('auth.hero.titlePrefix')} 
+      span.gradient-text= t('auth.hero.titleHighlight')
     p(class="text-xl text-gray-600 max-w-3xl")
-      | Entenda como funciona a autenticação via JWT, sistema de roles e como usar decorators e guards.
+      = t('auth.hero.subtitle')
 
   //- Visão Geral
   section.mb-12
-    h2(class="text-2xl font-bold text-gray-900 mb-6") Visão Geral
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('auth.overview.title')
     .bg-white.rounded-xl.border.border-gray-200.p-8
       p(class="text-gray-700 mb-6")
-        | O sistema utiliza <strong>JWT (JSON Web Tokens)</strong> para autenticação e um sistema de <strong>roles</strong> para autorização. 
-        | Todas as rotas são protegidas por padrão, exceto aquelas marcadas com o decorator <code class="px-2 py-1 bg-gray-100 rounded text-sm">@Public()</code>.
+        != t('auth.overview.description')
 
       div(class="grid grid-cols-1 md:grid-cols-2 gap-6")
         div.p-6.bg-indigo-50.rounded-lg.border.border-indigo-200
-          h3(class="font-semibold text-indigo-900 mb-3") Autenticação (JWT)
+          h3(class="font-semibold text-indigo-900 mb-3")= t('auth.overview.authentication.title')
           ul.space-y-2.text-sm.text-indigo-800
-            li • Token de acesso (Access Token)
-            li • Token de refresh (Refresh Token)
-            li • Validação automática via Guards
-            li • Estratégia Passport JWT
+            each item in tm('auth.overview.authentication.items')
+              li • #{item}
 
         div.p-6.bg-purple-50.rounded-lg.border.border-purple-200
-          h3(class="font-semibold text-purple-900 mb-3") Autorização (Roles)
+          h3(class="font-semibold text-purple-900 mb-3")= t('auth.overview.authorization.title')
           ul.space-y-2.text-sm.text-purple-800
-            li • Sistema de roles flexível
-            li • Decorators para controle de acesso
-            li • Guards para validação de permissões
-            li • Múltiplas roles por usuário
+            each item in tm('auth.overview.authorization.items')
+              li • #{item}
 
   //- Fluxo de Autenticação JWT
   section.mb-12
-    h2(class="text-2xl font-bold text-gray-900 mb-6") Fluxo de Autenticação JWT
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('auth.jwtFlow.title')
     .bg-white.rounded-xl.border.border-gray-200.p-8
       .flow-step.mb-6(data-step="1")
-        h3(class="font-semibold text-gray-900 mb-2") 1. Login do Usuário
-        p.text-gray-600 Usuário envia credenciais (email e senha) para o endpoint de login
+        h3(class="font-semibold text-gray-900 mb-2")= t('auth.jwtFlow.steps.login.title')
+        p.text-gray-600= t('auth.jwtFlow.steps.login.description')
         .code-block.mt-3
           .code-header
-            span HTTP Request
-            span POST /auth/login
+            span= t('auth.jwtFlow.steps.login.codeHeader.label')
+            span= t('auth.jwtFlow.steps.login.codeHeader.context')
           .code-content
             pre.
-              POST /auth/login
+              POST #{apiBasePath}/auth/login
               Content-Type: application/json
               
               {
@@ -60,21 +55,23 @@ block content
               }
 
       .flow-step.mb-6(data-step="2")
-        h3(class="font-semibold text-gray-900 mb-2") 2. Validação de Credenciais
-        p.text-gray-600 
-          | O <code class="px-2 py-1 bg-gray-100 rounded text-sm">AuthService</code> valida email e senha usando bcrypt para comparar hash da senha
+        h3(class="font-semibold text-gray-900 mb-2")= t('auth.jwtFlow.steps.validateCredentials.title')
+        p.text-gray-600
+          != t('auth.jwtFlow.steps.validateCredentials.description')
 
       .flow-step.mb-6(data-step="3")
-        h3(class="font-semibold text-gray-900 mb-2") 3. Geração de Tokens
-        p.text-gray-600 
-          | Sistema gera dois tokens JWT:
+        h3(class="font-semibold text-gray-900 mb-2")= t('auth.jwtFlow.steps.generateTokens.title')
+        p.text-gray-600
+          != t('auth.jwtFlow.steps.generateTokens.description')
           ul.mt-2.ml-4.space-y-1.text-sm.text-gray-600
-            li • <strong>Access Token</strong>: Expira em 1h (configurável)
-            li • <strong>Refresh Token</strong>: Expira em 7d (configurável)
+            li • 
+              != t('auth.jwtFlow.steps.generateTokens.accessToken')
+            li • 
+              != t('auth.jwtFlow.steps.generateTokens.refreshToken')
         .code-block.mt-3
           .code-header
-            span HTTP Response
-            span 200 OK
+            span= t('auth.jwtFlow.steps.generateTokens.codeHeader.label')
+            span= t('auth.jwtFlow.steps.generateTokens.codeHeader.context')
           .code-content
             pre.
               {
@@ -88,109 +85,272 @@ block content
               }
 
       .flow-step.mb-6(data-step="4")
-        h3(class="font-semibold text-gray-900 mb-2") 4. Uso do Token
-        p.text-gray-600 Cliente inclui o Access Token no header Authorization de todas as requisições
+        h3(class="font-semibold text-gray-900 mb-2")= t('auth.jwtFlow.steps.useToken.title')
+        p.text-gray-600= t('auth.jwtFlow.steps.useToken.description')
         .code-block.mt-3
           .code-header
-            span HTTP Request
-            span Com Token
+            span= t('auth.jwtFlow.steps.useToken.codeHeader.label')
+            span= t('auth.jwtFlow.steps.useToken.codeHeader.context')
           .code-content
             pre.
-              GET /api/users
+              GET #{apiBasePath}/resources
               Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
               Content-Type: application/json
 
       .flow-step.mb-6(data-step="5")
-        h3(class="font-semibold text-gray-900 mb-2") 5. Validação do Token
-        p.text-gray-600 
-          | <code class="px-2 py-1 bg-gray-100 rounded text-sm">JwtAuthGuard</code> intercepta a requisição, 
-          | extrai e valida o token usando a estratégia Passport JWT
+        h3(class="font-semibold text-gray-900 mb-2")= t('auth.jwtFlow.steps.validateToken.title')
+        p.text-gray-600
+          != t('auth.jwtFlow.steps.validateToken.description')
 
       .flow-step.mb-6(data-step="6")
-        h3(class="font-semibold text-gray-900 mb-2") 6. Refresh Token
-        p.text-gray-600 Quando o Access Token expira, use o Refresh Token para obter um novo Access Token
+        h3(class="font-semibold text-gray-900 mb-2")= t('auth.jwtFlow.steps.refreshToken.title')
+        p.text-gray-600= t('auth.jwtFlow.steps.refreshToken.description')
         .code-block.mt-3
           .code-header
-            span HTTP Request
-            span POST /auth/refresh
+            span= t('auth.jwtFlow.steps.refreshToken.codeHeader.label')
+            span= t('auth.jwtFlow.steps.refreshToken.codeHeader.context')
           .code-content
             pre.
-              POST /auth/refresh
+              POST #{apiBasePath}/auth/refresh-token
               Content-Type: application/json
               
               {
                 "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
               }
 
-  //- Sistema de Roles
+  //- Jitter no JWT
   section.mb-12
-    h2(class="text-2xl font-bold text-gray-900 mb-6") Sistema de Roles
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('auth.jitter.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")
+        != t('auth.jitter.description')
+
+      .code-block.mb-6
+        .code-header
+          span= t('auth.jitter.formula.codeHeader.label')
+          span= t('auth.jitter.formula.codeHeader.context')
+        .code-content
+          pre.
+            exp = now + baseTTL + random(0, JWT_JITTER_SECONDS)
+
+      div(class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6")
+        div.p-5.bg-indigo-50.rounded-lg.border.border-indigo-200
+          h3(class="font-semibold text-indigo-900 mb-2")= t('auth.jitter.configuration.title')
+          ul.space-y-2.text-sm.text-indigo-800
+            each item in tm('auth.jitter.configuration.items')
+              li • 
+                != item
+        div.p-5.bg-green-50.rounded-lg.border.border-green-200
+          h3(class="font-semibold text-green-900 mb-2")= t('auth.jitter.example.title')
+          p.text-sm.text-green-800.mb-2
+            != t('auth.jitter.example.intro')
+          ul.space-y-1.text-sm.text-green-800
+            each item in tm('auth.jitter.example.items')
+              li • #{item}
+
+      .alert.alert-info
+        svg(class="w-5 h-5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+          path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z")
+        div
+          p.font-medium.text-blue-900= t('auth.jitter.alert.title')
+          p.text-sm.text-blue-700
+            != t('auth.jitter.alert.description')
+
+  //- Criação de conta
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('auth.registration.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")
+        != t('auth.registration.description')
+
+      .code-block.mb-6
+        .code-header
+          span= t('auth.registration.request.codeHeader.label')
+          span= t('auth.registration.request.codeHeader.context')
+        .code-content
+          pre.
+            POST #{apiBasePath}/auth/register
+            Content-Type: application/json
+
+            {
+              "firstName": "Jane",
+              "lastName": "Smith",
+              "username": "janesmith",
+              "email": "jane.smith@example.com",
+              "password": "Str0ng!P@ssword",
+              "confirmPassword": "Str0ng!P@ssword"
+            }
+
+      .code-block.mb-6
+        .code-header
+          span= t('auth.registration.response.codeHeader.label')
+          span= t('auth.registration.response.codeHeader.context')
+        .code-content
+          pre.
+            {
+              "user": {
+                "id": "uuid-...",
+                "firstName": "Jane",
+                "lastName": "Smith",
+                "username": "janesmith",
+                "email": "jane.smith@example.com",
+                "isActive": false,
+                "roles": []
+              },
+              "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+              "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+              "message": "Registration successful. Please check your email to confirm your account."
+            }
+
+      .alert.alert-info
+        svg(class="w-5 h-5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+          path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z")
+        div
+          p.font-medium.text-blue-900= t('auth.registration.alert.title')
+          p.text-sm.text-blue-700
+            != t('auth.registration.alert.description')
+
+  //- Reset de senha
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('auth.passwordReset.title')
     .bg-white.rounded-xl.border.border-gray-200.p-8
       p(class="text-gray-700 mb-6")
-        | O sistema de roles permite controlar o acesso a rotas e recursos baseado nas permissões do usuário. 
-        | Cada usuário pode ter múltiplas roles.
+        = t('auth.passwordReset.intro')
 
-      h3(class="font-semibold text-gray-900 mb-4") Roles Disponíveis
+      h3(class="font-semibold text-gray-900 mb-3")= t('auth.passwordReset.step1.title')
+      .code-block.mb-6
+        .code-header
+          span= t('auth.passwordReset.step1.request.codeHeader.label')
+          span= t('auth.passwordReset.step1.request.codeHeader.context')
+        .code-content
+          pre.
+            POST #{apiBasePath}/auth/forgot-password
+            Content-Type: application/json
+
+            {
+              "email": "jane.smith@example.com"
+            }
+
+      .code-block.mb-6
+        .code-header
+          span= t('auth.passwordReset.step1.response.codeHeader.label')
+          span= t('auth.passwordReset.step1.response.codeHeader.context')
+        .code-content
+          pre.
+            {
+              "message": "Password reset instructions sent to your email"
+            }
+
+      h3(class="font-semibold text-gray-900 mb-3")= t('auth.passwordReset.step2.title')
+      p.text-gray-700.mb-3
+        != t('auth.passwordReset.step2.description')
+      .code-block.mb-6
+        .code-header
+          span= t('auth.passwordReset.step2.request.codeHeader.label')
+          span= t('auth.passwordReset.step2.request.codeHeader.context')
+        .code-content
+          pre.
+            POST #{apiBasePath}/auth/reset-password
+            Content-Type: application/json
+
+            {
+              "token": "abc123def456...",
+              "password": "NewStr0ng!P@ssword",
+              "confirmPassword": "NewStr0ng!P@ssword"
+            }
+
+      .code-block
+        .code-header
+          span= t('auth.passwordReset.step2.response.codeHeader.label')
+          span= t('auth.passwordReset.step2.response.codeHeader.context')
+        .code-content
+          pre.
+            {
+              "message": "Password reset successfully"
+            }
+
+  //- Sistema de Roles
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('auth.roles.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")
+        | #{t('auth.roles.description').split('{role}')[0]}
+        code(class="px-2 py-1 bg-gray-100 rounded text-sm")= t('auth.roles.roleCode')
+        | #{t('auth.roles.description').split('{role}')[1]}
+
+      h3(class="font-semibold text-gray-900 mb-4")= t('auth.roles.suggestedRoles.title')
+      p(class="text-gray-700 mb-4")
+        != t('auth.roles.suggestedRoles.intro')
       div(class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6")
         div.p-4.bg-purple-50.rounded-lg.border.border-purple-200
           span.role-badge.role-super.mb-2 super
-          p.text-sm.text-gray-700 Super Administrador - Acesso total ao sistema
+          p.text-sm.text-gray-700= t('auth.roles.suggestedRoles.super')
         div.p-4.bg-red-50.rounded-lg.border.border-red-200
           span.role-badge.role-admin.mb-2 admin
-          p.text-sm.text-gray-700 Administrador - Gestão de usuários e recursos
+          p.text-sm.text-gray-700= t('auth.roles.suggestedRoles.admin')
         div.p-4.bg-blue-50.rounded-lg.border.border-blue-200
           span.role-badge.role-manager.mb-2 manager
-          p.text-sm.text-gray-700 Gerente - Gestão de recursos específicos
+          p.text-sm.text-gray-700= t('auth.roles.suggestedRoles.manager')
         div.p-4.bg-green-50.rounded-lg.border.border-green-200
           span.role-badge.role-resident.mb-2 user
-          p.text-sm.text-gray-700 Usuário - Acesso às funcionalidades básicas
+          p.text-sm.text-gray-700= t('auth.roles.suggestedRoles.user')
 
-      h3(class="font-semibold text-gray-900 mb-4") Estrutura de Roles no Usuário
+      h3(class="font-semibold text-gray-900 mb-4")= t('auth.roles.modelStructure.title')
+      p(class="text-gray-700 mb-3")
+        != t('auth.roles.modelStructure.description')
       .code-block.mb-6
         .code-header
-          span TypeScript
-          span User Entity
+          span= t('auth.roles.modelStructure.codeHeader.language')
+          span= t('auth.roles.modelStructure.codeHeader.context')
         .code-content
           pre.
+            import { Role } from '@modules/auth/enums/role.enum';
+
+            enum Role {
+              SUPER = 'super',
+              ADMIN = 'admin',
+              MANAGER = 'manager',
+              USER = 'user',
+            }
+
             interface User {
               id: string;
               email: string;
-              roles: string[];  // Array de roles
-              // ... outros campos
+              roles: Role[];  #{t('auth.samples.arrayOfRoles')}
+              // ... other fields
             }
             
-            // Exemplo de usuário
+            #{t('auth.samples.userExample')}
             const user = {
               id: "123",
               email: "admin@example.com",
-              roles: ["admin", "user"]  // Múltiplas roles
+              roles: [Role.ADMIN, Role.USER]  #{t('auth.samples.rolesDefinedByProject')}
             };
 
   //- Decorators e Guards
   section.mb-12
-    h2(class="text-2xl font-bold text-gray-900 mb-6") Decorators e Guards
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('auth.decoratorsAndGuards.title')
     .bg-white.rounded-xl.border.border-gray-200.p-8
-      h3(class="font-semibold text-gray-900 mb-4") Decorators Disponíveis
+      h3(class="font-semibold text-gray-900 mb-4")= t('auth.decoratorsAndGuards.decorators.title')
 
       div(class="space-y-6")
         div
           h4(class="font-semibold text-gray-900 mb-2 flex items-center gap-2")
-            code.text-indigo-600 @Public()
-            span.text-gray-600 - Tornar rota pública
+            code.text-indigo-600= t('auth.decoratorsAndGuards.decorators.public.label')
+            span.text-gray-600= t('auth.decoratorsAndGuards.decorators.public.suffix')
           p.text-gray-700.mb-3
-            | Marca uma rota como pública, permitindo acesso sem autenticação. 
-            | Útil para endpoints de login, registro, etc.
+            = t('auth.decoratorsAndGuards.decorators.public.description')
           .code-block
             .code-header
-              span TypeScript
-              span Controller
+              span= t('auth.decoratorsAndGuards.decorators.public.codeHeader.language')
+              span= t('auth.decoratorsAndGuards.decorators.public.codeHeader.context')
             .code-content
               pre.
                 import { Public } from '@modules/auth/decorators/public.decorator';
                 
                 @Controller('auth')
                 export class AuthController {
-                  @Public()  // Rota pública, não requer autenticação
+                  @Public()  #{t('auth.samples.publicLogin')}
                   @Post('login')
                   async login(@Body() loginDto: LoginDto) {
                     return this.authService.login(loginDto);
@@ -199,270 +359,185 @@ block content
 
         div
           h4(class="font-semibold text-gray-900 mb-2 flex items-center gap-2")
-            code.text-indigo-600 @Roles()
-            span.text-gray-600 - Restringir por role
+            code.text-indigo-600= t('auth.decoratorsAndGuards.decorators.roles.label')
+            span.text-gray-600= t('auth.decoratorsAndGuards.decorators.roles.suffix')
           p.text-gray-700.mb-3
-            | Define quais roles são necessárias para acessar a rota. 
-            | O usuário deve ter pelo menos uma das roles especificadas.
+            = t('auth.decoratorsAndGuards.decorators.roles.description')
           .code-block
             .code-header
-              span TypeScript
-              span Controller
+              span= t('auth.decoratorsAndGuards.decorators.roles.codeHeader.language')
+              span= t('auth.decoratorsAndGuards.decorators.roles.codeHeader.context')
             .code-content
               pre.
                 import { Roles } from '@modules/auth/decorators/roles.decorator';
+                import { Role } from '@modules/auth/enums/role.enum';
                 
-                @Controller('users')
-                export class UsersController {
-                  @Roles('admin', 'super')  // Apenas admin ou super
+                @Controller('resources')
+                export class ResourceController {
+                  @Roles(Role.ADMIN, Role.SUPER)  #{t('auth.samples.rolesExample')}
                   @Get()
                   async findAll() {
-                    return this.usersService.findAll();
+                    return this.resourceService.findAll();
                   }
                   
-                  @Roles('admin')  // Apenas admin
+                  @Roles(Role.ADMIN)
                   @Delete(':id')
                   async delete(@Param('id') id: string) {
-                    return this.usersService.delete(id);
+                    return this.resourceService.delete(id);
                   }
                 }
 
-      h3(class="font-semibold text-gray-900 mb-4 mt-8") Guards Implementados
+      h3(class="font-semibold text-gray-900 mb-4 mt-8")= t('auth.decoratorsAndGuards.guards.title')
 
-      div(class="space-y-6")
+      div(class="space-y-4")
         div
           h4(class="font-semibold text-gray-900 mb-2")
-            code.text-indigo-600 JwtAuthGuard
-          p.text-gray-700.mb-3
-            | Guard que valida o token JWT em todas as requisições. 
-            | Verifica se o token é válido, não expirado e extrai o payload para o request.
-          .code-block
-            .code-header
-              span TypeScript
-              span Guard Implementation
-            .code-content
-              pre.
-                @Injectable()
-                export class JwtAuthGuard extends AuthGuard('jwt') {
-                  constructor(private reflector: Reflector) {
-                    super();
-                  }
-                  
-                  canActivate(context: ExecutionContext) {
-                    // Verifica se a rota é pública
-                    const isPublic = this.reflector.getAllAndOverride<boolean>(
-                      IS_PUBLIC_KEY,
-                      [context.getHandler(), context.getClass()]
-                    );
-                    
-                    if (isPublic) {
-                      return true;  // Permite acesso sem autenticação
-                    }
-                    
-                    return super.canActivate(context);  // Valida JWT
-                  }
-                }
+            code.text-indigo-600= t('auth.decoratorsAndGuards.guards.jwtAuthGuard.label')
+          p.text-gray-700
+            != t('auth.decoratorsAndGuards.guards.jwtAuthGuard.description')
 
         div
           h4(class="font-semibold text-gray-900 mb-2")
-            code.text-indigo-600 RolesGuard
-          p.text-gray-700.mb-3
-            | Guard que valida se o usuário possui as roles necessárias para acessar a rota.
-          .code-block
-            .code-header
-              span TypeScript
-              span Guard Implementation
-            .code-content
-              pre.
-                @Injectable()
-                export class RolesGuard implements CanActivate {
-                  constructor(private reflector: Reflector) {}
-                  
-                  canActivate(context: ExecutionContext): boolean {
-                    // Obtém roles requeridas do decorator @Roles()
-                    const requiredRoles = this.reflector.getAllAndOverride<string[]>(
-                      ROLES_KEY,
-                      [context.getHandler(), context.getClass()]
-                    );
-                    
-                    if (!requiredRoles) {
-                      return true;  // Nenhuma role requerida, permite acesso
-                    }
-                    
-                    // Obtém usuário do request (adicionado pelo JwtAuthGuard)
-                    const { user } = context.switchToHttp().getRequest();
-                    
-                    // Verifica se usuário tem pelo menos uma das roles
-                    return user && user.roles && 
-                           requiredRoles.some(role => user.roles.includes(role));
-                  }
-                }
+            code.text-indigo-600= t('auth.decoratorsAndGuards.guards.rolesGuard.label')
+          p.text-gray-700
+            != t('auth.decoratorsAndGuards.guards.rolesGuard.description')
 
   //- Exemplos Práticos
   section.mb-12
-    h2(class="text-2xl font-bold text-gray-900 mb-6") Exemplos Práticos
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('auth.examples.title')
     .bg-white.rounded-xl.border.border-gray-200.p-8
-      h3(class="font-semibold text-gray-900 mb-4") Exemplo 1: Rota Pública
+      h3(class="font-semibold text-gray-900 mb-4")= t('auth.examples.publicRoute.title')
       .code-block.mb-6
         .code-header
-          span TypeScript
-          span Public Route
+          span= t('auth.examples.publicRoute.codeHeader.language')
+          span= t('auth.examples.publicRoute.codeHeader.context')
         .code-content
           pre.
             @Controller('auth')
             export class AuthController {
-              @Public()  // Não requer autenticação
+              @Public()  #{t('auth.samples.noAuthRequired')}
               @Post('register')
               async register(@Body() registerDto: RegisterDto) {
                 return this.authService.register(registerDto);
               }
             }
 
-      h3(class="font-semibold text-gray-900 mb-4") Exemplo 2: Rota Protegida (Qualquer Usuário Autenticado)
+      h3(class="font-semibold text-gray-900 mb-4")= t('auth.examples.protectedRoute.title')
       .code-block.mb-6
         .code-header
-          span TypeScript
-          span Protected Route
+          span= t('auth.examples.protectedRoute.codeHeader.language')
+          span= t('auth.examples.protectedRoute.codeHeader.context')
         .code-content
           pre.
-            @Controller('profile')
-            export class ProfileController {
-              // Não precisa de @Public(), então requer autenticação
-              // Não precisa de @Roles(), então qualquer usuário autenticado pode acessar
+            @Controller('resources')
+            export class ResourceController {
+              #{t('auth.samples.withoutPublic')}
+              #{t('auth.samples.withoutRoles')}
+              @Get('me')
+              async getMine(@Request() req) {
+                return this.resourceService.findByOwner(req.user.id);
+              }
+            }
+
+      h3(class="font-semibold text-gray-900 mb-4")= t('auth.examples.roleBasedRoute.title')
+      .code-block.mb-6
+        .code-header
+          span= t('auth.examples.roleBasedRoute.codeHeader.language')
+          span= t('auth.examples.roleBasedRoute.codeHeader.context')
+        .code-content
+          pre.
+            import { Role } from '@modules/auth/enums/role.enum';
+
+            @Controller('resources')
+            export class ResourceController {
+              @Roles(Role.SUPER)  #{t('auth.samples.rolesExample')}
               @Get()
-              async getProfile(@Request() req) {
-                return req.user;  // Usuário disponível via JwtAuthGuard
-              }
-            }
-
-      h3(class="font-semibold text-gray-900 mb-4") Exemplo 3: Rota com Role Específica
-      .code-block.mb-6
-        .code-header
-          span TypeScript
-          span Role-Based Route
-        .code-content
-          pre.
-            @Controller('admin')
-            export class AdminController {
-              @Roles('admin', 'super')  // Apenas admin ou super
-              @Get('users')
-              async getAllUsers() {
-                return this.usersService.findAll();
+              async findAll() {
+                return this.resourceService.findAll();
               }
               
-              @Roles('super')  // Apenas super admin
-              @Delete('users/:id')
-              async deleteUser(@Param('id') id: string) {
-                return this.usersService.delete(id);
+              @Roles(Role.ADMIN)
+              @Delete(':id')
+              async delete(@Param('id') id: string) {
+                return this.resourceService.delete(id);
               }
             }
 
-      h3(class="font-semibold text-gray-900 mb-4") Exemplo 4: Múltiplas Roles
+      h3(class="font-semibold text-gray-900 mb-4")= t('auth.examples.multipleRoles.title')
       .code-block.mb-6
         .code-header
-          span TypeScript
-          span Multiple Roles
+          span= t('auth.examples.multipleRoles.codeHeader.language')
+          span= t('auth.examples.multipleRoles.codeHeader.context')
         .code-content
           pre.
-            @Controller('reports')
-            export class ReportsController {
-              // Usuário precisa ter 'admin' OU 'manager'
-              @Roles('admin', 'manager')
-              @Get('financial')
-              async getFinancialReport() {
-                return this.reportsService.getFinancial();
+            import { Role } from '@modules/auth/enums/role.enum';
+
+            @Controller('resources')
+            export class ResourceController {
+              #{t('auth.samples.needsAdminOrManager')}
+              @Roles(Role.ADMIN, Role.MANAGER)
+              @Get('summary')
+              async getSummary() {
+                return this.resourceService.getSummary();
               }
               
-              // Usuário precisa ter 'admin' E 'super' (se tiver ambas)
-              // Nota: @Roles() usa OR, não AND
-              // Para AND, você precisaria criar um guard customizado
-              @Roles('super')
-              @Get('system')
-              async getSystemReport() {
-                return this.reportsService.getSystem();
+              #{t('auth.samples.rolesUsesOr')}
+              #{t('auth.samples.forAndCustomGuard')}
+              @Roles(Role.SUPER)
+              @Get('audit')
+              async getAudit() {
+                return this.resourceService.getAudit();
               }
             }
 
-  //- Estratégia JWT
+  //- Payload do Token
   section.mb-12
-    h2(class="text-2xl font-bold text-gray-900 mb-6") Estratégia JWT (Passport)
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('auth.tokenPayload.title')
     .bg-white.rounded-xl.border.border-gray-200.p-8
       p(class="text-gray-700 mb-6")
-        | A estratégia JWT utiliza Passport para validar tokens e extrair informações do usuário do payload.
+        != t('auth.tokenPayload.description')
 
-      .code-block.mb-6
-        .code-header
-          span TypeScript
-          span JWT Strategy
-        .code-content
-          pre.
-            @Injectable()
-            export class JwtStrategy extends PassportStrategy(Strategy) {
-              constructor(
-                private configService: ConfigService,
-                private authService: AuthService
-              ) {
-                super({
-                  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-                  ignoreExpiration: false,
-                  secretOrKey: configService.get<string>('jwt.secret'),
-                });
-              }
-              
-              async validate(payload: any) {
-                // Payload contém: { id, email, roles, ... }
-                // Valida se o usuário ainda existe no banco
-                const user = await this.authService.validateUserById(payload.id);
-                if (!user) {
-                  throw new UnauthorizedException();
-                }
-                return user;  // Adicionado ao request como req.user
-              }
-            }
-
-      h3(class="font-semibold text-gray-900 mb-4") Payload do Token
       .code-block
         .code-header
-          span JSON
-          span JWT Payload
+          span= t('auth.tokenPayload.codeHeader.label')
+          span= t('auth.tokenPayload.codeHeader.context')
         .code-content
           pre.
             {
               "id": "user123",
               "email": "usuario@example.com",
               "roles": ["admin", "user"],
-              "iat": 1234567890,  // Issued at
-              "exp": 1234571490   // Expiration
+              "iat": 1234567890,  #{t('auth.samples.issuedAt')}
+              "exp": 1234571490   #{t('auth.samples.expiration')}
             }
 
   //- Configuração
   section.mb-12
-    h2(class="text-2xl font-bold text-gray-900 mb-6") Configuração
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('auth.configuration.title')
     .bg-white.rounded-xl.border.border-gray-200.p-8
       p(class="text-gray-700 mb-6")
-        | As configurações de JWT são feitas através de variáveis de ambiente e acessadas via <code class="px-2 py-1 bg-gray-100 rounded text-sm">ConfigService</code>.
+        != t('auth.configuration.description')
 
       .code-block.mb-6
         .code-header
-          span Environment Variables
-          span .env
+          span= t('auth.configuration.codeHeader.label')
+          span= t('auth.configuration.codeHeader.context')
         .code-content
           pre.
-            # JWT Configuration
+            #{t('auth.samples.jwtConfiguration')}
             JWT_SECRET=seu_jwt_secret_super_seguro_aqui
             JWT_EXPIRATION_TIME=1h
             JWT_REFRESH_SECRET=seu_refresh_secret_super_seguro
             JWT_REFRESH_EXPIRATION_TIME=7d
+            JWT_JITTER_SECONDS=60
             
-            # Bcrypt Configuration
-            BCRYPT_SALT_ROUNDS=10
+            #{t('auth.samples.bcryptConfiguration')}
+            BCRYPT_HASH_FACTOR=12
 
       .alert.alert-warning
         svg(class="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
           path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z")
         div
-          p.font-medium.text-amber-900 Segurança
-          p.text-sm.text-amber-700 
-            | Use secrets fortes e únicos em produção. O <code class="px-1 py-0.5 bg-amber-100 rounded">JWT_SECRET</code> deve ser uma string longa e aleatória. 
-            | Nunca commite secrets no repositório.
-
+          p.font-medium.text-amber-900= t('auth.configuration.alert.title')
+          p.text-sm.text-amber-700
+            != t('auth.configuration.alert.description')

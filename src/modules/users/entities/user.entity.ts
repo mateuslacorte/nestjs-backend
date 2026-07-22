@@ -1,4 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Role } from '@modules/auth/enums/role.enum';
 import { IUser } from '../interfaces/user.interface';
 
 @Entity('users')
@@ -25,7 +26,7 @@ export class UserEntity implements IUser {
     isActive!: boolean;
 
     @Column('simple-array')
-    roles!: string[];
+    roles!: Role[];
 
     @Column({ nullable: true })
     passwordResetToken?: string;

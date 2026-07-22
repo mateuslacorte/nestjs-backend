@@ -13,8 +13,6 @@ export class StrongPasswordConstraint implements ValidatorConstraintInterface {
         const hasLowercase = /[a-z]/.test(password);
         const hasNumber = /[0-9]/.test(password);
         const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-
-        // Check for sequences of letters or numbers
         const hasNoSequences = !/(?:abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz|123|234|345|456|567|678|789|012|098|987|876|765|654|543|432|321)/i.test(
             password,
         );

@@ -1,0 +1,196 @@
+{
+  "users": {
+    "meta": {
+      "title": "Users - Backend NestJS"
+    },
+    "badge": "Módulo Users",
+    "hero": {
+      "titlePrefix": "Gestão de",
+      "titleHighlight": "usuários",
+      "subtitle": "CRUD administrativo via REST e GraphQL, persistência dual-ready e autorização com o enum Role."
+    },
+    "overview": {
+      "title": "Visão geral",
+      "description": "O módulo <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">users</code> gerencia o ciclo de vida administrativo dos usuários. Registro público, verificação de e-mail e reset de senha ficam no módulo <a href=\"/auth\" class=\"text-indigo-600 hover:underline\">Auth</a>.",
+      "persistence": {
+        "title": "Persistência",
+        "items": [
+          "Entity TypeORM (PostgreSQL) — store ativo usado pelo UsersService",
+          "Schema Mongoose (MongoDB) — dual-ready; repositório registrado mas não injetado no service",
+          "Cache com invalidação no padrão users:* em escritas"
+        ]
+      },
+      "surfaces": {
+        "title": "Superfícies",
+        "items": [
+          "REST sob o prefixo da API /users — JWT + roles exigidas pela rota",
+          "GraphQL — mesmas operações, JWT + roles exigidas pela operação",
+          "Sem endpoints @Public() neste módulo"
+        ]
+      }
+    },
+    "roles": {
+      "title": "Enum Role",
+      "description": "O campo <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">roles</code> é <strong>opcional</strong>. Quando informado, cada valor deve ser um membro do enum <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">Role</code>. Personalize o enum em <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">src/modules/auth/enums/role.enum.ts</code> conforme o seu projeto.",
+      "values": {
+        "title": "Valores do enum Role",
+        "intro": "Estes são os valores definidos em <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">src/modules/auth/enums/role.enum.ts</code>. Para novos papéis, <strong>estenda o enum</strong> — não use strings livres.",
+        "super": "Super Administrador - Acesso total ao sistema",
+        "admin": "Administrador - Gestão de usuários e recursos",
+        "manager": "Gerente - Gestão de recursos específicos",
+        "user": "Usuário - Acesso às funcionalidades básicas"
+      },
+      "codeHeader": { "language": "TypeScript", "context": "role.enum.ts" }
+    },
+    "authorization": {
+      "title": "Autorização",
+      "description": "REST e GraphQL exigem JWT válido. Proteja as operações com <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">@Roles(...)</code> usando os membros do seu enum <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">Role</code>. O <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">RolesGuard</code> e o <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">JwtAuthGuard</code> resolvem o request em HTTP e GraphQL.",
+      "rest": "REST: @UseGuards(JwtAuthGuard, RolesGuard) + @Roles(Role.YOUR_ROLE) em cada rota",
+      "graphql": "GraphQL: guards no resolver + @Roles(Role.YOUR_ROLE) em queries e mutations"
+    },
+    "dataModel": {
+      "title": "Modelo de dados",
+      "description": "Campos principais do usuário (interface IUser / entity / schema):",
+      "fields": [
+        "id — UUID",
+        "username — único",
+        "firstName, lastName",
+        "email — único",
+        "password — hash bcrypt (não exposto no GraphQL)",
+        "isActive — default true (registro Auth cria inativo)",
+        "roles — Role[] (Postgres default []; Mongo default conforme o enum do projeto)",
+        "passwordResetToken / passwordResetExpires",
+        "emailVerificationToken / emailVerificationExpires"
+      ]
+    },
+    "dtos": {
+      "title": "DTOs",
+      "create": {
+        "title": "CreateUserDto",
+        "description": "Campos obrigatórios: firstName, lastName, username, email, password (@StrongPassword). Opcionais: isActive, roles (Role[])."
+      },
+      "update": {
+        "title": "UpdateUserDto",
+        "description": "Todos os campos opcionais. roles valida @IsEnum(Role, { each: true }). Tokens de verificação de e-mail existem no DTO mas não são fields GraphQL."
+      },
+      "password": {
+        "title": "Senha forte",
+        "description": "@StrongPassword exige maiúscula, minúscula, dígito, caractere especial e bloqueia sequências óbvias (ex.: abc, 123)."
+      },
+      "codeHeader": { "label": "JSON", "context": "CreateUserDto" }
+    },
+    "rest": {
+      "title": "API REST",
+      "intro": "Prefixo global da API: use o Bearer JWT de um usuário que possua as roles exigidas pelas rotas.",
+      "create": {
+        "title": "Criar usuário",
+        "description": "Cria usuário. Conflito (409) se email ou username já existirem.",
+        "codeHeader": { "label": "HTTP Request", "context": "POST" }
+      },
+      "list": {
+        "title": "Listar usuários",
+        "description": "Retorna todos os usuários.",
+        "codeHeader": { "label": "HTTP Request", "context": "GET" }
+      },
+      "get": {
+        "title": "Buscar por ID",
+        "description": "Retorna um usuário pelo UUID.",
+        "codeHeader": { "label": "HTTP Request", "context": "GET :id" }
+      },
+      "update": {
+        "title": "Atualizar",
+        "description": "Atualização parcial. Re-hash de senha se enviada e ainda não for bcrypt.",
+        "codeHeader": { "label": "HTTP Request", "context": "PATCH" }
+      },
+      "delete": {
+        "title": "Remover",
+        "description": "Remove o usuário e retorna o snapshot.",
+        "codeHeader": { "label": "HTTP Request", "context": "DELETE" }
+      }
+    },
+    "graphql": {
+      "title": "GraphQL",
+      "description": "Operações no path GraphQL da aplicação. Envie Authorization: Bearer &lt;token&gt;. O schema expõe o enum Role. Campos retornados: id, username, firstName, lastName, email, isActive, roles (password não é exposto).",
+      "queries": {
+        "title": "Queries",
+        "users": {
+          "title": "users — listar todos",
+          "codeHeader": { "label": "GraphQL", "context": "query users" }
+        },
+        "user": {
+          "title": "user — buscar por ID",
+          "codeHeader": { "label": "GraphQL", "context": "query user" }
+        },
+        "userByEmail": {
+          "title": "userByEmail — buscar por e-mail",
+          "codeHeader": { "label": "GraphQL", "context": "query userByEmail" }
+        }
+      },
+      "mutations": {
+        "title": "Mutations",
+        "createUser": {
+          "title": "createUser — criar usuário",
+          "codeHeader": { "label": "GraphQL", "context": "mutation createUser" }
+        },
+        "updateUser": {
+          "title": "updateUser — atualizar usuário",
+          "codeHeader": { "label": "GraphQL", "context": "mutation updateUser" }
+        },
+        "removeUser": {
+          "title": "removeUser — remover usuário",
+          "codeHeader": { "label": "GraphQL", "context": "mutation removeUser" }
+        }
+      }
+    },
+    "businessRules": {
+      "title": "Regras de negócio",
+      "items": [
+        "Email e username únicos (ConflictException)",
+        "Bcrypt com BCRYPT_HASH_FACTOR; não re-hash se o valor já for bcrypt",
+        "Helpers: updateRoles, addRole, removeRole, replaceRole (tipados com Role)",
+        "Cache @EnableCache / @CacheTTL(1800) em create, findAll, update, remove; @NoCache em finders pontuais"
+      ]
+    },
+    "authVsUsers": {
+      "title": "Auth vs Users",
+      "auth": {
+        "title": "Auth",
+        "items": [
+          "Registro público, verificação de e-mail, login, forgot/reset password",
+          "Envia e-mails via EmailModule",
+          "Cria usuário inativo com roles: []"
+        ]
+      },
+      "users": {
+        "title": "Users",
+        "items": [
+          "CRUD administrativo (REST + GraphQL)",
+          "Atribuição de roles do enum",
+          "Não envia e-mail"
+        ]
+      }
+    },
+    "alerts": {
+      "title": "Atenção",
+      "passwordOmit": {
+        "title": "Password nas respostas",
+        "description": "GET REST e GraphQL não expõem password. O hash só é carregado internamente no Auth quando necessário (login e troca de senha)."
+      },
+      "extendEnum": {
+        "title": "Personalizar roles",
+        "description": "Ajuste o enum Role e os decorators @Roles(...) nas rotas/resolvers. Não envie strings fora do enum."
+      }
+    },
+    "cta": {
+      "title": "Explorar",
+      "swagger": "Abrir Swagger (tag Users)",
+      "auth": "Documentação Auth & JWT",
+      "graphql": "Abrir GraphQL"
+    },
+    "samples": {
+      "bearer": "Authorization: Bearer <access_token>",
+      "createBody": "roles opcional — só valores do enum Role",
+      "strongPassword": "Senha forte obrigatória"
+    }
+  }
+}

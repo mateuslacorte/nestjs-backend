@@ -1,6 +1,7 @@
-import { IsEmail, IsNotEmpty, IsString, IsBoolean, IsOptional, IsArray } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, IsBoolean, IsOptional, IsArray, IsEnum } from 'class-validator';
 import { StrongPassword } from '../../auth/decorators/strongpassword.decorator';
 import { InputType, Field } from '@nestjs/graphql';
+import { Role } from '../../auth/enums/role.enum';
 
 @InputType()
 export class CreateUserDto {
@@ -34,8 +35,9 @@ export class CreateUserDto {
   @IsOptional()
   isActive?: boolean;
 
-  @Field(() => [String], { nullable: true })
+  @Field(() => [Role], { nullable: true })
   @IsArray()
+  @IsEnum(Role, { each: true, message: 'Each role must be a valid Role enum value' })
   @IsOptional()
-  roles?: string[];
+  roles?: Role[];
 }

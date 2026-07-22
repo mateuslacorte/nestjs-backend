@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { GraylogLoggerService } from '@common/graylog/graylog-logger.service';
@@ -16,49 +16,78 @@ if (!globalThis.crypto) {
 
 async function bootstrap() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule);
+    const configService = app.get(ConfigService);
+    const apiPrefix = configService.get<string>('app.apiPrefix') || 'api/v1';
+
+    // Wiki at /; API controllers under /api/{API_VERSION}
+    app.setGlobalPrefix(apiPrefix, {
+        exclude: [
+            { path: '/', method: RequestMethod.GET },
+            { path: 'architecture', method: RequestMethod.GET },
+            { path: 'backend', method: RequestMethod.GET },
+            { path: 'backend/install', method: RequestMethod.GET },
+            { path: 'auth', method: RequestMethod.GET },
+            { path: 'users', method: RequestMethod.GET },
+            { path: '404', method: RequestMethod.GET },
+            { path: '500', method: RequestMethod.GET },
+            { path: 'static/(.*)', method: RequestMethod.GET },
+
+            { path: 'health', method: RequestMethod.GET },
+            { path: 'health/(.*)', method: RequestMethod.GET },
+            { path: 'swagger', method: RequestMethod.ALL },
+            { path: 'swagger-json', method: RequestMethod.ALL },
+            { path: 'swagger/(.*)', method: RequestMethod.ALL },
+            // Catch-all must stay at root (not under /api/...)
+            { path: '*path', method: RequestMethod.ALL },
+        ],
+    });
 
     // Configure Pug as template engine for Wiki
-    // Try both dist and src paths to work in dev and production
     const srcViewsPath = join(process.cwd(), 'src', 'wiki', 'views');
     const distViewsPath = join(__dirname, 'wiki', 'views');
     const srcPublicPath = join(process.cwd(), 'src', 'wiki', 'public');
     const distPublicPath = join(__dirname, 'wiki', 'public');
-    
-    // Use dist if it exists (production), otherwise use src (development)
+
     const viewsPath = existsSync(distViewsPath) ? distViewsPath : srcViewsPath;
     const publicPath = existsSync(distPublicPath) ? distPublicPath : srcPublicPath;
-    
+
     app.setBaseViewsDir(viewsPath);
     app.setViewEngine('pug');
-    app.useStaticAssets(publicPath, { prefix: '/wiki/static' });
+    app.useStaticAssets(publicPath, { prefix: '/static' });
 
-    // Get the GraylogLoggerService from the app context
     const graylogLogger = app.get(GraylogLoggerService);
-
-    // Use the custom logger
     app.useLogger(graylogLogger);
 
-    // Enable global validation pipe to validate incoming requests and DTOs
-    app.useGlobalPipes(new ValidationPipe({
-        whitelist: true, // Strip non-decorated properties
-        forbidNonWhitelisted: true, // Throw error if non-whitelisted properties are present
-        transform: true, // Automatically transform payloads to DTO instances
-    }));
+    app.useGlobalPipes(
+        new ValidationPipe({
+            whitelist: true,
+            forbidNonWhitelisted: true,
+            transform: true,
+        }),
+    );
 
-    // Setup Swagger API documentation
     const config = new DocumentBuilder()
         .setTitle('Backend NestJS API')
-        .setDescription(`
+        .setDescription(
+            `
 ## Documentação da API
 
-### 🔐 Autenticação
+### Autenticação
 Todas as rotas (exceto login) requerem autenticação JWT. Use o header \`Authorization: Bearer {token}\`.
 
-### 📚 Wiki
-Acesse a documentação completa com fluxos e exemplos em [/wiki](/wiki).
-        `)
+### Wiki
+Acesse a documentação completa com fluxos e exemplos em [/](/).
+
+### Prefixo da API
+Rotas REST: \`/${apiPrefix}/...\`
+        `,
+        )
         .setVersion('1.0.0')
-        .setContact('Mateus M. Côrtes', 'https://www.lacorte.dev', 'https://www.lacorte.dev/contact')
+        .setContact(
+            'Mateus M. Côrtes',
+            'https://www.lacorte.dev',
+            'https://www.lacorte.dev/contact',
+        )
         .addTag('Auth', 'Autenticação e autorização')
         .addTag('Users', 'Gestão de usuários')
         .addTag('Email', 'Envio de e-mails')
@@ -76,19 +105,19 @@ Acesse a documentação completa com fluxos e exemplos em [/wiki](/wiki).
         )
         .build();
     const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('docs', app, document);
+    SwaggerModule.setup('swagger', app, document, {
+        useGlobalPrefix: false,
+    });
 
-    // Enable CORS for cross-origin requests
     app.enableCors();
 
-    // Get configuration service
-    const configService = app.get(ConfigService);
-    
-    // Set the port and start the application
     const port = configService.get<number>('app.port') || 3000;
     const host = configService.get<string>('app.host') || 'localhost';
-    const protocol = configService.get<string>('app.environment') === 'production' ? 'https' : 'http';
-    
+    const protocol =
+        configService.get<string>('app.environment') === 'production'
+            ? 'https'
+            : 'http';
+
     await app.listen(port);
     graylogLogger.log(`Application is running on: ${protocol}://${host}:${port}`);
 }

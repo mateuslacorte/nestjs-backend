@@ -1,0 +1,375 @@
+extends ../layouts/main
+
+block content
+  .mb-12
+    .inline-flex.items-center.gap-2.px-3.py-1.bg-indigo-50.rounded-full.text-indigo-700.text-sm.font-medium.mb-4
+      svg(class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z")
+      span= t('users.badge')
+    h1(class="text-4xl font-bold text-gray-900 mb-4")
+      | #{t('users.hero.titlePrefix')} 
+      span.gradient-text= t('users.hero.titleHighlight')
+    p(class="text-xl text-gray-600 max-w-3xl")
+      = t('users.hero.subtitle')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('users.overview.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")
+        != t('users.overview.description')
+      div(class="grid grid-cols-1 md:grid-cols-2 gap-6")
+        div.p-6.bg-indigo-50.rounded-lg.border.border-indigo-200
+          h3(class="font-semibold text-indigo-900 mb-3")= t('users.overview.persistence.title')
+          ul.space-y-2.text-sm.text-indigo-800
+            each item in tm('users.overview.persistence.items')
+              li • #{item}
+        div.p-6.bg-purple-50.rounded-lg.border.border-purple-200
+          h3(class="font-semibold text-purple-900 mb-3")= t('users.overview.surfaces.title')
+          ul.space-y-2.text-sm.text-purple-800
+            each item in tm('users.overview.surfaces.items')
+              li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('users.roles.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")
+        != t('users.roles.description')
+      h3(class="font-semibold text-gray-900 mb-4")= t('users.roles.values.title')
+      p(class="text-gray-700 mb-4")
+        != t('users.roles.values.intro')
+      div(class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6")
+        div.p-4.bg-purple-50.rounded-lg.border.border-purple-200
+          span.role-badge.role-super.mb-2 super
+          p.text-sm.text-gray-700= t('users.roles.values.super')
+        div.p-4.bg-red-50.rounded-lg.border.border-red-200
+          span.role-badge.role-admin.mb-2 admin
+          p.text-sm.text-gray-700= t('users.roles.values.admin')
+        div.p-4.bg-blue-50.rounded-lg.border.border-blue-200
+          span.role-badge.role-manager.mb-2 manager
+          p.text-sm.text-gray-700= t('users.roles.values.manager')
+        div.p-4.bg-green-50.rounded-lg.border.border-green-200
+          span.role-badge.role-resident.mb-2 user
+          p.text-sm.text-gray-700= t('users.roles.values.user')
+      .code-block
+        .code-header
+          span= t('users.roles.codeHeader.language')
+          span= t('users.roles.codeHeader.context')
+        .code-content
+          pre.
+            export enum Role {
+              SUPER = 'super',
+              ADMIN = 'admin',
+              MANAGER = 'manager',
+              USER = 'user',
+            }
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('users.authorization.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")
+        != t('users.authorization.description')
+      ul.space-y-2.text-gray-700
+        li • #{t('users.authorization.rest')}
+        li • #{t('users.authorization.graphql')}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('users.dataModel.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")= t('users.dataModel.description')
+      ul.space-y-2.text-sm.text-gray-700
+        each item in tm('users.dataModel.fields')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('users.dtos.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      .mb-6
+        h3(class="font-semibold text-gray-900 mb-2")= t('users.dtos.create.title')
+        p.text-gray-700= t('users.dtos.create.description')
+      .mb-6
+        h3(class="font-semibold text-gray-900 mb-2")= t('users.dtos.update.title')
+        p.text-gray-700= t('users.dtos.update.description')
+      .mb-6
+        h3(class="font-semibold text-gray-900 mb-2")= t('users.dtos.password.title')
+        p.text-gray-700= t('users.dtos.password.description')
+      .code-block
+        .code-header
+          span= t('users.dtos.codeHeader.label')
+          span= t('users.dtos.codeHeader.context')
+        .code-content
+          pre.
+            {
+              "firstName": "Jane",
+              "lastName": "Doe",
+              "username": "janedoe",
+              "email": "jane@example.com",
+              "password": "Str0ng!Pass",  #{t('users.samples.strongPassword')}
+              "isActive": true,
+              "roles": ["admin", "manager"]  #{t('users.samples.createBody')}
+            }
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('users.rest.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")= t('users.rest.intro')
+
+      .flow-step.mb-6(data-step="1")
+        h3(class="font-semibold text-gray-900 mb-2")= t('users.rest.create.title')
+        p.text-gray-600.mb-3= t('users.rest.create.description')
+        .code-block
+          .code-header
+            span= t('users.rest.create.codeHeader.label')
+            span= t('users.rest.create.codeHeader.context')
+          .code-content
+            pre.
+              POST #{apiBasePath}/users
+              Content-Type: application/json
+              #{t('users.samples.bearer')}
+
+              {
+                "firstName": "Jane",
+                "lastName": "Doe",
+                "username": "janedoe",
+                "email": "jane@example.com",
+                "password": "Str0ng!Pass",
+                "roles": ["admin"]
+              }
+
+      .flow-step.mb-6(data-step="2")
+        h3(class="font-semibold text-gray-900 mb-2")= t('users.rest.list.title')
+        p.text-gray-600.mb-3= t('users.rest.list.description')
+        .code-block
+          .code-header
+            span= t('users.rest.list.codeHeader.label')
+            span= t('users.rest.list.codeHeader.context')
+          .code-content
+            pre.
+              GET #{apiBasePath}/users
+              #{t('users.samples.bearer')}
+
+      .flow-step.mb-6(data-step="3")
+        h3(class="font-semibold text-gray-900 mb-2")= t('users.rest.get.title')
+        p.text-gray-600.mb-3= t('users.rest.get.description')
+        .code-block
+          .code-header
+            span= t('users.rest.get.codeHeader.label')
+            span= t('users.rest.get.codeHeader.context')
+          .code-content
+            pre.
+              GET #{apiBasePath}/users/:id
+              #{t('users.samples.bearer')}
+
+      .flow-step.mb-6(data-step="4")
+        h3(class="font-semibold text-gray-900 mb-2")= t('users.rest.update.title')
+        p.text-gray-600.mb-3= t('users.rest.update.description')
+        .code-block
+          .code-header
+            span= t('users.rest.update.codeHeader.label')
+            span= t('users.rest.update.codeHeader.context')
+          .code-content
+            pre.
+              PATCH #{apiBasePath}/users/:id
+              Content-Type: application/json
+              #{t('users.samples.bearer')}
+
+              {
+                "isActive": false,
+                "roles": ["user"]
+              }
+
+      .flow-step(data-step="5")
+        h3(class="font-semibold text-gray-900 mb-2")= t('users.rest.delete.title')
+        p.text-gray-600.mb-3= t('users.rest.delete.description')
+        .code-block
+          .code-header
+            span= t('users.rest.delete.codeHeader.label')
+            span= t('users.rest.delete.codeHeader.context')
+          .code-content
+            pre.
+              DELETE #{apiBasePath}/users/:id
+              #{t('users.samples.bearer')}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('users.graphql.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")
+        != t('users.graphql.description')
+
+      h3(class="font-semibold text-gray-900 mb-4")= t('users.graphql.queries.title')
+
+      .mb-6
+        h4(class="font-medium text-gray-800 mb-2")= t('users.graphql.queries.users.title')
+        .code-block
+          .code-header
+            span= t('users.graphql.queries.users.codeHeader.label')
+            span= t('users.graphql.queries.users.codeHeader.context')
+          .code-content
+            pre.
+              query {
+                users {
+                  id
+                  username
+                  firstName
+                  lastName
+                  email
+                  isActive
+                  roles
+                }
+              }
+
+      .mb-6
+        h4(class="font-medium text-gray-800 mb-2")= t('users.graphql.queries.user.title')
+        .code-block
+          .code-header
+            span= t('users.graphql.queries.user.codeHeader.label')
+            span= t('users.graphql.queries.user.codeHeader.context')
+          .code-content
+            pre.
+              query {
+                user(id: "00000000-0000-0000-0000-000000000001") {
+                  id
+                  username
+                  firstName
+                  lastName
+                  email
+                  isActive
+                  roles
+                }
+              }
+
+      .mb-8
+        h4(class="font-medium text-gray-800 mb-2")= t('users.graphql.queries.userByEmail.title')
+        .code-block
+          .code-header
+            span= t('users.graphql.queries.userByEmail.codeHeader.label')
+            span= t('users.graphql.queries.userByEmail.codeHeader.context')
+          .code-content
+            pre.
+              query {
+                userByEmail(email: "jane@example.com") {
+                  id
+                  username
+                  firstName
+                  lastName
+                  email
+                  isActive
+                  roles
+                }
+              }
+
+      h3(class="font-semibold text-gray-900 mb-4")= t('users.graphql.mutations.title')
+
+      .mb-6
+        h4(class="font-medium text-gray-800 mb-2")= t('users.graphql.mutations.createUser.title')
+        .code-block
+          .code-header
+            span= t('users.graphql.mutations.createUser.codeHeader.label')
+            span= t('users.graphql.mutations.createUser.codeHeader.context')
+          .code-content
+            pre.
+              mutation {
+                createUser(userData: {
+                  firstName: "Jane"
+                  lastName: "Doe"
+                  username: "janedoe"
+                  email: "jane@example.com"
+                  password: "Str0ng!Pass"
+                  isActive: true
+                  roles: [ADMIN, MANAGER]
+                }) {
+                  id
+                  username
+                  firstName
+                  lastName
+                  email
+                  isActive
+                  roles
+                }
+              }
+
+      .mb-6
+        h4(class="font-medium text-gray-800 mb-2")= t('users.graphql.mutations.updateUser.title')
+        .code-block
+          .code-header
+            span= t('users.graphql.mutations.updateUser.codeHeader.label')
+            span= t('users.graphql.mutations.updateUser.codeHeader.context')
+          .code-content
+            pre.
+              mutation {
+                updateUser(
+                  id: "00000000-0000-0000-0000-000000000001"
+                  userData: {
+                    isActive: false
+                    roles: [USER]
+                  }
+                ) {
+                  id
+                  username
+                  email
+                  isActive
+                  roles
+                }
+              }
+
+      div
+        h4(class="font-medium text-gray-800 mb-2")= t('users.graphql.mutations.removeUser.title')
+        .code-block
+          .code-header
+            span= t('users.graphql.mutations.removeUser.codeHeader.label')
+            span= t('users.graphql.mutations.removeUser.codeHeader.context')
+          .code-content
+            pre.
+              mutation {
+                removeUser(id: "00000000-0000-0000-0000-000000000001") {
+                  id
+                  username
+                  email
+                }
+              }
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('users.businessRules.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      ul.space-y-2.text-gray-700
+        each item in tm('users.businessRules.items')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('users.authVsUsers.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      div(class="grid grid-cols-1 md:grid-cols-2 gap-6")
+        div.p-6.bg-indigo-50.rounded-lg.border.border-indigo-200
+          h3(class="font-semibold text-indigo-900 mb-3")= t('users.authVsUsers.auth.title')
+          ul.space-y-2.text-sm.text-indigo-800
+            each item in tm('users.authVsUsers.auth.items')
+              li • #{item}
+        div.p-6.bg-purple-50.rounded-lg.border.border-purple-200
+          h3(class="font-semibold text-purple-900 mb-3")= t('users.authVsUsers.users.title')
+          ul.space-y-2.text-sm.text-purple-800
+            each item in tm('users.authVsUsers.users.items')
+              li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('users.alerts.title')
+    .alert.alert-info.mb-4
+      svg(class="w-5 h-5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z")
+      div
+        p.font-medium.text-blue-900= t('users.alerts.passwordOmit.title')
+        p.text-sm.text-blue-800= t('users.alerts.passwordOmit.description')
+    .alert.alert-info
+      svg(class="w-5 h-5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z")
+      div
+        p.font-medium.text-blue-900= t('users.alerts.extendEnum.title')
+        p.text-sm.text-blue-800= t('users.alerts.extendEnum.description')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('users.cta.title')
+    .flex.flex-wrap.gap-3
+      a(href=swaggerPath class="inline-flex items-center gap-2 bg-indigo-600 text-white px-5 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors")
+        = t('users.cta.swagger')
+      a(href=wikiPath('/auth') class="inline-flex items-center gap-2 border border-gray-300 text-gray-700 px-5 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors")
+        = t('users.cta.auth')
+      a(href=graphqlPath class="inline-flex items-center gap-2 border border-gray-300 text-gray-700 px-5 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors")
+        = t('users.cta.graphql')

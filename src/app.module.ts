@@ -3,7 +3,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GraphQLModule } from '@nestjs/graphql';
-import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import {
+    ApolloExpressDriver,
+    ApolloExpressDriverConfig,
+} from '@common/graphql';
 import { UsersModule } from '@modules/users/users.module';
 import { AuthModule } from '@modules/auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
@@ -61,15 +64,19 @@ import { HealthModule } from '@modules/health/health.module';
 
         WebsocketModule.forRoot(),
 
-        // MongoDB connection for betting data using Mongoose
+        // MongoDB connection using Mongoose (with connection pool)
         MongooseModule.forRootAsync({
             useFactory: (configService: ConfigService) => ({
                 uri: configService.get<string>('database.mongoUri'),
+                maxPoolSize: configService.get<number>('database.mongo.maxPoolSize'),
+                minPoolSize: configService.get<number>('database.mongo.minPoolSize'),
+                maxIdleTimeMS: configService.get<number>('database.mongo.maxIdleTimeMS'),
+                waitQueueTimeoutMS: configService.get<number>('database.mongo.waitQueueTimeoutMS'),
             }),
             inject: [ConfigService],
         }),
 
-        // PostgreSQL connection using TypeORM for read-heavy operations
+        // PostgreSQL connection using TypeORM (pool via poolSize + extra)
         TypeOrmModule.forRootAsync({
             useFactory: (configService: ConfigService) => ({
                 ...configService.get('database.postgres'),
@@ -81,16 +88,16 @@ import { HealthModule } from '@modules/health/health.module';
             inject: [ConfigService],
         }),
 
-        // GraphQL module setup
-        GraphQLModule.forRootAsync<ApolloDriverConfig>({
+        // GraphQL via Apollo Server 5 + Express (no @nestjs/apollo)
+        GraphQLModule.forRootAsync<ApolloExpressDriverConfig>({
+            driver: ApolloExpressDriver,
             useFactory: (configService: ConfigService) => ({
-                driver: ApolloDriver,
                 autoSchemaFile: configService.get('graphql.autoSchemaFile'),
                 playground: configService.get('graphql.playground'),
                 introspection: configService.get('graphql.introspection'),
-                debug: configService.get('graphql.debug'),
                 sortSchema: configService.get('graphql.sortSchema'),
                 path: configService.get('graphql.path'),
+                context: ({ req }: { req: unknown }) => ({ req }),
             }),
             inject: [ConfigService],
         }),

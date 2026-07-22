@@ -10,21 +10,21 @@ import {RolesGuard} from "@modules/auth/guards/roles.guard";
 @Module({
   imports: [
     MailerModule.forRootAsync({
-      useFactory: async (configService: ConfigService) => ({
-        transport: {
-          host: configService.get<string>('smtp.host'),
-          port: configService.get<number>('smtp.port'),
-          secure: configService.get<boolean>('smtp.secure'),
-          requireTLS: configService.get<boolean>('smtp.requireTLS'),
-          auth: {
-            user: configService.get<string>('smtp.auth.user'),
-            pass: configService.get<string>('smtp.auth.pass'),
+      useFactory: async (configService: ConfigService) => {
+        const auth = configService.get<{ user: string; pass: string } | undefined>('smtp.auth');
+        return {
+          transport: {
+            host: configService.get<string>('smtp.host'),
+            port: configService.get<number>('smtp.port'),
+            secure: configService.get<boolean>('smtp.secure'),
+            requireTLS: configService.get<boolean>('smtp.requireTLS'),
+            ...(auth ? { auth } : {}),
           },
-        },
-        defaults: {
-          from: configService.get<string>('smtp.from'),
-        },
-      }),
+          defaults: {
+            from: configService.get<string>('smtp.from'),
+          },
+        };
+      },
       inject: [ConfigService],
     }),
   ],

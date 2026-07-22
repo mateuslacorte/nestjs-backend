@@ -1,6 +1,7 @@
 import {IUser} from "@modules/users/interfaces/user.interface";
 import {UserPostgresRepository} from "@modules/users/repositories/postgres.repository";
 import {Injectable} from "@nestjs/common";
+import { Role } from "@modules/auth/enums/role.enum";
 import { CreateUserDto } from "./dtos/create-user.dto";
 import { UpdateUserDto } from "./dtos/update-user.dto";
 import { CacheTTL, EnableCache, NoCache } from "@common/cache/decorators/cache.decorator";
@@ -35,21 +36,23 @@ export class UsersService {
   /**
    * Find a user by ID
    * @param id - User ID
+   * @param includePassword - Whether to return the password hash
    * @returns The user or null if not found
    */
   @NoCache()
-  async findById(id: string): Promise<IUser | null> {
-    return this.postgresRepo.findById(id);
+  async findById(id: string, includePassword = false): Promise<IUser | null> {
+    return this.postgresRepo.findById(id, includePassword);
   }
 
   /**
    * Find a user by email
    * @param email - User's email
+   * @param includePassword - Whether to return the password hash
    * @returns The user or null if not found
    */
   @NoCache()
-  async findByEmail(email: string): Promise<IUser | null> {
-    return this.postgresRepo.findByEmail(email);
+  async findByEmail(email: string, includePassword = false): Promise<IUser | null> {
+    return this.postgresRepo.findByEmail(email, includePassword);
   }
 
   /**
@@ -125,7 +128,7 @@ export class UsersService {
    * @param roles - New roles array
    * @returns The updated user
    */
-  async updateRoles(userId: string, roles: string[]): Promise<IUser> {
+  async updateRoles(userId: string, roles: Role[]): Promise<IUser> {
     return this.postgresRepo.update(userId, { roles });
   }
 
@@ -135,7 +138,7 @@ export class UsersService {
    * @param role - Role to add
    * @returns The updated user
    */
-  async addRole(userId: string, role: string): Promise<IUser> {
+  async addRole(userId: string, role: Role): Promise<IUser> {
     const user = await this.postgresRepo.findById(userId);
     if (!user) {
       throw new Error(`User with ID ${userId} not found`);
@@ -155,7 +158,7 @@ export class UsersService {
    * @param role - Role to remove
    * @returns The updated user
    */
-  async removeRole(userId: string, role: string): Promise<IUser> {
+  async removeRole(userId: string, role: Role): Promise<IUser> {
     const user = await this.postgresRepo.findById(userId);
     if (!user) {
       throw new Error(`User with ID ${userId} not found`);
@@ -172,7 +175,7 @@ export class UsersService {
    * @param newRole - New role
    * @returns The updated user
    */
-  async replaceRole(userId: string, oldRole: string, newRole: string): Promise<IUser> {
+  async replaceRole(userId: string, oldRole: Role, newRole: Role): Promise<IUser> {
     const user = await this.postgresRepo.findById(userId);
     if (!user) {
       throw new Error(`User with ID ${userId} not found`);

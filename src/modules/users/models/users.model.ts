@@ -1,4 +1,5 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { Role } from '@modules/auth/enums/role.enum';
 import { IUser } from "@modules/users/interfaces/user.interface";
 
 @ObjectType()
@@ -24,8 +25,8 @@ export class UserModel implements IUser {
     @Field()
     isActive!: boolean;
 
-    @Field(() => [String])
-    roles!: string[];
+    @Field(() => [Role])
+    roles!: Role[];
 
     // These fields are for internal use and not exposed via GraphQL
     passwordResetToken?: string;

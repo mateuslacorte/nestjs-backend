@@ -6,145 +6,119 @@ block content
     .inline-flex.items-center.gap-2.px-3.py-1.bg-indigo-50.rounded-full.text-indigo-700.text-sm.font-medium.mb-4
       svg(class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24")
         path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z")
-      span v1.0.0
+      span= t('home.badge')
     h1(class="text-4xl font-bold text-gray-900 mb-4")
-      | Documentação da API 
-      span.gradient-text Backend NestJS
+      | #{t('home.hero.titlePrefix')} 
+      span.gradient-text= t('home.hero.titleHighlight')
     p(class="text-xl text-gray-600 max-w-3xl mb-6")
-      | Guia completo para integração com a API do Backend NestJS. 
-      | Aqui você encontrará documentação de endpoints, fluxos de negócio e exemplos práticos.
+      = t('home.hero.subtitle')
 
   //- Sobre o Projeto
   section.mb-12
-    h2(class="text-2xl font-bold text-gray-900 mb-6") Sobre o Projeto
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('home.about.title')
     .bg-white.rounded-xl.border.border-gray-200.p-8
       p(class="text-gray-700 mb-6 leading-relaxed")
-        | O <strong>Backend NestJS</strong> é uma base sólida e escalável para desenvolvimento de projetos utilizando o framework NestJS. 
-        | Este projeto foi desenvolvido como um template completo e funcional, incorporando as melhores práticas de arquitetura de software, 
-        | padrões de design e integrações com tecnologias modernas.
+        != t('home.about.description')
       div(class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6")
         div
           h3(class="font-semibold text-gray-900 mb-3 flex items-center gap-2")
             svg(class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24")
               path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z")
-            | Para que serve?
+            = t('home.about.purpose.title')
           ul(class="space-y-2 text-gray-600")
-            li.flex.items-start.gap-2
-              span.text-indigo-600 • 
-              span Base para novos projetos NestJS
-            li.flex.items-start.gap-2
-              span.text-indigo-600 • 
-              span Template com arquitetura completa
-            li.flex.items-start.gap-2
-              span.text-indigo-600 • 
-              span Integrações prontas (Redis, Kafka, MinIO, etc.)
-            li.flex.items-start.gap-2
-              span.text-indigo-600 • 
-              span Sistema de autenticação JWT completo
-            li.flex.items-start.gap-2
-              span.text-indigo-600 • 
-              span Padrões CQRS e Repository implementados
+            each item in tm('home.about.purpose.items')
+              li.flex.items-start.gap-2
+                span.text-indigo-600 • 
+                span= item
         div
           h3(class="font-semibold text-gray-900 mb-3 flex items-center gap-2")
             svg(class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24")
               path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z")
-            | Características
+            = t('home.about.features.title')
           ul(class="space-y-2 text-gray-600")
-            li.flex.items-start.gap-2
-              span.text-indigo-600 • 
-              span Configuração centralizada via environment
-            li.flex.items-start.gap-2
-              span.text-indigo-600 • 
-              span Suporte a múltiplos bancos de dados
-            li.flex.items-start.gap-2
-              span.text-indigo-600 • 
-              span Cache distribuído com Redis
-            li.flex.items-start.gap-2
-              span.text-indigo-600 • 
-              span Logging estruturado com Logtail
-            li.flex.items-start.gap-2
-              span.text-indigo-600 • 
-              span GraphQL e REST API
+            each item in tm('home.about.features.items')
+              li.flex.items-start.gap-2
+                span.text-indigo-600 • 
+                span= item
       
       //- Repositório Git
       .mt-6.pt-6.border-t.border-gray-200
         h3(class="font-semibold text-gray-900 mb-3 flex items-center gap-2")
           svg(class="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 24 24")
             path(d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z")
-          | Repositório Git
+          = t('home.about.repository.title')
         p(class="text-gray-600 mb-4")
-          | O código-fonte deste projeto está disponível no repositório Git. Você pode clonar, fazer fork ou contribuir com o projeto.
+          = t('home.about.repository.description')
         .code-block
           .code-header
-            span Git Repository
-            span Clone
+            span= t('home.about.repository.codeHeader.label')
+            span= t('home.about.repository.codeHeader.action')
           .code-content
             pre.
-              git clone https://github.com/seu-usuario/backend-nestjs.git
+              git clone https://github.com/mateuslacorte/backend-nestjs.git
               cd backend-nestjs
 
   //- Architecture Overview
   section.mb-12
-    h2(class="text-2xl font-bold text-gray-900 mb-6") Arquitetura
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('home.architecture.title')
     .bg-white.rounded-xl.border.border-gray-200.p-8
       div(class="grid grid-cols-1 md:grid-cols-2 gap-8")
         div
-          h3(class="font-semibold text-gray-900 mb-4") Stack Tecnológico
+          h3(class="font-semibold text-gray-900 mb-4")= t('home.architecture.techStack.title')
           ul.space-y-3
-            li.flex.items-center.gap-3
-              .w-8.h-8.bg-red-100.rounded-lg.flex.items-center.justify-center
-                span.text-sm.font-bold.text-red-600 N
-              span.text-gray-700 NestJS (Framework)
-            li.flex.items-center.gap-3
-              .w-8.h-8.bg-green-100.rounded-lg.flex.items-center.justify-center
-                span.text-sm.font-bold.text-green-600 M
-              span.text-gray-700 MongoDB (Escrita)
-            li.flex.items-center.gap-3
-              .w-8.h-8.bg-blue-100.rounded-lg.flex.items-center.justify-center
-                span.text-sm.font-bold.text-blue-600 P
-              span.text-gray-700 PostgreSQL (Leitura)
-            li.flex.items-center.gap-3
-              .w-8.h-8.bg-orange-100.rounded-lg.flex.items-center.justify-center
-                span.text-sm.font-bold.text-orange-600 S
-              span.text-gray-700 MinIO (Storage S3)
+            -
+              const techIcons = ['N', 'M', 'P', 'S', 'G']
+              const techBg = ['bg-red-100', 'bg-green-100', 'bg-blue-100', 'bg-orange-100', 'bg-gray-100']
+              const techText = ['text-red-600', 'text-green-600', 'text-blue-600', 'text-orange-600', 'text-gray-700']
+            each item, index in tm('home.architecture.techStack.items')
+              li.flex.items-center.gap-3
+                .w-8.h-8.rounded-lg.flex.items-center.justify-center(class=techBg[index])
+                  span.text-sm.font-bold(class=techText[index])= techIcons[index]
+                span.text-gray-700= item
         
         div
-          h3(class="font-semibold text-gray-900 mb-4") Padrões Utilizados
+          h3(class="font-semibold text-gray-900 mb-4")= t('home.architecture.patterns.title')
           ul.space-y-3
             li.flex.items-start.gap-3
               svg(class="w-5 h-5 text-green-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24")
                 path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7")
               div
-                span.font-medium.text-gray-900 CQRS
-                p.text-sm.text-gray-500 Separação de comandos (Mongo) e consultas (Postgres)
+                span.font-medium.text-gray-900= t('home.architecture.patterns.cqrsReady.name')
+                p.text-sm.text-gray-500= t('home.architecture.patterns.cqrsReady.description')
             li.flex.items-start.gap-3
               svg(class="w-5 h-5 text-green-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24")
                 path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7")
               div
-                span.font-medium.text-gray-900 Repository Pattern
-                p.text-sm.text-gray-500 Abstração de acesso a dados
+                span.font-medium.text-gray-900= t('home.architecture.patterns.repositoryPattern.name')
+                p.text-sm.text-gray-500= t('home.architecture.patterns.repositoryPattern.description')
             li.flex.items-start.gap-3
               svg(class="w-5 h-5 text-green-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24")
                 path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7")
               div
-                span.font-medium.text-gray-900 JWT Authentication
-                p.text-sm.text-gray-500 Autenticação baseada em tokens
+                span.font-medium.text-gray-900= t('home.architecture.patterns.jwtAuth.name')
+                p.text-sm.text-gray-500= t('home.architecture.patterns.jwtAuth.description')
+            li.flex.items-start.gap-3
+              svg(class="w-5 h-5 text-green-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+                path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7")
+              div
+                span.font-medium.text-gray-900= t('home.architecture.patterns.dockerCompose.name')
+                p.text-sm.text-gray-500= t('home.architecture.patterns.dockerCompose.description')
 
   //- Authentication
   section.mb-12
-    h2(class="text-2xl font-bold text-gray-900 mb-6") Autenticação
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('home.authentication.title')
     .bg-white.rounded-xl.border.border-gray-200.p-6
       .alert.alert-info.mb-6
         svg(class="w-5 h-5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
           path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z")
         div
-          p.font-medium.text-blue-900 Todas as rotas requerem autenticação
-          p.text-sm.text-blue-700 Inclua o header Authorization: Bearer {token} em todas as requisições
+          p.font-medium.text-blue-900= t('home.authentication.alert.title')
+          p.text-sm.text-blue-700= t('home.authentication.alert.description')
       
       .code-block
         .code-header
-          span Headers
-          span HTTP
+          span= t('home.authentication.codeHeader.label')
+          span= t('home.authentication.codeHeader.type')
         .code-content
           pre.
             Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -152,22 +126,37 @@ block content
 
   //- API Base URL
   section.mb-12
-    h2(class="text-2xl font-bold text-gray-900 mb-6") Base URL
-    .mt-4.code-block
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('home.baseUrl.title')
+    .mt-4.code-block.mb-6
       .code-header
-        span URL Base
-        span Desenvolvimento
+        span= t('home.baseUrl.codeHeader.label')
+        span= t('home.baseUrl.codeHeader.environment')
       .code-content
-        pre http://localhost:3000
+        pre= apiBasePath
+    ul.space-y-2.text-gray-700
+      li
+        a(href=swaggerPath class="text-indigo-600 hover:underline font-mono text-sm")= swaggerPath
+        span  - #{t('home.baseUrl.endpoints.docs')}
+      li
+        a(href=wikiPath('') class="text-indigo-600 hover:underline font-mono text-sm") /
+        span  - #{t('home.baseUrl.endpoints.wiki')}
+      li
+        a(href=apiBasePath class="text-indigo-600 hover:underline font-mono text-sm")= apiBasePath
+        span  - #{t('home.baseUrl.endpoints.api')}
+      li
+        a(href=healthPath class="text-indigo-600 hover:underline font-mono text-sm")= healthPath
+        span  - #{t('home.baseUrl.endpoints.health')}
+      li
+        a(href=graphqlPath class="text-indigo-600 hover:underline font-mono text-sm")= graphqlPath
+        span  - #{t('home.baseUrl.endpoints.graphql')}
 
   //- Swagger
   section
-    h2(class="text-2xl font-bold text-gray-900 mb-6") Documentação Interativa
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('home.swagger.title')
     .bg-gradient-to-br.from-indigo-500.to-purple-600.rounded-xl.p-8.text-white
-      h3.text-xl.font-semibold.mb-2 Swagger UI
-      p.mb-6.text-indigo-100 Acesse a documentação interativa para testar os endpoints diretamente no navegador.
-      a(href="/docs" target="_blank" class="inline-flex items-center gap-2 bg-white text-indigo-600 px-6 py-3 rounded-lg font-semibold hover:bg-indigo-50 transition-colors")
-        span Acessar Swagger
+      h3.text-xl.font-semibold.mb-2= t('home.swagger.heading')
+      p.mb-6.text-indigo-100= t('home.swagger.description')
+      a(href=swaggerPath target="_blank" class="inline-flex items-center gap-2 bg-white text-indigo-600 px-6 py-3 rounded-lg font-semibold hover:bg-indigo-50 transition-colors")
+        span= t('home.swagger.cta')
         svg(class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24")
           path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14")
-

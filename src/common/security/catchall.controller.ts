@@ -3,42 +3,56 @@ import {
     All,
     Req,
     Res,
+    Next,
     HttpStatus,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { ApiExcludeController } from '@nestjs/swagger';
 import { SecurityService } from './security.service';
 import { Public } from '@modules/auth/decorators/public.decorator';
 import { NoLog } from '@common/graylog/decorators/no-log.decorator';
+import { WikiRenderService } from '../../wiki/wiki-render.service';
 
 @ApiExcludeController()
 @NoLog() // Não logar requisições para rotas inexistentes
 @Controller()
 export class CatchAllController {
-    constructor(private readonly securityService: SecurityService) {}
+    constructor(
+        private readonly securityService: SecurityService,
+        private readonly wikiRender: WikiRenderService,
+    ) {}
 
     /**
      * Captura todas as rotas que não existem
-     * Registra tentativa e bloqueia IPs suspeitos
+     * Registra tentativa e bloqueia IPs suspeitos (exceto superfície da wiki)
      */
     @All('*path')
     @Public()
     async handleNotFound(
         @Req() req: Request,
         @Res() res: Response,
+        @Next() next: NextFunction,
     ) {
         const ip = this.getClientIp(req);
         const path = req.originalUrl || req.url;
         const userAgent = req.headers['user-agent'];
 
+        // O middleware do GraphQL (Apollo) é registrado depois das rotas dos
+        // controllers, então o catch-all precisa deixar a requisição passar
+        const graphqlPath = process.env.GRAPHQL_PATH || '/graphql';
+        if (path.split('?')[0] === graphqlPath) {
+            return next();
+        }
+
+        // Wiki: 404 HTML sem registrar como tentativa suspeita
+        if (this.wikiRender.shouldRenderWikiNotFound(req, path)) {
+            return this.wikiRender.renderNotFound(req, res);
+        }
+
         // Ignorar rotas conhecidas como favicon, healthcheck, etc
         const ignoredPaths = ['/favicon.ico', '/robots.txt', '/health', '/healthcheck'];
         if (ignoredPaths.some(p => path.toLowerCase().startsWith(p))) {
-            return res.status(HttpStatus.NOT_FOUND).json({
-                statusCode: HttpStatus.NOT_FOUND,
-                message: 'Rota não encontrada',
-                path,
-            });
+            return this.sendNotFound(req, res, path);
         }
 
         // Registrar tentativa
@@ -58,7 +72,10 @@ export class CatchAllController {
             });
         }
 
-        // Resposta padrão para rota não encontrada
+        return this.sendNotFound(req, res, path);
+    }
+
+    private sendNotFound(req: Request, res: Response, path: string) {
         return res.status(HttpStatus.NOT_FOUND).json({
             statusCode: HttpStatus.NOT_FOUND,
             message: 'Rota não encontrada',

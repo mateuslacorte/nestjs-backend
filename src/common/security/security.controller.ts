@@ -14,6 +14,7 @@ import {
 } from '@nestjs/swagger';
 import { SecurityService } from './security.service';
 import { Roles } from '@modules/auth/decorators/roles.decorator';
+import { Role } from '@modules/auth/enums/role.enum';
 
 @ApiTags('security')
 @ApiBearerAuth()
@@ -22,7 +23,7 @@ export class SecurityController {
     constructor(private readonly securityService: SecurityService) {}
 
     @Get('blocked-ips')
-    @Roles('super', 'admin')
+    @Roles(Role.SUPER, Role.ADMIN)
     @ApiOperation({ summary: 'Listar todos os IPs bloqueados' })
     @ApiResponse({ status: 200, description: 'Lista de IPs bloqueados' })
     async getBlockedIps() {
@@ -30,7 +31,7 @@ export class SecurityController {
     }
 
     @Get('suspicious-ips')
-    @Roles('super', 'admin')
+    @Roles(Role.SUPER, Role.ADMIN)
     @ApiOperation({ summary: 'Listar IPs suspeitos (com tentativas mas não bloqueados)' })
     @ApiResponse({ status: 200, description: 'Lista de IPs suspeitos' })
     async getSuspiciousIps() {
@@ -38,7 +39,7 @@ export class SecurityController {
     }
 
     @Post('unblock/:ip')
-    @Roles('super', 'admin')
+    @Roles(Role.SUPER, Role.ADMIN)
     @ApiOperation({ summary: 'Desbloquear um IP' })
     @ApiParam({ name: 'ip', description: 'Endereço IP a desbloquear' })
     @ApiResponse({ status: 200, description: 'IP desbloqueado' })
@@ -52,7 +53,7 @@ export class SecurityController {
     }
 
     @Post('reset/:ip')
-    @Roles('super', 'admin')
+    @Roles(Role.SUPER, Role.ADMIN)
     @ApiOperation({ summary: 'Resetar tentativas de um IP' })
     @ApiParam({ name: 'ip', description: 'Endereço IP para resetar' })
     @ApiResponse({ status: 200, description: 'Tentativas resetadas' })
@@ -65,7 +66,7 @@ export class SecurityController {
     }
 
     @Delete(':ip')
-    @Roles('super', 'admin')
+    @Roles(Role.SUPER, Role.ADMIN)
     @ApiOperation({ summary: 'Remover um IP da lista' })
     @ApiParam({ name: 'ip', description: 'Endereço IP a remover' })
     @ApiResponse({ status: 200, description: 'IP removido' })

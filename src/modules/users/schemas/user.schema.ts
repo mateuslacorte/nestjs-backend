@@ -1,9 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
+import { Role } from '@modules/auth/enums/role.enum';
 
 @Schema({ timestamps: true })
-export class User extends Document {
+export class User extends Document<string> {
   @Prop({ type: String, default: () => uuidv4() })
   _id!: string;
 
@@ -28,8 +29,8 @@ export class User extends Document {
   @Prop({default: true})
   isActive!: boolean;
 
-  @Prop({type: [String], default: ['user']})
-  roles!: string[];
+  @Prop({type: [String], default: [Role.USER]})
+  roles!: Role[];
 
   @Prop({type: String, default: null})
   passwordResetToken?: string;

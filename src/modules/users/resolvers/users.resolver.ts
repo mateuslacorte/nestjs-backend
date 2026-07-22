@@ -1,10 +1,16 @@
 import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
+import { UseGuards } from '@nestjs/common';
 import { UserModel } from '../models/users.model';
 import { UsersService } from '../users.service';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { UpdateUserDto } from '../dtos/update-user.dto';
+import { JwtAuthGuard } from '../../auth/guards/jwtauth.guard';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { Roles } from '../../auth/decorators/roles.decorator';
+import { Role } from '../../auth/enums/role.enum';
 
 @Resolver(() => UserModel)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class UsersResolver {
     constructor(private readonly usersService: UsersService) {}
 
@@ -13,6 +19,7 @@ export class UsersResolver {
      * @returns All users
      */
     @Query(() => [UserModel], { nullable: true })
+    @Roles(Role.SUPER)
     async users(): Promise<UserModel[] | null> {
         return this.usersService.findAll();
     }
@@ -23,6 +30,7 @@ export class UsersResolver {
      * @returns The user
      */
     @Query(() => UserModel, { nullable: true })
+    @Roles(Role.SUPER)
     async user(@Args('id') id: string): Promise<UserModel | null> {
         return this.usersService.findById(id);
     }
@@ -33,6 +41,7 @@ export class UsersResolver {
      * @returns The user
      */
     @Query(() => UserModel, { nullable: true })
+    @Roles(Role.SUPER)
     async userByEmail(@Args('email') email: string): Promise<UserModel | null> {
         return this.usersService.findByEmail(email);
     }
@@ -43,6 +52,7 @@ export class UsersResolver {
      * @returns The created user
      */
     @Mutation(() => UserModel)
+    @Roles(Role.SUPER)
     async createUser(@Args('userData') userData: CreateUserDto): Promise<UserModel> {
         return this.usersService.create(userData);
     }
@@ -54,6 +64,7 @@ export class UsersResolver {
      * @returns The updated user
      */
     @Mutation(() => UserModel)
+    @Roles(Role.SUPER)
     async updateUser(
         @Args('id') id: string,
         @Args('userData') userData: UpdateUserDto
@@ -67,6 +78,7 @@ export class UsersResolver {
      * @returns The removed user
      */
     @Mutation(() => UserModel)
+    @Roles(Role.SUPER)
     async removeUser(@Args('id') id: string): Promise<UserModel> {
         return this.usersService.remove(id);
     }
