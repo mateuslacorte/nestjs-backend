@@ -57,9 +57,6 @@ export class SecurityController {
     @ApiResponse({ status: 404, description: 'IP not found' })
     async unblockIp(@Param('ip') ip: string) {
         const result = await this.securityService.unblockIp(ip);
-        if (!result) {
-            return { message: 'IP não encontrado na lista' };
-        }
         return { message: `IP ${ip} desbloqueado com sucesso`, data: result };
     }
 
@@ -73,9 +70,6 @@ export class SecurityController {
     @ApiResponse({ status: 404, description: 'IP not found' })
     async resetAttempts(@Param('ip') ip: string) {
         const result = await this.securityService.resetAttempts(ip);
-        if (!result) {
-            return { message: 'IP não encontrado na lista' };
-        }
         return { message: `Tentativas do IP ${ip} resetadas`, data: result };
     }
 
@@ -87,10 +81,7 @@ export class SecurityController {
     @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions, requires super role.' })
     @ApiResponse({ status: 404, description: 'IP not found' })
     async removeIp(@Param('ip') ip: string) {
-        const removed = await this.securityService.removeIp(ip);
-        if (!removed) {
-            return { message: 'IP não encontrado na lista' };
-        }
+        await this.securityService.removeIp(ip);
         return { message: `IP ${ip} removido da lista com sucesso` };
     }
 }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { IBlockedIp } from './interfaces/blocked-ip.interface';
 import { BlockedIpPostgresRepository } from './repositories/postgres.repository';
@@ -80,9 +80,11 @@ export class SecurityService {
     /**
      * Desbloqueia um IP
      */
-    async unblockIp(ip: string): Promise<IBlockedIp | null> {
+    async unblockIp(ip: string): Promise<IBlockedIp> {
         const record = await this.postgresRepo.findByIp(ip);
-        if (!record) return null;
+        if (!record) {
+            throw new NotFoundException(`IP ${ip} not found`);
+        }
 
         record.blocked = false;
         record.attempts = 0;
@@ -94,20 +96,23 @@ export class SecurityService {
     /**
      * Remove um IP da lista
      */
-    async removeIp(ip: string): Promise<boolean> {
+    async removeIp(ip: string): Promise<void> {
         const record = await this.postgresRepo.findByIp(ip);
-        if (!record) return false;
+        if (!record) {
+            throw new NotFoundException(`IP ${ip} not found`);
+        }
 
         await this.postgresRepo.deleteById(record.id);
-        return true;
     }
 
     /**
      * Reseta as tentativas de um IP (sem remover)
      */
-    async resetAttempts(ip: string): Promise<IBlockedIp | null> {
+    async resetAttempts(ip: string): Promise<IBlockedIp> {
         const record = await this.postgresRepo.findByIp(ip);
-        if (!record) return null;
+        if (!record) {
+            throw new NotFoundException(`IP ${ip} not found`);
+        }
 
         record.attempts = 0;
         record.blocked = false;

@@ -76,9 +76,9 @@
         "items": [
           "GET /api/v1/security/blocked-ips — list blocked IPs",
           "GET /api/v1/security/suspicious-ips — list IPs with attempts, not blocked",
-          "POST /api/v1/security/unblock/:ip — unblock (200)",
-          "POST /api/v1/security/reset/:ip — reset attempts (200)",
-          "DELETE /api/v1/security/:ip — remove record"
+          "POST /api/v1/security/unblock/:ip — unblock (200 / 404)",
+          "POST /api/v1/security/reset/:ip — reset attempts (200 / 404)",
+          "DELETE /api/v1/security/:ip — remove record (200 / 404)"
         ]
       },
       "listRequest": {
