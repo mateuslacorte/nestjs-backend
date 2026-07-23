@@ -76,7 +76,19 @@ block content
         li
           a(href="http://localhost:9009" target="_blank" class="text-indigo-600 hover:underline font-mono text-sm") http://localhost:9009
           span  — #{t('backendInstall.dockerCompose.servicesAndPorts.graylog')}
+        li
+          code.text-indigo-600 localhost:5432
+          span  — #{t('backendInstall.dockerCompose.servicesAndPorts.postgres')}
+        li
+          code.text-indigo-600 localhost:27017
+          span  — #{t('backendInstall.dockerCompose.servicesAndPorts.mongo')}
+        li
+          code.text-indigo-600 localhost:6379
+          span  — #{t('backendInstall.dockerCompose.servicesAndPorts.redis')}
         li!= t('backendInstall.dockerCompose.servicesAndPorts.kafka').replace('kafka:9092', '<code class="text-indigo-600">kafka:9092</code>')
+        li
+          a(href="http://localhost:8088" target="_blank" class="text-indigo-600 hover:underline font-mono text-sm") http://localhost:8088
+          span  — #{t('backendInstall.dockerCompose.servicesAndPorts.kafkaUi')}
 
       .alert.alert-success
         svg(class="w-5 h-5 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")

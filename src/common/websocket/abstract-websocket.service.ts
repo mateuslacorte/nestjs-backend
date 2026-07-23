@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Socket } from 'socket.io';
 import { MessageHandler, MessagePayload } from './interfaces/message-handler.interface';
+import { AuthenticatedSocket } from './abstract-websocket.gateway';
 
 @Injectable()
 export abstract class AbstractWebsocketService {
@@ -46,12 +47,27 @@ export abstract class AbstractWebsocketService {
     }
 
     processMessage(client: Socket, payload: MessagePayload): void {
-        const handler = this.messageHandlers.find(h => h.canHandle(payload.type));
+        const handler = this.messageHandlers.find((h) => h.canHandle(payload.type));
 
-        if (handler) {
-            handler.handle(client, payload);
-        } else {
+        if (!handler) {
             console.warn(`No handler found for message type: ${payload.type}`);
+            return;
         }
+
+        if (handler.roles?.length) {
+            const authSocket = client as AuthenticatedSocket;
+            const userRoles = authSocket.data?.user?.roles ?? authSocket.user?.roles ?? [];
+            const allowed = handler.roles.some((role) => userRoles.includes(role));
+            if (!allowed) {
+                client.emit('error', {
+                    statusCode: 403,
+                    message: 'Forbidden - insufficient role for this message type',
+                    requiredRoles: handler.roles,
+                });
+                return;
+            }
+        }
+
+        handler.handle(client, payload);
     }
 }

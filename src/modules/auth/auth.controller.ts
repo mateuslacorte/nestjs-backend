@@ -1,10 +1,10 @@
-import {Controller, Post, Body, Req, UseGuards, Get, Query} from '@nestjs/common';
+import {Controller, Post, Body, Req, UseGuards, Get, Query, HttpCode, HttpStatus} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
 import { JwtAuthGuard } from './guards/jwtauth.guard';
 import { Request } from 'express';
-import {ApiTags, ApiResponse, ApiBody, ApiHeaders, ApiBearerAuth, ApiOperation} from '@nestjs/swagger'; // Add ApiBody here
+import {ApiTags, ApiResponse, ApiBody, ApiBearerAuth, ApiOperation} from '@nestjs/swagger';
 import { Public } from './decorators/public.decorator';
 import {ForgotPasswordDto} from "./dtos/forgot-password.dto";
 import {ResetPasswordDto} from "./dtos/reset-password.dto";
@@ -25,6 +25,7 @@ export class AuthController {
     @Post('register')
     @ApiResponse({ status: 201, description: 'User successfully registered.' })
     @ApiResponse({ status: 400, description: 'Invalid data.' })
+    @ApiResponse({ status: 409, description: 'Conflict - email or username already exists.' })
     @ApiBody({
         type: RegisterDto,
         description: 'User registration data',
@@ -54,6 +55,7 @@ export class AuthController {
      */
     @Public()
     @Post('login')
+    @HttpCode(HttpStatus.OK)
     @ApiResponse({ status: 200, description: 'User successfully logged in.' })
     @ApiResponse({ status: 401, description: 'Invalid credentials.' })
     @ApiBody({
@@ -80,10 +82,15 @@ export class AuthController {
      * @returns The verified token
      */
     @Post('verify-token')
+    @HttpCode(HttpStatus.OK)
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth('access-token')
-    @UseGuards(JwtAuthGuard)
-    @Post('verify-token')
+    @ApiOperation({
+        summary: 'Verify access token',
+        description: 'Validates the JWT access token and returns the authenticated user payload'
+    })
+    @ApiResponse({ status: 200, description: 'Token is valid.' })
+    @ApiResponse({ status: 401, description: 'Unauthorized - invalid or expired token.' })
     verifyToken(@Req() req: Request) {
         return { message: 'Token is valid', user: req.user };
     }
@@ -95,6 +102,7 @@ export class AuthController {
      */
     @Public()
     @Post('refresh-token')
+    @HttpCode(HttpStatus.OK)
     @ApiOperation({
         summary: 'Refresh access token',
         description: 'Use a valid refresh token to generate new access and refresh tokens'
@@ -161,6 +169,7 @@ export class AuthController {
      */
     @Public()
     @Post('forgot-password')
+    @HttpCode(HttpStatus.OK)
     @ApiResponse({ status: 200, description: 'Password reset email sent.' })
     @ApiResponse({ status: 404, description: 'User not found.' })
     @ApiBody({ type: ForgotPasswordDto })
@@ -177,6 +186,7 @@ export class AuthController {
      */
     @Public()
     @Post('reset-password')
+    @HttpCode(HttpStatus.OK)
     @ApiResponse({ status: 200, description: 'Password successfully reset.' })
     @ApiResponse({ status: 400, description: 'Invalid or expired token.' })
     @ApiResponse({ status: 404, description: 'User not found.' })
@@ -193,6 +203,7 @@ export class AuthController {
      * @returns The changed password
      */
     @Post('change-password')
+    @HttpCode(HttpStatus.OK)
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth('access-token')
     @ApiOperation({ summary: 'Change password for logged-in user' })
@@ -242,6 +253,7 @@ export class AuthController {
      * @returns The resend verification email
      */
     @Public()
+    @HttpCode(HttpStatus.OK)
     @ApiResponse({ status: 200, description: 'Verification email has been resent.' })
     @ApiResponse({ status: 404, description: 'User not found.' })
     @ApiBody({

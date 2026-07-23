@@ -71,6 +71,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-backend}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -85,6 +87,8 @@ services:
     image: mongo:7
     container_name: nestjs-backend-mongo
     restart: unless-stopped
+    ports:
+      - "27017:27017"
     volumes:
       - mongo_data:/data/db
     healthcheck:
@@ -101,11 +105,16 @@ services:
     restart: unless-stopped
     env_file:
       - .env.docker
-    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:-redis}", "--appendonly", "yes"]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis}
+    # Lê REDIS_PASSWORD do env do container (.env.docker), não só da interpolação do Compose
+    command: ["sh", "-c", "redis-server --requirepass \"$$REDIS_PASSWORD\" --appendonly yes"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli -a ${REDIS_PASSWORD:-redis} ping | grep -q PONG"]
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -160,6 +169,22 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
+    networks:
+      - backend
+
+  kafka-ui:
+    image: kafbat/kafka-ui:latest
+    container_name: nestjs-backend-kafka-ui
+    restart: unless-stopped
+    environment:
+      DYNAMIC_CONFIG_ENABLED: "true"
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    ports:
+      - "8088:8080"
+    depends_on:
+      kafka:
+        condition: service_healthy
     networks:
       - backend
 

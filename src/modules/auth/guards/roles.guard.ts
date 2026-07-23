@@ -3,6 +3,7 @@ import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 import { Role } from '../enums/role.enum';
+import { AuthenticatedSocket } from '@common/websocket/abstract-websocket.gateway';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -28,8 +29,15 @@ export class RolesGuard implements CanActivate {
     }
 
     private getRequest(context: ExecutionContext): { user?: { roles?: Role[] } } {
-        if (context.getType<string>() === 'graphql') {
+        const type = context.getType<string>();
+
+        if (type === 'graphql') {
             return GqlExecutionContext.create(context).getContext().req;
+        }
+
+        if (type === 'ws') {
+            const client = context.switchToWs().getClient<AuthenticatedSocket>();
+            return { user: client.data?.user ?? client.user };
         }
 
         return context.switchToHttp().getRequest();

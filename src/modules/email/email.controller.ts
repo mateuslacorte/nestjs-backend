@@ -1,7 +1,10 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { EmailService } from './email.service';
-import { ApiTags, ApiResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwtauth.guard';
+import { ApiTags, ApiResponse, ApiBody, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { JwtAuthGuard } from '@modules/auth/guards/jwtauth.guard';
+import { RolesGuard } from '@modules/auth/guards/roles.guard';
+import { Roles } from '@modules/auth/decorators/roles.decorator';
+import { Role } from '@modules/auth/enums/role.enum';
 import { SendEmailDto } from './dtos/send-email.dto';
 
 @ApiTags('Email')
@@ -9,12 +12,18 @@ import { SendEmailDto } from './dtos/send-email.dto';
 export class EmailController {
     constructor(private readonly emailService: EmailService) {}
 
-    // Generic email sending endpoint (protected)
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(Role.SUPER)
     @ApiBearerAuth('access-token')
     @Post('send')
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({
+        summary: 'Send an email',
+        description: 'Sends an email via the configured SMTP transport. Requires the super role.',
+    })
     @ApiResponse({ status: 200, description: 'Email sent successfully.' })
     @ApiResponse({ status: 401, description: 'Unauthorized.' })
+    @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions, requires super role.' })
     @ApiBody({
         type: SendEmailDto,
         description: 'Email data',

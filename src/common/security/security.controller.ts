@@ -4,6 +4,9 @@ import {
     Post,
     Delete,
     Param,
+    UseGuards,
+    HttpCode,
+    HttpStatus,
 } from '@nestjs/common';
 import {
     ApiTags,
@@ -13,37 +16,45 @@ import {
     ApiParam,
 } from '@nestjs/swagger';
 import { SecurityService } from './security.service';
+import { JwtAuthGuard } from '@modules/auth/guards/jwtauth.guard';
+import { RolesGuard } from '@modules/auth/guards/roles.guard';
 import { Roles } from '@modules/auth/decorators/roles.decorator';
 import { Role } from '@modules/auth/enums/role.enum';
 
-@ApiTags('security')
-@ApiBearerAuth()
+@ApiTags('Security')
+@ApiBearerAuth('access-token')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(Role.SUPER)
 @Controller('security')
 export class SecurityController {
     constructor(private readonly securityService: SecurityService) {}
 
     @Get('blocked-ips')
-    @Roles(Role.SUPER, Role.ADMIN)
-    @ApiOperation({ summary: 'Listar todos os IPs bloqueados' })
-    @ApiResponse({ status: 200, description: 'Lista de IPs bloqueados' })
+    @ApiOperation({ summary: 'List all blocked IPs' })
+    @ApiResponse({ status: 200, description: 'List of blocked IPs' })
+    @ApiResponse({ status: 401, description: 'Unauthorized - JWT token is missing or invalid.' })
+    @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions, requires super role.' })
     async getBlockedIps() {
         return this.securityService.getBlockedIps();
     }
 
     @Get('suspicious-ips')
-    @Roles(Role.SUPER, Role.ADMIN)
-    @ApiOperation({ summary: 'Listar IPs suspeitos (com tentativas mas não bloqueados)' })
-    @ApiResponse({ status: 200, description: 'Lista de IPs suspeitos' })
+    @ApiOperation({ summary: 'List suspicious IPs (attempts recorded but not blocked)' })
+    @ApiResponse({ status: 200, description: 'List of suspicious IPs' })
+    @ApiResponse({ status: 401, description: 'Unauthorized - JWT token is missing or invalid.' })
+    @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions, requires super role.' })
     async getSuspiciousIps() {
         return this.securityService.getSuspiciousIps();
     }
 
     @Post('unblock/:ip')
-    @Roles(Role.SUPER, Role.ADMIN)
-    @ApiOperation({ summary: 'Desbloquear um IP' })
-    @ApiParam({ name: 'ip', description: 'Endereço IP a desbloquear' })
-    @ApiResponse({ status: 200, description: 'IP desbloqueado' })
-    @ApiResponse({ status: 404, description: 'IP não encontrado' })
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Unblock an IP' })
+    @ApiParam({ name: 'ip', description: 'IP address to unblock' })
+    @ApiResponse({ status: 200, description: 'IP unblocked' })
+    @ApiResponse({ status: 401, description: 'Unauthorized - JWT token is missing or invalid.' })
+    @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions, requires super role.' })
+    @ApiResponse({ status: 404, description: 'IP not found' })
     async unblockIp(@Param('ip') ip: string) {
         const result = await this.securityService.unblockIp(ip);
         if (!result) {
@@ -53,10 +64,13 @@ export class SecurityController {
     }
 
     @Post('reset/:ip')
-    @Roles(Role.SUPER, Role.ADMIN)
-    @ApiOperation({ summary: 'Resetar tentativas de um IP' })
-    @ApiParam({ name: 'ip', description: 'Endereço IP para resetar' })
-    @ApiResponse({ status: 200, description: 'Tentativas resetadas' })
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Reset attempts for an IP' })
+    @ApiParam({ name: 'ip', description: 'IP address to reset' })
+    @ApiResponse({ status: 200, description: 'Attempts reset' })
+    @ApiResponse({ status: 401, description: 'Unauthorized - JWT token is missing or invalid.' })
+    @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions, requires super role.' })
+    @ApiResponse({ status: 404, description: 'IP not found' })
     async resetAttempts(@Param('ip') ip: string) {
         const result = await this.securityService.resetAttempts(ip);
         if (!result) {
@@ -66,10 +80,12 @@ export class SecurityController {
     }
 
     @Delete(':ip')
-    @Roles(Role.SUPER, Role.ADMIN)
-    @ApiOperation({ summary: 'Remover um IP da lista' })
-    @ApiParam({ name: 'ip', description: 'Endereço IP a remover' })
-    @ApiResponse({ status: 200, description: 'IP removido' })
+    @ApiOperation({ summary: 'Remove an IP from the list' })
+    @ApiParam({ name: 'ip', description: 'IP address to remove' })
+    @ApiResponse({ status: 200, description: 'IP removed' })
+    @ApiResponse({ status: 401, description: 'Unauthorized - JWT token is missing or invalid.' })
+    @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions, requires super role.' })
+    @ApiResponse({ status: 404, description: 'IP not found' })
     async removeIp(@Param('ip') ip: string) {
         const removed = await this.securityService.removeIp(ip);
         if (!removed) {

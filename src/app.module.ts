@@ -112,7 +112,7 @@ import { HealthModule } from '@modules/health/health.module';
         WikiModule,
         HealthModule,
         ScheduleModule.forRoot(),
-        // SecurityModule deve ser o ÚLTIMO para o catch-all funcionar
+        // SecurityModule last so CatchAllController (prod/staging) registers after API routes
         SecurityModule,
     ],
     controllers: [],

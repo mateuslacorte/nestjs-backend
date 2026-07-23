@@ -3,7 +3,7 @@ import { ApiTags, ApiResponse, ApiOperation, ApiBearerAuth, ApiParam, ApiBody } 
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
-import { JwtAuthGuard } from '../auth/guards/jwtauth.guard';
+import { JwtAuthGuard } from '@modules/auth/guards/jwtauth.guard';
 import { RolesGuard } from '@modules/auth/guards/roles.guard';
 import { Roles } from '@modules/auth/decorators/roles.decorator';
 import { Role } from '@modules/auth/enums/role.enum';
@@ -28,12 +28,28 @@ export class UsersController {
     })
     @ApiBody({
         type: CreateUserDto,
-        description: 'User data to create'
+        description: 'User data to create',
+        examples: {
+            createUser: {
+                summary: 'Create user example',
+                description: 'Sample payload to create a user with the user role',
+                value: {
+                    firstName: 'Jane',
+                    lastName: 'Smith',
+                    username: 'janesmith',
+                    email: 'jane.smith@example.com',
+                    password: 'Str0ng!P@ssword',
+                    isActive: true,
+                    roles: ['user'],
+                },
+            },
+        },
     })
     @ApiResponse({ status: 201, description: 'User successfully created.' })
     @ApiResponse({ status: 400, description: 'Invalid input.' })
     @ApiResponse({ status: 401, description: 'Unauthorized - JWT token is missing or invalid.' })
     @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions, requires super role.' })
+    @ApiResponse({ status: 409, description: 'Conflict - email or username already exists.' })
     create(@Body() createUserDto: CreateUserDto) {
         return this.usersService.create(createUserDto);
     }
@@ -101,13 +117,26 @@ export class UsersController {
     })
     @ApiBody({
         type: UpdateUserDto,
-        description: 'User data to update'
+        description: 'User data to update',
+        examples: {
+            updateUser: {
+                summary: 'Update user example',
+                description: 'Sample partial update for name, active flag, and roles',
+                value: {
+                    firstName: 'Jane',
+                    lastName: 'Smith',
+                    isActive: true,
+                    roles: ['user', 'manager'],
+                },
+            },
+        },
     })
     @ApiResponse({ status: 200, description: 'User updated successfully.' })
     @ApiResponse({ status: 400, description: 'Invalid input.' })
     @ApiResponse({ status: 401, description: 'Unauthorized - JWT token is missing or invalid.' })
     @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions, requires super role.' })
     @ApiResponse({ status: 404, description: 'User not found.' })
+    @ApiResponse({ status: 409, description: 'Conflict - email or username already in use.' })
     update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
         return this.usersService.update(id, updateUserDto);
     }

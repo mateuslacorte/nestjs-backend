@@ -1,0 +1,25 @@
+User-agent: *
+Disallow: /
+
+# Wiki documentation only
+Allow: /$
+Allow: /architecture
+Allow: /backend
+Allow: /backend/install
+Allow: /auth
+Allow: /users
+Allow: /email
+Allow: /whatsapp
+Allow: /websocket
+Allow: /security
+Allow: /static/
+
+# Explicitly block non-wiki surfaces
+Disallow: /api/
+Disallow: /swagger
+Disallow: /swagger-json
+Disallow: /graphql
+Disallow: /health
+Disallow: /ws
+Disallow: /404
+Disallow: /500

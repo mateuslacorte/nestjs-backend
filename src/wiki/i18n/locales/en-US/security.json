@@ -1,0 +1,102 @@
+{
+  "security": {
+    "meta": {
+      "title": "Security - Backend NestJS"
+    },
+    "badge": "Security",
+    "hero": {
+      "titlePrefix": "IP blocking and",
+      "titleHighlight": "Security",
+      "subtitle": "Catch-all for invalid routes, CQRS-ready repositories (Postgres active), and an admin API under /api/v1/security."
+    },
+    "overview": {
+      "title": "Overview",
+      "description": "The module under <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">src/common/security</code> tracks access to unknown API routes and can block offending IPs. Persistence is <strong>CQRS-ready</strong>: Postgres is the active store via <code class=\"px-1 py-0.5 bg-gray-100 rounded\">BlockedIpPostgresRepository</code>; a Mongo repository is registered but unused (same pattern as users). Admins manage the list via REST endpoints that require JWT and the <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">super</code> role.",
+      "points": {
+        "title": "Key ideas",
+        "items": [
+          "CatchAllController registers invalid-route attempts (production/staging only)",
+          "BlockedIpPostgresRepository is the active store; Mongo repo is CQRS-ready / unused",
+          "After MAX_ATTEMPTS, the IP is blocked (403 on further hits)",
+          "Admin API: list, unblock, reset, remove — JWT + Role.SUPER"
+        ]
+      }
+    },
+    "structure": {
+      "title": "Structure",
+      "codeHeader": { "label": "Tree", "context": "src/common/security" }
+    },
+    "catchall": {
+      "title": "Catch-all (invalid routes)",
+      "description": "CatchAllController is registered only when <code class=\"px-1 py-0.5 bg-gray-100 rounded\">NODE_ENV</code> is <code class=\"px-1 py-0.5 bg-gray-100 rounded\">production</code> or <code class=\"px-1 py-0.5 bg-gray-100 rounded\">staging</code>. It handles unmatched routes with <code class=\"px-1 py-0.5 bg-gray-100 rounded\">@All('*path')</code> and is <code class=\"px-1 py-0.5 bg-gray-100 rounded\">@Public()</code>.",
+      "flow": {
+        "title": "Flow",
+        "items": [
+          "Unknown API path hits CatchAllController",
+          "registerInvalidRouteAttempt(ip, path, userAgent)",
+          "If attempts ≥ MAX_ATTEMPTS → blocked = true → 403",
+          "Otherwise → 404 JSON { message: \"Rota não encontrada\" }"
+        ]
+      },
+      "exclusions": {
+        "title": "Does not treat as suspicious",
+        "items": [
+          "Wiki HTML 404s (browser Accept: text/html)",
+          "GraphQL path (GRAPHQL_PATH or /graphql) — next()",
+          "/favicon.ico (and other favicon assets), /robots.txt and /health"
+        ]
+      }
+    },
+    "service": {
+      "title": "SecurityService",
+      "description": "Domain rules live in SecurityService; persistence goes through BlockedIpPostgresRepository. Mongo repository exists for future CQRS but is not called.",
+      "constants": {
+        "title": "Constants",
+        "items": [
+          "MAX_ATTEMPTS = 1 (block after this many invalid-route hits)",
+          "MAX_PATHS_STORED = 20 (last paths kept on the record)"
+        ]
+      },
+      "methods": {
+        "title": "Main methods",
+        "items": [
+          "registerInvalidRouteAttempt — upsert IP, bump attempts, maybe block",
+          "getBlockedIps / getSuspiciousIps — admin lists",
+          "unblockIp — clear block and attempts",
+          "resetAttempts — clear attempts/block/paths",
+          "removeIp — delete via Postgres repository"
+        ]
+      }
+    },
+    "api": {
+      "title": "Admin API",
+      "description": "All routes under <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">/api/v1/security</code> require <code class=\"px-1 py-0.5 bg-gray-100 rounded\">Authorization: Bearer</code> and <strong>Role.SUPER</strong>.",
+      "endpoints": {
+        "title": "Endpoints",
+        "items": [
+          "GET /api/v1/security/blocked-ips — list blocked IPs",
+          "GET /api/v1/security/suspicious-ips — list IPs with attempts, not blocked",
+          "POST /api/v1/security/unblock/:ip — unblock (200)",
+          "POST /api/v1/security/reset/:ip — reset attempts (200)",
+          "DELETE /api/v1/security/:ip — remove record"
+        ]
+      },
+      "listRequest": {
+        "codeHeader": { "label": "HTTP Request", "context": "GET /api/v1/security/blocked-ips" }
+      },
+      "listResponse": {
+        "codeHeader": { "label": "HTTP Response", "context": "200 OK" }
+      },
+      "unblockRequest": {
+        "codeHeader": { "label": "HTTP Request", "context": "POST /api/v1/security/unblock/:ip" }
+      },
+      "unblockResponse": {
+        "codeHeader": { "label": "HTTP Response", "context": "200 OK" }
+      }
+    },
+    "alert": {
+      "title": "Docker / production note",
+      "description": "With <code class=\"px-1 py-0.5 bg-amber-100 rounded\">NODE_ENV=production</code> (as in <code class=\"px-1 py-0.5 bg-amber-100 rounded\">.env.docker</code>), the catch-all is active. Hitting unknown API paths can block your IP after MAX_ATTEMPTS. Use the admin API (super role) to unblock, or clear the <code class=\"px-1 py-0.5 bg-amber-100 rounded\">blocked_ips</code> table."
+    }
+  }
+}

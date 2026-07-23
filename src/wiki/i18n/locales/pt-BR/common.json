@@ -16,6 +16,7 @@
     "users": "Users",
     "email": "Email",
     "whatsapp": "WhatsApp",
+    "security": "Security",
     "websocketGroup": "WebSocket",
     "websocketOverview": "Visão Geral",
     "swagger": "Swagger UI"

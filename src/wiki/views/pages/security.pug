@@ -1,0 +1,137 @@
+extends ../layouts/main
+
+block content
+  .mb-12
+    .inline-flex.items-center.gap-2.px-3.py-1.bg-indigo-50.rounded-full.text-indigo-700.text-sm.font-medium.mb-4
+      svg(class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z")
+      span= t('security.badge')
+    h1(class="text-4xl font-bold text-gray-900 mb-4")
+      | #{t('security.hero.titlePrefix')} 
+      span.gradient-text= t('security.hero.titleHighlight')
+    p(class="text-xl text-gray-600 max-w-3xl")
+      = t('security.hero.subtitle')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('security.overview.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")
+        != t('security.overview.description')
+      h3(class="font-semibold text-gray-900 mb-3")= t('security.overview.points.title')
+      ul.space-y-2.text-gray-700
+        each item in tm('security.overview.points.items')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('security.structure.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      .code-block
+        .code-header
+          span= t('security.structure.codeHeader.label')
+          span= t('security.structure.codeHeader.context')
+        .code-content
+          pre.
+            src/common/security/
+            ├── security.module.ts
+            ├── security.controller.ts
+            ├── security.service.ts
+            ├── catchall.controller.ts
+            ├── repositories/
+            │   ├── postgres.repository.ts
+            │   └── mongo.repository.ts
+            ├── entities/blocked-ip.entity.ts
+            ├── schemas/blocked-ip.schema.ts
+            └── interfaces/blocked-ip.interface.ts
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('security.catchall.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")
+        != t('security.catchall.description')
+      h3(class="font-semibold text-gray-900 mb-3")= t('security.catchall.flow.title')
+      ul.space-y-2.text-gray-700.mb-6
+        each item in tm('security.catchall.flow.items')
+          li • #{item}
+      h3(class="font-semibold text-gray-900 mb-3")= t('security.catchall.exclusions.title')
+      ul.space-y-2.text-gray-700
+        each item in tm('security.catchall.exclusions.items')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('security.service.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")
+        = t('security.service.description')
+      h3(class="font-semibold text-gray-900 mb-3")= t('security.service.constants.title')
+      ul.space-y-2.text-gray-700.mb-6
+        each item in tm('security.service.constants.items')
+          li • #{item}
+      h3(class="font-semibold text-gray-900 mb-3")= t('security.service.methods.title')
+      ul.space-y-2.text-gray-700
+        each item in tm('security.service.methods.items')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('security.api.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")
+        != t('security.api.description')
+      h3(class="font-semibold text-gray-900 mb-3")= t('security.api.endpoints.title')
+      ul.space-y-2.text-gray-700.mb-6
+        each item in tm('security.api.endpoints.items')
+          li • #{item}
+
+      .code-block.mb-6
+        .code-header
+          span= t('security.api.listRequest.codeHeader.label')
+          span= t('security.api.listRequest.codeHeader.context')
+        .code-content
+          pre.
+            GET #{apiBasePath}/security/blocked-ips
+            Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+      .code-block.mb-6
+        .code-header
+          span= t('security.api.listResponse.codeHeader.label')
+          span= t('security.api.listResponse.codeHeader.context')
+        .code-content
+          pre.
+            [
+              {
+                "id": "uuid-...",
+                "ip": "203.0.113.10",
+                "attempts": 1,
+                "blocked": true,
+                "paths": ["/api/v1/unknown"],
+                "blockedAt": "2026-07-23T12:00:00.000Z"
+              }
+            ]
+
+      .code-block.mb-6
+        .code-header
+          span= t('security.api.unblockRequest.codeHeader.label')
+          span= t('security.api.unblockRequest.codeHeader.context')
+        .code-content
+          pre.
+            POST #{apiBasePath}/security/unblock/203.0.113.10
+            Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+      .code-block
+        .code-header
+          span= t('security.api.unblockResponse.codeHeader.label')
+          span= t('security.api.unblockResponse.codeHeader.context')
+        .code-content
+          pre.
+            {
+              "message": "IP 203.0.113.10 desbloqueado com sucesso",
+              "data": { "id": "uuid-...", "ip": "203.0.113.10", "blocked": false, "attempts": 0 }
+            }
+
+  section.mb-12
+    .alert.alert-warning
+      svg(class="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z")
+      div
+        p.font-medium.text-amber-900= t('security.alert.title')
+        p.text-sm.text-amber-800
+          != t('security.alert.description')

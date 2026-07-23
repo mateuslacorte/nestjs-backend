@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, UnauthorizedException, NotFoundException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
@@ -38,7 +38,7 @@ export class AuthService {
         // Check if user with email already exists
         const existingUser = await this.usersService.findByEmail(userData.email);
         if (existingUser) {
-            throw new BadRequestException('A user with this email already exists');
+            throw new ConflictException('A user with this email already exists');
         }
 
         // Create the user with isActive set to false

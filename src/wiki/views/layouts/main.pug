@@ -3,7 +3,45 @@ html(lang=htmlLang)
   head
     meta(charset="UTF-8")
     meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    meta(name="theme-color" content="#6366f1")
     title= title
+
+    //- SEO
+    meta(name="description" content=seo.description)
+    meta(name="keywords" content=seo.keywords)
+    meta(name="author" content=seo.author)
+    meta(name="robots" content=seo.robots)
+    link(rel="canonical" href=seo.canonicalUrl)
+
+    //- Open Graph
+    meta(property="og:title" content=seo.og.title)
+    meta(property="og:description" content=seo.og.description)
+    meta(property="og:url" content=seo.og.url)
+    meta(property="og:type" content=seo.og.type)
+    meta(property="og:site_name" content=seo.og.siteName)
+    meta(property="og:locale" content=seo.og.locale)
+    meta(property="og:locale:alternate" content=seo.og.localeAlternate)
+    each image in seo.og.images
+      meta(property="og:image" content=image.url)
+      if seo.og.url.startsWith('https://')
+        meta(property="og:image:secure_url" content=image.url)
+      meta(property="og:image:type" content=image.type)
+      meta(property="og:image:width" content=String(image.width))
+      meta(property="og:image:height" content=String(image.height))
+      meta(property="og:image:alt" content=image.alt)
+
+    //- Twitter / X
+    meta(name="twitter:card" content=seo.twitter.card)
+    meta(name="twitter:title" content=seo.twitter.title)
+    meta(name="twitter:description" content=seo.twitter.description)
+    meta(name="twitter:image" content=seo.twitter.image)
+    meta(name="twitter:image:alt" content=seo.twitter.imageAlt)
+
+    link(rel="icon" href="/favicon.ico" sizes="any")
+    link(rel="icon" href="/favicon.svg" type="image/svg+xml")
+    link(rel="icon" href="/favicon-96x96.png" type="image/png" sizes="96x96")
+    link(rel="apple-touch-icon" href="/apple-touch-icon.png")
+    link(rel="manifest" href="/site.webmanifest")
     script(src="https://cdn.tailwindcss.com")
     link(href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet")
     style.
@@ -237,6 +275,8 @@ html(lang=htmlLang)
               span= t('nav.email')
             a(href=wikiPath('/whatsapp') class=`sidebar-link block px-3 py-2 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'whatsapp' ? 'active' : ''}`)
               span= t('nav.whatsapp')
+            a(href=wikiPath('/security') class=`sidebar-link block px-3 py-2 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'security' ? 'active' : ''}`)
+              span= t('nav.security')
 
           .mb-6
             p(class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2")= t('nav.websocketGroup')

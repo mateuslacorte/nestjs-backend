@@ -5,6 +5,7 @@ import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { GraylogLoggerService } from '@common/graylog/graylog-logger.service';
+import { WikiRenderService } from './wiki/wiki-render.service';
 import * as crypto from 'crypto';
 import { join } from 'path';
 import { existsSync } from 'fs';
@@ -20,6 +21,8 @@ async function bootstrap() {
     const apiPrefix = configService.get<string>('app.apiPrefix') || 'api/v1';
 
     // Wiki at /; API controllers under /api/{API_VERSION}
+    // Note: do NOT exclude GET "users" — that would strip the prefix from
+    // UsersController.findAll. Wiki /users is mounted via Express below.
     app.setGlobalPrefix(apiPrefix, {
         exclude: [
             { path: '/', method: RequestMethod.GET },
@@ -27,21 +30,26 @@ async function bootstrap() {
             { path: 'backend', method: RequestMethod.GET },
             { path: 'backend/install', method: RequestMethod.GET },
             { path: 'auth', method: RequestMethod.GET },
-            { path: 'users', method: RequestMethod.GET },
             { path: 'email', method: RequestMethod.GET },
             { path: 'whatsapp', method: RequestMethod.GET },
             { path: 'websocket', method: RequestMethod.GET },
+            { path: 'security', method: RequestMethod.GET },
             { path: '404', method: RequestMethod.GET },
             { path: '500', method: RequestMethod.GET },
             { path: 'static/(.*)', method: RequestMethod.GET },
+            { path: 'favicon.ico', method: RequestMethod.GET },
+            { path: 'favicon.svg', method: RequestMethod.GET },
+            { path: 'favicon-96x96.png', method: RequestMethod.GET },
+            { path: 'apple-touch-icon.png', method: RequestMethod.GET },
+            { path: 'site.webmanifest', method: RequestMethod.GET },
+            { path: 'web-app-manifest-192x192.png', method: RequestMethod.GET },
+            { path: 'web-app-manifest-512x512.png', method: RequestMethod.GET },
+            { path: 'robots.txt', method: RequestMethod.GET },
 
             { path: 'health', method: RequestMethod.GET },
-            { path: 'health/(.*)', method: RequestMethod.GET },
             { path: 'swagger', method: RequestMethod.ALL },
             { path: 'swagger-json', method: RequestMethod.ALL },
             { path: 'swagger/(.*)', method: RequestMethod.ALL },
-            // Catch-all must stay at root (not under /api/...)
-            { path: '*path', method: RequestMethod.ALL },
         ],
     });
 
@@ -56,7 +64,9 @@ async function bootstrap() {
 
     app.setBaseViewsDir(viewsPath);
     app.setViewEngine('pug');
+    // Wiki assets under /static; favicon/robots/manifest also at site root
     app.useStaticAssets(publicPath, { prefix: '/static' });
+    app.useStaticAssets(publicPath);
 
     const graylogLogger = app.get(GraylogLoggerService);
     app.useLogger(graylogLogger);
@@ -95,6 +105,8 @@ Rotas REST: \`/${apiPrefix}/...\`
         .addTag('Users', 'Gestão de usuários')
         .addTag('Email', 'Envio de e-mails')
         .addTag('Whatsapp', 'Integração WhatsApp')
+        .addTag('Security', 'Bloqueio de IPs e rotas inválidas')
+        .addServer('/')
         .addBearerAuth(
             {
                 type: 'http',
@@ -110,6 +122,20 @@ Rotas REST: \`/${apiPrefix}/...\`
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('swagger', app, document, {
         useGlobalPrefix: false,
+    });
+
+    // Wiki page at GET /users (outside API prefix; avoids collision with UsersController)
+    const wikiRender = app.get(WikiRenderService);
+    const httpAdapter = app.getHttpAdapter();
+    httpAdapter.get('/users', (req: any, res: any) => {
+        wikiRender.renderPage(
+            req,
+            res,
+            typeof req.query?.lang === 'string' ? req.query.lang : undefined,
+            'pages/users',
+            'users',
+            'users',
+        );
     });
 
     app.enableCors();

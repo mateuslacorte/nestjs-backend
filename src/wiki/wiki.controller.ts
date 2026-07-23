@@ -11,22 +11,7 @@ import { Request, Response } from 'express';
 import * as path from 'path';
 import { Public } from '../modules/auth/decorators/public.decorator';
 import { NoLog } from '@common/graylog/decorators/no-log.decorator';
-import {
-    buildWikiLocaleCookie,
-    isWikiLocale,
-} from './i18n/wiki-locale';
 import { WikiRenderService } from './wiki-render.service';
-
-type WikiPage =
-    | 'home'
-    | 'architecture'
-    | 'backend'
-    | 'backend-install'
-    | 'auth'
-    | 'users'
-    | 'email'
-    | 'whatsapp'
-    | 'websocket';
 
 @ApiExcludeController()
 @NoLog()
@@ -41,7 +26,14 @@ export class WikiController {
         @Res() res: Response,
         @Query('lang') lang?: string,
     ) {
-        return this.renderPage(req, res, lang, 'pages/home', 'home', 'home');
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/home',
+            'home',
+            'home',
+        );
     }
 
     @Get('architecture')
@@ -50,7 +42,7 @@ export class WikiController {
         @Res() res: Response,
         @Query('lang') lang?: string,
     ) {
-        return this.renderPage(
+        return this.wikiRender.renderPage(
             req,
             res,
             lang,
@@ -66,7 +58,7 @@ export class WikiController {
         @Res() res: Response,
         @Query('lang') lang?: string,
     ) {
-        return this.renderPage(
+        return this.wikiRender.renderPage(
             req,
             res,
             lang,
@@ -82,7 +74,7 @@ export class WikiController {
         @Res() res: Response,
         @Query('lang') lang?: string,
     ) {
-        return this.renderPage(
+        return this.wikiRender.renderPage(
             req,
             res,
             lang,
@@ -98,17 +90,18 @@ export class WikiController {
         @Res() res: Response,
         @Query('lang') lang?: string,
     ) {
-        return this.renderPage(req, res, lang, 'pages/auth', 'auth', 'auth');
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/auth',
+            'auth',
+            'auth',
+        );
     }
 
-    @Get('users')
-    getUsers(
-        @Req() req: Request,
-        @Res() res: Response,
-        @Query('lang') lang?: string,
-    ) {
-        return this.renderPage(req, res, lang, 'pages/users', 'users', 'users');
-    }
+    // GET /users is registered in main.ts (Express) so it does not collide with
+    // UsersController GET /api/{version}/users via setGlobalPrefix exclude.
 
     @Get('email')
     getEmail(
@@ -116,7 +109,14 @@ export class WikiController {
         @Res() res: Response,
         @Query('lang') lang?: string,
     ) {
-        return this.renderPage(req, res, lang, 'pages/email', 'email', 'email');
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/email',
+            'email',
+            'email',
+        );
     }
 
     @Get('whatsapp')
@@ -125,7 +125,7 @@ export class WikiController {
         @Res() res: Response,
         @Query('lang') lang?: string,
     ) {
-        return this.renderPage(
+        return this.wikiRender.renderPage(
             req,
             res,
             lang,
@@ -141,13 +141,29 @@ export class WikiController {
         @Res() res: Response,
         @Query('lang') lang?: string,
     ) {
-        return this.renderPage(
+        return this.wikiRender.renderPage(
             req,
             res,
             lang,
             'pages/websocket',
             'websocket',
             'websocket',
+        );
+    }
+
+    @Get('security')
+    getSecurity(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/security',
+            'security',
+            'security',
         );
     }
 
@@ -165,29 +181,5 @@ export class WikiController {
     serveStatic(@Param('0') filePath: string, @Res() res: Response) {
         const fullPath = path.join(__dirname, 'public', filePath);
         return res.sendFile(fullPath);
-    }
-
-    private renderPage(
-        req: Request,
-        res: Response,
-        lang: string | undefined,
-        view: string,
-        metaNamespace: string,
-        currentPage: WikiPage,
-    ) {
-        if (isWikiLocale(lang)) {
-            res.setHeader('Set-Cookie', buildWikiLocaleCookie(lang));
-            const cleanUrl = req.path;
-            return res.redirect(302, cleanUrl);
-        }
-
-        const locale = this.wikiRender.resolveLocale(req);
-        return res.render(
-            view,
-            this.wikiRender.buildLocals(locale, {
-                titleKey: `${metaNamespace}.meta.title`,
-                currentPage,
-            }),
-        );
     }
 }

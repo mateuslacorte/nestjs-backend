@@ -49,9 +49,20 @@ export class CatchAllController {
             return this.wikiRender.renderNotFound(req, res);
         }
 
-        // Ignorar rotas conhecidas como favicon, healthcheck, etc
-        const ignoredPaths = ['/favicon.ico', '/robots.txt', '/health', '/healthcheck'];
-        if (ignoredPaths.some(p => path.toLowerCase().startsWith(p))) {
+        // Ignorar rotas exatas conhecidas (favicon, robots, /health)
+        const pathOnly = path.split('?')[0].toLowerCase();
+        const ignoredPaths = [
+            '/favicon.ico',
+            '/favicon.svg',
+            '/favicon-96x96.png',
+            '/apple-touch-icon.png',
+            '/site.webmanifest',
+            '/web-app-manifest-192x192.png',
+            '/web-app-manifest-512x512.png',
+            '/robots.txt',
+            '/health',
+        ];
+        if (ignoredPaths.includes(pathOnly)) {
             return this.sendNotFound(req, res, path);
         }
 

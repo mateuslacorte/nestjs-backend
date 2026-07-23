@@ -118,6 +118,38 @@ block content
                 "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
               }
 
+  //- Verificar token
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('auth.verifyToken.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")
+        != t('auth.verifyToken.description')
+
+      .code-block.mb-6
+        .code-header
+          span= t('auth.verifyToken.request.codeHeader.label')
+          span= t('auth.verifyToken.request.codeHeader.context')
+        .code-content
+          pre.
+            POST #{apiBasePath}/auth/verify-token
+            Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+            Content-Type: application/json
+
+      .code-block
+        .code-header
+          span= t('auth.verifyToken.response.codeHeader.label')
+          span= t('auth.verifyToken.response.codeHeader.context')
+        .code-content
+          pre.
+            {
+              "message": "Token is valid",
+              "user": {
+                "id": "123",
+                "email": "usuario@example.com",
+                "roles": ["admin", "user"]
+              }
+            }
+
   //- Jitter no JWT
   section.mb-12
     h2(class="text-2xl font-bold text-gray-900 mb-6")= t('auth.jitter.title')
@@ -200,6 +232,21 @@ block content
               "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
               "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
               "message": "Registration successful. Please check your email to confirm your account."
+            }
+
+      h3(class="font-semibold text-gray-900 mb-3")= t('auth.registration.conflict.title')
+      p(class="text-gray-700 mb-4")
+        != t('auth.registration.conflict.description')
+      .code-block.mb-6
+        .code-header
+          span= t('auth.registration.conflict.codeHeader.label')
+          span= t('auth.registration.conflict.codeHeader.context')
+        .code-content
+          pre.
+            {
+              "statusCode": 409,
+              "message": "A user with this email already exists",
+              "error": "Conflict"
             }
 
       .alert.alert-info

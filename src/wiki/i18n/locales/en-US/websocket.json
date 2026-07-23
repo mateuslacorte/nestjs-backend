@@ -40,13 +40,13 @@
     },
     "auth": {
       "title": "JWT authentication",
-      "description": "In AbstractWebsocketGateway.afterInit, a Socket.IO middleware requires a token. Without a valid token the connection is rejected.",
+      "description": "In AbstractWebsocketGateway.afterInit, a Socket.IO middleware requires a JWT. JwtAuthGuard and RolesGuard also work on the WS gateway. Handlers may declare roles for per-message authorization.",
       "items": [
         "Token in socket.handshake.auth.token",
         "Or Authorization: Bearer <token> header",
         "Verified with jwt.secret (ConfigService)",
-        "decoded.id → socket.userId",
-        "No per-message auth — connect only"
+        "decoded.id / email / roles → socket.data.user",
+        "Optional handler.roles — e.g. websocket-example requires Role.SUPER"
       ],
       "codeHeader": { "label": "Client", "context": "handshake" }
     },
@@ -133,7 +133,7 @@
         "type: 'example' + required message field",
         "Emits websocket_example_ack after processing",
         "Emits error if validation fails",
-        "GET /websocket-example/online — clients active in the last 5s (JWT)"
+        "GET /websocket-example/online — clients active in the last 5s (JWT + Role.SUPER)"
       ],
       "codeHeader": { "label": "HTTP", "context": "REST" }
     },

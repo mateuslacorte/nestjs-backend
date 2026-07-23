@@ -44,7 +44,11 @@
         "mailhog": "MailHog UI (SMTP 1025)",
         "minio": "MinIO API / Console",
         "graylog": "Graylog UI (GELF 12201)",
-        "kafka": "Kafka interno: kafka:9092 (modo KRaft, sem Zookeeper)"
+        "postgres": "PostgreSQL",
+        "mongo": "MongoDB",
+        "redis": "Redis (senha em REDIS_PASSWORD)",
+        "kafka": "Kafka interno: kafka:9092 (modo KRaft, sem Zookeeper)",
+        "kafkaUi": "Kafka UI"
       },
       "healthcheck": {
         "title": "HEALTHCHECK",

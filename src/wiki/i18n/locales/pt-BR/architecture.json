@@ -76,8 +76,8 @@
           "description": "Requisição chega ao servidor NestJS com headers (Authorization, Content-Type, etc.)"
         },
         "securityMiddleware": {
-          "title": "2. Middleware de Segurança",
-          "description": "<code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">SecurityModule</code> intercepta e valida requisições, aplica rate limiting e proteções básicas"
+          "title": "2. Security (IP / catch-all)",
+          "description": "<code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">SecurityModule</code> registra rotas de API inválidas e pode bloquear IPs (catch-all em production/staging). API admin em <code class=\"px-1 py-0.5 bg-gray-100 rounded\">/api/v1/security</code> — veja a página <a href=\"/security\" class=\"text-indigo-600 hover:underline\">Security</a>."
         },
         "jwtAuth": {
           "title": "3. Autenticação JWT",
