@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString, IsBoolean, IsOptional, IsArray, IsEnum } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, IsBoolean, IsOptional, IsArray, IsEnum, ValidateIf } from 'class-validator';
 import { StrongPassword } from '../../auth/decorators/strongpassword.decorator';
 import { InputType, Field } from '@nestjs/graphql';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -30,14 +30,33 @@ export class CreateUserDto {
   @IsNotEmpty({message: 'Email is required'})
   email!: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 'Str0ng!P@ssword',
-    description: 'Password (uppercase, lowercase, number, and special character)',
+    description: 'Password (required unless googleId or facebookId is set)',
   })
-  @Field()
+  @Field(() => String, { nullable: true })
+  @ValidateIf((o: CreateUserDto) => !o.googleId && !o.facebookId)
   @StrongPassword({message: 'Invalid password format'})
   @IsNotEmpty({message: 'Password is required'})
-  password!: string;
+  password?: string;
+
+  @ApiPropertyOptional({
+    example: '108234567890123456789',
+    description: 'Google subject ID for OAuth users',
+  })
+  @Field(() => String, { nullable: true })
+  @IsString()
+  @IsOptional()
+  googleId?: string;
+
+  @ApiPropertyOptional({
+    example: '10234567890123456',
+    description: 'Facebook subject ID for OAuth users',
+  })
+  @Field(() => String, { nullable: true })
+  @IsString()
+  @IsOptional()
+  facebookId?: string;
 
   @ApiPropertyOptional({ example: true, description: 'Whether the user account is active' })
   @Field({ nullable: true })

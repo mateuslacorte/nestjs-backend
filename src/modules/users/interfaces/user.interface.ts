@@ -6,9 +6,12 @@ export interface IUser {
     firstName: string;
     lastName: string;
     email: string;
-    password: string;
+    /** Null for OAuth-only users without a local password */
+    password: string | null;
     isActive: boolean;
     roles: Role[];
+    googleId?: string | null;
+    facebookId?: string | null;
     passwordResetToken?: string;
     passwordResetExpires?: Date;
     emailVerificationToken?: string;

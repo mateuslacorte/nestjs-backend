@@ -11,11 +11,8 @@ import { JwtAuthGuard } from '@modules/auth/guards/jwtauth.guard';
 import { RolesGuard } from '@modules/auth/guards/roles.guard';
 
 @NestWebSocketGateway({
-    cors: {
-        origin: '*',
-    },
+    // CORS: CorsIoAdapter (Engine.IO) + Origin check in AbstractWebsocketGateway
     path: '/ws',
-    port: 3000,
 })
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class WebsocketGateway extends AbstractWebsocketGateway {

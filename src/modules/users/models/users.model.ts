@@ -20,7 +20,13 @@ export class UserModel implements IUser {
     email!: string;
 
     // Exclude password from GraphQL responses for security
-    password!: string;
+    password!: string | null;
+
+    @Field(() => String, { nullable: true })
+    googleId?: string | null;
+
+    @Field(() => String, { nullable: true })
+    facebookId?: string | null;
 
     @Field()
     isActive!: boolean;

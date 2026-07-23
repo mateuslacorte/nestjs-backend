@@ -1,0 +1,142 @@
+{
+  "authSocialGoogle": {
+    "meta": {
+      "title": "Google OAuth2 - Backend NestJS"
+    },
+    "badge": "Google",
+    "hero": {
+      "titlePrefix": "Google",
+      "titleHighlight": "OAuth2",
+      "subtitle": "Authorization Code Exchange para web e mobile — setup no Google, referência da API e exemplos de frontend."
+    },
+    "overview": {
+      "title": "Visão geral",
+      "description": "O login Google é opcional e controlado por <code class=\"px-1 py-0.5 bg-amber-100 rounded\">GOOGLE_AUTH_ENABLED</code>. Quando desligado, os endpoints Google respondem <strong>503 Service Unavailable</strong>. JWTs nunca vão na URL de redirect; a API emite um <code class=\"px-1 py-0.5 bg-gray-100 rounded\">exchangeCode</code> de uso único (Redis, 60 segundos).",
+      "items": [
+        "Ativado por feature flag no ambiente",
+        "Passport Google strategy + GoogleAuthGuard",
+        "Allowlist de redirect evita open redirects",
+        "Mesmo formato de tokens do POST /auth/login"
+      ]
+    },
+    "console": {
+      "title": "Google Cloud Console",
+      "description": "Crie (ou edite) um ID do cliente OAuth do tipo <strong>Aplicativo da Web</strong>. A URI de redirecionamento autorizada deve ser exatamente igual a <code class=\"px-1 py-0.5 bg-gray-100 rounded\">GOOGLE_CALLBACK_URL</code>.",
+      "credentials": {
+        "title": "1. Acessar as credenciais",
+        "steps": [
+          "Abra o Google Cloud Console e selecione o projeto no menu superior",
+          "No menu lateral: APIs e serviços → Credenciais",
+          "Clique no ícone de lápis (Editar) ao lado do ID do cliente OAuth já criado, ou em + Criar credenciais → ID do cliente OAuth (Tipo: Aplicativo da Web)"
+        ]
+      },
+      "urls": {
+        "title": "2. Configurar as URLs",
+        "description": "Na página de edição do aplicativo web, preencha as seções de links assim (use o host e a porta desta API).",
+        "jsOrigins": {
+          "title": "Origens JavaScript autorizadas",
+          "description": "URL base desta API Nest, incluindo a porta — sem path.",
+          "codeHeader": { "label": "Exemplo", "context": "API local" }
+        },
+        "redirects": {
+          "title": "URIs de redirecionamento autorizados",
+          "description": "Rota exata de callback nesta API (mesmo valor de <code class=\"px-1 py-0.5 bg-gray-100 rounded\">GOOGLE_CALLBACK_URL</code>). Não use a rota da SPA aqui.",
+          "codeHeader": { "label": "Exemplo", "context": "Callback da API" }
+        },
+        "note": "Depois de salvar, copie Client ID e Client Secret para o .env. URLs de pós-login do frontend ficam em GOOGLE_REDIRECT_ALLOWLIST, não na lista de redirect do Google."
+      }
+    },
+    "env": {
+      "title": "Variáveis de ambiente",
+      "description": "Documentadas em <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env.example</code>.",
+      "codeHeader": { "label": "Environment", "context": ".env" }
+    },
+    "roles": {
+      "title": "Roles padrão para novos usuários Google",
+      "description": "Novos usuários Google recebem <code class=\"px-1 py-0.5 bg-gray-100 rounded\">roles: []</code> por padrão (igual ao register). Defina <code class=\"px-1 py-0.5 bg-amber-100 rounded\">GOOGLE_OAUTH_DEFAULT_ROLES</code> no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> como lista separada por vírgula (ex.: <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user</code> ou <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user,manager</code>). Usuários existentes vinculados por e-mail mantêm as roles atuais."
+    },
+    "flow": {
+      "title": "Sequência",
+      "items": [
+        "Cliente abre GET /api/v1/auth/google?redirect=<URL na allowlist>",
+        "Usuário consente no Google; o browser chama GET /api/v1/auth/google/callback",
+        "API faz upsert do usuário, grava exchangeCode no Redis e redireciona para redirect?code=...",
+        "Cliente faz POST { code } em /api/v1/auth/exchange e recebe os JWTs"
+      ]
+    },
+    "api": {
+      "title": "Referência da API",
+      "start": {
+        "title": "1. Iniciar OAuth",
+        "description": "Abre o consentimento do Google. O query <code class=\"px-1 py-0.5 bg-gray-100 rounded\">redirect</code> deve bater com um prefixo de <code class=\"px-1 py-0.5 bg-gray-100 rounded\">GOOGLE_REDIRECT_ALLOWLIST</code> (ou omita para usar a primeira entrada).",
+        "codeHeader": { "label": "HTTP", "context": "GET /api/v1/auth/google" },
+        "errors": "400 redirect inválido · 503 feature desligada"
+      },
+      "callback": {
+        "title": "2. Callback",
+        "description": "Tratado pela API. Redireciona para o app com <code class=\"px-1 py-0.5 bg-gray-100 rounded\">?code=</code> (ou <code class=\"px-1 py-0.5 bg-gray-100 rounded\">&code=</code> se a URL já tiver query).",
+        "codeHeader": { "label": "HTTP", "context": "GET /api/v1/auth/google/callback" }
+      },
+      "exchange": {
+        "title": "3. Trocar o código",
+        "description": "Endpoint público. Consome o código (uso único) e devolve o mesmo formato do login.",
+        "requestHeader": { "label": "HTTP Request", "context": "POST /api/v1/auth/exchange" },
+        "responseHeader": { "label": "HTTP Response", "context": "200 OK" },
+        "errors": "401 código inválido/expirado/já usado · 503 feature desligada"
+      }
+    },
+    "web": {
+      "title": "Frontend — Web (SPA)",
+      "description": "Fluxo típico: botão inicia OAuth na mesma janela (ou popup); uma rota de callback na origem do frontend lê <code class=\"px-1 py-0.5 bg-gray-100 rounded\">code</code> da query e chama o exchange.",
+      "startHeader": { "label": "JavaScript", "context": "Iniciar login Google" },
+      "callbackHeader": { "label": "JavaScript", "context": "Página de callback /auth/callback" },
+      "notes": [
+        "Inclua a URL de callback do frontend em GOOGLE_REDIRECT_ALLOWLIST (ex.: http://localhost:5173/auth/callback)",
+        "GOOGLE_CALLBACK_URL aponta para a API Nest, não para a SPA",
+        "Guarde accessToken / refreshToken de forma segura (memória + cookie httpOnly, conforme o app)"
+      ]
+    },
+    "mobile": {
+      "title": "Frontend — Mobile (deep link)",
+      "description": "Use um scheme customizado (ou universal link) na allowlist. Depois do Google, a API redireciona para <code class=\"px-1 py-0.5 bg-gray-100 rounded\">myapp://success?code=...</code>. O app abre, lê o código e chama o exchange.",
+      "openHeader": { "label": "React Native", "context": "Abrir OAuth no browser" },
+      "handleHeader": { "label": "React Native", "context": "Deep link + exchange" },
+      "notes": [
+        "Registre o scheme no SO / Expo app.json",
+        "Prefira Linking.addEventListener('url', ...) e getInitialURL()",
+        "Faça o exchange via HTTPS contra a base URL da API"
+      ]
+    },
+    "security": {
+      "title": "Segurança",
+      "items": [
+        "URLs de redirect devem casar com prefixos de GOOGLE_REDIRECT_ALLOWLIST",
+        "Códigos de exchange são de uso único e expiram em 60 segundos (Redis)",
+        "Usuários locais existentes são vinculados pelo e-mail verificado do Google (googleId; roles inalteradas)",
+        "Usuários só-Google têm password null — login/change-password com senha falham até definir senha"
+      ]
+    },
+    "userModel": {
+      "title": "Modelo de usuário",
+      "description": "Campos da entity/interface usados pelo login Google:",
+      "items": [
+        "googleId — subject ID do Google, único e nullable",
+        "password — nullable para contas só OAuth",
+        "isActive — true para novos usuários Google (e-mail verificado pelo Google)",
+        "roles — de GOOGLE_OAUTH_DEFAULT_ROLES no env (padrão [])"
+      ]
+    },
+    "related": {
+      "title": "Relacionados",
+      "social": "Hub de Autenticação Social",
+      "facebook": "Guia Facebook OAuth2",
+      "auth": "Auth & JWT"
+    },
+    "samples": {
+      "fullPageRedirect": "// Redirect de página inteira: Nest → Google → de volta à SPA",
+      "spaCallback": "// /auth/callback na SPA",
+      "persistTokens": "// persista os tokens como sua app exigir",
+      "tokenFields": "// data.accessToken, data.refreshToken, data.user"
+    }
+  }
+}

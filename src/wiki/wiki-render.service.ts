@@ -121,7 +121,8 @@ export class WikiRenderService {
             canonicalUrl,
             robots:
                 options.currentPage === 'error-404' ||
-                options.currentPage === 'error-500'
+                options.currentPage === 'error-500' ||
+                options.currentPage === 'wsui'
                     ? 'noindex, nofollow'
                     : 'index, follow',
             og: {

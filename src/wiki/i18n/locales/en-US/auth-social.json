@@ -1,0 +1,81 @@
+{
+  "authSocial": {
+    "meta": {
+      "title": "Social Authentication - Backend NestJS"
+    },
+    "badge": "Developer guide",
+    "hero": {
+      "titlePrefix": "Social",
+      "titleHighlight": "Authentication",
+      "subtitle": "How to plug Google or Facebook login into your app — one shared Code Exchange flow for web and mobile."
+    },
+    "howItWorks": {
+      "title": "How it works",
+      "description": "Social login here does <strong>not</strong> put JWTs in the redirect URL. Your client starts OAuth on the API, the identity provider (IdP) handles consent, and the API returns a short-lived one-time code. Your client then exchanges that code for the same tokens you get from password login.",
+      "steps": [
+        "Redirect the user to GET /api/v1/auth/{provider}?redirect=<your allowlisted URL>",
+        "User signs in with the IdP; the API callback creates or links the user",
+        "API redirects to your redirect URL with ?code=<exchangeCode> (Redis, ~60s, single use)",
+        "Your app calls POST /api/v1/auth/exchange with { code } and stores accessToken / refreshToken"
+      ],
+      "codeHeader": { "label": "Contract", "context": "API" }
+    },
+    "enable": {
+      "title": "Enable a provider",
+      "description": "Each provider is <strong>off by default</strong>. Turn it on in <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code>, create an OAuth app at the IdP, then point the callback URL at this API.",
+      "items": [
+        "Set the provider feature flag to true (e.g. GOOGLE_AUTH_ENABLED or FACEBOOK_AUTH_ENABLED)",
+        "Fill client/app credentials and CALLBACK_URL (must be the Nest API path, not your SPA)",
+        "List allowed post-login URLs in the provider REDIRECT_ALLOWLIST (web origin and/or mobile deep link)",
+        "Optionally set *_OAUTH_DEFAULT_ROLES (comma-separated Role values) for brand-new social users",
+        "Follow the provider page below for console steps and env variable names"
+      ]
+    },
+    "clients": {
+      "title": "Integrate your client",
+      "description": "You only need a start URL and a callback that reads <code class=\"px-1 py-0.5 bg-gray-100 rounded\">code</code> then calls exchange. Provider pages include copy-paste samples for SPA and React Native / deep links.",
+      "items": [
+        "Web: navigate (or popup) to the start endpoint; on your /auth/callback page, POST the code to /auth/exchange",
+        "Mobile: open the start URL in an in-app browser; register a deep link in the allowlist; parse code from the return URL and exchange over HTTPS",
+        "Persist tokens the same way you already do after POST /auth/login",
+        "Users created only via social login have no local password until you set one"
+      ]
+    },
+    "providers": {
+      "title": "Choose a provider",
+      "description": "Pick a guide for IdP console setup, environment variables, API details, and frontend examples.",
+      "google": {
+        "title": "Google",
+        "description": "Google Cloud OAuth client, env vars, endpoints, and web/mobile samples.",
+        "cta": "Google setup guide →"
+      },
+      "facebook": {
+        "title": "Facebook",
+        "description": "Meta app + Facebook Login, env vars, endpoints, and web/mobile samples.",
+        "cta": "Facebook setup guide →"
+      }
+    },
+    "security": {
+      "title": "What you should enforce",
+      "items": [
+        "Only allowlist redirects you control — open redirects are rejected",
+        "Treat exchange codes as secrets: one-time, short TTL; never log them",
+        "POST /auth/exchange is shared across providers; it returns 503 if all social providers are disabled",
+        "Existing accounts with the same verified email are linked (provider id attached; roles unchanged)"
+      ]
+    },
+    "related": {
+      "title": "Also see",
+      "authJwt": "Auth & JWT — password login, refresh, roles, and guards",
+      "google": "Google OAuth2 setup guide",
+      "facebook": "Facebook OAuth2 setup guide"
+    },
+    "samples": {
+      "step1": "// 1) Start OAuth (browser or in-app browser)",
+      "step2": "// 2) After IdP consent, API redirects your app:",
+      "step2Redirect": "//    <redirect>?code=<one_time_exchange_code>",
+      "step3": "// 3) Exchange the code for JWTs",
+      "response": "// Response (same shape as password login)"
+    }
+  }
+}

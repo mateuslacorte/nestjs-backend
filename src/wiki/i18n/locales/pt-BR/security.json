@@ -94,6 +94,9 @@
         "codeHeader": { "label": "HTTP Response", "context": "200 OK" }
       }
     },
+    "samples": {
+      "unblockMessage": "IP 203.0.113.10 desbloqueado com sucesso"
+    },
     "alert": {
       "title": "Nota Docker / production",
       "description": "Com <code class=\"px-1 py-0.5 bg-amber-100 rounded\">NODE_ENV=production</code> (como no <code class=\"px-1 py-0.5 bg-amber-100 rounded\">.env.docker</code>), o catch-all está ativo. Hits em paths de API inexistentes podem bloquear seu IP após MAX_ATTEMPTS. Use a API admin (role super) para desbloquear, ou limpe a tabela <code class=\"px-1 py-0.5 bg-amber-100 rounded\">blocked_ips</code>."

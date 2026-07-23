@@ -100,6 +100,54 @@ export class WikiController {
         );
     }
 
+    @Get('auth/social')
+    getAuthSocial(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/auth-social',
+            'authSocial',
+            'auth-social',
+        );
+    }
+
+    @Get('auth/social/google')
+    getAuthSocialGoogle(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/auth-social-google',
+            'authSocialGoogle',
+            'auth-social-google',
+        );
+    }
+
+    @Get('auth/social/facebook')
+    getAuthSocialFacebook(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/auth-social-facebook',
+            'authSocialFacebook',
+            'auth-social-facebook',
+        );
+    }
+
     // GET /users is registered in main.ts (Express) so it does not collide with
     // UsersController GET /api/{version}/users via setGlobalPrefix exclude.
 
@@ -148,6 +196,22 @@ export class WikiController {
             'pages/websocket',
             'websocket',
             'websocket',
+        );
+    }
+
+    @Get('wsui')
+    getWsui(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/wsui',
+            'wsui',
+            'wsui',
         );
     }
 

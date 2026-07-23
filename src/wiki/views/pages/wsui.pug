@@ -1,0 +1,325 @@
+extends ../layouts/main
+
+block content
+  .mb-12
+    .inline-flex.items-center.gap-2.px-3.py-1.bg-indigo-50.rounded-full.text-indigo-700.text-sm.font-medium.mb-4
+      svg(class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0")
+      span= t('wsui.badge')
+    h1(class="text-4xl font-bold text-gray-900 mb-4")
+      | #{t('wsui.hero.titlePrefix')} 
+      span.gradient-text= t('wsui.hero.titleHighlight')
+    p(class="text-xl text-gray-600 max-w-3xl")
+      = t('wsui.hero.subtitle')
+
+  #wsui-app.space-y-8(
+    data-status-disconnected=t('wsui.session.status.disconnected')
+    data-status-connecting=t('wsui.session.status.connecting')
+    data-status-connected=t('wsui.session.status.connected')
+    data-status-error=t('wsui.session.status.error')
+    data-invalid-json=t('wsui.payload.invalidJson')
+    data-log-sent=t('wsui.log.sent')
+    data-log-received=t('wsui.log.received')
+    data-log-system=t('wsui.log.system')
+    data-log-empty=t('wsui.log.empty')
+  )
+    section.bg-white.rounded-xl.border.border-gray-200.p-6
+      h2(class="text-lg font-semibold text-gray-900 mb-4")= t('wsui.session.title')
+      .flex.flex-wrap.items-center.gap-3.mb-4
+        span#wsui-status(
+          class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700"
+          data-state="disconnected"
+        )= t('wsui.session.status.disconnected')
+      label(class="block text-sm font-medium text-gray-700 mb-1" for="wsui-token")= t('wsui.session.tokenLabel')
+      input#wsui-token(
+        type="password"
+        autocomplete="off"
+        spellcheck="false"
+        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+        placeholder=t('wsui.session.tokenPlaceholder')
+      )
+      .flex.flex-wrap.gap-2.mt-4
+        button#wsui-connect(
+          type="button"
+          disabled
+          class="px-4 py-2 text-sm font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        )= t('wsui.session.connect')
+        button#wsui-disconnect(
+          type="button"
+          disabled
+          class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        )= t('wsui.session.disconnect')
+        button#wsui-end-session(
+          type="button"
+          class="px-4 py-2 text-sm font-medium rounded-lg border border-red-200 text-red-700 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        )= t('wsui.session.endSession')
+
+    section.bg-white.rounded-xl.border.border-gray-200.p-6
+      h2(class="text-lg font-semibold text-gray-900 mb-2")= t('wsui.payload.title')
+      p(class="text-sm text-gray-500 mb-3")= t('wsui.payload.hint')
+      textarea#wsui-payload(
+        rows="10"
+        spellcheck="false"
+        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+      )
+      p#wsui-payload-error(class="hidden mt-2 text-sm text-red-600")
+      .mt-4
+        button#wsui-send(
+          type="button"
+          disabled
+          class="px-4 py-2 text-sm font-medium rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        )= t('wsui.payload.send')
+
+    section.bg-white.rounded-xl.border.border-gray-200.p-6
+      .flex.items-center.justify-between.mb-4
+        h2(class="text-lg font-semibold text-gray-900")= t('wsui.log.title')
+        button#wsui-clear-log(
+          type="button"
+          class="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50"
+        )= t('wsui.log.clear')
+      #wsui-log(
+        class="h-80 overflow-y-auto rounded-lg border border-gray-100 bg-slate-50 p-3 space-y-2 font-mono text-xs"
+      )
+        p#wsui-log-empty(class="text-gray-400")= t('wsui.log.empty')
+
+    section.bg-white.rounded-xl.border.border-gray-200.p-6
+      h2(class="text-lg font-semibold text-gray-900 mb-3")= t('wsui.note.title')
+      ul.space-y-2.text-gray-700.text-sm
+        each item in tm('wsui.note.items')
+          li • #{item}
+      a(href=wikiPath('/websocket') class="inline-flex items-center gap-1 mt-4 text-sm font-medium text-indigo-600 hover:text-indigo-800")
+        = t('wsui.note.docsLink')
+        svg(class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+          path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7")
+
+  script#wsui-default-payload(type="application/json")!= JSON.stringify(tm('wsui.defaultPayload'))
+
+  script(type="module").
+    import { io } from 'https://cdn.jsdelivr.net/npm/socket.io-client@4/dist/socket.io.esm.min.js';
+
+    const app = document.getElementById('wsui-app');
+    const tokenInput = document.getElementById('wsui-token');
+    const statusEl = document.getElementById('wsui-status');
+    const connectBtn = document.getElementById('wsui-connect');
+    const disconnectBtn = document.getElementById('wsui-disconnect');
+    const endSessionBtn = document.getElementById('wsui-end-session');
+    const payloadEl = document.getElementById('wsui-payload');
+    const payloadErrorEl = document.getElementById('wsui-payload-error');
+    const sendBtn = document.getElementById('wsui-send');
+    const logEl = document.getElementById('wsui-log');
+    const logEmptyEl = document.getElementById('wsui-log-empty');
+    const clearLogBtn = document.getElementById('wsui-clear-log');
+
+    const labels = {
+      disconnected: app.dataset.statusDisconnected,
+      connecting: app.dataset.statusConnecting,
+      connected: app.dataset.statusConnected,
+      error: app.dataset.statusError,
+      invalidJson: app.dataset.invalidJson,
+      sent: app.dataset.logSent,
+      received: app.dataset.logReceived,
+      system: app.dataset.logSystem,
+      empty: app.dataset.logEmpty,
+    };
+
+    let sessionToken = null;
+    let socket = null;
+    let connectionState = 'disconnected';
+
+    const defaultPayload = JSON.parse(
+      document.getElementById('wsui-default-payload').textContent || '{}'
+    );
+    if (!defaultPayload.timestamp) {
+      defaultPayload.timestamp = new Date().toISOString();
+    }
+    payloadEl.value = JSON.stringify(defaultPayload, null, 2);
+
+    function setStatus(state) {
+      connectionState = state;
+      statusEl.dataset.state = state;
+      statusEl.textContent = labels[state] || state;
+      statusEl.className =
+        'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ' +
+        ({
+          disconnected: 'bg-gray-100 text-gray-700',
+          connecting: 'bg-amber-100 text-amber-800',
+          connected: 'bg-emerald-100 text-emerald-800',
+          error: 'bg-red-100 text-red-800',
+        }[state] || 'bg-gray-100 text-gray-700');
+
+      const connected = state === 'connected';
+      const connecting = state === 'connecting';
+      connectBtn.disabled = connected || connecting || !tokenInput.value.trim();
+      disconnectBtn.disabled = !connected && !connecting;
+      sendBtn.disabled = !connected;
+      tokenInput.disabled = connected || connecting;
+    }
+
+    function appendLog(direction, eventName, data) {
+      if (logEmptyEl && logEmptyEl.parentNode) {
+        logEmptyEl.remove();
+      }
+      const emptyNow = document.getElementById('wsui-log-empty');
+      if (emptyNow) {
+        emptyNow.remove();
+      }
+      const entry = document.createElement('div');
+      entry.className =
+        'rounded-md border border-gray-200 bg-white p-2 shadow-sm';
+      const dirLabel =
+        direction === 'out'
+          ? labels.sent
+          : direction === 'in'
+            ? labels.received
+            : labels.system;
+      const dirColor =
+        direction === 'out'
+          ? 'text-indigo-600'
+          : direction === 'in'
+            ? 'text-emerald-600'
+            : 'text-gray-500';
+      const time = new Date().toISOString();
+      const body =
+        typeof data === 'string'
+          ? data
+          : JSON.stringify(data, null, 2);
+      entry.innerHTML =
+        '<div class="flex items-center justify-between gap-2 mb-1">' +
+        '<span class="font-semibold ' +
+        dirColor +
+        '">' +
+        dirLabel +
+        ' · ' +
+        eventName +
+        '</span>' +
+        '<span class="text-gray-400">' +
+        time +
+        '</span></div>' +
+        '<pre class="whitespace-pre-wrap break-all text-gray-800 m-0">' +
+        escapeHtml(body) +
+        '</pre>';
+      logEl.appendChild(entry);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function clearLog() {
+      logEl.innerHTML = '';
+      const empty = document.createElement('p');
+      empty.id = 'wsui-log-empty';
+      empty.className = 'text-gray-400';
+      empty.textContent = labels.empty;
+      logEl.appendChild(empty);
+    }
+
+    function teardownSocket() {
+      if (socket) {
+        socket.removeAllListeners();
+        socket.disconnect();
+        socket = null;
+      }
+    }
+
+    function connect() {
+      const token = tokenInput.value.trim();
+      if (!token) {
+        return;
+      }
+      sessionToken = token;
+      teardownSocket();
+      setStatus('connecting');
+      appendLog('system', 'connect', { status: 'connecting' });
+
+      socket = io(window.location.origin, {
+        path: '/ws',
+        auth: { token: sessionToken },
+        transports: ['websocket', 'polling'],
+        autoConnect: true,
+        reconnection: false,
+      });
+
+      socket.on('connect', () => {
+        setStatus('connected');
+        appendLog('system', 'connect', { status: 'connected', id: socket.id });
+      });
+
+      socket.on('connect_error', (err) => {
+        setStatus('error');
+        appendLog('system', 'connect_error', {
+          message: err && err.message ? err.message : String(err),
+        });
+        teardownSocket();
+      });
+
+      socket.on('disconnect', (reason) => {
+        if (connectionState !== 'error') {
+          setStatus('disconnected');
+        }
+        appendLog('system', 'disconnect', { reason });
+      });
+
+      socket.onAny((eventName, ...args) => {
+        if (eventName === 'connect' || eventName === 'disconnect') {
+          return;
+        }
+        const payload = args.length <= 1 ? args[0] : args;
+        appendLog('in', eventName, payload);
+      });
+    }
+
+    function disconnect() {
+      if (!socket) {
+        setStatus('disconnected');
+        return;
+      }
+      socket.disconnect();
+      teardownSocket();
+      setStatus('disconnected');
+    }
+
+    function endSession() {
+      disconnect();
+      sessionToken = null;
+      tokenInput.value = '';
+      setStatus('disconnected');
+      appendLog('system', 'session', { status: 'ended' });
+    }
+
+    function sendPayload() {
+      if (!socket || !socket.connected) {
+        return;
+      }
+      let parsed;
+      try {
+        parsed = JSON.parse(payloadEl.value);
+        payloadErrorEl.classList.add('hidden');
+        payloadErrorEl.textContent = '';
+      } catch (e) {
+        payloadErrorEl.textContent = labels.invalidJson;
+        payloadErrorEl.classList.remove('hidden');
+        return;
+      }
+      appendLog('out', 'message', parsed);
+      socket.emit('message', parsed);
+    }
+
+    tokenInput.addEventListener('input', () => {
+      if (connectionState === 'disconnected' || connectionState === 'error') {
+        connectBtn.disabled = !tokenInput.value.trim();
+      }
+    });
+
+    connectBtn.addEventListener('click', connect);
+    disconnectBtn.addEventListener('click', disconnect);
+    endSessionBtn.addEventListener('click', endSession);
+    sendBtn.addEventListener('click', sendPayload);
+    clearLogBtn.addEventListener('click', clearLog);
+
+    setStatus('disconnected');

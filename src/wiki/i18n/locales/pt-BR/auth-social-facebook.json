@@ -1,0 +1,127 @@
+{
+  "authSocialFacebook": {
+    "meta": {
+      "title": "Facebook OAuth2 - Backend NestJS"
+    },
+    "badge": "Facebook",
+    "hero": {
+      "titlePrefix": "Facebook",
+      "titleHighlight": "OAuth2",
+      "subtitle": "Authorization Code Exchange para web e mobile — setup no Meta, referência da API e exemplos de frontend."
+    },
+    "overview": {
+      "title": "Visão geral",
+      "description": "O login Facebook é opcional e controlado por <code class=\"px-1 py-0.5 bg-amber-100 rounded\">FACEBOOK_AUTH_ENABLED</code>. Quando desligado, os endpoints Facebook respondem <strong>503 Service Unavailable</strong>. JWTs nunca vão na URL de redirect; a API emite um <code class=\"px-1 py-0.5 bg-gray-100 rounded\">exchangeCode</code> de uso único (Redis, 60 segundos). O mesmo <code class=\"px-1 py-0.5 bg-gray-100 rounded\">POST /auth/exchange</code> é compartilhado com o Google.",
+      "items": [
+        "Ativado por feature flag no ambiente",
+        "Passport Facebook strategy + FacebookAuthGuard",
+        "Allowlist de redirect evita open redirects",
+        "Mesmo formato de tokens do POST /auth/login"
+      ]
+    },
+    "console": {
+      "title": "Meta for Developers",
+      "description": "Crie um App Facebook com Facebook Login e configure a Valid OAuth Redirect URI igual a <code class=\"px-1 py-0.5 bg-gray-100 rounded\">FACEBOOK_CALLBACK_URL</code>.",
+      "steps": [
+        "Abra Meta for Developers → Meus Apps → Criar App",
+        "Adicione o produto Facebook Login",
+        "Em Facebook Login → Configurações, adicione a Valid OAuth Redirect URI (ex.: http://localhost:3000/api/v1/auth/facebook/callback)",
+        "Copie App ID e App Secret para o .env",
+        "Solicite a permissão email (obrigatório)"
+      ]
+    },
+    "env": {
+      "title": "Variáveis de ambiente",
+      "description": "Documentadas em <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env.example</code>.",
+      "codeHeader": { "label": "Environment", "context": ".env" }
+    },
+    "roles": {
+      "title": "Roles padrão para novos usuários Facebook",
+      "description": "Novos usuários Facebook recebem <code class=\"px-1 py-0.5 bg-gray-100 rounded\">roles: []</code> por padrão (igual ao register). Defina <code class=\"px-1 py-0.5 bg-amber-100 rounded\">FACEBOOK_OAUTH_DEFAULT_ROLES</code> no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> como lista separada por vírgula (ex.: <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user</code> ou <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user,manager</code>). Usuários existentes vinculados por e-mail mantêm as roles atuais."
+    },
+    "flow": {
+      "title": "Sequência",
+      "items": [
+        "Cliente abre GET /api/v1/auth/facebook?redirect=<URL na allowlist>",
+        "Usuário consente no Facebook; o browser chama GET /api/v1/auth/facebook/callback",
+        "API faz upsert do usuário, grava exchangeCode no Redis e redireciona para redirect?code=...",
+        "Cliente faz POST { code } em /api/v1/auth/exchange e recebe os JWTs"
+      ]
+    },
+    "api": {
+      "title": "Referência da API",
+      "start": {
+        "title": "1. Iniciar OAuth",
+        "description": "Abre o consentimento do Facebook. O query <code class=\"px-1 py-0.5 bg-gray-100 rounded\">redirect</code> deve bater com um prefixo de <code class=\"px-1 py-0.5 bg-gray-100 rounded\">FACEBOOK_REDIRECT_ALLOWLIST</code> (ou omita para usar a primeira entrada).",
+        "codeHeader": { "label": "HTTP", "context": "GET /api/v1/auth/facebook" },
+        "errors": "400 redirect inválido · 503 feature desligada"
+      },
+      "callback": {
+        "title": "2. Callback",
+        "description": "Tratado pela API. Redireciona para o app com <code class=\"px-1 py-0.5 bg-gray-100 rounded\">?code=</code> (ou <code class=\"px-1 py-0.5 bg-gray-100 rounded\">&code=</code> se a URL já tiver query).",
+        "codeHeader": { "label": "HTTP", "context": "GET /api/v1/auth/facebook/callback" }
+      },
+      "exchange": {
+        "title": "3. Trocar código",
+        "description": "Endpoint público compartilhado com o Google. Consome o código (uso único) e retorna o mesmo formato do login.",
+        "requestHeader": { "label": "HTTP Request", "context": "POST /api/v1/auth/exchange" },
+        "responseHeader": { "label": "HTTP Response", "context": "200 OK" },
+        "errors": "401 código inválido/expirado/usado · 503 auth social desligada"
+      }
+    },
+    "web": {
+      "title": "Frontend — Web (SPA)",
+      "description": "Fluxo típico: o botão inicia OAuth na mesma janela (ou popup); a rota de callback no frontend lê <code class=\"px-1 py-0.5 bg-gray-100 rounded\">code</code> da query e chama exchange.",
+      "startHeader": { "label": "JavaScript", "context": "Iniciar login Facebook" },
+      "callbackHeader": { "label": "JavaScript", "context": "Página de callback /auth/callback" },
+      "notes": [
+        "Inclua a URL de callback do frontend em FACEBOOK_REDIRECT_ALLOWLIST (ex.: http://localhost:5173/auth/callback)",
+        "FACEBOOK_CALLBACK_URL aponta para a API Nest, não para a SPA",
+        "Armazene accessToken / refreshToken com segurança"
+      ]
+    },
+    "mobile": {
+      "title": "Frontend — Mobile (deep link)",
+      "description": "Use um scheme customizado (ou universal link) na allowlist. Após o Facebook, a API redireciona para <code class=\"px-1 py-0.5 bg-gray-100 rounded\">myapp://success?code=...</code>. O app abre, lê o código e chama exchange.",
+      "openHeader": { "label": "React Native", "context": "Abrir OAuth no browser" },
+      "handleHeader": { "label": "React Native", "context": "Deep link + exchange" },
+      "notes": [
+        "Registre o scheme no SO / Expo app.json",
+        "Prefira Linking.addEventListener('url', ...) e getInitialURL()",
+        "Faça o exchange via HTTPS na base URL da API"
+      ]
+    },
+    "security": {
+      "title": "Notas de segurança",
+      "items": [
+        "URLs de redirect devem casar com prefixos de FACEBOOK_REDIRECT_ALLOWLIST",
+        "Códigos de exchange são de uso único e expiram em 60 segundos (Redis)",
+        "Usuários locais existentes são vinculados pelo e-mail verificado do Facebook (facebookId; roles inalteradas)",
+        "Usuários só-Facebook têm password null — login/change-password com senha falham até haver senha",
+        "Permissão email é obrigatória; o login falha se o Facebook não devolver e-mail"
+      ]
+    },
+    "userModel": {
+      "title": "Modelo de usuário",
+      "description": "Campos da entity/interface usados pelo login Facebook:",
+      "items": [
+        "facebookId — ID Facebook único e nullable",
+        "password — nullable para contas só OAuth",
+        "isActive — true para novos usuários Facebook",
+        "roles — de FACEBOOK_OAUTH_DEFAULT_ROLES no env (padrão [])"
+      ]
+    },
+    "related": {
+      "title": "Relacionados",
+      "social": "Hub de Autenticação Social",
+      "google": "Guia Google OAuth2",
+      "auth": "Auth & JWT"
+    },
+    "samples": {
+      "fullPageRedirect": "// Redirect de página inteira: Nest → Facebook → de volta à SPA",
+      "spaCallback": "// /auth/callback na SPA",
+      "persistTokens": "// persista os tokens como sua app exigir",
+      "tokenFields": "// data.accessToken, data.refreshToken, data.user"
+    }
+  }
+}

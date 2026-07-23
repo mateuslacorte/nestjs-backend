@@ -80,6 +80,18 @@ export const WIKI_SEO = {
             description:
                 'JWT authentication and authorization in the NestJS Boilerplate — login, refresh tokens, roles, guards, and best practices for securing NestJS APIs.',
         },
+        'auth-social': {
+            description:
+                'Developer guide to social login — Code Exchange flow, enabling providers, and integrating web or mobile clients.',
+        },
+        'auth-social-google': {
+            description:
+                'Google OAuth2 Code Exchange guide for the NestJS Boilerplate — setup, API endpoints, and web/mobile frontend examples.',
+        },
+        'auth-social-facebook': {
+            description:
+                'Facebook OAuth2 Code Exchange guide for the NestJS Boilerplate — Meta app setup, API endpoints, and web/mobile frontend examples.',
+        },
         users: {
             description:
                 'Users module in the NestJS Boilerplate — CRUD patterns, repository design, and CQRS-ready persistence for NestJS / Node.js APIs.',
@@ -99,6 +111,10 @@ export const WIKI_SEO = {
         websocket: {
             description:
                 'WebSocket guide for the NestJS Boilerplate — Socket.IO gateway, JWT handshake, and realtime messaging patterns in NestJS APIs.',
+        },
+        wsui: {
+            description:
+                'Interactive WebSocket playground for the NestJS Boilerplate — test Socket.IO messages with a JWT session against the local gateway.',
         },
         'error-404': {
             description:

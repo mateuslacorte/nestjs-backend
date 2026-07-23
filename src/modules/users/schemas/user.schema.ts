@@ -23,14 +23,20 @@ export class User extends Document<string> {
   @Prop({required: true, unique: true})
   email!: string;
 
-  @Prop({required: true})
-  password!: string;
+  @Prop({ type: String, required: false, default: null })
+  password!: string | null;
 
-  @Prop({default: true})
+  @Prop({ default: true })
   isActive!: boolean;
 
-  @Prop({type: [String], default: [Role.USER]})
+  @Prop({ type: [String], default: [Role.USER] })
   roles!: Role[];
+
+  @Prop({ type: String, unique: true, sparse: true, default: null })
+  googleId?: string | null;
+
+  @Prop({ type: String, unique: true, sparse: true, default: null })
+  facebookId?: string | null;
 
   @Prop({type: String, default: null})
   passwordResetToken?: string;

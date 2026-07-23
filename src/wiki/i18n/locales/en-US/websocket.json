@@ -123,7 +123,9 @@
         ]
       },
       "dtoCodeHeader": { "language": "TypeScript", "context": "DTOs" },
+      "handlersHeading": "Handlers",
       "handlerCodeHeader": { "language": "TypeScript", "context": "Handlers" },
+      "moduleHeading": "Module",
       "moduleCodeHeader": { "language": "TypeScript", "context": "Module" }
     },
     "example": {
@@ -135,6 +137,7 @@
         "Emits error if validation fails",
         "GET /websocket-example/online — clients active in the last 5s (JWT + Role.SUPER)"
       ],
+      "emitCodeHeader": { "label": "Socket", "context": "emit example" },
       "codeHeader": { "label": "HTTP", "context": "REST" }
     },
     "validation": {
@@ -149,7 +152,8 @@
     "client": {
       "title": "Socket.IO client",
       "description": "Connect with path /ws and a JWT. Then emit message and listen for feature events.",
-      "codeHeader": { "label": "JavaScript", "context": "socket.io-client" }
+      "codeHeader": { "label": "JavaScript", "context": "socket.io-client" },
+      "playgroundCta": "Open the interactive playground at /wsui to connect and exchange messages without writing a client."
     },
     "alerts": {
       "title": "Notes",
@@ -169,7 +173,14 @@
     "samples": {
       "registerComment": "// register the handler at module bootstrap",
       "multiRegister": "// multiple handlers in the same module",
-      "typeStable": "// stable type — routing key"
+      "typeStable": "// stable type — routing key",
+      "appModuleFile": "// app.module.ts",
+      "featureModules": "// feature modules",
+      "orExtraHeaders": "// or: extraHeaders: { Authorization: `Bearer ${accessToken}` }",
+      "validateDto": "// validate(dto) ...",
+      "messageResponseShape": "// { received: true }",
+      "ackShape": "// { received: true, timestamp: '...' }",
+      "errorShape": "// { message: 'Validation failed', errors: [...] }"
     }
   }
 }

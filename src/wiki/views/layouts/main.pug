@@ -266,6 +266,12 @@ html(lang=htmlLang)
             p(class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2")= t('nav.authGroup')
             a(href=wikiPath('/auth') class=`sidebar-link block px-3 py-2 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth' ? 'active' : ''}`)
               span= t('nav.authJwt')
+            a(href=wikiPath('/auth/social') class=`sidebar-link block px-3 py-2 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social' ? 'active' : ''}`)
+              span= t('nav.authSocial')
+            a(href=wikiPath('/auth/social/google') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-google' ? 'active' : ''}`)
+              span= t('nav.authSocialGoogle')
+            a(href=wikiPath('/auth/social/facebook') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-facebook' ? 'active' : ''}`)
+              span= t('nav.authSocialFacebook')
 
           .mb-6
             p(class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2")= t('nav.modulesGroup')
@@ -282,6 +288,8 @@ html(lang=htmlLang)
             p(class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2")= t('nav.websocketGroup')
             a(href=wikiPath('/websocket') class=`sidebar-link block px-3 py-2 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'websocket' ? 'active' : ''}`)
               span= t('nav.websocketOverview')
+            a(href=wikiPath('/wsui') class=`sidebar-link block px-3 py-2 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'wsui' ? 'active' : ''}`)
+              span= t('nav.websocketPlayground')
           
           .mt-8.px-3
             a(href=swaggerPath target="_blank" class="flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-800")

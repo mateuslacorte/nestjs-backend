@@ -25,7 +25,7 @@ export class UserPostgresRepository {
      */
     @EnableCache()
     async create(createUserDto: CreateUserDto, includePassword = false): Promise<IUser> {
-        const { username, email, password } = createUserDto;
+        const { username, email, password, googleId, facebookId } = createUserDto;
 
         const existingUser = await this.userRepository.findOne({
             where: [{ email }, { username }],
@@ -34,10 +34,33 @@ export class UserPostgresRepository {
             throw new ConflictException('User with this email or username already exists');
         }
 
-        const hashedPassword = await bcrypt.hash(password, Number(process.env.BCRYPT_HASH_FACTOR));
+        if (googleId) {
+            const existingGoogle = await this.userRepository.findOne({
+                where: { googleId },
+            });
+            if (existingGoogle) {
+                throw new ConflictException('User with this Google account already exists');
+            }
+        }
+
+        if (facebookId) {
+            const existingFacebook = await this.userRepository.findOne({
+                where: { facebookId },
+            });
+            if (existingFacebook) {
+                throw new ConflictException('User with this Facebook account already exists');
+            }
+        }
+
+        const hashedPassword = password
+            ? await bcrypt.hash(password, Number(process.env.BCRYPT_HASH_FACTOR))
+            : null;
+
         const newUser = this.userRepository.create({
             ...createUserDto,
             password: hashedPassword,
+            googleId: googleId ?? null,
+            facebookId: facebookId ?? null,
             isActive: createUserDto.isActive ?? true,
             roles: createUserDto.roles ?? [],
         });
@@ -82,6 +105,36 @@ export class UserPostgresRepository {
     @NoCache()
     async findByEmail(email: string, includePassword = false): Promise<IUser | null> {
         const user = await this.userRepository.findOne({ where: { email } });
+        if (!user) {
+            return null;
+        }
+        return includePassword ? user : this.omitPassword(user);
+    }
+
+    @NoCache()
+    async findByUsername(username: string): Promise<IUser | null> {
+        const user = await this.userRepository.findOne({ where: { username } });
+        return user ? this.omitPassword(user) : null;
+    }
+
+    /**
+     * Find a user by Google subject ID
+     */
+    @NoCache()
+    async findByGoogleId(googleId: string, includePassword = false): Promise<IUser | null> {
+        const user = await this.userRepository.findOne({ where: { googleId } });
+        if (!user) {
+            return null;
+        }
+        return includePassword ? user : this.omitPassword(user);
+    }
+
+    /**
+     * Find a user by Facebook subject ID
+     */
+    @NoCache()
+    async findByFacebookId(facebookId: string, includePassword = false): Promise<IUser | null> {
+        const user = await this.userRepository.findOne({ where: { facebookId } });
         if (!user) {
             return null;
         }
@@ -200,10 +253,10 @@ export class UserPostgresRepository {
             this.cacheService?.delPattern("users:*");
             return this.omitPassword(userSaved);
         } else {
-            if (!userData.password) {
-                throw new Error('Password is required for new users');
-            }
-            const newUser = this.userRepository.create(userData);
+            const newUser = this.userRepository.create({
+                ...userData,
+                password: userData.password ?? null,
+            });
             const newUserSaved = await this.userRepository.save(newUser);
             this.cacheService?.delPattern("users:*");
             return this.omitPassword(newUserSaved);

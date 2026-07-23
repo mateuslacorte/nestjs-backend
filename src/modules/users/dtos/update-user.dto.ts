@@ -58,6 +58,22 @@ export class UpdateUserDto {
   roles?: Role[];
 
   @ApiPropertyOptional({
+    example: '108234567890123456789',
+    description: 'Google subject ID for OAuth users',
+  })
+  @IsString()
+  @IsOptional()
+  googleId?: string | null;
+
+  @ApiPropertyOptional({
+    example: '10234567890123456',
+    description: 'Facebook subject ID for OAuth users',
+  })
+  @IsString()
+  @IsOptional()
+  facebookId?: string | null;
+
+  @ApiPropertyOptional({
     example: 'abc123def456...',
     description: 'Email verification token (internal/admin use)',
   })

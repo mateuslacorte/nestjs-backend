@@ -9,6 +9,7 @@ import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AbstractWebsocketService } from './abstract-websocket.service';
 import { Role } from '@modules/auth/enums/role.enum';
+import { isOriginAllowed } from '@config/cors-origins.util';
 import * as jwt from 'jsonwebtoken';
 
 export type WebsocketUser = {
@@ -39,6 +40,20 @@ export abstract class AbstractWebsocketGateway
     afterInit(server: Server): void {
         server.use((socket: Socket, next) => {
             try {
+                const allowed =
+                    this.configService.get<string[]>('cors.origins') || [];
+                const handshakeOrigin =
+                    typeof socket.handshake.headers?.origin === 'string'
+                        ? socket.handshake.headers.origin
+                        : undefined;
+
+                if (!isOriginAllowed(handshakeOrigin, allowed)) {
+                    this.logger.warn(
+                        `Connection rejected: Origin not allowed (${handshakeOrigin || 'none'}) for ${socket.id}`,
+                    );
+                    return next(new Error('Origin not allowed by CORS'));
+                }
+
                 const rawAuth = socket.handshake.headers?.authorization;
                 const token =
                     socket.handshake.auth?.token ||

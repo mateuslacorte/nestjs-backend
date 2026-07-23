@@ -27,14 +27,16 @@ export class UserMongoRepository {
      */
     @EnableCache()
     async create(createUserDto: CreateUserDto, includePassword = false): Promise<IUser> {
-        const { username, email, password } = createUserDto;
+        const { username, email, password, googleId, facebookId } = createUserDto;
         
         const existingUser = await this.userModel.findOne({ $or: [{ email }, { username }] });
         if (existingUser) {
             throw new ConflictException('User with this email or username already exists');
         }
 
-        const hashedPassword = await bcrypt.hash(password, Number(process.env.BCRYPT_HASH_FACTOR));
+        const hashedPassword = password
+            ? await bcrypt.hash(password, Number(process.env.BCRYPT_HASH_FACTOR))
+            : null;
         const userId = uuidv4();
 
         const newUser = new this.userModel({
@@ -42,6 +44,8 @@ export class UserMongoRepository {
             _id: userId, 
             id: userId, 
             password: hashedPassword,
+            googleId: googleId ?? null,
+            facebookId: facebookId ?? null,
         });
 
         await newUser.save();

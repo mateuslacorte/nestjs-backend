@@ -30,6 +30,10 @@ import graphqlConfig from './config/graphql.config';
 import bcryptConfig from './config/bcrypt.config';
 import jwtConfig from './config/jwt.config';
 import smtpConfig from './config/smtp.config';
+import googleOAuthConfig from './config/google-oauth.config';
+import facebookOAuthConfig from './config/facebook-oauth.config';
+import corsConfig from './config/cors.config';
+import { createCorsOriginDelegate } from './config/cors-origins.util';
 import { WikiModule } from "./wiki/wiki.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { SecurityModule} from "@common/security/security.module";
@@ -53,6 +57,9 @@ import { HealthModule } from '@modules/health/health.module';
                 bcryptConfig,
                 jwtConfig,
                 smtpConfig,
+                googleOAuthConfig,
+                facebookOAuthConfig,
+                corsConfig,
             ],
         }),
 
@@ -91,14 +98,24 @@ import { HealthModule } from '@modules/health/health.module';
         // GraphQL via Apollo Server 5 + Express (no @nestjs/apollo)
         GraphQLModule.forRootAsync<ApolloExpressDriverConfig>({
             driver: ApolloExpressDriver,
-            useFactory: (configService: ConfigService) => ({
-                autoSchemaFile: configService.get('graphql.autoSchemaFile'),
-                playground: configService.get('graphql.playground'),
-                introspection: configService.get('graphql.introspection'),
-                sortSchema: configService.get('graphql.sortSchema'),
-                path: configService.get('graphql.path'),
-                context: ({ req }: { req: unknown }) => ({ req }),
-            }),
+            useFactory: (configService: ConfigService) => {
+                const corsOrigins =
+                    configService.get<string[]>('cors.origins') || [];
+                const corsCredentials =
+                    configService.get<boolean>('cors.credentials') !== false;
+                return {
+                    autoSchemaFile: configService.get('graphql.autoSchemaFile'),
+                    playground: configService.get('graphql.playground'),
+                    introspection: configService.get('graphql.introspection'),
+                    sortSchema: configService.get('graphql.sortSchema'),
+                    path: configService.get('graphql.path'),
+                    context: ({ req }: { req: unknown }) => ({ req }),
+                    cors: {
+                        origin: createCorsOriginDelegate(corsOrigins),
+                        credentials: corsCredentials,
+                    },
+                };
+            },
             inject: [ConfigService],
         }),
 

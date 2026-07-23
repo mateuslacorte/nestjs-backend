@@ -1,15 +1,20 @@
-import {Controller, Post, Body, Req, UseGuards, Get, Query, HttpCode, HttpStatus} from '@nestjs/common';
+import {Controller, Post, Body, Req, UseGuards, Get, Query, HttpCode, HttpStatus, Res} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
 import { JwtAuthGuard } from './guards/jwtauth.guard';
-import { Request } from 'express';
-import {ApiTags, ApiResponse, ApiBody, ApiBearerAuth, ApiOperation} from '@nestjs/swagger';
+import { GoogleAuthGuard } from './guards/google-auth.guard';
+import { FacebookAuthGuard } from './guards/facebook-auth.guard';
+import { Request, Response } from 'express';
+import {ApiTags, ApiResponse, ApiBody, ApiBearerAuth, ApiOperation, ApiQuery} from '@nestjs/swagger';
 import { Public } from './decorators/public.decorator';
 import {ForgotPasswordDto} from "./dtos/forgot-password.dto";
 import {ResetPasswordDto} from "./dtos/reset-password.dto";
 import {RefreshtokenDto} from "@modules/auth/dtos/refreshtoken.dto";
 import {ChangePasswordDto} from "./dtos/change-password.dto";
+import { ExchangeCodeDto } from './dtos/exchange-code.dto';
+import { GoogleProfilePayload } from './strategies/google.strategy';
+import { FacebookProfilePayload } from './strategies/facebook.strategy';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -74,6 +79,130 @@ export class AuthController {
     })
     async login(@Body() loginDto: LoginDto) {
         return await this.authService.login(loginDto);
+    }
+
+    /**
+     * Start Google OAuth2 (Authorization Code). Redirects to Google consent screen.
+     */
+    @Public()
+    @Get('google')
+    @UseGuards(GoogleAuthGuard)
+    @ApiOperation({
+        summary: 'Start Google OAuth2 login',
+        description:
+            'Redirects the browser to Google. Pass redirect (allowlisted) for the post-login deep link or web URL. Disabled when GOOGLE_AUTH_ENABLED=false (503).',
+    })
+    @ApiQuery({
+        name: 'redirect',
+        required: false,
+        description:
+            'Post-login redirect URL (must match GOOGLE_REDIRECT_ALLOWLIST). Defaults to the first allowlist entry.',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to Google OAuth consent.' })
+    @ApiResponse({ status: 400, description: 'Invalid or missing redirect.' })
+    @ApiResponse({ status: 503, description: 'Google authentication is disabled.' })
+    googleAuth() {
+        // Guard redirects to Google
+    }
+
+    /**
+     * Google OAuth2 callback — issues a one-time exchange code and redirects to the client.
+     */
+    @Public()
+    @Get('google/callback')
+    @UseGuards(GoogleAuthGuard)
+    @ApiOperation({
+        summary: 'Google OAuth2 callback',
+        description:
+            'Processes the Google profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 503, description: 'Google authentication is disabled.' })
+    async googleAuthCallback(@Req() req: Request, @Res() res: Response) {
+        const profile = req.user as GoogleProfilePayload;
+        const state = typeof req.query.state === 'string' ? req.query.state : undefined;
+        const { redirectUrl } = await this.authService.completeGoogleOAuth(
+            profile,
+            state,
+        );
+        return res.redirect(redirectUrl);
+    }
+
+    /**
+     * Start Facebook OAuth2 (Authorization Code). Redirects to Meta consent screen.
+     */
+    @Public()
+    @Get('facebook')
+    @UseGuards(FacebookAuthGuard)
+    @ApiOperation({
+        summary: 'Start Facebook OAuth2 login',
+        description:
+            'Redirects the browser to Facebook. Pass redirect (allowlisted) for the post-login deep link or web URL. Disabled when FACEBOOK_AUTH_ENABLED=false (503).',
+    })
+    @ApiQuery({
+        name: 'redirect',
+        required: false,
+        description:
+            'Post-login redirect URL (must match FACEBOOK_REDIRECT_ALLOWLIST). Defaults to the first allowlist entry.',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to Facebook OAuth consent.' })
+    @ApiResponse({ status: 400, description: 'Invalid or missing redirect.' })
+    @ApiResponse({ status: 503, description: 'Facebook authentication is disabled.' })
+    facebookAuth() {
+        // Guard redirects to Facebook
+    }
+
+    /**
+     * Facebook OAuth2 callback — issues a one-time exchange code and redirects to the client.
+     */
+    @Public()
+    @Get('facebook/callback')
+    @UseGuards(FacebookAuthGuard)
+    @ApiOperation({
+        summary: 'Facebook OAuth2 callback',
+        description:
+            'Processes the Facebook profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 503, description: 'Facebook authentication is disabled.' })
+    async facebookAuthCallback(@Req() req: Request, @Res() res: Response) {
+        const profile = req.user as FacebookProfilePayload;
+        const state = typeof req.query.state === 'string' ? req.query.state : undefined;
+        const { redirectUrl } = await this.authService.completeFacebookOAuth(
+            profile,
+            state,
+        );
+        return res.redirect(redirectUrl);
+    }
+
+    /**
+     * Exchange a one-time OAuth code for JWT tokens.
+     */
+    @Public()
+    @Post('exchange')
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({
+        summary: 'Exchange OAuth code for JWT tokens',
+        description:
+            'Consumes a one-time exchange code (60s TTL) from Google or Facebook OAuth and returns accessToken, refreshToken, and user — same shape as login.',
+    })
+    @ApiBody({ type: ExchangeCodeDto })
+    @ApiResponse({
+        status: 200,
+        description: 'Tokens issued.',
+        schema: {
+            type: 'object',
+            properties: {
+                user: { type: 'object' },
+                accessToken: { type: 'string' },
+                refreshToken: { type: 'string' },
+            },
+        },
+    })
+    @ApiResponse({ status: 401, description: 'Invalid or expired exchange code.' })
+    @ApiResponse({ status: 503, description: 'Social authentication is disabled.' })
+    async exchangeCode(@Body() dto: ExchangeCodeDto) {
+        return this.authService.exchangeOAuthCode(dto);
     }
 
     /**

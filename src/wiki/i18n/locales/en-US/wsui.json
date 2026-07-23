@@ -1,0 +1,55 @@
+{
+  "wsui": {
+    "meta": {
+      "title": "WebSocket Playground - Backend NestJS"
+    },
+    "badge": "Playground",
+    "hero": {
+      "titlePrefix": "WebSocket",
+      "titleHighlight": "Playground",
+      "subtitle": "Connect with a JWT access token, edit the JSON payload, and inspect messages sent and received on this server's Socket.IO gateway."
+    },
+    "session": {
+      "title": "Session",
+      "tokenLabel": "Access token (JWT)",
+      "tokenPlaceholder": "Paste your Bearer access token (without the Bearer prefix)",
+      "connect": "Connect",
+      "disconnect": "Disconnect",
+      "endSession": "End session",
+      "status": {
+        "disconnected": "Disconnected",
+        "connecting": "Connecting…",
+        "connected": "Connected",
+        "error": "Connection error"
+      }
+    },
+    "payload": {
+      "title": "Payload",
+      "hint": "Emitted as Socket.IO event message. The type field routes to the registered handler.",
+      "send": "Send",
+      "invalidJson": "Invalid JSON — fix the payload before sending."
+    },
+    "log": {
+      "title": "Messages",
+      "clear": "Clear log",
+      "empty": "No messages yet.",
+      "sent": "Sent",
+      "received": "Received",
+      "system": "System"
+    },
+    "note": {
+      "title": "Notes",
+      "items": [
+        "The connection uses this site's origin and path /ws — the URL is not shown here.",
+        "The token is kept in memory only until you reload the page or click End session.",
+        "The example type requires Role.SUPER. See the WebSocket documentation for the full contract."
+      ],
+      "docsLink": "Open WebSocket docs"
+    },
+    "defaultPayload": {
+      "type": "example",
+      "message": "hello from playground",
+      "timestamp": ""
+    }
+  }
+}

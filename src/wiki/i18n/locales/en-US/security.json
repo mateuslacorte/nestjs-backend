@@ -35,7 +35,7 @@
           "Unknown API path hits CatchAllController",
           "registerInvalidRouteAttempt(ip, path, userAgent)",
           "If attempts ≥ MAX_ATTEMPTS → blocked = true → 403",
-          "Otherwise → 404 JSON { message: \"Rota não encontrada\" }"
+          "Otherwise → 404 JSON { message: \"Route not found\" }"
         ]
       },
       "exclusions": {
@@ -93,6 +93,9 @@
       "unblockResponse": {
         "codeHeader": { "label": "HTTP Response", "context": "200 OK" }
       }
+    },
+    "samples": {
+      "unblockMessage": "IP 203.0.113.10 unblocked successfully"
     },
     "alert": {
       "title": "Docker / production note",

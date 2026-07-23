@@ -55,6 +55,27 @@ export class UsersService {
     return this.postgresRepo.findByEmail(email, includePassword);
   }
 
+  @NoCache()
+  async findByUsername(username: string): Promise<IUser | null> {
+    return this.postgresRepo.findByUsername(username);
+  }
+
+  /**
+   * Find a user by Google subject ID
+   */
+  @NoCache()
+  async findByGoogleId(googleId: string, includePassword = false): Promise<IUser | null> {
+    return this.postgresRepo.findByGoogleId(googleId, includePassword);
+  }
+
+  /**
+   * Find a user by Facebook subject ID
+   */
+  @NoCache()
+  async findByFacebookId(facebookId: string, includePassword = false): Promise<IUser | null> {
+    return this.postgresRepo.findByFacebookId(facebookId, includePassword);
+  }
+
   /**
    * Find a user by email verification token
    * @param token - User's email verification token

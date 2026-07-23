@@ -1,5 +1,6 @@
 import { ApolloServerOptionsWithSchema } from '@apollo/server';
 import { GqlModuleOptions } from '@nestjs/graphql';
+import { CorsOptions } from 'cors';
 
 /**
  * Nest GraphQL options for the in-house Apollo Server 5 + Express driver.
@@ -14,4 +15,6 @@ export type ApolloExpressDriverConfig = GqlModuleOptions &
         playground?: boolean;
         autoTransformHttpErrors?: boolean;
         preserveHttpStatusForExecutionErrors?: boolean;
+        /** Same allowlist as HTTP/WebSocket (self + CORS_ORIGINS). */
+        cors?: CorsOptions;
     };

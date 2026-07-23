@@ -7,6 +7,9 @@ Allow: /architecture
 Allow: /backend
 Allow: /backend/install
 Allow: /auth
+Allow: /auth/social
+Allow: /auth/social/google
+Allow: /auth/social/facebook
 Allow: /users
 Allow: /email
 Allow: /whatsapp
@@ -21,5 +24,6 @@ Disallow: /swagger-json
 Disallow: /graphql
 Disallow: /health
 Disallow: /ws
+Disallow: /wsui
 Disallow: /404
 Disallow: /500

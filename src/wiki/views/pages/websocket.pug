@@ -37,10 +37,10 @@ block content
           span= t('websocket.architecture.codeHeader.context')
         .code-content
           pre.
-            // app.module.ts
+            #{t('websocket.samples.appModuleFile')}
             imports: [
               WebsocketModule.forRoot(),
-              WebsocketExampleModule, // feature modules
+              WebsocketExampleModule, #{t('websocket.samples.featureModules')}
               // MyFeatureModule,
             ]
 
@@ -60,7 +60,7 @@ block content
             const socket = io('http://localhost:3000', {
               path: '/ws',
               auth: { token: accessToken },
-              // or: extraHeaders: { Authorization: `Bearer ${accessToken}` }
+              #{t('websocket.samples.orExtraHeaders')}
             });
 
   section.mb-12
@@ -253,7 +253,7 @@ block content
               isTyping!: boolean;
             }
 
-      h3(class="font-semibold text-gray-900 mb-3") Handlers
+      h3(class="font-semibold text-gray-900 mb-3")= t('websocket.multiDto.handlersHeading')
       .code-block.mb-6
         .code-header
           span= t('websocket.multiDto.handlerCodeHeader.language')
@@ -265,7 +265,7 @@ block content
               canHandle(type: string) { return type === 'chat_send'; }
               async handle(client: Socket, payload: MessagePayload) {
                 const dto = Object.assign(new ChatSendDto(), payload);
-                // validate(dto) ...
+                #{t('websocket.samples.validateDto')}
                 this.chatService.send(client, dto);
               }
             }
@@ -275,12 +275,12 @@ block content
               canHandle(type: string) { return type === 'chat_typing'; }
               async handle(client: Socket, payload: MessagePayload) {
                 const dto = Object.assign(new ChatTypingDto(), payload);
-                // validate(dto) ...
+                #{t('websocket.samples.validateDto')}
                 this.chatService.typing(client, dto);
               }
             }
 
-      h3(class="font-semibold text-gray-900 mb-3") Module
+      h3(class="font-semibold text-gray-900 mb-3")= t('websocket.multiDto.moduleHeading')
       .code-block
         .code-header
           span= t('websocket.multiDto.moduleCodeHeader.language')
@@ -311,8 +311,8 @@ block content
           li • #{item}
       .code-block.mb-4
         .code-header
-          span GraphQL / Socket
-          span emit example
+          span= t('websocket.example.emitCodeHeader.label')
+          span= t('websocket.example.emitCodeHeader.context')
         .code-content
           pre.
             socket.emit('message', {
@@ -361,16 +361,23 @@ block content
             });
 
             socket.on('messageResponse', (data) => {
-              // { received: true }
+              #{t('websocket.samples.messageResponseShape')}
             });
 
             socket.on('websocket_example_ack', (data) => {
-              // { received: true, timestamp: '...' }
+              #{t('websocket.samples.ackShape')}
             });
 
             socket.on('error', (err) => {
-              // { message: 'Validation failed', errors: [...] }
+              #{t('websocket.samples.errorShape')}
             });
+      .alert.alert-info.mt-6
+        div
+          p.text-sm.text-blue-800= t('websocket.client.playgroundCta')
+          a(href=wikiPath('/wsui') class="inline-flex items-center gap-1 mt-2 text-sm font-medium text-indigo-600 hover:text-indigo-800")
+            | /wsui
+            svg(class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+              path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7")
 
   section.mb-12
     h2(class="text-2xl font-bold text-gray-900 mb-6")= t('websocket.alerts.title')

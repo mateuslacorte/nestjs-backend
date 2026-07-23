@@ -1,0 +1,249 @@
+extends ../layouts/main
+
+block content
+  .mb-12
+    .inline-flex.items-center.gap-2.px-3.py-1.bg-indigo-50.rounded-full.text-indigo-700.text-sm.font-medium.mb-4
+      svg(class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z")
+      span= t('authSocialFacebook.badge')
+    h1(class="text-4xl font-bold text-gray-900 mb-4")
+      | #{t('authSocialFacebook.hero.titlePrefix')} 
+      span.gradient-text= t('authSocialFacebook.hero.titleHighlight')
+    p(class="text-xl text-gray-600 max-w-3xl")
+      = t('authSocialFacebook.hero.subtitle')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialFacebook.overview.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")
+        != t('authSocialFacebook.overview.description')
+      ul.space-y-2.text-gray-700
+        each item in tm('authSocialFacebook.overview.items')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialFacebook.console.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")
+        != t('authSocialFacebook.console.description')
+      ol(class="list-decimal list-inside space-y-2 text-gray-700")
+        each item in tm('authSocialFacebook.console.steps')
+          li= item
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialFacebook.env.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")
+        != t('authSocialFacebook.env.description')
+      .code-block
+        .code-header
+          span= t('authSocialFacebook.env.codeHeader.label')
+          span= t('authSocialFacebook.env.codeHeader.context')
+        .code-content
+          pre.
+            FACEBOOK_AUTH_ENABLED=true
+            FACEBOOK_APP_ID=your-facebook-app-id
+            FACEBOOK_APP_SECRET=your-facebook-app-secret
+            FACEBOOK_CALLBACK_URL=http://localhost:3000/api/v1/auth/facebook/callback
+            FACEBOOK_REDIRECT_ALLOWLIST=myapp://success,http://localhost:5173/auth/callback
+            FACEBOOK_OAUTH_DEFAULT_ROLES=
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialFacebook.roles.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700")
+        != t('authSocialFacebook.roles.description')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialFacebook.flow.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      ol(class="list-decimal list-inside space-y-2 text-gray-700")
+        each item in tm('authSocialFacebook.flow.items')
+          li= item
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialFacebook.api.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8.space-y-8
+      div
+        h3(class="font-semibold text-gray-900 mb-2")= t('authSocialFacebook.api.start.title')
+        p(class="text-gray-700 mb-3")
+          != t('authSocialFacebook.api.start.description')
+        .code-block.mb-2
+          .code-header
+            span= t('authSocialFacebook.api.start.codeHeader.label')
+            span= t('authSocialFacebook.api.start.codeHeader.context')
+          .code-content
+            pre.
+              GET #{apiBasePath}/auth/facebook?redirect=http%3A%2F%2Flocalhost%3A5173%2Fauth%2Fcallback
+        p(class="text-sm text-gray-500")= t('authSocialFacebook.api.start.errors')
+
+      div
+        h3(class="font-semibold text-gray-900 mb-2")= t('authSocialFacebook.api.callback.title')
+        p(class="text-gray-700 mb-3")
+          != t('authSocialFacebook.api.callback.description')
+        .code-block
+          .code-header
+            span= t('authSocialFacebook.api.callback.codeHeader.label')
+            span= t('authSocialFacebook.api.callback.codeHeader.context')
+          .code-content
+            pre.
+              GET #{apiBasePath}/auth/facebook/callback?code=FACEBOOK_AUTH_CODE&state=...
+              → 302 Location: http://localhost:5173/auth/callback?code=EXCHANGE_CODE
+
+      div
+        h3(class="font-semibold text-gray-900 mb-2")= t('authSocialFacebook.api.exchange.title')
+        p(class="text-gray-700 mb-3")
+          != t('authSocialFacebook.api.exchange.description')
+        .code-block.mb-4
+          .code-header
+            span= t('authSocialFacebook.api.exchange.requestHeader.label')
+            span= t('authSocialFacebook.api.exchange.requestHeader.context')
+          .code-content
+            pre.
+              POST #{apiBasePath}/auth/exchange
+              Content-Type: application/json
+
+              {
+                "code": "EXCHANGE_CODE"
+              }
+        .code-block.mb-2
+          .code-header
+            span= t('authSocialFacebook.api.exchange.responseHeader.label')
+            span= t('authSocialFacebook.api.exchange.responseHeader.context')
+          .code-content
+            pre.
+              {
+                "user": {
+                  "id": "...",
+                  "email": "user@facebook.com",
+                  "firstName": "Jane",
+                  "lastName": "Doe",
+                  "roles": [],
+                  "facebookId": "1082...",
+                  "isActive": true
+                },
+                "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+                "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
+              }
+        p(class="text-sm text-gray-500")= t('authSocialFacebook.api.exchange.errors')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialFacebook.web.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")
+        != t('authSocialFacebook.web.description')
+      .code-block.mb-6
+        .code-header
+          span= t('authSocialFacebook.web.startHeader.label')
+          span= t('authSocialFacebook.web.startHeader.context')
+        .code-content
+          pre.
+            const API = 'http://localhost:3000/api/v1';
+            const redirect = encodeURIComponent(
+              'http://localhost:5173/auth/callback'
+            );
+
+            #{t('authSocialFacebook.samples.fullPageRedirect')}
+            window.location.href = `${API}/auth/facebook?redirect=${redirect}`;
+      .code-block.mb-6
+        .code-header
+          span= t('authSocialFacebook.web.callbackHeader.label')
+          span= t('authSocialFacebook.web.callbackHeader.context')
+        .code-content
+          pre.
+            #{t('authSocialFacebook.samples.spaCallback')}
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get('code');
+            if (!code) throw new Error('Missing exchange code');
+
+            const res = await fetch('http://localhost:3000/api/v1/auth/exchange', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ code }),
+            });
+            if (!res.ok) throw new Error(await res.text());
+
+            const { user, accessToken, refreshToken } = await res.json();
+            #{t('authSocialFacebook.samples.persistTokens')}
+            sessionStorage.setItem('accessToken', accessToken);
+            console.log('signed in', user.email);
+      ul.space-y-2.text-gray-700
+        each item in tm('authSocialFacebook.web.notes')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialFacebook.mobile.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")
+        != t('authSocialFacebook.mobile.description')
+      .code-block.mb-6
+        .code-header
+          span= t('authSocialFacebook.mobile.openHeader.label')
+          span= t('authSocialFacebook.mobile.openHeader.context')
+        .code-content
+          pre.
+            import * as Linking from 'expo-linking';
+            import * as WebBrowser from 'expo-web-browser';
+
+            const API = 'https://api.example.com/api/v1';
+            const redirect = encodeURIComponent('myapp://success');
+
+            async function signInWithFacebook() {
+              const url = `${API}/auth/facebook?redirect=${redirect}`;
+              await WebBrowser.openAuthSessionAsync(url, 'myapp://success');
+            }
+      .code-block.mb-6
+        .code-header
+          span= t('authSocialFacebook.mobile.handleHeader.label')
+          span= t('authSocialFacebook.mobile.handleHeader.context')
+        .code-content
+          pre.
+            import * as Linking from 'expo-linking';
+
+            async function exchangeFromUrl(url) {
+              const { queryParams } = Linking.parse(url);
+              const code = queryParams?.code;
+              if (!code) return;
+
+              const res = await fetch(`${API}/auth/exchange`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code }),
+              });
+              const data = await res.json();
+              #{t('authSocialFacebook.samples.tokenFields')}
+              return data;
+            }
+
+            Linking.addEventListener('url', ({ url }) => {
+              exchangeFromUrl(url);
+            });
+      ul.space-y-2.text-gray-700
+        each item in tm('authSocialFacebook.mobile.notes')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialFacebook.security.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      ul.space-y-2.text-gray-700
+        each item in tm('authSocialFacebook.security.items')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialFacebook.userModel.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")= t('authSocialFacebook.userModel.description')
+      ul.space-y-2.text-gray-700
+        each item in tm('authSocialFacebook.userModel.items')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialFacebook.related.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      ul.space-y-3
+        li
+          a(href=wikiPath('/auth/social') class="text-indigo-600 hover:underline font-medium")= t('authSocialFacebook.related.social')
+        li
+          a(href=wikiPath('/auth/social/google') class="text-indigo-600 hover:underline font-medium")= t('authSocialFacebook.related.google')
+        li
+          a(href=wikiPath('/auth') class="text-indigo-600 hover:underline font-medium")= t('authSocialFacebook.related.auth')

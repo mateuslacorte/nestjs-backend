@@ -1,0 +1,280 @@
+extends ../layouts/main
+
+block content
+  .mb-12
+    .inline-flex.items-center.gap-2.px-3.py-1.bg-indigo-50.rounded-full.text-indigo-700.text-sm.font-medium.mb-4
+      svg(class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z")
+      span= t('authSocialGoogle.badge')
+    h1(class="text-4xl font-bold text-gray-900 mb-4")
+      | #{t('authSocialGoogle.hero.titlePrefix')} 
+      span.gradient-text= t('authSocialGoogle.hero.titleHighlight')
+    p(class="text-xl text-gray-600 max-w-3xl")
+      = t('authSocialGoogle.hero.subtitle')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialGoogle.overview.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")
+        != t('authSocialGoogle.overview.description')
+      ul.space-y-2.text-gray-700
+        each item in tm('authSocialGoogle.overview.items')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialGoogle.console.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8.space-y-8
+      p(class="text-gray-700")
+        != t('authSocialGoogle.console.description')
+
+      div
+        h3(class="font-semibold text-gray-900 mb-3")= t('authSocialGoogle.console.credentials.title')
+        ol(class="list-decimal list-inside space-y-2 text-gray-700")
+          each item in tm('authSocialGoogle.console.credentials.steps')
+            li= item
+
+      div
+        h3(class="font-semibold text-gray-900 mb-3")= t('authSocialGoogle.console.urls.title')
+        p(class="text-gray-700 mb-4")
+          != t('authSocialGoogle.console.urls.description')
+        .space-y-4
+          div
+            h4(class="font-medium text-gray-900 mb-1")= t('authSocialGoogle.console.urls.jsOrigins.title')
+            p(class="text-gray-700 mb-2")= t('authSocialGoogle.console.urls.jsOrigins.description')
+            .code-block
+              .code-header
+                span= t('authSocialGoogle.console.urls.jsOrigins.codeHeader.label')
+                span= t('authSocialGoogle.console.urls.jsOrigins.codeHeader.context')
+              .code-content
+                pre.
+                  http://localhost:3000
+          div
+            h4(class="font-medium text-gray-900 mb-1")= t('authSocialGoogle.console.urls.redirects.title')
+            p(class="text-gray-700 mb-2")
+              != t('authSocialGoogle.console.urls.redirects.description')
+            .code-block
+              .code-header
+                span= t('authSocialGoogle.console.urls.redirects.codeHeader.label')
+                span= t('authSocialGoogle.console.urls.redirects.codeHeader.context')
+              .code-content
+                pre.
+                  http://localhost:3000/api/v1/auth/google/callback
+        p(class="text-gray-700 mt-4")= t('authSocialGoogle.console.urls.note')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialGoogle.env.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")
+        != t('authSocialGoogle.env.description')
+      .code-block
+        .code-header
+          span= t('authSocialGoogle.env.codeHeader.label')
+          span= t('authSocialGoogle.env.codeHeader.context')
+        .code-content
+          pre.
+            GOOGLE_AUTH_ENABLED=true
+            GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+            GOOGLE_CLIENT_SECRET=your-client-secret
+            GOOGLE_CALLBACK_URL=http://localhost:3000/api/v1/auth/google/callback
+            GOOGLE_REDIRECT_ALLOWLIST=myapp://success,http://localhost:5173/auth/callback
+            GOOGLE_OAUTH_DEFAULT_ROLES=
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialGoogle.roles.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700")
+        != t('authSocialGoogle.roles.description')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialGoogle.flow.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      ol(class="list-decimal list-inside space-y-2 text-gray-700")
+        each item in tm('authSocialGoogle.flow.items')
+          li= item
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialGoogle.api.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8.space-y-8
+      div
+        h3(class="font-semibold text-gray-900 mb-2")= t('authSocialGoogle.api.start.title')
+        p(class="text-gray-700 mb-3")
+          != t('authSocialGoogle.api.start.description')
+        .code-block.mb-2
+          .code-header
+            span= t('authSocialGoogle.api.start.codeHeader.label')
+            span= t('authSocialGoogle.api.start.codeHeader.context')
+          .code-content
+            pre.
+              GET #{apiBasePath}/auth/google?redirect=http%3A%2F%2Flocalhost%3A5173%2Fauth%2Fcallback
+        p(class="text-sm text-gray-500")= t('authSocialGoogle.api.start.errors')
+
+      div
+        h3(class="font-semibold text-gray-900 mb-2")= t('authSocialGoogle.api.callback.title')
+        p(class="text-gray-700 mb-3")
+          != t('authSocialGoogle.api.callback.description')
+        .code-block
+          .code-header
+            span= t('authSocialGoogle.api.callback.codeHeader.label')
+            span= t('authSocialGoogle.api.callback.codeHeader.context')
+          .code-content
+            pre.
+              GET #{apiBasePath}/auth/google/callback?code=GOOGLE_AUTH_CODE&state=...
+              → 302 Location: http://localhost:5173/auth/callback?code=EXCHANGE_CODE
+
+      div
+        h3(class="font-semibold text-gray-900 mb-2")= t('authSocialGoogle.api.exchange.title')
+        p(class="text-gray-700 mb-3")
+          != t('authSocialGoogle.api.exchange.description')
+        .code-block.mb-4
+          .code-header
+            span= t('authSocialGoogle.api.exchange.requestHeader.label')
+            span= t('authSocialGoogle.api.exchange.requestHeader.context')
+          .code-content
+            pre.
+              POST #{apiBasePath}/auth/exchange
+              Content-Type: application/json
+
+              {
+                "code": "EXCHANGE_CODE"
+              }
+        .code-block.mb-2
+          .code-header
+            span= t('authSocialGoogle.api.exchange.responseHeader.label')
+            span= t('authSocialGoogle.api.exchange.responseHeader.context')
+          .code-content
+            pre.
+              {
+                "user": {
+                  "id": "...",
+                  "email": "user@gmail.com",
+                  "firstName": "Jane",
+                  "lastName": "Doe",
+                  "roles": [],
+                  "googleId": "1082...",
+                  "isActive": true
+                },
+                "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+                "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
+              }
+        p(class="text-sm text-gray-500")= t('authSocialGoogle.api.exchange.errors')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialGoogle.web.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")
+        != t('authSocialGoogle.web.description')
+      .code-block.mb-6
+        .code-header
+          span= t('authSocialGoogle.web.startHeader.label')
+          span= t('authSocialGoogle.web.startHeader.context')
+        .code-content
+          pre.
+            const API = 'http://localhost:3000/api/v1';
+            const redirect = encodeURIComponent(
+              'http://localhost:5173/auth/callback'
+            );
+
+            #{t('authSocialGoogle.samples.fullPageRedirect')}
+            window.location.href = `${API}/auth/google?redirect=${redirect}`;
+      .code-block.mb-6
+        .code-header
+          span= t('authSocialGoogle.web.callbackHeader.label')
+          span= t('authSocialGoogle.web.callbackHeader.context')
+        .code-content
+          pre.
+            #{t('authSocialGoogle.samples.spaCallback')}
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get('code');
+            if (!code) throw new Error('Missing exchange code');
+
+            const res = await fetch('http://localhost:3000/api/v1/auth/exchange', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ code }),
+            });
+            if (!res.ok) throw new Error(await res.text());
+
+            const { user, accessToken, refreshToken } = await res.json();
+            #{t('authSocialGoogle.samples.persistTokens')}
+            sessionStorage.setItem('accessToken', accessToken);
+            console.log('signed in', user.email);
+      ul.space-y-2.text-gray-700
+        each item in tm('authSocialGoogle.web.notes')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialGoogle.mobile.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")
+        != t('authSocialGoogle.mobile.description')
+      .code-block.mb-6
+        .code-header
+          span= t('authSocialGoogle.mobile.openHeader.label')
+          span= t('authSocialGoogle.mobile.openHeader.context')
+        .code-content
+          pre.
+            import * as Linking from 'expo-linking';
+            import * as WebBrowser from 'expo-web-browser';
+
+            const API = 'https://api.example.com/api/v1';
+            const redirect = encodeURIComponent('myapp://success');
+
+            async function signInWithGoogle() {
+              const url = `${API}/auth/google?redirect=${redirect}`;
+              await WebBrowser.openAuthSessionAsync(url, 'myapp://success');
+            }
+      .code-block.mb-6
+        .code-header
+          span= t('authSocialGoogle.mobile.handleHeader.label')
+          span= t('authSocialGoogle.mobile.handleHeader.context')
+        .code-content
+          pre.
+            import * as Linking from 'expo-linking';
+
+            async function exchangeFromUrl(url) {
+              const { queryParams } = Linking.parse(url);
+              const code = queryParams?.code;
+              if (!code) return;
+
+              const res = await fetch(`${API}/auth/exchange`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code }),
+              });
+              const data = await res.json();
+              #{t('authSocialGoogle.samples.tokenFields')}
+              return data;
+            }
+
+            Linking.addEventListener('url', ({ url }) => {
+              exchangeFromUrl(url);
+            });
+      ul.space-y-2.text-gray-700
+        each item in tm('authSocialGoogle.mobile.notes')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialGoogle.security.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      ul.space-y-2.text-gray-700
+        each item in tm('authSocialGoogle.security.items')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialGoogle.userModel.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")= t('authSocialGoogle.userModel.description')
+      ul.space-y-2.text-gray-700
+        each item in tm('authSocialGoogle.userModel.items')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialGoogle.related.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      ul.space-y-3
+        li
+          a(href=wikiPath('/auth/social') class="text-indigo-600 hover:underline font-medium")= t('authSocialGoogle.related.social')
+        li
+          a(href=wikiPath('/auth/social/facebook') class="text-indigo-600 hover:underline font-medium")= t('authSocialGoogle.related.facebook')
+        li
+          a(href=wikiPath('/auth') class="text-indigo-600 hover:underline font-medium")= t('authSocialGoogle.related.auth')

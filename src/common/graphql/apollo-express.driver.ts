@@ -11,6 +11,7 @@ import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHt
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import { expressMiddleware } from '@as-integrations/express5';
 import { GraphQLFormattedError, GraphQLSchema } from 'graphql';
+import cors from 'cors';
 import { ApolloExpressDriverConfig } from './apollo-express-driver.config';
 
 const APOLLO_HTTP_EXCEPTION_CODES: Record<number, string> = {
@@ -47,6 +48,7 @@ const NEST_ONLY_OPTION_KEYS = new Set([
     'useGlobalPrefix',
     'context',
     'plugins',
+    'cors',
 ]);
 
 @Injectable()
@@ -89,6 +91,9 @@ export class ApolloExpressDriver extends AbstractGraphQLDriver<ApolloExpressDriv
         await server.start();
 
         const app = httpAdapter.getInstance();
+        if (options.cors) {
+            app.use(path, cors(options.cors));
+        }
         app.use(
             path,
             expressMiddleware(server, {

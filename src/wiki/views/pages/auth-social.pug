@@ -1,0 +1,89 @@
+extends ../layouts/main
+
+block content
+  .mb-12
+    .inline-flex.items-center.gap-2.px-3.py-1.bg-indigo-50.rounded-full.text-indigo-700.text-sm.font-medium.mb-4
+      svg(class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z")
+      span= t('authSocial.badge')
+    h1(class="text-4xl font-bold text-gray-900 mb-4")
+      | #{t('authSocial.hero.titlePrefix')} 
+      span.gradient-text= t('authSocial.hero.titleHighlight')
+    p(class="text-xl text-gray-600 max-w-3xl")
+      = t('authSocial.hero.subtitle')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocial.howItWorks.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")
+        != t('authSocial.howItWorks.description')
+      ol(class="list-decimal list-inside space-y-2 text-gray-700 mb-6")
+        each item in tm('authSocial.howItWorks.steps')
+          li= item
+      .code-block
+        .code-header
+          span= t('authSocial.howItWorks.codeHeader.label')
+          span= t('authSocial.howItWorks.codeHeader.context')
+        .code-content
+          pre.
+            #{t('authSocial.samples.step1')}
+            GET /api/v1/auth/{provider}?redirect=<allowlisted_url>
+
+            #{t('authSocial.samples.step2')}
+            #{t('authSocial.samples.step2Redirect')}
+
+            #{t('authSocial.samples.step3')}
+            POST /api/v1/auth/exchange
+            { "code": "<one_time_exchange_code>" }
+
+            #{t('authSocial.samples.response')}
+            { "user": { ... }, "accessToken": "...", "refreshToken": "..." }
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocial.enable.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")
+        != t('authSocial.enable.description')
+      ul.space-y-2.text-gray-700
+        each item in tm('authSocial.enable.items')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocial.clients.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")
+        != t('authSocial.clients.description')
+      ul.space-y-2.text-gray-700
+        each item in tm('authSocial.clients.items')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocial.providers.title')
+    p(class="text-gray-600 mb-6")= t('authSocial.providers.description')
+    .grid.gap-4(class="md:grid-cols-2")
+      a(href=wikiPath('/auth/social/google') class="block p-6 rounded-xl border border-indigo-200 bg-indigo-50 hover:border-indigo-400 transition-colors")
+        h3(class="font-semibold text-indigo-900 mb-2")= t('authSocial.providers.google.title')
+        p(class="text-sm text-indigo-800 mb-3")= t('authSocial.providers.google.description')
+        span(class="text-sm font-medium text-indigo-600")= t('authSocial.providers.google.cta')
+      a(href=wikiPath('/auth/social/facebook') class="block p-6 rounded-xl border border-indigo-200 bg-indigo-50 hover:border-indigo-400 transition-colors")
+        h3(class="font-semibold text-indigo-900 mb-2")= t('authSocial.providers.facebook.title')
+        p(class="text-sm text-indigo-800 mb-3")= t('authSocial.providers.facebook.description')
+        span(class="text-sm font-medium text-indigo-600")= t('authSocial.providers.facebook.cta')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocial.security.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      ul.space-y-2.text-gray-700
+        each item in tm('authSocial.security.items')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocial.related.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      ul.space-y-3.text-gray-700
+        li
+          a(href=wikiPath('/auth') class="text-indigo-600 hover:underline font-medium")= t('authSocial.related.authJwt')
+        li
+          a(href=wikiPath('/auth/social/google') class="text-indigo-600 hover:underline font-medium")= t('authSocial.related.google')
+        li
+          a(href=wikiPath('/auth/social/facebook') class="text-indigo-600 hover:underline font-medium")= t('authSocial.related.facebook')

@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, UnauthorizedException, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, BadRequestException, UnauthorizedException, NotFoundException, ConflictException, ServiceUnavailableException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
@@ -12,6 +12,11 @@ import { randomBytes } from 'crypto';
 import {ResetPasswordDto} from "@modules/auth/dtos/reset-password.dto";
 import {EmailService} from "@modules/email/email.service";
 import { withJitter } from './utils/jwt-expiration.util';
+import { OauthExchangeService } from './services/oauth-exchange.service';
+import { GoogleProfilePayload } from './strategies/google.strategy';
+import { FacebookProfilePayload } from './strategies/facebook.strategy';
+import { Role } from './enums/role.enum';
+import { ExchangeCodeDto } from './dtos/exchange-code.dto';
 
 @Injectable()
 export class AuthService {
@@ -20,6 +25,7 @@ export class AuthService {
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
         private readonly emailService: EmailService,
+        private readonly oauthExchangeService: OauthExchangeService,
     ) {}
 
     /**
@@ -168,7 +174,7 @@ export class AuthService {
      */
     async validateUser(email: string, password: string): Promise<IUser | null> {
         const user = await this.usersService.findByEmail(email, true);
-        if (!user) {
+        if (!user || !user.password) {
             return null;
         }
 
@@ -331,6 +337,11 @@ export class AuthService {
         }
 
         // Verify current password
+        if (!user.password) {
+            throw new BadRequestException(
+                'This account uses social login and has no local password',
+            );
+        }
         const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
         if (!isCurrentPasswordValid) {
             throw new BadRequestException('Current password is incorrect');
@@ -344,6 +355,231 @@ export class AuthService {
         });
 
         return { message: 'Password changed successfully' };
+    }
+
+    /**
+     * Issue JWT access/refresh tokens for a user (used by OAuth exchange and login).
+     */
+    async issueTokensForUser(user: IUser): Promise<{ accessToken: string; refreshToken: string }> {
+        return this.generateTokens(user);
+    }
+
+    /**
+     * After Google OAuth callback: upsert user, create exchange code, build redirect URL.
+     */
+    async completeGoogleOAuth(
+        profile: GoogleProfilePayload,
+        state?: string,
+    ): Promise<{ redirectUrl: string }> {
+        this.assertGoogleAuthEnabled();
+
+        const redirectBase = this.parseAndValidateRedirectFromState(
+            state,
+            'googleOAuth.redirectAllowlist',
+        );
+        const user = await this.findOrCreateGoogleUser(profile);
+        const code = await this.oauthExchangeService.createExchangeCode(user.id!);
+        const separator = redirectBase.includes('?') ? '&' : '?';
+
+        return {
+            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+        };
+    }
+
+    /**
+     * After Facebook OAuth callback: upsert user, create exchange code, build redirect URL.
+     */
+    async completeFacebookOAuth(
+        profile: FacebookProfilePayload,
+        state?: string,
+    ): Promise<{ redirectUrl: string }> {
+        this.assertFacebookAuthEnabled();
+
+        const redirectBase = this.parseAndValidateRedirectFromState(
+            state,
+            'facebookOAuth.redirectAllowlist',
+        );
+        const user = await this.findOrCreateFacebookUser(profile);
+        const code = await this.oauthExchangeService.createExchangeCode(user.id!);
+        const separator = redirectBase.includes('?') ? '&' : '?';
+
+        return {
+            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+        };
+    }
+
+    /**
+     * Exchange a one-time OAuth code for JWT tokens (Google or Facebook).
+     */
+    async exchangeOAuthCode(dto: ExchangeCodeDto): Promise<{
+        user: Partial<IUser>;
+        accessToken: string;
+        refreshToken: string;
+    }> {
+        this.assertAnySocialAuthEnabled();
+
+        const userId = await this.oauthExchangeService.consumeExchangeCode(dto.code);
+        const user = await this.usersService.findById(userId);
+        if (!user) {
+            throw new UnauthorizedException('Invalid or expired exchange code');
+        }
+        if (!user.isActive) {
+            throw new UnauthorizedException('User account is not active');
+        }
+
+        const tokens = await this.generateTokens(user);
+        return {
+            user: this.sanitizeUser(user),
+            ...tokens,
+        };
+    }
+
+    /** @deprecated Use exchangeOAuthCode — kept as alias for callers */
+    async exchangeGoogleCode(dto: ExchangeCodeDto) {
+        return this.exchangeOAuthCode(dto);
+    }
+
+    private assertGoogleAuthEnabled(): void {
+        const enabled = this.configService.get<boolean>('googleOAuth.enabled');
+        if (!enabled) {
+            throw new ServiceUnavailableException('Google authentication is disabled');
+        }
+    }
+
+    private assertFacebookAuthEnabled(): void {
+        const enabled = this.configService.get<boolean>('facebookOAuth.enabled');
+        if (!enabled) {
+            throw new ServiceUnavailableException('Facebook authentication is disabled');
+        }
+    }
+
+    private assertAnySocialAuthEnabled(): void {
+        const google = this.configService.get<boolean>('googleOAuth.enabled');
+        const facebook = this.configService.get<boolean>('facebookOAuth.enabled');
+        if (!google && !facebook) {
+            throw new ServiceUnavailableException('Social authentication is disabled');
+        }
+    }
+
+    private parseAndValidateRedirectFromState(
+        state: string | undefined,
+        allowlistConfigKey: string,
+    ): string {
+        if (!state) {
+            throw new BadRequestException('Missing OAuth state');
+        }
+
+        let redirect: string;
+        try {
+            const parsed = JSON.parse(
+                Buffer.from(state, 'base64url').toString('utf8'),
+            ) as { r?: string };
+            if (!parsed.r || typeof parsed.r !== 'string') {
+                throw new Error('invalid');
+            }
+            redirect = parsed.r;
+        } catch {
+            throw new BadRequestException('Invalid OAuth state');
+        }
+
+        const allowlist =
+            this.configService.get<string[]>(allowlistConfigKey) || [];
+        const allowed = allowlist.some(
+            (prefix) => redirect === prefix || redirect.startsWith(prefix),
+        );
+        if (!allowed) {
+            throw new BadRequestException('Redirect URL is not allowed');
+        }
+
+        return redirect;
+    }
+
+    private async findOrCreateGoogleUser(
+        profile: GoogleProfilePayload,
+    ): Promise<IUser> {
+        const byGoogle = await this.usersService.findByGoogleId(profile.googleId);
+        if (byGoogle) {
+            if (!byGoogle.isActive) {
+                return this.usersService.update(byGoogle.id!, { isActive: true });
+            }
+            return byGoogle;
+        }
+
+        const byEmail = await this.usersService.findByEmail(profile.email);
+        if (byEmail) {
+            return this.usersService.update(byEmail.id!, {
+                googleId: profile.googleId,
+                isActive: true,
+            });
+        }
+
+        const defaultRoles =
+            this.configService.get<Role[]>('googleOAuth.defaultRoles') ?? [];
+        const username = await this.buildUniqueUsername(profile.email);
+
+        return this.usersService.create({
+            email: profile.email,
+            firstName: profile.firstName,
+            lastName: profile.lastName || '-',
+            username,
+            googleId: profile.googleId,
+            isActive: true,
+            roles: [...defaultRoles],
+        });
+    }
+
+    private async findOrCreateFacebookUser(
+        profile: FacebookProfilePayload,
+    ): Promise<IUser> {
+        const byFacebook = await this.usersService.findByFacebookId(profile.facebookId);
+        if (byFacebook) {
+            if (!byFacebook.isActive) {
+                return this.usersService.update(byFacebook.id!, { isActive: true });
+            }
+            return byFacebook;
+        }
+
+        const byEmail = await this.usersService.findByEmail(profile.email);
+        if (byEmail) {
+            return this.usersService.update(byEmail.id!, {
+                facebookId: profile.facebookId,
+                isActive: true,
+            });
+        }
+
+        const defaultRoles =
+            this.configService.get<Role[]>('facebookOAuth.defaultRoles') ?? [];
+        const username = await this.buildUniqueUsername(profile.email);
+
+        return this.usersService.create({
+            email: profile.email,
+            firstName: profile.firstName,
+            lastName: profile.lastName || '-',
+            username,
+            facebookId: profile.facebookId,
+            isActive: true,
+            roles: [...defaultRoles],
+        });
+    }
+
+    private async buildUniqueUsername(email: string): Promise<string> {
+        const local =
+            email
+                .split('@')[0]
+                .toLowerCase()
+                .replace(/[^a-z0-9._-]/g, '')
+                .slice(0, 24) || 'user';
+
+        for (let attempt = 0; attempt < 20; attempt++) {
+            const candidate =
+                attempt === 0 ? local : `${local}${randomBytes(2).toString('hex')}`;
+            const taken = await this.usersService.findByUsername(candidate);
+            if (!taken) {
+                return candidate;
+            }
+        }
+
+        return `${local}${Date.now().toString(36)}`;
     }
 
     /**

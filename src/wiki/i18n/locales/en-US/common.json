@@ -12,6 +12,9 @@
     "backendInstall": "Installation and Configuration",
     "authGroup": "Authentication",
     "authJwt": "Auth & JWT",
+    "authSocial": "Social Authentication",
+    "authSocialGoogle": "Google",
+    "authSocialFacebook": "Facebook",
     "modulesGroup": "Modules",
     "users": "Users",
     "email": "Email",
@@ -19,6 +22,7 @@
     "security": "Security",
     "websocketGroup": "WebSocket",
     "websocketOverview": "Overview",
+    "websocketPlayground": "Playground",
     "swagger": "Swagger UI"
   },
   "lang": {

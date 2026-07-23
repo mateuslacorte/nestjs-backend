@@ -6,6 +6,8 @@ import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { GraylogLoggerService } from '@common/graylog/graylog-logger.service';
 import { WikiRenderService } from './wiki/wiki-render.service';
+import { CorsIoAdapter } from '@common/websocket/cors-io.adapter';
+import { createCorsOriginDelegate } from '@config/cors-origins.util';
 import * as crypto from 'crypto';
 import { join } from 'path';
 import { existsSync } from 'fs';
@@ -30,9 +32,13 @@ async function bootstrap() {
             { path: 'backend', method: RequestMethod.GET },
             { path: 'backend/install', method: RequestMethod.GET },
             { path: 'auth', method: RequestMethod.GET },
+            { path: 'auth/social', method: RequestMethod.GET },
+            { path: 'auth/social/google', method: RequestMethod.GET },
+            { path: 'auth/social/facebook', method: RequestMethod.GET },
             { path: 'email', method: RequestMethod.GET },
             { path: 'whatsapp', method: RequestMethod.GET },
             { path: 'websocket', method: RequestMethod.GET },
+            { path: 'wsui', method: RequestMethod.GET },
             { path: 'security', method: RequestMethod.GET },
             { path: '404', method: RequestMethod.GET },
             { path: '500', method: RequestMethod.GET },
@@ -138,7 +144,18 @@ Rotas REST: \`/${apiPrefix}/...\`
         );
     });
 
-    app.enableCors();
+    const corsOrigins = configService.get<string[]>('cors.origins') || [];
+    const corsCredentials =
+        configService.get<boolean>('cors.credentials') !== false;
+
+    app.enableCors({
+        origin: createCorsOriginDelegate(corsOrigins),
+        credentials: corsCredentials,
+    });
+
+    app.useWebSocketAdapter(
+        new CorsIoAdapter(app, corsOrigins, corsCredentials),
+    );
 
     const port = configService.get<number>('app.port') || 3000;
     const host = configService.get<string>('app.host') || 'localhost';
@@ -149,6 +166,9 @@ Rotas REST: \`/${apiPrefix}/...\`
 
     await app.listen(port);
     graylogLogger.log(`Application is running on: ${protocol}://${host}:${port}`);
+    graylogLogger.log(
+        `CORS origins: ${corsOrigins.length ? corsOrigins.join(', ') : '(self only — none resolved)'}`,
+    );
 }
 
 bootstrap();
