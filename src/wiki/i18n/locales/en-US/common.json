@@ -14,6 +14,10 @@
     "authJwt": "Auth & JWT",
     "modulesGroup": "Modules",
     "users": "Users",
+    "email": "Email",
+    "whatsapp": "WhatsApp",
+    "websocketGroup": "WebSocket",
+    "websocketOverview": "Overview",
     "swagger": "Swagger UI"
   },
   "lang": {

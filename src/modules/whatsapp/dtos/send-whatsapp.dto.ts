@@ -3,8 +3,9 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class SendWhatsappDto {
     @ApiProperty({
-        description: 'Phone number of the recipient (with country code)',
-        example: '5511999999999'
+        description:
+            'Recipient phone number (digits only). Sent as-is to Evolution API — include DDI yourself if required (e.g. 5511999999999).',
+        example: '5511999999999',
     })
     @IsString({ message: 'Phone number must be a string' })
     @IsNotEmpty({ message: 'Phone number is required' })
@@ -13,7 +14,7 @@ export class SendWhatsappDto {
 
     @ApiProperty({
         description: 'Message content',
-        example: 'Hello, this is a test message'
+        example: 'Hello, this is a test message',
     })
     @IsString({ message: 'Message must be a string' })
     @IsNotEmpty({ message: 'Message is required' })

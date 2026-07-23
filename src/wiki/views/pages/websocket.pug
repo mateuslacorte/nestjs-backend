@@ -1,0 +1,394 @@
+extends ../layouts/main
+
+block content
+  .mb-12
+    .inline-flex.items-center.gap-2.px-3.py-1.bg-indigo-50.rounded-full.text-indigo-700.text-sm.font-medium.mb-4
+      svg(class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0")
+      span= t('websocket.badge')
+    h1(class="text-4xl font-bold text-gray-900 mb-4")
+      | #{t('websocket.hero.titlePrefix')} 
+      span.gradient-text= t('websocket.hero.titleHighlight')
+    p(class="text-xl text-gray-600 max-w-3xl")
+      = t('websocket.hero.subtitle')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('websocket.overview.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")
+        != t('websocket.overview.description')
+      h3(class="font-semibold text-gray-900 mb-3")= t('websocket.overview.points.title')
+      ul.space-y-2.text-gray-700
+        each item in tm('websocket.overview.points.items')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('websocket.architecture.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")= t('websocket.architecture.description')
+      h3(class="font-semibold text-gray-900 mb-4")= t('websocket.architecture.steps.title')
+      .space-y-3.mb-6
+        each item, index in tm('websocket.architecture.steps.items')
+          .flow-step(data-step=String(index + 1))
+            p.text-gray-700= item
+      .code-block
+        .code-header
+          span= t('websocket.architecture.codeHeader.language')
+          span= t('websocket.architecture.codeHeader.context')
+        .code-content
+          pre.
+            // app.module.ts
+            imports: [
+              WebsocketModule.forRoot(),
+              WebsocketExampleModule, // feature modules
+              // MyFeatureModule,
+            ]
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('websocket.auth.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")= t('websocket.auth.description')
+      ul.space-y-2.text-gray-700.mb-6
+        each item in tm('websocket.auth.items')
+          li • #{item}
+      .code-block
+        .code-header
+          span= t('websocket.auth.codeHeader.label')
+          span= t('websocket.auth.codeHeader.context')
+        .code-content
+          pre.
+            const socket = io('http://localhost:3000', {
+              path: '/ws',
+              auth: { token: accessToken },
+              // or: extraHeaders: { Authorization: `Bearer ${accessToken}` }
+            });
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('websocket.contract.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")= t('websocket.contract.description')
+      h3(class="font-semibold text-gray-900 mb-3")= t('websocket.contract.interfaces.title')
+      .code-block.mb-6
+        .code-header
+          span= t('websocket.contract.interfaces.codeHeader.language')
+          span= t('websocket.contract.interfaces.codeHeader.context')
+        .code-content
+          pre.
+            export interface MessagePayload {
+              type: string;
+              [key: string]: any;
+            }
+
+            export interface MessageHandler {
+              canHandle(type: string): boolean;
+              handle(client: Socket, payload: MessagePayload): void;
+            }
+      h3(class="font-semibold text-gray-900 mb-3")= t('websocket.contract.events.title')
+      ul.space-y-2.text-gray-700
+        each item in tm('websocket.contract.events.items')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('websocket.serviceApi.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")= t('websocket.serviceApi.description')
+      ul.space-y-2.text-gray-700
+        each item in tm('websocket.serviceApi.items')
+          li • 
+            code.text-sm.text-indigo-700= item
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('websocket.createModule.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")= t('websocket.createModule.intro')
+
+      h3(class="font-semibold text-gray-900 mb-3")= t('websocket.createModule.tree.title')
+      .code-block.mb-8
+        .code-header
+          span= t('websocket.createModule.tree.codeHeader.label')
+          span= t('websocket.createModule.tree.codeHeader.context')
+        .code-content
+          pre.
+            src/modules/my-feature/
+            ├── my-feature.module.ts
+            ├── my-feature.service.ts
+            ├── dtos/
+            │   └── my-feature.dto.ts
+            └── handlers/
+                └── my-feature.handler.ts
+
+      .flow-step.mb-6(data-step="1")
+        h3(class="font-semibold text-gray-900 mb-2")= t('websocket.createModule.steps.dto.title')
+        p.text-gray-600.mb-3= t('websocket.createModule.steps.dto.description')
+        .code-block
+          .code-header
+            span= t('websocket.createModule.codeHeader.language')
+            span DTO
+          .code-content
+            pre.
+              export class MyFeatureDto {
+                @IsString()
+                @IsNotEmpty()
+                type: string = 'my_feature';  #{t('websocket.samples.typeStable')}
+
+                @IsString()
+                @IsNotEmpty()
+                message!: string;
+              }
+
+      .flow-step.mb-6(data-step="2")
+        h3(class="font-semibold text-gray-900 mb-2")= t('websocket.createModule.steps.handler.title')
+        p.text-gray-600.mb-3= t('websocket.createModule.steps.handler.description')
+        .code-block
+          .code-header
+            span= t('websocket.createModule.codeHeader.language')
+            span Handler
+          .code-content
+            pre.
+              @Injectable()
+              export class MyFeatureHandler implements MessageHandler {
+                constructor(private readonly myFeatureService: MyFeatureService) {}
+
+                canHandle(type: string): boolean {
+                  return type === 'my_feature';
+                }
+
+                async handle(client: Socket, payload: MessagePayload) {
+                  const dto = Object.assign(new MyFeatureDto(), payload);
+                  const errors = await validate(dto);
+                  if (errors.length > 0) {
+                    client.emit('error', { message: 'Validation failed', errors });
+                    return;
+                  }
+                  this.myFeatureService.processMessage(client, dto);
+                }
+              }
+
+      .flow-step.mb-6(data-step="3")
+        h3(class="font-semibold text-gray-900 mb-2")= t('websocket.createModule.steps.service.title')
+        p.text-gray-600.mb-3= t('websocket.createModule.steps.service.description')
+        .code-block
+          .code-header
+            span= t('websocket.createModule.codeHeader.language')
+            span Service
+          .code-content
+            pre.
+              @Injectable()
+              export class MyFeatureService {
+                processMessage(client: Socket, dto: MyFeatureDto): void {
+                  client.emit('my_feature_ack', {
+                    received: true,
+                    timestamp: new Date().toISOString(),
+                  });
+                }
+              }
+
+      .flow-step.mb-6(data-step="4")
+        h3(class="font-semibold text-gray-900 mb-2")= t('websocket.createModule.steps.module.title')
+        p.text-gray-600.mb-3= t('websocket.createModule.steps.module.description')
+        .code-block
+          .code-header
+            span= t('websocket.createModule.codeHeader.language')
+            span Module
+          .code-content
+            pre.
+              @Module({
+                imports: [WebsocketModule],
+                providers: [
+                  MyFeatureService,
+                  MyFeatureHandler,
+                  {
+                    provide: 'REGISTER_HANDLERS',
+                    useFactory: (ws: WebsocketService, handler: MyFeatureHandler) => {
+                      #{t('websocket.samples.registerComment')}
+                      ws.registerMessageHandler(handler);
+                      return true;
+                    },
+                    inject: [WebsocketService, MyFeatureHandler],
+                  },
+                ],
+                exports: [MyFeatureService],
+              })
+              export class MyFeatureModule {}
+
+      .flow-step(data-step="5")
+        h3(class="font-semibold text-gray-900 mb-2")= t('websocket.createModule.steps.app.title')
+        p.text-gray-600= t('websocket.createModule.steps.app.description')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('websocket.multiDto.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")= t('websocket.multiDto.description')
+      h3(class="font-semibold text-gray-900 mb-3")= t('websocket.multiDto.pattern.title')
+      ul.space-y-2.text-gray-700.mb-6
+        each item in tm('websocket.multiDto.pattern.items')
+          li • #{item}
+
+      h3(class="font-semibold text-gray-900 mb-3") DTOs
+      .code-block.mb-6
+        .code-header
+          span= t('websocket.multiDto.dtoCodeHeader.language')
+          span= t('websocket.multiDto.dtoCodeHeader.context')
+        .code-content
+          pre.
+            export class ChatSendDto {
+              @IsString() @IsNotEmpty()
+              type: string = 'chat_send';
+
+              @IsString() @IsNotEmpty()
+              roomId!: string;
+
+              @IsString() @IsNotEmpty()
+              text!: string;
+            }
+
+            export class ChatTypingDto {
+              @IsString() @IsNotEmpty()
+              type: string = 'chat_typing';
+
+              @IsString() @IsNotEmpty()
+              roomId!: string;
+
+              @IsBoolean()
+              isTyping!: boolean;
+            }
+
+      h3(class="font-semibold text-gray-900 mb-3") Handlers
+      .code-block.mb-6
+        .code-header
+          span= t('websocket.multiDto.handlerCodeHeader.language')
+          span= t('websocket.multiDto.handlerCodeHeader.context')
+        .code-content
+          pre.
+            @Injectable()
+            export class ChatSendHandler implements MessageHandler {
+              canHandle(type: string) { return type === 'chat_send'; }
+              async handle(client: Socket, payload: MessagePayload) {
+                const dto = Object.assign(new ChatSendDto(), payload);
+                // validate(dto) ...
+                this.chatService.send(client, dto);
+              }
+            }
+
+            @Injectable()
+            export class ChatTypingHandler implements MessageHandler {
+              canHandle(type: string) { return type === 'chat_typing'; }
+              async handle(client: Socket, payload: MessagePayload) {
+                const dto = Object.assign(new ChatTypingDto(), payload);
+                // validate(dto) ...
+                this.chatService.typing(client, dto);
+              }
+            }
+
+      h3(class="font-semibold text-gray-900 mb-3") Module
+      .code-block
+        .code-header
+          span= t('websocket.multiDto.moduleCodeHeader.language')
+          span= t('websocket.multiDto.moduleCodeHeader.context')
+        .code-content
+          pre.
+            {
+              provide: 'REGISTER_HANDLERS',
+              useFactory: (
+                ws: WebsocketService,
+                sendHandler: ChatSendHandler,
+                typingHandler: ChatTypingHandler,
+              ) => {
+                #{t('websocket.samples.multiRegister')}
+                ws.registerMessageHandler(sendHandler);
+                ws.registerMessageHandler(typingHandler);
+                return true;
+              },
+              inject: [WebsocketService, ChatSendHandler, ChatTypingHandler],
+            }
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('websocket.example.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")= t('websocket.example.description')
+      ul.space-y-2.text-gray-700.mb-6
+        each item in tm('websocket.example.items')
+          li • #{item}
+      .code-block.mb-4
+        .code-header
+          span GraphQL / Socket
+          span emit example
+        .code-content
+          pre.
+            socket.emit('message', {
+              type: 'example',
+              message: 'hello from client',
+            });
+      .code-block
+        .code-header
+          span= t('websocket.example.codeHeader.label')
+          span= t('websocket.example.codeHeader.context')
+        .code-content
+          pre.
+            GET #{apiBasePath}/websocket-example/online
+            Authorization: Bearer <access_token>
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('websocket.validation.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")= t('websocket.validation.description')
+      ul.space-y-2.text-gray-700
+        each item in tm('websocket.validation.items')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('websocket.client.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")= t('websocket.client.description')
+      .code-block
+        .code-header
+          span= t('websocket.client.codeHeader.label')
+          span= t('websocket.client.codeHeader.context')
+        .code-content
+          pre.
+            import { io } from 'socket.io-client';
+
+            const socket = io('http://localhost:3000', {
+              path: '/ws',
+              auth: { token: accessToken },
+            });
+
+            socket.on('connect', () => {
+              socket.emit('message', {
+                type: 'example',
+                message: 'hello',
+              });
+            });
+
+            socket.on('messageResponse', (data) => {
+              // { received: true }
+            });
+
+            socket.on('websocket_example_ack', (data) => {
+              // { received: true, timestamp: '...' }
+            });
+
+            socket.on('error', (err) => {
+              // { message: 'Validation failed', errors: [...] }
+            });
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('websocket.alerts.title')
+    .alert.alert-info.mb-4
+      svg(class="w-5 h-5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z")
+      div
+        p.font-medium.text-blue-900= t('websocket.alerts.jwt.title')
+        p.text-sm.text-blue-800= t('websocket.alerts.jwt.description')
+    .alert.alert-info.mb-4
+      svg(class="w-5 h-5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z")
+      div
+        p.font-medium.text-blue-900= t('websocket.alerts.async.title')
+        p.text-sm.text-blue-800= t('websocket.alerts.async.description')
+    .alert.alert-warning
+      svg(class="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z")
+      div
+        p.font-medium.text-amber-900= t('websocket.alerts.memory.title')
+        p.text-sm.text-amber-800= t('websocket.alerts.memory.description')

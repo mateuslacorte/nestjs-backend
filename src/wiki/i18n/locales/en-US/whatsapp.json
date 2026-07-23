@@ -1,0 +1,106 @@
+{
+  "whatsapp": {
+    "meta": {
+      "title": "WhatsApp - Backend NestJS"
+    },
+    "badge": "WhatsApp module",
+    "hero": {
+      "titlePrefix": "WhatsApp",
+      "titleHighlight": "messages",
+      "subtitle": "Evolution API integration for sending text via authenticated REST."
+    },
+    "overview": {
+      "title": "Overview",
+      "description": "The <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">whatsapp</code> module sends text messages through the Evolution API (<code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">/message/sendText/{instance}</code>). It is a thin wrapper: one REST endpoint and a service using <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">fetch</code>.",
+      "points": {
+        "title": "Key points",
+        "items": [
+          "Config via EVOLUTION_API_URL / INSTANCE / KEY",
+          "POST /whatsapp/send with JWT",
+          "Phone number sent as provided",
+          "Network/API failures propagate as HTTP 502",
+          "WhatsappService exported"
+        ]
+      }
+    },
+    "structure": {
+      "title": "Structure",
+      "codeHeader": { "label": "Filesystem", "context": "src/modules/whatsapp" }
+    },
+    "config": {
+      "title": "Evolution API configuration",
+      "description": "whatsapp namespace in src/config/whatsapp.config.ts:",
+      "codeHeader": { "label": "Environment", "context": ".env" },
+      "notes": {
+        "title": "Instance",
+        "description": "The instance must exist in Evolution API. The key is sent as the apiKey request header. Missing URL/instance yields HTTP 503."
+      }
+    },
+    "service": {
+      "title": "WhatsappService",
+      "description": "Main method:",
+      "items": [
+        "sendMessage(to, message) — POST ${url}/message/sendText/${instance}",
+        "Body: { number: to, text: message }",
+        "Headers: Content-Type application/json, apiKey"
+      ],
+      "behavior": {
+        "title": "Error behavior",
+        "description": "Network or non-OK Evolution HTTP → BadGatewayException (502). Missing config → ServiceUnavailableException (503). The controller does not return 200 in those cases."
+      }
+    },
+    "rest": {
+      "title": "REST API",
+      "intro": "JWT required. No @Roles — any authenticated user.",
+      "send": {
+        "title": "Send message",
+        "description": "to: digits only, in the format Evolution expects (include DDI yourself if needed, e.g. 5511999999999). message: text.",
+        "codeHeader": { "label": "HTTP Request", "context": "POST" }
+      },
+      "response": {
+        "title": "Success response",
+        "codeHeader": { "label": "HTTP Response", "context": "200" }
+      },
+      "errors": {
+        "title": "Error responses",
+        "items": [
+          "401 — missing or invalid JWT",
+          "502 — Evolution unreachable or returned an error",
+          "503 — EVOLUTION_API_URL / INSTANCE not configured"
+        ]
+      },
+      "dto": {
+        "title": "DTO",
+        "items": [
+          "to — digit-only string (@Matches /^\\d+$/); sent as-is",
+          "message — non-empty string"
+        ]
+      }
+    },
+    "usage": {
+      "title": "Use in another module",
+      "description": "Import WhatsappModule and inject WhatsappService.",
+      "codeHeader": { "language": "TypeScript", "context": "Feature module" }
+    },
+    "alerts": {
+      "title": "Notes",
+      "number": {
+        "title": "Number format",
+        "description": "The service does not add a DDI. Send to already in the format Evolution API expects (e.g. 5511999999999 for Brazil)."
+      },
+      "errors": {
+        "title": "API errors",
+        "description": "Network/HTTP failures from Evolution surface as 502. Success only after response.ok."
+      }
+    },
+    "cta": {
+      "title": "Explore",
+      "swagger": "Open Swagger (Whatsapp tag)"
+    },
+    "samples": {
+      "bearer": "Authorization: Bearer <access_token>",
+      "sendMessageComment": "// WhatsappService.sendMessage(to, message)",
+      "numberAsIsComment": "// number is sent as-is"
+    }
+  }
+}

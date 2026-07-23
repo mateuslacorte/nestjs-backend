@@ -7,7 +7,8 @@
     "assets": [
       { "include": "wiki/views/**/*", "watchAssets": true },
       { "include": "wiki/public/**/*", "watchAssets": true },
-      { "include": "wiki/i18n/locales/**/*", "watchAssets": true }
+      { "include": "wiki/i18n/locales/**/*", "watchAssets": true },
+      { "include": "modules/email/templates/**/*", "watchAssets": true }
     ]
   }
 }

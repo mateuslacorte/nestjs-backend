@@ -1,0 +1,10 @@
+extends layout
+
+block content
+  h3(style='margin:0 0 16px;font-size:20px;color:#0f172a;') E-mail Confirmation
+  p(style='margin:0 0 12px;') Thank you for registering!
+  p(style='margin:0 0 16px;') Please enter the code below to confirm your email address:
+  p(style='margin:0 0 16px;')
+    strong(style='font-size:24px;letter-spacing:4px;color:#2563eb;')= token
+  p(style='margin:0 0 16px;') This code expires in 24 hours.
+  p(style='margin:20px 0 0;color:#666;font-size:12px;') If you did not register on this platform, please ignore this email.

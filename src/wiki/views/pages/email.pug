@@ -1,0 +1,198 @@
+extends ../layouts/main
+
+block content
+  .mb-12
+    .inline-flex.items-center.gap-2.px-3.py-1.bg-indigo-50.rounded-full.text-indigo-700.text-sm.font-medium.mb-4
+      svg(class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z")
+      span= t('email.badge')
+    h1(class="text-4xl font-bold text-gray-900 mb-4")
+      | #{t('email.hero.titlePrefix')} 
+      span.gradient-text= t('email.hero.titleHighlight')
+    p(class="text-xl text-gray-600 max-w-3xl")
+      = t('email.hero.subtitle')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('email.overview.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")
+        != t('email.overview.description')
+      h3(class="font-semibold text-gray-900 mb-3")= t('email.overview.points.title')
+      ul.space-y-2.text-gray-700
+        each item in tm('email.overview.points.items')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('email.structure.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      .code-block
+        .code-header
+          span= t('email.structure.codeHeader.label')
+          span= t('email.structure.codeHeader.context')
+        .code-content
+          pre.
+            src/modules/email/
+            ├── email.module.ts
+            ├── email.controller.ts
+            ├── email.service.ts
+            ├── dtos/
+            │   └── send-email.dto.ts
+            └── templates/
+                ├── layout.pug
+                └── *.pug
+
+            src/config/smtp.config.ts
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('email.templates.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")= t('email.templates.description')
+      ul.space-y-2.text-gray-700.mb-6
+        each item in tm('email.templates.items')
+          li • #{item}
+      .code-block
+        .code-header
+          span= t('email.templates.codeHeader.label')
+          span= t('email.templates.codeHeader.context')
+        .code-content
+          pre.
+            await this.emailService.sendMail({
+              to: 'user@example.com',
+              subject: 'Welcome',
+              template: 'welcome',
+              context: { name: 'Alice' },
+            });
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('email.config.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")= t('email.config.description')
+      .code-block.mb-6
+        .code-header
+          span= t('email.config.codeHeader.label')
+          span= t('email.config.codeHeader.context')
+        .code-content
+          pre.
+            SMTP_HOST=localhost
+            SMTP_PORT=587
+            SMTP_SECURE=false
+            SMTP_REQUIRE_TLS=false
+            SMTP_USER=
+            SMTP_PASSWORD=
+            SMTP_FROM=noreply@example.com
+      h3(class="font-semibold text-gray-900 mb-2")= t('email.config.docker.title')
+      p.text-gray-700= t('email.config.docker.description')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('email.service.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")= t('email.service.description')
+      ul.space-y-2.text-gray-700
+        each item in tm('email.service.items')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('email.rest.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")= t('email.rest.intro')
+      h3(class="font-semibold text-gray-900 mb-2")= t('email.rest.send.title')
+      p.text-gray-600.mb-3= t('email.rest.send.description')
+      .code-block.mb-6
+        .code-header
+          span= t('email.rest.send.codeHeader.label')
+          span= t('email.rest.send.codeHeader.context')
+        .code-content
+          pre.
+            POST #{apiBasePath}/email/send
+            Content-Type: application/json
+            #{t('email.samples.bearer')}
+
+            {
+              "to": "recipient@example.com",
+              "subject": "Test Email",
+              "html": "<h1>Hello</h1><p>This is a test email</p>"
+            }
+      h3(class="font-semibold text-gray-900 mb-2")= t('email.rest.response.title')
+      .code-block
+        .code-header
+          span= t('email.rest.response.codeHeader.label')
+          span= t('email.rest.response.codeHeader.context')
+        .code-content
+          pre.
+            {
+              "message": "Email sent successfully"
+            }
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('email.authIntegration.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")= t('email.authIntegration.description')
+      ul.space-y-2.text-gray-700.mb-6
+        each item in tm('email.authIntegration.items')
+          li • #{item}
+      a(href=wikiPath('/auth') class="text-indigo-600 hover:underline font-medium")= t('email.authIntegration.link')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('email.usage.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")= t('email.usage.description')
+      .code-block
+        .code-header
+          span= t('email.usage.codeHeader.language')
+          span= t('email.usage.codeHeader.context')
+        .code-content
+          pre.
+            @Module({
+              imports: [EmailModule],
+              providers: [MyService],
+            })
+            export class MyModule {}
+
+            @Injectable()
+            export class MyService {
+              constructor(private readonly emailService: EmailService) {}
+
+              #{t('email.samples.inlineHtmlComment')}
+              async notifyInline(email: string) {
+                await this.emailService.sendMail({
+                  to: email,
+                  subject: 'Hello',
+                  html: '<p>Hi</p>',
+                });
+              }
+
+              #{t('email.samples.pugTemplateComment')}
+              async notifyTemplate(email: string, name: string) {
+                await this.emailService.sendMail({
+                  to: email,
+                  subject: 'Welcome',
+                  template: 'welcome',
+                  context: { name },
+                });
+              }
+            }
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('email.alerts.title')
+    .alert.alert-info.mb-4
+      svg(class="w-5 h-5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z")
+      div
+        p.font-medium.text-blue-900= t('email.alerts.mailhog.title')
+        p.text-sm.text-blue-800= t('email.alerts.mailhog.description')
+    .alert.alert-warning
+      svg(class="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z")
+      div
+        p.font-medium.text-amber-900= t('email.alerts.prod.title')
+        p.text-sm.text-amber-800= t('email.alerts.prod.description')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('email.cta.title')
+    .flex.flex-wrap.gap-3
+      a(href=swaggerPath class="inline-flex items-center gap-2 bg-indigo-600 text-white px-5 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors")
+        = t('email.cta.swagger')
+      a(href=wikiPath('/auth') class="inline-flex items-center gap-2 border border-gray-300 text-gray-700 px-5 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors")
+        = t('email.cta.auth')
+      a(href="http://localhost:8025" target="_blank" class="inline-flex items-center gap-2 border border-gray-300 text-gray-700 px-5 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors")
+        = t('email.cta.mailhog')

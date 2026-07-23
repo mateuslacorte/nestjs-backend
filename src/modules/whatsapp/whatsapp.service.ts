@@ -1,8 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadGatewayException,
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class WhatsappService {
+  private readonly logger = new Logger(WhatsappService.name);
   private readonly apiKey: string | undefined;
   private readonly apiUrl: string | undefined;
   private readonly instance: string | undefined;
@@ -14,34 +20,54 @@ export class WhatsappService {
   }
 
   /**
-   * Send a WhatsApp message
-   * @param to - The phone number to send the message to
-   * @param message
-   * @returns The WhatsApp message sent successfully
+   * Send a WhatsApp message via Evolution API.
+   * The number is sent as provided (no DDI/country-code prefix is added).
+   * @param to - Phone number digits as expected by Evolution API
+   * @param message - Text message body
    */
   async sendMessage(to: string, message: string): Promise<void> {
-    const requestOptions = {
-      method: "POST",
+    if (!this.apiUrl || !this.instance) {
+      throw new ServiceUnavailableException(
+        'WhatsApp Evolution API is not configured',
+      );
+    }
+
+    const requestOptions: RequestInit = {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        "apiKey": this.apiKey || '',
+        'Content-Type': 'application/json',
+        apiKey: this.apiKey || '',
       },
       body: JSON.stringify({
-        number: "55"+to,
+        number: to,
         text: message,
       }),
     };
 
+    let response: Response;
     try {
-      const response = await fetch(
-          `${this.apiUrl}/message/sendText/${this.instance}`,
-          requestOptions
+      response = await fetch(
+        `${this.apiUrl}/message/sendText/${this.instance}`,
+        requestOptions,
       );
-
-      const result = await response.text();
-      console.log(result);
     } catch (error) {
-      console.error("Error sending message:", error);
+      this.logger.error('Failed to reach Evolution API', error);
+      throw new BadGatewayException(
+        'Failed to reach WhatsApp Evolution API',
+      );
     }
+
+    const result = await response.text();
+
+    if (!response.ok) {
+      this.logger.error(
+        `Evolution API returned ${response.status}: ${result}`,
+      );
+      throw new BadGatewayException(
+        `WhatsApp Evolution API error (${response.status})`,
+      );
+    }
+
+    this.logger.debug(`WhatsApp message sent to ${to}: ${result}`);
   }
 }

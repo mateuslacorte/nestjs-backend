@@ -19,19 +19,21 @@ export class WhatsappController {
     @Post('send')
     @ApiResponse({ status: 200, description: 'WhatsApp message sent successfully.' })
     @ApiResponse({ status: 401, description: 'Unauthorized.' })
+    @ApiResponse({ status: 502, description: 'Evolution API unreachable or returned an error.' })
+    @ApiResponse({ status: 503, description: 'WhatsApp Evolution API is not configured.' })
     @ApiBody({
         type: SendWhatsappDto,
         description: 'WhatsApp message data',
         examples: {
-            whatsappExample: {
-                summary: 'Send WhatsApp Message Example',
-                description: 'A sample WhatsApp message sending request',
+            sendExample: {
+                summary: 'Send WhatsApp message',
+                description: 'Number is sent as-is (no DDI prefix added by the service)',
                 value: {
-                    to: '11999999999',
-                    message: 'Hello, this is a test message'
-                }
-            }
-        }
+                    to: '5511999999999',
+                    message: 'Hello, this is a test message',
+                },
+            },
+        },
     })
 
     /**

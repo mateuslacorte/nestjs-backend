@@ -1,0 +1,175 @@
+{
+  "websocket": {
+    "meta": {
+      "title": "WebSocket - Backend NestJS"
+    },
+    "badge": "WebSocket",
+    "hero": {
+      "titlePrefix": "Tempo real com",
+      "titleHighlight": "WebSocket",
+      "subtitle": "Gateway Socket.IO compartilhado, autenticação JWT no handshake e handlers por tipo de mensagem."
+    },
+    "overview": {
+      "title": "Visão geral",
+      "description": "A infraestrutura em <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">src/common/websocket</code> expõe um único gateway Socket.IO. Features (chat, notificações, etc.) não criam outro gateway: registram <strong>MessageHandlers</strong> que respondem a <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">payload.type</code>. O módulo de referência é <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">websocket-example</code>.",
+      "points": {
+        "title": "Ideias-chave",
+        "items": [
+          "Um gateway compartilhado em path /ws",
+          "Evento Socket.IO único: message",
+          "Roteamento por payload.type → MessageHandler",
+          "JWT obrigatório no handshake de conexão"
+        ]
+      }
+    },
+    "architecture": {
+      "title": "Arquitetura e fluxo",
+      "description": "O AppModule importa WebsocketModule.forRoot(), que sobe WebsocketGateway e WebsocketService. Cada feature module importa WebsocketModule e registra seus handlers.",
+      "steps": {
+        "title": "Caminho de uma mensagem",
+        "items": [
+          "Cliente conecta em /ws com JWT",
+          "Cliente emite message com { type, ... }",
+          "WebsocketGateway @SubscribeMessage('message')",
+          "WebsocketService.processMessage encontra o handler",
+          "Handler valida DTO e chama o service da feature",
+          "Gateway responde messageResponse { received: true }"
+        ]
+      },
+      "codeHeader": { "language": "TypeScript", "context": "AppModule" }
+    },
+    "auth": {
+      "title": "Autenticação JWT",
+      "description": "No afterInit do AbstractWebsocketGateway, um middleware Socket.IO exige token. Sem token válido a conexão é rejeitada.",
+      "items": [
+        "Token em socket.handshake.auth.token",
+        "Ou header Authorization: Bearer <token>",
+        "Verificação com jwt.secret (ConfigService)",
+        "decoded.id → socket.userId",
+        "Auth por mensagem: não há — só no connect"
+      ],
+      "codeHeader": { "label": "Client", "context": "handshake" }
+    },
+    "contract": {
+      "title": "Contrato de mensagem",
+      "description": "Todo tráfego de feature passa pelo evento message. O campo type seleciona o handler (first-match).",
+      "interfaces": {
+        "title": "Interfaces",
+        "codeHeader": { "language": "TypeScript", "context": "message-handler.interface.ts" }
+      },
+      "events": {
+        "title": "Eventos",
+        "items": [
+          "message (client → server) — payload com type",
+          "messageResponse (server → client) — ack do gateway",
+          "error — validação falhou (padrão do example)",
+          "Eventos de feature — definidos por você (ex.: websocket_example_ack)"
+        ]
+      }
+    },
+    "serviceApi": {
+      "title": "API do WebsocketService",
+      "description": "O service concreto estende AbstractWebsocketService e é o ponto de registro/broadcast.",
+      "items": [
+        "registerMessageHandler(handler) — registra um handler",
+        "addClient / removeClient / getClient / getAllClients",
+        "sendToClient(clientId, event, data)",
+        "broadcast(event, data, except?)",
+        "processMessage(client, payload) — first handler com canHandle(type)"
+      ]
+    },
+    "createModule": {
+      "title": "Criar um módulo WebSocket",
+      "intro": "Siga estes passos para uma feature completa. Não é necessário criar um novo @WebSocketGateway.",
+      "tree": {
+        "title": "Estrutura de pastas",
+        "codeHeader": { "label": "Filesystem", "context": "src/modules/my-feature" }
+      },
+      "steps": {
+        "dto": {
+          "title": "1. DTO",
+          "description": "Inclua type estável e valide com class-validator."
+        },
+        "handler": {
+          "title": "2. Handler",
+          "description": "Implemente MessageHandler: canHandle + validate + service."
+        },
+        "service": {
+          "title": "3. Service",
+          "description": "Lógica de negócio; use client.emit ou WebsocketService.sendToClient / broadcast."
+        },
+        "module": {
+          "title": "4. Module + registro",
+          "description": "Importe WebsocketModule e registre o handler com a factory REGISTER_HANDLERS."
+        },
+        "app": {
+          "title": "5. AppModule",
+          "description": "Garanta WebsocketModule.forRoot() e importe seu feature module."
+        }
+      },
+      "codeHeader": { "language": "TypeScript", "context": "Module" }
+    },
+    "multiDto": {
+      "title": "Múltiplos DTOs no mesmo módulo",
+      "description": "Padrão recomendado: um DTO e um Handler por type. Registre todos na mesma factory. O example só tem um DTO; o padrão abaixo é o esperado para features reais.",
+      "pattern": {
+        "title": "Padrão",
+        "items": [
+          "CreateXDto com type: 'x_create'",
+          "UpdateXDto com type: 'x_update'",
+          "CreateXHandler.canHandle === 'x_create'",
+          "UpdateXHandler.canHandle === 'x_update'",
+          "REGISTER_HANDLERS chama registerMessageHandler para cada um"
+        ]
+      },
+      "dtoCodeHeader": { "language": "TypeScript", "context": "DTOs" },
+      "handlerCodeHeader": { "language": "TypeScript", "context": "Handlers" },
+      "moduleCodeHeader": { "language": "TypeScript", "context": "Module" }
+    },
+    "example": {
+      "title": "Módulo websocket-example",
+      "description": "Demo mínima: um DTO type example, um handler, ack in-memory e endpoint REST de clientes online.",
+      "items": [
+        "type: 'example' + campo message obrigatório",
+        "Emite websocket_example_ack após processar",
+        "Emite error se a validação falhar",
+        "GET /websocket-example/online — clientes ativos nos últimos 5s (JWT)"
+      ],
+      "codeHeader": { "label": "HTTP", "context": "REST" }
+    },
+    "validation": {
+      "title": "Validação",
+      "description": "A validação de domínio fica no handler com class-validator. PayloadValidationPipe (exige type) existe em common/websocket/pipes, mas não está aplicado no gateway hoje.",
+      "items": [
+        "Handler: Object.assign(new Dto(), payload) + validate()",
+        "Falha → client.emit('error', { message, errors })",
+        "Pipe opcional no gateway se quiser checar type cedo"
+      ]
+    },
+    "client": {
+      "title": "Cliente Socket.IO",
+      "description": "Conecte com path /ws e JWT. Em seguida emita message e escute os eventos da feature.",
+      "codeHeader": { "label": "JavaScript", "context": "socket.io-client" }
+    },
+    "alerts": {
+      "title": "Atenção",
+      "jwt": {
+        "title": "JWT obrigatório",
+        "description": "Sem token válido no handshake a conexão não sobe. Obtenha o access token via Auth."
+      },
+      "async": {
+        "title": "Handlers async",
+        "description": "processMessage não await o handle(). Erros async não rejeitam a Promise do gateway — trate erros dentro do handler."
+      },
+      "memory": {
+        "title": "Estado in-memory",
+        "description": "O mapa de acks do example é por processo. Em múltiplas instâncias use store compartilhado (Redis, etc.)."
+      }
+    },
+    "samples": {
+      "registerComment": "// registra o handler no bootstrap do módulo",
+      "multiRegister": "// vários handlers no mesmo módulo",
+      "typeStable": "// type estável — chave do roteamento"
+    }
+  }
+}

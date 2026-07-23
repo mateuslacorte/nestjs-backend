@@ -23,7 +23,10 @@ type WikiPage =
     | 'backend'
     | 'backend-install'
     | 'auth'
-    | 'users';
+    | 'users'
+    | 'email'
+    | 'whatsapp'
+    | 'websocket';
 
 @ApiExcludeController()
 @NoLog()
@@ -105,6 +108,47 @@ export class WikiController {
         @Query('lang') lang?: string,
     ) {
         return this.renderPage(req, res, lang, 'pages/users', 'users', 'users');
+    }
+
+    @Get('email')
+    getEmail(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.renderPage(req, res, lang, 'pages/email', 'email', 'email');
+    }
+
+    @Get('whatsapp')
+    getWhatsapp(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.renderPage(
+            req,
+            res,
+            lang,
+            'pages/whatsapp',
+            'whatsapp',
+            'whatsapp',
+        );
+    }
+
+    @Get('websocket')
+    getWebsocket(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.renderPage(
+            req,
+            res,
+            lang,
+            'pages/websocket',
+            'websocket',
+            'websocket',
+        );
     }
 
     @Get('404')

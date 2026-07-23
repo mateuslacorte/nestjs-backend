@@ -1,0 +1,109 @@
+{
+  "email": {
+    "meta": {
+      "title": "Email - Backend NestJS"
+    },
+    "badge": "Módulo Email",
+    "hero": {
+      "titlePrefix": "Envio de",
+      "titleHighlight": "e-mails",
+      "subtitle": "Mailer NestJS + Nodemailer/SMTP, templates Pug e endpoint REST autenticado com HTML inline."
+    },
+    "overview": {
+      "title": "Visão geral",
+      "description": "O módulo <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">email</code> encapsula <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">@nestjs-modules/mailer</code> com adapter Pug. Em desenvolvimento, use MailHog (Docker). Use <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">sendMail</code> com <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">html</code> inline ou <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">template</code> + <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">context</code>; há também <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">POST /email/send</code>.",
+      "points": {
+        "title": "Pontos principais",
+        "items": [
+          "Transport SMTP via ConfigService (smtp.*)",
+          "EmailService exportado para outros módulos",
+          "Templates Pug em modules/email/templates",
+          "sendMail permite html inline (template é ignorado quando html está presente)",
+          "REST protegido com JWT — sem @Roles"
+        ]
+      }
+    },
+    "structure": {
+      "title": "Estrutura",
+      "codeHeader": { "label": "Filesystem", "context": "src/modules/email" }
+    },
+    "templates": {
+      "title": "Templates Pug",
+      "description": "Coloque arquivos .pug em templates/. O nome do arquivo (sem extensão) é o valor de template. Use layout.pug com extends para HTML compartilhado.",
+      "items": [
+        "layout.pug — estrutura HTML base (opcional, via extends)",
+        "template: 'welcome' → templates/welcome.pug",
+        "context — objeto com variáveis disponíveis no Pug"
+      ],
+      "codeHeader": { "label": "TypeScript", "context": "template + context" }
+    },
+    "config": {
+      "title": "Configuração SMTP",
+      "description": "Namespace smtp em src/config/smtp.config.ts. Variáveis no .env:",
+      "codeHeader": { "label": "Environment", "context": ".env" },
+      "docker": {
+        "title": "Docker / MailHog",
+        "description": "No Compose, o app aponta para MailHog (SMTP 1025, UI 8025). Abra http://localhost:8025 para ver os e-mails."
+      }
+    },
+    "service": {
+      "title": "EmailService",
+      "description": "Métodos públicos do service:",
+      "items": [
+        "sendMail(options) — pass-through; use html para inline ou template + context",
+        "sendEmailConfirmation(email, token) — helper do Auth (template email-confirmation)",
+        "sendPasswordReset(email, token) — helper do Auth (template password-reset)"
+      ]
+    },
+    "rest": {
+      "title": "API REST",
+      "intro": "JWT obrigatório. Qualquer usuário autenticado pode chamar (sem @Roles).",
+      "send": {
+        "title": "Enviar e-mail genérico (HTML inline)",
+        "description": "Body: to (e-mail), subject, html. O controller usa sendMail com html — sem template.",
+        "codeHeader": { "label": "HTTP Request", "context": "POST" }
+      },
+      "response": {
+        "title": "Resposta",
+        "codeHeader": { "label": "HTTP Response", "context": "200" }
+      }
+    },
+    "authIntegration": {
+      "title": "Integração com Auth",
+      "description": "AuthModule importa EmailModule e usa helpers com templates próprios (email-confirmation, password-reset):",
+      "items": [
+        "POST /auth/register → sendEmailConfirmation",
+        "POST /auth/resend-verification → sendEmailConfirmation",
+        "POST /auth/forgot-password → sendPasswordReset"
+      ],
+      "link": "Ver documentação Auth & JWT"
+    },
+    "usage": {
+      "title": "Usar em outro módulo",
+      "description": "Importe EmailModule e injete EmailService. Inline ou template:",
+      "codeHeader": { "language": "TypeScript", "context": "Feature module" }
+    },
+    "alerts": {
+      "title": "Atenção",
+      "mailhog": {
+        "title": "Desenvolvimento",
+        "description": "Com MailHog, SMTP_SECURE e SMTP_REQUIRE_TLS devem ser false; auth pode ficar vazia."
+      },
+      "prod": {
+        "title": "Produção",
+        "description": "Use um provedor SMTP real (SendGrid, SES, etc.) e credenciais fortes. Nunca commite senhas. Os .pug são copiados para dist via nest-cli assets."
+      }
+    },
+    "cta": {
+      "title": "Explorar",
+      "swagger": "Abrir Swagger (tag Email)",
+      "auth": "Auth & JWT",
+      "mailhog": "Abrir MailHog"
+    },
+    "samples": {
+      "bearer": "Authorization: Bearer <access_token>",
+      "inlineHtmlComment": "// HTML inline (adapter de template ignorado)",
+      "pugTemplateComment": "// Template Pug"
+    }
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "whatsapp": {
+    "meta": {
+      "title": "WhatsApp - Backend NestJS"
+    },
+    "badge": "Módulo WhatsApp",
+    "hero": {
+      "titlePrefix": "Mensagens",
+      "titleHighlight": "WhatsApp",
+      "subtitle": "Integração com Evolution API para envio de texto via REST autenticado."
+    },
+    "overview": {
+      "title": "Visão geral",
+      "description": "O módulo <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">whatsapp</code> envia mensagens de texto pela Evolution API (<code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">/message/sendText/{instance}</code>). É um wrapper fino: um endpoint REST e um service com <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">fetch</code>.",
+      "points": {
+        "title": "Pontos principais",
+        "items": [
+          "Config via EVOLUTION_API_URL / INSTANCE / KEY",
+          "POST /whatsapp/send com JWT",
+          "Número enviado como informado",
+          "Falhas de rede/API propagam como HTTP 502",
+          "WhatsappService exportado"
+        ]
+      }
+    },
+    "structure": {
+      "title": "Estrutura",
+      "codeHeader": { "label": "Filesystem", "context": "src/modules/whatsapp" }
+    },
+    "config": {
+      "title": "Configuração Evolution API",
+      "description": "Namespace whatsapp em src/config/whatsapp.config.ts:",
+      "codeHeader": { "label": "Environment", "context": ".env" },
+      "notes": {
+        "title": "Instância",
+        "description": "A instance deve existir na Evolution API. A key vai no header apiKey da requisição. Sem URL/instance configurados, a API responde 503."
+      }
+    },
+    "service": {
+      "title": "WhatsappService",
+      "description": "Método principal:",
+      "items": [
+        "sendMessage(to, message) — POST ${url}/message/sendText/${instance}",
+        "Body: { number: to, text: message }",
+        "Headers: Content-Type application/json, apiKey"
+      ],
+      "behavior": {
+        "title": "Comportamento de erro",
+        "description": "Rede ou HTTP não-OK da Evolution → BadGatewayException (502). Config ausente → ServiceUnavailableException (503). O controller não responde 200 nesses casos."
+      }
+    },
+    "rest": {
+      "title": "API REST",
+      "intro": "JWT obrigatório. Sem @Roles — qualquer usuário autenticado.",
+      "send": {
+        "title": "Enviar mensagem",
+        "description": "to: só dígitos, no formato esperado pela Evolution (inclua o DDI se necessário, ex. 5511999999999). message: texto.",
+        "codeHeader": { "label": "HTTP Request", "context": "POST" }
+      },
+      "response": {
+        "title": "Resposta de sucesso",
+        "codeHeader": { "label": "HTTP Response", "context": "200" }
+      },
+      "errors": {
+        "title": "Respostas de erro",
+        "items": [
+          "401 — JWT ausente ou inválido",
+          "502 — Evolution inacessível ou respondeu com erro",
+          "503 — EVOLUTION_API_URL / INSTANCE não configurados"
+        ]
+      },
+      "dto": {
+        "title": "DTO",
+        "items": [
+          "to — string só com dígitos (@Matches /^\\d+$/); enviada como está",
+          "message — string não vazia"
+        ]
+      }
+    },
+    "usage": {
+      "title": "Usar em outro módulo",
+      "description": "Importe WhatsappModule e injete WhatsappService.",
+      "codeHeader": { "language": "TypeScript", "context": "Feature module" }
+    },
+    "alerts": {
+      "title": "Atenção",
+      "number": {
+        "title": "Formato do número",
+        "description": "O service não adiciona DDI. Envie to já no formato que a Evolution API espera (ex.: 5511999999999 para Brasil)."
+      },
+      "errors": {
+        "title": "Erros da API",
+        "description": "Falhas de rede/HTTP da Evolution sobem como 502. Sucesso só após response.ok."
+      }
+    },
+    "cta": {
+      "title": "Explorar",
+      "swagger": "Abrir Swagger (tag Whatsapp)"
+    },
+    "samples": {
+      "bearer": "Authorization: Bearer <access_token>",
+      "sendMessageComment": "// WhatsappService.sendMessage(to, message)",
+      "numberAsIsComment": "// número enviado como informado"
+    }
+  }
+}

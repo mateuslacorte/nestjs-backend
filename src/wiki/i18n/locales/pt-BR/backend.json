@@ -18,6 +18,18 @@
       "users": {
         "title": "Módulo Users",
         "description": "CRUD administrativo REST e GraphQL, enum Role e regras de persistência."
+      },
+      "email": {
+        "title": "Módulo Email",
+        "description": "SMTP/Mailer, confirmação e reset via Auth, e POST /email/send autenticado."
+      },
+      "whatsapp": {
+        "title": "Módulo WhatsApp",
+        "description": "Evolution API, envio de número como informado e POST /whatsapp/send autenticado."
+      },
+      "websocket": {
+        "title": "WebSocket",
+        "description": "Gateway Socket.IO, handlers por tipo de mensagem e como criar um módulo feature."
       }
     },
     "shortcuts": {
@@ -28,6 +40,9 @@
         "wiki": "Esta documentação",
         "api": "Base das rotas REST",
         "users": "Documentação do módulo Users",
+        "email": "Documentação do módulo Email",
+        "whatsapp": "Documentação do módulo WhatsApp",
+        "websocket": "Documentação WebSocket",
         "mailhog": "MailHog (e-mails de teste)",
         "graylog": "Graylog"
       }

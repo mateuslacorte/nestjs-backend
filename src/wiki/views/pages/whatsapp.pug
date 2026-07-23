@@ -1,0 +1,164 @@
+extends ../layouts/main
+
+block content
+  .mb-12
+    .inline-flex.items-center.gap-2.px-3.py-1.bg-indigo-50.rounded-full.text-indigo-700.text-sm.font-medium.mb-4
+      svg(class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z")
+      span= t('whatsapp.badge')
+    h1(class="text-4xl font-bold text-gray-900 mb-4")
+      | #{t('whatsapp.hero.titlePrefix')} 
+      span.gradient-text= t('whatsapp.hero.titleHighlight')
+    p(class="text-xl text-gray-600 max-w-3xl")
+      = t('whatsapp.hero.subtitle')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('whatsapp.overview.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")
+        != t('whatsapp.overview.description')
+      h3(class="font-semibold text-gray-900 mb-3")= t('whatsapp.overview.points.title')
+      ul.space-y-2.text-gray-700
+        each item in tm('whatsapp.overview.points.items')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('whatsapp.structure.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      .code-block
+        .code-header
+          span= t('whatsapp.structure.codeHeader.label')
+          span= t('whatsapp.structure.codeHeader.context')
+        .code-content
+          pre.
+            src/modules/whatsapp/
+            ├── whatsapp.module.ts
+            ├── whatsapp.controller.ts
+            ├── whatsapp.service.ts
+            └── dtos/
+                └── send-whatsapp.dto.ts
+
+            src/config/whatsapp.config.ts
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('whatsapp.config.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")= t('whatsapp.config.description')
+      .code-block.mb-6
+        .code-header
+          span= t('whatsapp.config.codeHeader.label')
+          span= t('whatsapp.config.codeHeader.context')
+        .code-content
+          pre.
+            EVOLUTION_API_URL=http://localhost:8080
+            EVOLUTION_API_INSTANCE=default
+            EVOLUTION_API_KEY=your-api-key
+      h3(class="font-semibold text-gray-900 mb-2")= t('whatsapp.config.notes.title')
+      p.text-gray-700= t('whatsapp.config.notes.description')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('whatsapp.service.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")= t('whatsapp.service.description')
+      ul.space-y-2.text-gray-700.mb-6
+        each item in tm('whatsapp.service.items')
+          li • #{item}
+      h3(class="font-semibold text-gray-900 mb-2")= t('whatsapp.service.behavior.title')
+      p.text-gray-700= t('whatsapp.service.behavior.description')
+      .code-block.mt-4
+        .code-header
+          span TypeScript
+          span sendMessage
+        .code-content
+          pre.
+            #{t('whatsapp.samples.sendMessageComment')}
+            #{t('whatsapp.samples.numberAsIsComment')}
+
+            POST ${EVOLUTION_API_URL}/message/sendText/${EVOLUTION_API_INSTANCE}
+            Headers: { "Content-Type": "application/json", "apiKey": "..." }
+            Body: { "number": to, "text": message }
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('whatsapp.rest.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")= t('whatsapp.rest.intro')
+      h3(class="font-semibold text-gray-900 mb-2")= t('whatsapp.rest.dto.title')
+      ul.space-y-2.text-gray-700.mb-6
+        each item in tm('whatsapp.rest.dto.items')
+          li • #{item}
+      h3(class="font-semibold text-gray-900 mb-2")= t('whatsapp.rest.send.title')
+      p.text-gray-600.mb-3= t('whatsapp.rest.send.description')
+      .code-block.mb-6
+        .code-header
+          span= t('whatsapp.rest.send.codeHeader.label')
+          span= t('whatsapp.rest.send.codeHeader.context')
+        .code-content
+          pre.
+            POST #{apiBasePath}/whatsapp/send
+            Content-Type: application/json
+            #{t('whatsapp.samples.bearer')}
+
+            {
+              "to": "5511999999999",
+              "message": "Hello, this is a test message"
+            }
+      h3(class="font-semibold text-gray-900 mb-2")= t('whatsapp.rest.response.title')
+      .code-block.mb-6
+        .code-header
+          span= t('whatsapp.rest.response.codeHeader.label')
+          span= t('whatsapp.rest.response.codeHeader.context')
+        .code-content
+          pre.
+            {
+              "message": "WhatsApp message sent successfully"
+            }
+      h3(class="font-semibold text-gray-900 mb-2")= t('whatsapp.rest.errors.title')
+      ul.space-y-2.text-gray-700
+        each item in tm('whatsapp.rest.errors.items')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('whatsapp.usage.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")= t('whatsapp.usage.description')
+      .code-block
+        .code-header
+          span= t('whatsapp.usage.codeHeader.language')
+          span= t('whatsapp.usage.codeHeader.context')
+        .code-content
+          pre.
+            @Module({
+              imports: [WhatsappModule],
+              providers: [MyService],
+            })
+            export class MyModule {}
+
+            @Injectable()
+            export class MyService {
+              constructor(private readonly whatsappService: WhatsappService) {}
+
+              async notify(phone: string, text: string) {
+                await this.whatsappService.sendMessage(phone, text);
+              }
+            }
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('whatsapp.alerts.title')
+    .alert.alert-info.mb-4
+      svg(class="w-5 h-5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z")
+      div
+        p.font-medium.text-blue-900= t('whatsapp.alerts.number.title')
+        p.text-sm.text-blue-800= t('whatsapp.alerts.number.description')
+    .alert.alert-info
+      svg(class="w-5 h-5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z")
+      div
+        p.font-medium.text-blue-900= t('whatsapp.alerts.errors.title')
+        p.text-sm.text-blue-800= t('whatsapp.alerts.errors.description')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('whatsapp.cta.title')
+    .flex.flex-wrap.gap-3
+      a(href=swaggerPath class="inline-flex items-center gap-2 bg-indigo-600 text-white px-5 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors")
+        = t('whatsapp.cta.swagger')

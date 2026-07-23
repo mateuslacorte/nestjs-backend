@@ -23,6 +23,18 @@ block content
         h3(class="font-semibold text-purple-900 mb-2")= t('backend.pages.users.title')
         p(class="text-sm text-purple-800")
           = t('backend.pages.users.description')
+      a(href=wikiPath('/email') class="block p-6 rounded-lg border border-sky-200 bg-sky-50 hover:border-sky-400 transition-colors")
+        h3(class="font-semibold text-sky-900 mb-2")= t('backend.pages.email.title')
+        p(class="text-sm text-sky-800")
+          = t('backend.pages.email.description')
+      a(href=wikiPath('/whatsapp') class="block p-6 rounded-lg border border-teal-200 bg-teal-50 hover:border-teal-400 transition-colors")
+        h3(class="font-semibold text-teal-900 mb-2")= t('backend.pages.whatsapp.title')
+        p(class="text-sm text-teal-800")
+          = t('backend.pages.whatsapp.description')
+      a(href=wikiPath('/websocket') class="block p-6 rounded-lg border border-emerald-200 bg-emerald-50 hover:border-emerald-400 transition-colors")
+        h3(class="font-semibold text-emerald-900 mb-2")= t('backend.pages.websocket.title')
+        p(class="text-sm text-emerald-800")
+          = t('backend.pages.websocket.description')
 
   section.mb-12
     h2(class="text-2xl font-bold text-gray-900 mb-6")= t('backend.shortcuts.title')
@@ -43,6 +55,15 @@ block content
         li
           a(href=wikiPath('/users') class="text-indigo-600 hover:underline font-mono text-sm") /users
           span  — #{t('backend.shortcuts.items.users')}
+        li
+          a(href=wikiPath('/email') class="text-indigo-600 hover:underline font-mono text-sm") /email
+          span  — #{t('backend.shortcuts.items.email')}
+        li
+          a(href=wikiPath('/whatsapp') class="text-indigo-600 hover:underline font-mono text-sm") /whatsapp
+          span  — #{t('backend.shortcuts.items.whatsapp')}
+        li
+          a(href=wikiPath('/websocket') class="text-indigo-600 hover:underline font-mono text-sm") /websocket
+          span  — #{t('backend.shortcuts.items.websocket')}
         li
           a(href="http://localhost:8025" target="_blank" class="text-indigo-600 hover:underline font-mono text-sm") http://localhost:8025
           span  — #{t('backend.shortcuts.items.mailhog')}
