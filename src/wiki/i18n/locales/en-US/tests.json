@@ -1,17 +1,17 @@
 {
   "tests": {
     "meta": {
-      "title": "Tests & Coverage - NestJS Boilerplate"
+      "title": "Tests & Coverage - Backend NestJS"
     },
     "badge": "Quality",
     "hero": {
       "titlePrefix": "Tests and",
       "titleHighlight": "coverage",
-      "subtitle": "How this boilerplate runs unit tests, enforces a global coverage baseline, and blocks commits that break the suite or drop below the threshold."
+      "subtitle": "How this project runs unit tests, enforces a global coverage baseline, and blocks commits that break the suite or drop below the threshold."
     },
     "overview": {
       "title": "Overview",
-      "description": "Every project built on this boilerplate ships with <strong>Jest</strong> as the test runner. Specs live next to the code as <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">*.spec.ts</code> files. A global coverage gate (branches, functions, lines, and statements) is defined in Jest config, and a <strong>Git pre-commit hook</strong> re-runs the full suite with coverage so regressions never land unnoticed.",
+      "description": "This project uses <strong>Jest</strong> as the test runner. Specs live next to the code as <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">*.spec.ts</code> files. A global coverage gate (branches, functions, lines, and statements) is defined in Jest config, and a <strong>Git pre-commit hook</strong> re-runs the full suite with coverage so regressions never land unnoticed.",
       "points": {
         "title": "What you get out of the box",
         "items": [
@@ -50,7 +50,7 @@
     },
     "coverage": {
       "title": "Coverage baseline",
-      "description": "Coverage is configured in <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">jest.config.js</code>. The global threshold is the quality bar for every repository that uses this boilerplate:",
+      "description": "Coverage is configured in <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">jest.config.js</code>. The global threshold is the quality bar for this repository:",
       "thresholds": {
         "title": "Global thresholds",
         "items": [
@@ -89,7 +89,7 @@
     },
     "precommit": {
       "title": "Pre-commit hook",
-      "description": "This boilerplate uses <strong>Husky</strong> so every commit runs the same gate as CI-minded local checks:",
+      "description": "This project uses <strong>Husky</strong> so every commit runs the same gate as CI-minded local checks:",
       "flow": {
         "title": "What happens on commit",
         "items": [

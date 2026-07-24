@@ -110,7 +110,7 @@ export const WIKI_SEO = {
         },
         tests: {
             description:
-                'Testing guide for the NestJS Boilerplate — Jest unit tests, 80% global coverage baseline, coverage reports, and the Husky pre-commit quality gate.',
+                'Testing guide — Jest unit tests, 80% global coverage baseline, coverage reports, and the Husky pre-commit quality gate.',
         },
         websocket: {
             description:

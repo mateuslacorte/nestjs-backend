@@ -1,17 +1,17 @@
 {
   "tests": {
     "meta": {
-      "title": "Testes e Coverage - NestJS Boilerplate"
+      "title": "Testes e Coverage - Backend NestJS"
     },
     "badge": "Qualidade",
     "hero": {
       "titlePrefix": "Testes e",
       "titleHighlight": "coverage",
-      "subtitle": "Como este boilerplate executa testes unitários, exige uma baseline global de coverage e bloqueia commits que quebram a suíte ou ficam abaixo do limiar."
+      "subtitle": "Como este projeto executa testes unitários, exige uma baseline global de coverage e bloqueia commits que quebram a suíte ou ficam abaixo do limiar."
     },
     "overview": {
       "title": "Visão geral",
-      "description": "Todo projeto baseado neste boilerplate usa <strong>Jest</strong> como runner. Os specs ficam ao lado do código como <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">*.spec.ts</code>. Um limiar global de coverage (branches, functions, lines e statements) é definido na config do Jest, e um <strong>hook de pre-commit do Git</strong> reexecuta a suíte com coverage para que regressões não entrem sem aviso.",
+      "description": "Este projeto usa <strong>Jest</strong> como runner. Os specs ficam ao lado do código como <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">*.spec.ts</code>. Um limiar global de coverage (branches, functions, lines e statements) é definido na config do Jest, e um <strong>hook de pre-commit do Git</strong> reexecuta a suíte com coverage para que regressões não entrem sem aviso.",
       "points": {
         "title": "O que já vem pronto",
         "items": [
@@ -50,7 +50,7 @@
     },
     "coverage": {
       "title": "Baseline de coverage",
-      "description": "A coverage é configurada em <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">jest.config.js</code>. O limiar global é a barra de qualidade para qualquer repositório que use este boilerplate:",
+      "description": "A coverage é configurada em <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">jest.config.js</code>. O limiar global é a barra de qualidade deste repositório:",
       "thresholds": {
         "title": "Limiares globais",
         "items": [
@@ -89,7 +89,7 @@
     },
     "precommit": {
       "title": "Hook de pre-commit",
-      "description": "Este boilerplate usa <strong>Husky</strong> para que cada commit rode o mesmo gate de qualidade localmente:",
+      "description": "Este projeto usa <strong>Husky</strong> para que cada commit rode o mesmo gate de qualidade localmente:",
       "flow": {
         "title": "O que acontece no commit",
         "items": [
