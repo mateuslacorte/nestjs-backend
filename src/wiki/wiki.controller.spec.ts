@@ -148,6 +148,13 @@ describe('WikiController', () => {
         namespace: 'security',
         page: 'security',
       },
+      {
+        method: 'getTests',
+        route: 'tests',
+        view: 'pages/tests',
+        namespace: 'tests',
+        page: 'tests',
+      },
     ];
 
     it.each(cases)(

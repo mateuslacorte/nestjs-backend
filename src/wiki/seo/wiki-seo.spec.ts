@@ -48,6 +48,7 @@ describe('WIKI_SEO', () => {
         'email',
         'whatsapp',
         'security',
+        'tests',
         'websocket',
         'wsui',
         'error-404',

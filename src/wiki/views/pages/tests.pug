@@ -1,0 +1,131 @@
+extends ../layouts/main
+
+block content
+  .mb-12
+    .inline-flex.items-center.gap-2.px-3.py-1.bg-indigo-50.rounded-full.text-indigo-700.text-sm.font-medium.mb-4
+      svg(class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z")
+      span= t('tests.badge')
+    h1(class="text-4xl font-bold text-gray-900 mb-4")
+      | #{t('tests.hero.titlePrefix')} 
+      span.gradient-text= t('tests.hero.titleHighlight')
+    p(class="text-xl text-gray-600 max-w-3xl")
+      = t('tests.hero.subtitle')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('tests.overview.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")
+        != t('tests.overview.description')
+      h3(class="font-semibold text-gray-900 mb-3")= t('tests.overview.points.title')
+      ul.space-y-2.text-gray-700
+        each item in tm('tests.overview.points.items')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('tests.running.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")
+        != t('tests.running.description')
+      h3(class="font-semibold text-gray-900 mb-4")= t('tests.running.commands.title')
+      .space-y-4.mb-8
+        each item in tm('tests.running.commands.items')
+          .border.border-gray-100.rounded-lg.p-4.bg-gray-50
+            .code-block.mb-2
+              .code-content.py-3
+                pre= item.cmd
+            p(class="text-sm text-gray-600")= item.desc
+      h3(class="font-semibold text-gray-900 mb-3")= t('tests.running.filter.title')
+      p(class="text-gray-700 mb-3")
+        != t('tests.running.filter.description')
+      .code-block
+        .code-header
+          span npm / Jest
+          span filter
+        .code-content
+          pre= t('tests.running.filter.example')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('tests.coverage.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")
+        != t('tests.coverage.description')
+      h3(class="font-semibold text-gray-900 mb-3")= t('tests.coverage.thresholds.title')
+      ul.space-y-2.text-gray-700.mb-6
+        each item in tm('tests.coverage.thresholds.items')
+          li • #{item}
+      .code-block.mb-8
+        .code-header
+          span= t('tests.coverage.configSnippet.label')
+          span= t('tests.coverage.configSnippet.context')
+        .code-content
+          pre.
+            coverageThreshold: {
+              global: {
+                branches: 80,
+                functions: 80,
+                lines: 80,
+                statements: 80,
+              },
+            },
+      h3(class="font-semibold text-gray-900 mb-3")= t('tests.coverage.collect.title')
+      p(class="text-gray-700 mb-3")
+        != t('tests.coverage.collect.description')
+      ul.space-y-2.text-gray-700.mb-8
+        each item in tm('tests.coverage.collect.items')
+          li
+            != `• ${item}`
+      h3(class="font-semibold text-gray-900 mb-3")= t('tests.coverage.viewing.title')
+      p(class="text-gray-700 mb-3")
+        != t('tests.coverage.viewing.description')
+      ul.space-y-2.text-gray-700.mb-8
+        each item in tm('tests.coverage.viewing.items')
+          li
+            != `• ${item}`
+      .alert.alert-warning
+        div
+          p.font-medium.text-amber-900= t('tests.coverage.fail.title')
+          p(class="text-sm text-amber-800 mt-1")
+            = t('tests.coverage.fail.description')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('tests.precommit.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")
+        != t('tests.precommit.description')
+      h3(class="font-semibold text-gray-900 mb-3")= t('tests.precommit.flow.title')
+      .space-y-4.mb-8
+        each item, index in tm('tests.precommit.flow.items')
+          .flow-step(data-step=String(index + 1))
+            p(class="text-gray-700 pb-4")
+              != item
+      h3(class="font-semibold text-gray-900 mb-3")= t('tests.precommit.setup.title')
+      p(class="text-gray-700 mb-3")
+        != t('tests.precommit.setup.description')
+      ul.space-y-2.text-gray-700.mb-8
+        each item in tm('tests.precommit.setup.items')
+          li
+            != `• ${item}`
+      .alert.alert-info
+        div
+          p.font-medium.text-blue-900= t('tests.precommit.skip.title')
+          p(class="text-sm text-blue-800 mt-1")
+            != t('tests.precommit.skip.description')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('tests.conventions.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      ul.space-y-2.text-gray-700
+        each item in tm('tests.conventions.items')
+          li
+            != `• ${item}`
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('tests.checklist.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      ul.space-y-3.text-gray-700
+        each item in tm('tests.checklist.items')
+          li(class="flex items-start gap-3")
+            span(class="mt-0.5 text-indigo-600") ✓
+            span
+              != item

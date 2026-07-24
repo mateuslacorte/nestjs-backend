@@ -1,0 +1,136 @@
+{
+  "tests": {
+    "meta": {
+      "title": "Tests & Coverage - NestJS Boilerplate"
+    },
+    "badge": "Quality",
+    "hero": {
+      "titlePrefix": "Tests and",
+      "titleHighlight": "coverage",
+      "subtitle": "How this boilerplate runs unit tests, enforces a global coverage baseline, and blocks commits that break the suite or drop below the threshold."
+    },
+    "overview": {
+      "title": "Overview",
+      "description": "Every project built on this boilerplate ships with <strong>Jest</strong> as the test runner. Specs live next to the code as <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">*.spec.ts</code> files. A global coverage gate (branches, functions, lines, and statements) is defined in Jest config, and a <strong>Git pre-commit hook</strong> re-runs the full suite with coverage so regressions never land unnoticed.",
+      "points": {
+        "title": "What you get out of the box",
+        "items": [
+          "Unit tests with Jest + ts-jest in a Node environment",
+          "Global coverage threshold of 80% for branches, functions, lines, and statements",
+          "npm scripts to run tests once, in watch mode, or with an HTML coverage report",
+          "Husky pre-commit that fails the commit when tests fail or coverage drops below the baseline"
+        ]
+      }
+    },
+    "running": {
+      "title": "Running tests",
+      "description": "From the project root, use the npm scripts defined in <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">package.json</code>:",
+      "commands": {
+        "title": "Common commands",
+        "items": [
+          {
+            "cmd": "npm test",
+            "desc": "Run the full unit test suite once (no coverage report)."
+          },
+          {
+            "cmd": "npm run test:watch",
+            "desc": "Re-run tests as files change — ideal while developing."
+          },
+          {
+            "cmd": "npm run test:cov",
+            "desc": "Run all tests and collect coverage. Also enforces the global threshold."
+          }
+        ]
+      },
+      "filter": {
+        "title": "Focus on a folder or pattern",
+        "description": "Pass Jest CLI flags after <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">--</code> to narrow the run:",
+        "example": "npm test -- --testPathPatterns=src/modules/auth"
+      }
+    },
+    "coverage": {
+      "title": "Coverage baseline",
+      "description": "Coverage is configured in <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">jest.config.js</code>. The global threshold is the quality bar for every repository that uses this boilerplate:",
+      "thresholds": {
+        "title": "Global thresholds",
+        "items": [
+          "branches: 80%",
+          "functions: 80%",
+          "lines: 80%",
+          "statements: 80%"
+        ]
+      },
+      "configSnippet": {
+        "label": "jest.config.js",
+        "context": "coverageThreshold"
+      },
+      "collect": {
+        "title": "What is measured",
+        "description": "Only paths listed under <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">collectCoverageFrom</code> count toward the report. Spec files and interface-only files are typically excluded. When you add a new module with tests, include its source globs in that list so coverage stays honest.",
+        "items": [
+          "Include production TypeScript under the areas you test",
+          "Exclude <code class=\"px-1 py-0.5 bg-gray-100 rounded\">**/*.spec.ts</code>",
+          "Exclude pure type/interface files when they have no runtime logic"
+        ]
+      },
+      "viewing": {
+        "title": "Reading the coverage report",
+        "description": "After <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">npm run test:cov</code>:",
+        "items": [
+          "A table is printed in the terminal (per-file % for statements, branches, functions, lines)",
+          "An HTML report is written under <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">coverage/lcov-report/index.html</code> — open it in a browser for drill-down",
+          "The <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">coverage/</code> directory is gitignored; regenerate it locally whenever you need the report"
+        ]
+      },
+      "fail": {
+        "title": "When coverage fails",
+        "description": "If any global metric falls below 80%, Jest exits with a non-zero status. Fix by adding or strengthening unit tests for uncovered branches and paths — do not lower the threshold without a deliberate team decision."
+      }
+    },
+    "precommit": {
+      "title": "Pre-commit hook",
+      "description": "This boilerplate uses <strong>Husky</strong> so every commit runs the same gate as CI-minded local checks:",
+      "flow": {
+        "title": "What happens on commit",
+        "items": [
+          "Git triggers <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">.husky/pre-commit</code>",
+          "The hook runs <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">npm run test:cov</code>",
+          "If any test fails or coverage is under 80%, the commit is aborted",
+          "On success, the commit proceeds as usual"
+        ]
+      },
+      "setup": {
+        "title": "Setup after clone",
+        "description": "Hooks are installed via the <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">prepare</code> script (<code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">husky</code>). Running <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">npm install</code> after cloning is enough for most environments.",
+        "items": [
+          "Ensure Git is available and you are inside a clone of the repository",
+          "Run <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">npm install</code> so Husky can set <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">core.hooksPath</code>",
+          "Confirm <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">.husky/pre-commit</code> exists and is executable"
+        ]
+      },
+      "skip": {
+        "title": "Emergency skip",
+        "description": "Skipping hooks with <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">--no-verify</code> bypasses the quality gate. Use it only in exceptional situations and follow up with a green <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">npm run test:cov</code> as soon as possible."
+      }
+    },
+    "conventions": {
+      "title": "Conventions",
+      "items": [
+        "Name specs <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">*.spec.ts</code> and keep them next to the unit under test",
+        "Prefer focused unit tests with mocked collaborators over slow end-to-end suites for domain logic",
+        "Match existing module patterns (controller / service / DTO / repository specs) when extending the codebase",
+        "Treat the 80% global threshold as a floor — new code should not regress the suite"
+      ]
+    },
+    "checklist": {
+      "title": "Quick checklist",
+      "items": [
+        "New feature or bugfix includes unit tests",
+        "<code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">npm test</code> is green locally",
+        "<code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">npm run test:cov</code> meets or exceeds 80% on all four metrics",
+        "New source areas are listed in <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">collectCoverageFrom</code> when they have specs",
+        "Commit succeeds without skipping the pre-commit hook"
+      ]
+    }
+  }
+}

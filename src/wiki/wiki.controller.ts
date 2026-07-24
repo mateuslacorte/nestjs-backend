@@ -231,6 +231,22 @@ export class WikiController {
         );
     }
 
+    @Get('tests')
+    getTests(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/tests',
+            'tests',
+            'tests',
+        );
+    }
+
     @Get('404')
     getNotFoundPreview(@Req() req: Request, @Res() res: Response) {
         return this.wikiRender.renderNotFound(req, res);

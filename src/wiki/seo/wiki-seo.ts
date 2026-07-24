@@ -108,6 +108,10 @@ export const WIKI_SEO = {
             description:
                 'Security module in the NestJS Boilerplate — invalid-route protection, IP blocking, and hardening patterns for NestJS / Node.js APIs.',
         },
+        tests: {
+            description:
+                'Testing guide for the NestJS Boilerplate — Jest unit tests, 80% global coverage baseline, coverage reports, and the Husky pre-commit quality gate.',
+        },
         websocket: {
             description:
                 'WebSocket guide for the NestJS Boilerplate — Socket.IO gateway, JWT handshake, and realtime messaging patterns in NestJS APIs.',

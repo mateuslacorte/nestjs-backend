@@ -40,6 +40,7 @@ async function bootstrap() {
             { path: 'websocket', method: RequestMethod.GET },
             { path: 'wsui', method: RequestMethod.GET },
             { path: 'security', method: RequestMethod.GET },
+            { path: 'tests', method: RequestMethod.GET },
             { path: '404', method: RequestMethod.GET },
             { path: '500', method: RequestMethod.GET },
             { path: 'static/(.*)', method: RequestMethod.GET },

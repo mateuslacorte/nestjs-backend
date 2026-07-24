@@ -23,6 +23,8 @@
     "websocketGroup": "WebSocket",
     "websocketOverview": "Overview",
     "websocketPlayground": "Playground",
+    "testsGroup": "Tests",
+    "testsOverview": "Overview",
     "swagger": "Swagger UI"
   },
   "lang": {

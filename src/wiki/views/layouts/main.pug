@@ -290,6 +290,11 @@ html(lang=htmlLang)
               span= t('nav.websocketOverview')
             a(href=wikiPath('/wsui') class=`sidebar-link block px-3 py-2 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'wsui' ? 'active' : ''}`)
               span= t('nav.websocketPlayground')
+
+          .mb-6
+            p(class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2")= t('nav.testsGroup')
+            a(href=wikiPath('/tests') class=`sidebar-link block px-3 py-2 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'tests' ? 'active' : ''}`)
+              span= t('nav.testsOverview')
           
           .mt-8.px-3
             a(href=swaggerPath target="_blank" class="flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-800")

@@ -1,0 +1,136 @@
+{
+  "tests": {
+    "meta": {
+      "title": "Testes e Coverage - NestJS Boilerplate"
+    },
+    "badge": "Qualidade",
+    "hero": {
+      "titlePrefix": "Testes e",
+      "titleHighlight": "coverage",
+      "subtitle": "Como este boilerplate executa testes unitários, exige uma baseline global de coverage e bloqueia commits que quebram a suíte ou ficam abaixo do limiar."
+    },
+    "overview": {
+      "title": "Visão geral",
+      "description": "Todo projeto baseado neste boilerplate usa <strong>Jest</strong> como runner. Os specs ficam ao lado do código como <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">*.spec.ts</code>. Um limiar global de coverage (branches, functions, lines e statements) é definido na config do Jest, e um <strong>hook de pre-commit do Git</strong> reexecuta a suíte com coverage para que regressões não entrem sem aviso.",
+      "points": {
+        "title": "O que já vem pronto",
+        "items": [
+          "Testes unitários com Jest + ts-jest em ambiente Node",
+          "Limiar global de 80% para branches, functions, lines e statements",
+          "Scripts npm para rodar uma vez, em watch ou com relatório HTML de coverage",
+          "Pre-commit com Husky que falha o commit se os testes falharem ou a coverage cair abaixo da baseline"
+        ]
+      }
+    },
+    "running": {
+      "title": "Rodando os testes",
+      "description": "Na raiz do projeto, use os scripts npm definidos em <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">package.json</code>:",
+      "commands": {
+        "title": "Comandos comuns",
+        "items": [
+          {
+            "cmd": "npm test",
+            "desc": "Executa a suíte unitária completa uma vez (sem relatório de coverage)."
+          },
+          {
+            "cmd": "npm run test:watch",
+            "desc": "Reexecuta os testes conforme os arquivos mudam — ideal durante o desenvolvimento."
+          },
+          {
+            "cmd": "npm run test:cov",
+            "desc": "Roda todos os testes e coleta coverage. Também aplica o limiar global."
+          }
+        ]
+      },
+      "filter": {
+        "title": "Filtrar por pasta ou padrão",
+        "description": "Passe flags do Jest após <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">--</code> para restringir a execução:",
+        "example": "npm test -- --testPathPatterns=src/modules/auth"
+      }
+    },
+    "coverage": {
+      "title": "Baseline de coverage",
+      "description": "A coverage é configurada em <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">jest.config.js</code>. O limiar global é a barra de qualidade para qualquer repositório que use este boilerplate:",
+      "thresholds": {
+        "title": "Limiares globais",
+        "items": [
+          "branches: 80%",
+          "functions: 80%",
+          "lines: 80%",
+          "statements: 80%"
+        ]
+      },
+      "configSnippet": {
+        "label": "jest.config.js",
+        "context": "coverageThreshold"
+      },
+      "collect": {
+        "title": "O que entra na medição",
+        "description": "Só os caminhos listados em <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">collectCoverageFrom</code> entram no relatório. Specs e arquivos só de interface costumam ser excluídos. Ao adicionar um módulo novo com testes, inclua os globs de código-fonte nessa lista para a coverage continuar correta.",
+        "items": [
+          "Inclua o TypeScript de produção das áreas cobertas por testes",
+          "Exclua <code class=\"px-1 py-0.5 bg-gray-100 rounded\">**/*.spec.ts</code>",
+          "Exclua arquivos só de tipo/interface quando não houver lógica em runtime"
+        ]
+      },
+      "viewing": {
+        "title": "Como ver o relatório",
+        "description": "Depois de <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">npm run test:cov</code>:",
+        "items": [
+          "Uma tabela é impressa no terminal (% por arquivo de statements, branches, functions e lines)",
+          "Um relatório HTML é gerado em <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">coverage/lcov-report/index.html</code> — abra no navegador para detalhar",
+          "A pasta <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">coverage/</code> está no .gitignore; regenere localmente quando precisar do relatório"
+        ]
+      },
+      "fail": {
+        "title": "Quando a coverage falha",
+        "description": "Se qualquer métrica global ficar abaixo de 80%, o Jest termina com status diferente de zero. Corrija adicionando ou reforçando testes unitários nos ramos e caminhos descobertos — não baixe o limiar sem uma decisão explícita do time."
+      }
+    },
+    "precommit": {
+      "title": "Hook de pre-commit",
+      "description": "Este boilerplate usa <strong>Husky</strong> para que cada commit rode o mesmo gate de qualidade localmente:",
+      "flow": {
+        "title": "O que acontece no commit",
+        "items": [
+          "O Git dispara <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">.husky/pre-commit</code>",
+          "O hook executa <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">npm run test:cov</code>",
+          "Se algum teste falhar ou a coverage ficar abaixo de 80%, o commit é abortado",
+          "Em caso de sucesso, o commit segue normalmente"
+        ]
+      },
+      "setup": {
+        "title": "Setup após o clone",
+        "description": "Os hooks são instalados pelo script <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">prepare</code> (<code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">husky</code>). Em geral basta <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">npm install</code> depois de clonar.",
+        "items": [
+          "Garanta que o Git está disponível e que você está dentro do clone do repositório",
+          "Rode <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">npm install</code> para o Husky configurar <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">core.hooksPath</code>",
+          "Confirme que <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">.husky/pre-commit</code> existe e é executável"
+        ]
+      },
+      "skip": {
+        "title": "Pular em emergência",
+        "description": "Pular hooks com <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">--no-verify</code> contorna o gate de qualidade. Use só em situações excepcionais e rode um <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">npm run test:cov</code> verde o mais rápido possível."
+      }
+    },
+    "conventions": {
+      "title": "Convenções",
+      "items": [
+        "Nomeie specs como <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">*.spec.ts</code> e mantenha-os ao lado da unidade sob teste",
+        "Prefira testes unitários focados com colaboradores mockados a suítes E2E lentas para a lógica de domínio",
+        "Siga os padrões dos módulos existentes (controller / service / DTO / repository) ao estender o código",
+        "Trate o limiar global de 80% como piso — código novo não deve regredir a suíte"
+      ]
+    },
+    "checklist": {
+      "title": "Checklist rápido",
+      "items": [
+        "Feature ou correção inclui testes unitários",
+        "<code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">npm test</code> está verde localmente",
+        "<code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">npm run test:cov</code> atinge ou supera 80% nas quatro métricas",
+        "Novas áreas de código entram em <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">collectCoverageFrom</code> quando tiverem specs",
+        "O commit conclui sem pular o pre-commit"
+      ]
+    }
+  }
+}
