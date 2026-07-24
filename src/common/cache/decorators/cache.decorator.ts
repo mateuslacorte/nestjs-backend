@@ -183,7 +183,7 @@ export function EnableCache() {
 /**
  * Invalida cache relacionado após operações de escrita
  */
-async function invalidateRelatedCache(
+export async function invalidateRelatedCache(
     cacheService: CacheService,
     className: string,
     methodName: string,

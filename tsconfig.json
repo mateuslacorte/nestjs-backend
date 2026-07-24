@@ -15,6 +15,7 @@
     "isolatedModules": true,
     "incremental": true,
     "noEmitOnError": true,
+    "types": ["node", "jest"],
     "paths": {
       "@modules/*": ["./src/modules/*"],
       "@common/*": ["./src/common/*"],

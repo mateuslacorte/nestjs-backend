@@ -36,6 +36,5 @@ export class BlockedIp extends Document {
 
 export const BlockedIpSchema = SchemaFactory.createForClass(BlockedIp);
 
-// Indexes
-BlockedIpSchema.index({ ip: 1 }, { unique: true });
+// `ip` uniqueness comes from @Prop({ unique: true }) — do not redeclare here.
 BlockedIpSchema.index({ blocked: 1 });

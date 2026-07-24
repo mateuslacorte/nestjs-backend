@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+# Fail the commit if any test fails or global coverage drops below 80%
+# (branches/functions/lines/statements — see jest.config.js coverageThreshold).
+npm run test:cov
