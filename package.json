@@ -2,6 +2,7 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "Backend API with NestJS",
+  "license": "GPL-3.0-only",
   "main": "src/main.ts",
   "scripts": {
     "start": "rm -rf dist && rm -f tsconfig.tsbuildinfo && nest start",

@@ -1,6 +1,6 @@
 # Backend NestJS
 
-Template NestJS com REST + GraphQL, autenticação JWT, cache Redis, Kafka, MinIO, email (SMTP/MailHog) e logging estruturado via **Graylog** (GELF).
+Template NestJS com REST + GraphQL, autenticação JWT e login social (Google / Facebook), cache Redis, Kafka, MinIO, email (SMTP/MailHog) e logging estruturado via **Graylog** (GELF).
 
 ## Stack
 
@@ -10,10 +10,27 @@ Template NestJS com REST + GraphQL, autenticação JWT, cache Redis, Kafka, MinI
 - Redis, Apache Kafka, MinIO
 - Graylog + OpenSearch (logs)
 - Health checks com `@nestjs/terminus` em `GET /health`
+- **Jest** — testes unitários, coverage global (≥ 80%) e pre-commit com Husky
 
 ## Persistência e CQRS-ready
 
 O acesso a dados usa **Repository pattern**. Hoje o `UsersService` lê e escreve no **PostgreSQL**. O `UserMongoRepository` permanece no projeto: você pode usar só Mongo, só Postgres, ou ativar CQRS (commands em um banco, queries no outro, com sync opcional via Kafka). Detalhes na [wiki de arquitetura](/architecture) após subir a API.
+
+## Autenticação
+
+- JWT (login/registro, refresh, roles e guards)
+- Login social via OAuth2 (Google e Facebook) com fluxo de *code exchange*
+- Guias na wiki: [/auth](/auth), [/auth/social](/auth/social), [/auth/social/google](/auth/social/google), [/auth/social/facebook](/auth/social/facebook)
+
+## Testes e coverage
+
+```bash
+npm test              # suíte unitária
+npm run test:watch    # watch mode
+npm run test:cov      # testes + coverage (limiar global 80%)
+```
+
+O pre-commit (Husky) executa `npm run test:cov` e bloqueia o commit se os testes falharem ou a coverage cair abaixo de 80%. Detalhes na wiki: [/tests](/tests).
 
 ## Quickstart (Docker)
 
@@ -47,7 +64,7 @@ O `Dockerfile` é multi-stage (deps → build → runner) e faz `HEALTHCHECK` em
 
 ## Desenvolvimento local (sem Docker da API)
 
-1. Copie `.env.example` para `.env` e ajuste as variáveis (`API_VERSION`, Graylog: `GRAYLOG_*`).
+1. Copie `.env.example` para `.env` e ajuste as variáveis (`API_VERSION`, Graylog: `GRAYLOG_*`, OAuth social se for usar).
 2. Suba as dependências (ou use o Compose só dos serviços de infra).
 3. `npm install && npm run start:dev`
 
@@ -56,5 +73,25 @@ Guia completo de instalação: wiki em [/backend/install](/backend/install) (ap�
 ## Documentação
 
 - Swagger: `/swagger`
-- Wiki embutida: `/` (visão geral, arquitetura, guia backend, auth)
+- Wiki embutida: `/` (visão geral, arquitetura, guia backend, auth JWT, login social, testes)
 - Rotas REST: `/api/{API_VERSION}/...` (default `v1`)
+
+## Como contribuir
+
+Contribuições são bem-vindas. Fluxo sugerido:
+
+1. Faça um fork do repositório e clone o seu fork.
+2. Crie uma branch a partir de `main` (`git checkout -b feature/minha-mudanca`).
+3. Configure o ambiente (`npm install`; `.env` a partir de `.env.example`).
+4. Implemente a mudança seguindo os padrões do projeto (módulos NestJS, DTOs, repositories).
+5. Inclua testes unitários (`*.spec.ts`) para o código novo ou alterado.
+6. Rode `npm run test:cov` e garanta que a suíte passa e a coverage global permanece ≥ 80%.
+7. Abra um Pull Request descrevendo o problema, a solução e como testar.
+
+O pre-commit (Husky) roda `npm run test:cov` automaticamente; commits com testes falhando ou coverage abaixo do limiar serão rejeitados. Guia completo: [/tests](/tests).
+
+Ao contribuir, você concorda que o código será distribuído sob a [GPL-3.0](./LICENSE).
+
+## Licença
+
+Este projeto está sob a [GNU General Public License v3.0](./LICENSE) (GPL-3.0).
