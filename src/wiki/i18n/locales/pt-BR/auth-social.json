@@ -7,7 +7,7 @@
     "hero": {
       "titlePrefix": "Autenticação",
       "titleHighlight": "Social",
-      "subtitle": "Como conectar login Google ou Facebook no seu app — um fluxo único de Code Exchange para web e mobile."
+      "subtitle": "Como conectar login Google, Facebook ou X / Twitter no seu app — um fluxo único de Code Exchange para web e mobile."
     },
     "howItWorks": {
       "title": "Como funciona",
@@ -22,12 +22,13 @@
     },
     "enable": {
       "title": "Ativar um provedor",
-      "description": "Cada provedor vem <strong>desligado por padrão</strong>. Ative no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code>, crie o app OAuth no IdP e aponte o callback para esta API.",
+      "description": "Cada provedor vem <strong>desligado por padrão</strong>. Ative no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> (carregado por <code class=\"px-1 py-0.5 bg-gray-100 rounded\">google-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">facebook-oauth.config.ts</code> e <code class=\"px-1 py-0.5 bg-gray-100 rounded\">twitter-oauth.config.ts</code> em <code class=\"px-1 py-0.5 bg-gray-100 rounded\">src/config/</code>), crie o app OAuth no IdP e aponte o callback para esta API.",
       "items": [
-        "Defina a feature flag do provedor como true (ex.: GOOGLE_AUTH_ENABLED ou FACEBOOK_AUTH_ENABLED)",
+        "Defina a feature flag do provedor como true (ex.: GOOGLE_AUTH_ENABLED, FACEBOOK_AUTH_ENABLED ou TWITTER_AUTH_ENABLED)",
         "Preencha as credenciais e o CALLBACK_URL (caminho da API Nest, não da SPA)",
         "Liste as URLs pós-login permitidas no REDIRECT_ALLOWLIST do provedor (origem web e/ou deep link mobile)",
         "Opcionalmente defina *_OAUTH_DEFAULT_ROLES (valores de Role separados por vírgula) para usuários novos",
+        "Os valores ficam disponíveis via ConfigService nos namespaces googleOAuth, facebookOAuth e twitterOAuth",
         "Siga a página do provedor abaixo para passos no console e nomes das variáveis"
       ]
     },
@@ -53,6 +54,11 @@
         "title": "Facebook",
         "description": "App Meta + Facebook Login, env vars, endpoints e amostras web/mobile.",
         "cta": "Guia Facebook →"
+      },
+      "twitter": {
+        "title": "X / Twitter",
+        "description": "X Developer Portal OAuth 2.0 + PKCE, env vars, endpoints e amostras web/mobile.",
+        "cta": "Guia X / Twitter →"
       }
     },
     "security": {
@@ -68,7 +74,8 @@
       "title": "Veja também",
       "authJwt": "Auth & JWT — login com senha, refresh, roles e guards",
       "google": "Guia de setup Google OAuth2",
-      "facebook": "Guia de setup Facebook OAuth2"
+      "facebook": "Guia de setup Facebook OAuth2",
+      "twitter": "Guia de setup X / Twitter OAuth2"
     },
     "samples": {
       "step1": "// 1) Inicie o OAuth (browser ou browser in-app)",

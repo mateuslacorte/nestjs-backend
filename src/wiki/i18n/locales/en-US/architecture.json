@@ -29,7 +29,13 @@
       },
       "authentication": {
         "title": "Authentication",
-        "items": ["JWT (Passport)", "Bcrypt"]
+        "items": [
+          "JWT (Passport)",
+          "Argon2id",
+          "Google",
+          "Facebook",
+          "X / Twitter"
+        ]
       },
       "services": {
         "title": "Services",
@@ -52,7 +58,10 @@
           "redis": "<code class=\"px-2 py-1 bg-gray-100 rounded\">redis.config.ts</code> - Redis cache",
           "kafka": "<code class=\"px-2 py-1 bg-gray-100 rounded\">kafka.config.ts</code> - Kafka messaging",
           "jwt": "<code class=\"px-2 py-1 bg-gray-100 rounded\">jwt.config.ts</code> - JWT authentication",
-          "bcrypt": "<code class=\"px-2 py-1 bg-gray-100 rounded\">bcrypt.config.ts</code> - Password hashing",
+          "argon2": "<code class=\"px-2 py-1 bg-gray-100 rounded\">argon2.config.ts</code> - Password hashing",
+          "googleOAuth": "<code class=\"px-2 py-1 bg-gray-100 rounded\">google-oauth.config.ts</code> - Google OAuth2",
+          "facebookOAuth": "<code class=\"px-2 py-1 bg-gray-100 rounded\">facebook-oauth.config.ts</code> - Facebook OAuth2",
+          "twitterOAuth": "<code class=\"px-2 py-1 bg-gray-100 rounded\">twitter-oauth.config.ts</code> - X / Twitter OAuth2 (PKCE)",
           "smtp": "<code class=\"px-2 py-1 bg-gray-100 rounded\">smtp.config.ts</code> - SMTP email",
           "minio": "<code class=\"px-2 py-1 bg-gray-100 rounded\">minio.config.ts</code> - MinIO storage",
           "graylog": "<code class=\"px-2 py-1 bg-gray-100 rounded\">graylog.config.ts</code> - Graylog logging (GELF)",

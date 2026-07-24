@@ -1,6 +1,6 @@
 # Backend NestJS
 
-Template NestJS com REST + GraphQL, autenticação JWT e login social (Google / Facebook), cache Redis, Kafka, MinIO, email (SMTP/MailHog) e logging estruturado via **Graylog** (GELF).
+Template NestJS com REST + GraphQL, autenticação JWT e login social (Google / Facebook / X Twitter), cache Redis, Kafka, MinIO, email (SMTP/MailHog) e logging estruturado via **Graylog** (GELF).
 
 ## Stack
 
@@ -19,8 +19,8 @@ O acesso a dados usa **Repository pattern**. Hoje o `UsersService` lê e escreve
 ## Autenticação
 
 - JWT (login/registro, refresh, roles e guards)
-- Login social via OAuth2 (Google e Facebook) com fluxo de *code exchange*
-- Guias na wiki: [/auth](/auth), [/auth/social](/auth/social), [/auth/social/google](/auth/social/google), [/auth/social/facebook](/auth/social/facebook)
+- Login social via OAuth2 (Google, Facebook e X / Twitter) com fluxo de *code exchange* (PKCE no Twitter)
+- Guias na wiki: [/auth](/auth), [/auth/social](/auth/social), [/auth/social/google](/auth/social/google), [/auth/social/facebook](/auth/social/facebook), [/auth/social/twitter](/auth/social/twitter)
 
 ## Testes e coverage
 

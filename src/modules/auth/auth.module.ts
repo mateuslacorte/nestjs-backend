@@ -9,6 +9,8 @@ import { GoogleStrategy } from './strategies/google.strategy';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { FacebookStrategy } from './strategies/facebook.strategy';
 import { FacebookAuthGuard } from './guards/facebook-auth.guard';
+import { TwitterStrategy } from './strategies/twitter.strategy';
+import { TwitterAuthGuard } from './guards/twitter-auth.guard';
 import { OauthExchangeService } from './services/oauth-exchange.service';
 import { SessionSerializer } from './session.serializer';
 import { ConfigService } from '@nestjs/config';
@@ -38,12 +40,17 @@ import { EmailModule } from '@modules/email/email.module';
         GoogleAuthGuard,
         FacebookStrategy,
         FacebookAuthGuard,
+        TwitterStrategy,
+        TwitterAuthGuard,
         OauthExchangeService,
         SessionSerializer,
         {
-            provide: 'BCRYPT_SALT_ROUNDS',
-            useFactory: (configService: ConfigService) =>
-                configService.get<number>('bcrypt.saltRounds'),
+            provide: 'ARGON2_OPTIONS',
+            useFactory: (configService: ConfigService) => ({
+                memoryCost: configService.get<number>('argon2.memoryCost'),
+                timeCost: configService.get<number>('argon2.timeCost'),
+                parallelism: configService.get<number>('argon2.parallelism'),
+            }),
             inject: [ConfigService],
         },
     ],

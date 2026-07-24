@@ -60,7 +60,16 @@ describe('CreateUserDto', () => {
     expect(errors).toHaveLength(0);
   });
 
-  it('requires password when neither googleId nor facebookId is set', async () => {
+  it('accepts OAuth user with twitterId and no password', async () => {
+    const { password: _password, ...withoutPassword } = validBase;
+    const errors = await validateDto({
+      ...withoutPassword,
+      twitterId: '2244994945',
+    });
+    expect(errors).toHaveLength(0);
+  });
+
+  it('requires password when neither googleId, facebookId, nor twitterId is set', async () => {
     const { password: _password, ...withoutPassword } = validBase;
     const errors = await validateDto(withoutPassword);
     expect(messages(errors, 'password')).toEqual(

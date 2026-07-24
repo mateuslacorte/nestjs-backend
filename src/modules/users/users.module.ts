@@ -24,8 +24,12 @@ import {JwtAuthGuard} from "@modules/auth/guards/jwtauth.guard";
     UserMongoRepository,
     UserPostgresRepository,
     {
-      provide: 'BCRYPT_SALT_ROUNDS',
-      useFactory: (configService: ConfigService) => configService.get<number>('bcrypt.saltRounds'),
+      provide: 'ARGON2_OPTIONS',
+      useFactory: (configService: ConfigService) => ({
+        memoryCost: configService.get<number>('argon2.memoryCost'),
+        timeCost: configService.get<number>('argon2.timeCost'),
+        parallelism: configService.get<number>('argon2.parallelism'),
+      }),
       inject: [ConfigService],
   },
     {

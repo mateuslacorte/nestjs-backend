@@ -3,16 +3,17 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
 import { Role } from '@modules/auth/enums/role.enum';
 import { UserPostgresRepository } from './postgres.repository';
 import { UserEntity } from '../entities/user.entity';
 import { CacheService } from '@common/cache/cache.service';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { IUser } from '../interfaces/user.interface';
+import { hashPassword, isPasswordHashed } from '@common/crypto/password.util';
 
-jest.mock('bcrypt', () => ({
-  hash: jest.fn(),
+jest.mock('@common/crypto/password.util', () => ({
+  hashPassword: jest.fn(),
+  isPasswordHashed: jest.fn((value: string) => value.startsWith('$argon2')),
 }));
 
 type MockRepo = {
@@ -30,11 +31,12 @@ function createEntity(overrides: Partial<UserEntity> = {}): UserEntity {
     firstName: 'Jane',
     lastName: 'Smith',
     email: 'jane@example.com',
-    password: '$2b$10$hashedpasswordvaluehere',
+    password: '$argon2id$v=19$m=19456,t=2,p=1$hashedpasswordvaluehere',
     isActive: true,
     roles: [Role.USER],
     googleId: null,
     facebookId: null,
+    twitterId: null,
     ...overrides,
   } as UserEntity;
 }
@@ -49,11 +51,11 @@ describe('UserPostgresRepository', () => {
   let repository: UserPostgresRepository;
   let warnSpy: jest.SpyInstance;
   let logSpy: jest.SpyInstance;
-  const bcryptHash = bcrypt.hash as jest.Mock;
+  const hashPasswordMock = hashPassword as jest.Mock;
+  const isPasswordHashedMock = isPasswordHashed as jest.Mock;
 
   beforeEach(() => {
-    process.env.BCRYPT_HASH_FACTOR = '10';
-    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+        warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
     logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
 
     typeOrmRepo = {
@@ -68,7 +70,8 @@ describe('UserPostgresRepository', () => {
       set: jest.fn().mockResolvedValue(undefined),
       delPattern: jest.fn().mockResolvedValue(undefined),
     };
-    bcryptHash.mockResolvedValue('$2b$10$hashedpasswordvaluehere');
+    hashPasswordMock.mockResolvedValue('$argon2id$v=19$m=19456,t=2,p=1$hashedpasswordvaluehere');
+    isPasswordHashedMock.mockImplementation((value: string) => value.startsWith('$argon2'));
 
     repository = new UserPostgresRepository(
       typeOrmRepo as unknown as Repository<UserEntity>,
@@ -79,8 +82,7 @@ describe('UserPostgresRepository', () => {
   afterEach(() => {
     warnSpy.mockRestore();
     logSpy.mockRestore();
-    delete process.env.BCRYPT_HASH_FACTOR;
-  });
+      });
 
   describe('create', () => {
     const dto: CreateUserDto = {
@@ -102,12 +104,13 @@ describe('UserPostgresRepository', () => {
       expect(typeOrmRepo.findOne).toHaveBeenCalledWith({
         where: [{ email: dto.email }, { username: dto.username }],
       });
-      expect(bcryptHash).toHaveBeenCalledWith('Str0ng!P@ssw0rd', 10);
+      expect(hashPasswordMock).toHaveBeenCalledWith('Str0ng!P@ssw0rd');
       expect(typeOrmRepo.create).toHaveBeenCalledWith({
         ...dto,
-        password: '$2b$10$hashedpasswordvaluehere',
+        password: '$argon2id$v=19$m=19456,t=2,p=1$hashedpasswordvaluehere',
         googleId: null,
         facebookId: null,
+        twitterId: null,
         isActive: true,
         roles: [],
       });
@@ -124,7 +127,7 @@ describe('UserPostgresRepository', () => {
 
       const result = await repository.create(dto, true);
 
-      expect(result.password).toBe('$2b$10$hashedpasswordvaluehere');
+      expect(result.password).toBe('$argon2id$v=19$m=19456,t=2,p=1$hashedpasswordvaluehere');
     });
 
     it('stores null password for OAuth-only users', async () => {
@@ -142,12 +145,13 @@ describe('UserPostgresRepository', () => {
 
       await repository.create(oauthDto);
 
-      expect(bcryptHash).not.toHaveBeenCalled();
+      expect(hashPasswordMock).not.toHaveBeenCalled();
       expect(typeOrmRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
           password: null,
           googleId: 'g-1',
           facebookId: null,
+          twitterId: null,
         }),
       );
     });
@@ -202,6 +206,16 @@ describe('UserPostgresRepository', () => {
       await expect(
         repository.create({ ...dto, facebookId: 'fb-1' }),
       ).rejects.toThrow('User with this Facebook account already exists');
+    });
+
+    it('throws ConflictException when twitterId already exists', async () => {
+      typeOrmRepo.findOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(createEntity({ twitterId: 'tw-1' }));
+
+      await expect(
+        repository.create({ ...dto, twitterId: 'tw-1' }),
+      ).rejects.toThrow('User with this Twitter account already exists');
     });
 
     it('works without CacheService', async () => {
@@ -261,7 +275,7 @@ describe('UserPostgresRepository', () => {
 
       const result = await repository.findById('user-1', true);
 
-      expect(result?.password).toBe('$2b$10$hashedpasswordvaluehere');
+      expect(result?.password).toBe('$argon2id$v=19$m=19456,t=2,p=1$hashedpasswordvaluehere');
     });
   });
 
@@ -283,7 +297,7 @@ describe('UserPostgresRepository', () => {
         repository.findByEmail('jane@example.com', true),
       ).resolves.toHaveProperty(
         'password',
-        '$2b$10$hashedpasswordvaluehere',
+        '$argon2id$v=19$m=19456,t=2,p=1$hashedpasswordvaluehere',
       );
     });
   });
@@ -300,7 +314,7 @@ describe('UserPostgresRepository', () => {
     });
   });
 
-  describe('findByGoogleId / findByFacebookId', () => {
+  describe('findByGoogleId / findByFacebookId / findByTwitterId', () => {
     it('finds by googleId with optional password', async () => {
       typeOrmRepo.findOne.mockResolvedValue(createEntity({ googleId: 'g-1' }));
 
@@ -336,6 +350,22 @@ describe('UserPostgresRepository', () => {
 
       typeOrmRepo.findOne.mockResolvedValue(null);
       await expect(repository.findByFacebookId('fb-x')).resolves.toBeNull();
+    });
+
+    it('finds by twitterId with optional password', async () => {
+      typeOrmRepo.findOne.mockResolvedValue(
+        createEntity({ twitterId: 'tw-1' }),
+      );
+
+      await expect(
+        repository.findByTwitterId('tw-1'),
+      ).resolves.not.toHaveProperty('password');
+      expect(typeOrmRepo.findOne).toHaveBeenCalledWith({
+        where: { twitterId: 'tw-1' },
+      });
+
+      typeOrmRepo.findOne.mockResolvedValue(null);
+      await expect(repository.findByTwitterId('tw-x')).resolves.toBeNull();
     });
   });
 
@@ -388,7 +418,7 @@ describe('UserPostgresRepository', () => {
         password: 'Str0ng!P@ssw0rd',
       });
 
-      expect(bcryptHash).toHaveBeenCalledWith('Str0ng!P@ssw0rd', 10);
+      expect(hashPasswordMock).toHaveBeenCalledWith('Str0ng!P@ssw0rd');
       expect(cacheService.delPattern).toHaveBeenCalledWith('users:*');
       expect(result).not.toHaveProperty('password');
     });
@@ -397,11 +427,11 @@ describe('UserPostgresRepository', () => {
       const entity = createEntity();
       typeOrmRepo.findOne.mockResolvedValue(entity);
       typeOrmRepo.save.mockImplementation(async (user) => user);
-      const hashed = '$2a$10$abcdefghijklmnopqrstuv';
+      const hashed = '$argon2id$v=19$m=19456,t=2,p=1$alreadyhashedvaluehere';
 
       await repository.update('user-1', { password: hashed });
 
-      expect(bcryptHash).not.toHaveBeenCalled();
+      expect(hashPasswordMock).not.toHaveBeenCalled();
       expect(entity.password).toBe(hashed);
     });
 
@@ -446,7 +476,7 @@ describe('UserPostgresRepository', () => {
         false,
       );
 
-      expect(result.password).toBe('$2b$10$hashedpasswordvaluehere');
+      expect(result.password).toBe('$argon2id$v=19$m=19456,t=2,p=1$hashedpasswordvaluehere');
     });
   });
 

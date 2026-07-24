@@ -92,6 +92,10 @@ export const WIKI_SEO = {
             description:
                 'Facebook OAuth2 Code Exchange guide for the NestJS Boilerplate — Meta app setup, API endpoints, and web/mobile frontend examples.',
         },
+        'auth-social-twitter': {
+            description:
+                'X / Twitter OAuth2 Code Exchange guide for the NestJS Boilerplate — Developer Portal setup, PKCE, API endpoints, and web/mobile frontend examples.',
+        },
         users: {
             description:
                 'Users module in the NestJS Boilerplate — CRUD patterns, repository design, and CQRS-ready persistence for NestJS / Node.js APIs.',

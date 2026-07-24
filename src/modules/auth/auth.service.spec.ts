@@ -1,5 +1,5 @@
-jest.mock('bcrypt', () => ({
-  compare: jest.fn(),
+jest.mock('@common/crypto/password.util', () => ({
+  verifyPassword: jest.fn(),
 }));
 
 const mockRandomBytes = jest.fn((size: number) => Buffer.alloc(size, 0xab));
@@ -12,7 +12,7 @@ jest.mock('crypto', () => {
   };
 });
 
-import * as bcrypt from 'bcrypt';
+import { verifyPassword } from '@common/crypto/password.util';
 import {
   BadRequestException,
   ConflictException,
@@ -32,6 +32,7 @@ import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
 import { GoogleProfilePayload } from './strategies/google.strategy';
 import { FacebookProfilePayload } from './strategies/facebook.strategy';
+import { TwitterProfilePayload } from './strategies/twitter.strategy';
 
 function createUser(overrides: Partial<IUser> = {}): IUser {
   return {
@@ -71,6 +72,12 @@ const defaultConfig: Record<string, unknown> = {
     'https://app.example/',
   ],
   'facebookOAuth.defaultRoles': [Role.USER],
+  'twitterOAuth.enabled': true,
+  'twitterOAuth.redirectAllowlist': [
+    'https://app.example/cb',
+    'https://app.example/',
+  ],
+  'twitterOAuth.defaultRoles': [Role.USER],
 };
 
 describe('AuthService', () => {
@@ -82,6 +89,7 @@ describe('AuthService', () => {
     findByUsername: jest.Mock;
     findByGoogleId: jest.Mock;
     findByFacebookId: jest.Mock;
+    findByTwitterId: jest.Mock;
     findByEmailVerificationToken: jest.Mock;
     findByPasswordToken: jest.Mock;
     update: jest.Mock;
@@ -107,6 +115,7 @@ describe('AuthService', () => {
       findByUsername: jest.fn(),
       findByGoogleId: jest.fn(),
       findByFacebookId: jest.fn(),
+      findByTwitterId: jest.fn(),
       findByEmailVerificationToken: jest.fn(),
       findByPasswordToken: jest.fn(),
       update: jest.fn(),
@@ -342,7 +351,7 @@ describe('AuthService', () => {
 
     it('returns null when password is invalid', async () => {
       usersService.findByEmail.mockResolvedValue(createUser());
-      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+      (verifyPassword as jest.Mock).mockResolvedValue(false);
 
       await expect(
         service.validateUser('jane@example.com', 'wrong'),
@@ -353,7 +362,7 @@ describe('AuthService', () => {
       usersService.findByEmail.mockResolvedValue(
         createUser({ isActive: false }),
       );
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      (verifyPassword as jest.Mock).mockResolvedValue(true);
 
       await expect(
         service.validateUser('jane@example.com', 'pass'),
@@ -366,7 +375,7 @@ describe('AuthService', () => {
 
     it('returns user without password on success', async () => {
       usersService.findByEmail.mockResolvedValue(createUser());
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      (verifyPassword as jest.Mock).mockResolvedValue(true);
 
       const result = await service.validateUser('jane@example.com', 'pass');
 
@@ -391,7 +400,7 @@ describe('AuthService', () => {
 
     it('returns sanitized user and tokens on success', async () => {
       usersService.findByEmail.mockResolvedValue(createUser());
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      (verifyPassword as jest.Mock).mockResolvedValue(true);
 
       const result = await service.login(loginDto);
 
@@ -622,7 +631,7 @@ describe('AuthService', () => {
 
     it('throws 400 when current password is incorrect', async () => {
       usersService.findById.mockResolvedValue(createUser());
-      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+      (verifyPassword as jest.Mock).mockResolvedValue(false);
 
       await expect(
         service.changePassword('user-1', changeDto),
@@ -633,7 +642,7 @@ describe('AuthService', () => {
 
     it('updates password on success', async () => {
       usersService.findById.mockResolvedValue(createUser());
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      (verifyPassword as jest.Mock).mockResolvedValue(true);
       usersService.updatePassword.mockResolvedValue(createUser());
 
       await expect(
@@ -882,10 +891,98 @@ describe('AuthService', () => {
     });
   });
 
+  describe('completeTwitterOAuth', () => {
+    const profile: TwitterProfilePayload = {
+      twitterId: 'tw-1',
+      email: 'tw@example.com',
+      firstName: 'Twit',
+      lastName: 'Ter',
+    };
+    const state = encodeOAuthState('https://app.example/cb');
+
+    it('throws 503 when Twitter auth is disabled', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'twitterOAuth.enabled') return false;
+        return defaultConfig[key];
+      });
+
+      await expect(
+        service.completeTwitterOAuth(profile, state),
+      ).rejects.toThrow(
+        new ServiceUnavailableException('Twitter authentication is disabled'),
+      );
+    });
+
+    it('returns redirect URL for existing twitter user', async () => {
+      usersService.findByTwitterId.mockResolvedValue(
+        createUser({ twitterId: 'tw-1' }),
+      );
+
+      const result = await service.completeTwitterOAuth(profile, state);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?code=exchange-code-123',
+      );
+    });
+
+    it('reactivates inactive twitter user', async () => {
+      usersService.findByTwitterId.mockResolvedValue(
+        createUser({ twitterId: 'tw-1', isActive: false }),
+      );
+      usersService.update.mockResolvedValue(createUser({ isActive: true }));
+
+      await service.completeTwitterOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        isActive: true,
+      });
+    });
+
+    it('links twitter id to existing email user', async () => {
+      const byEmail = createUser({ email: profile.email });
+      usersService.findByTwitterId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(byEmail);
+      usersService.update.mockResolvedValue({
+        ...byEmail,
+        twitterId: profile.twitterId,
+      });
+
+      await service.completeTwitterOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        twitterId: 'tw-1',
+        isActive: true,
+      });
+    });
+
+    it('creates new user with dash lastName when empty', async () => {
+      usersService.findByTwitterId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(createUser());
+
+      await service.completeTwitterOAuth(
+        { ...profile, lastName: '' },
+        state,
+      );
+
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lastName: '-',
+          twitterId: 'tw-1',
+        }),
+      );
+    });
+  });
+
   describe('exchangeOAuthCode', () => {
     it('throws 503 when all social auth is disabled', async () => {
       configService.get.mockImplementation((key: string) => {
-        if (key === 'googleOAuth.enabled' || key === 'facebookOAuth.enabled') {
+        if (
+          key === 'googleOAuth.enabled' ||
+          key === 'facebookOAuth.enabled' ||
+          key === 'twitterOAuth.enabled'
+        ) {
           return false;
         }
         return defaultConfig[key];

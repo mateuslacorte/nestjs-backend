@@ -272,6 +272,8 @@ html(lang=htmlLang)
               span= t('nav.authSocialGoogle')
             a(href=wikiPath('/auth/social/facebook') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-facebook' ? 'active' : ''}`)
               span= t('nav.authSocialFacebook')
+            a(href=wikiPath('/auth/social/twitter') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-twitter' ? 'active' : ''}`)
+              span= t('nav.authSocialTwitter')
 
           .mb-6
             p(class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2")= t('nav.modulesGroup')

@@ -1,0 +1,131 @@
+{
+  "authSocialTwitter": {
+    "meta": {
+      "title": "X / Twitter OAuth2 - Backend NestJS"
+    },
+    "badge": "X / Twitter",
+    "hero": {
+      "titlePrefix": "X / Twitter",
+      "titleHighlight": "OAuth2",
+      "subtitle": "Authorization Code + PKCE Exchange para web e mobile — setup no X Developer Portal, referência da API e exemplos de frontend."
+    },
+    "overview": {
+      "title": "Visão geral",
+      "description": "O login X / Twitter é opcional e controlado por <code class=\"px-1 py-0.5 bg-amber-100 rounded\">TWITTER_AUTH_ENABLED</code>. Quando desligado, os endpoints Twitter respondem <strong>503 Service Unavailable</strong>. JWTs nunca vão na URL de redirect; a API emite um <code class=\"px-1 py-0.5 bg-gray-100 rounded\">exchangeCode</code> de uso único (Redis, 60 segundos). O mesmo <code class=\"px-1 py-0.5 bg-gray-100 rounded\">POST /auth/exchange</code> é compartilhado com Google e Facebook. O X exige <strong>PKCE</strong>, por isso a API usa session Express.",
+      "items": [
+        "Ativado por feature flag no ambiente",
+        "Passport Twitter OAuth2 (@superfaceai) + TwitterAuthGuard",
+        "PKCE com express-session",
+        "Allowlist de redirect evita open redirects",
+        "Mesmo formato de tokens do POST /auth/login"
+      ]
+    },
+    "console": {
+      "title": "X Developer Portal",
+      "description": "Crie um Project e App com OAuth 2.0, ative <strong>Request email from users</strong> e configure o Callback URI igual a <code class=\"px-1 py-0.5 bg-gray-100 rounded\">TWITTER_CALLBACK_URL</code>.",
+      "steps": [
+        "Abra developer.x.com → Projects & Apps → crie um Project e App",
+        "Em User authentication settings, habilite OAuth 2.0",
+        "Ative “Request email from users” (necessário para users.email / confirmed_email)",
+        "Defina Callback URI / Redirect URL (ex.: http://localhost:3000/api/v1/auth/twitter/callback)",
+        "Copie Client ID e Client Secret para o .env",
+        "Scopes usados por esta API: tweet.read, users.read, offline.access, users.email"
+      ]
+    },
+    "env": {
+      "title": "Variáveis de ambiente",
+      "description": "Carregadas do <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> via <code class=\"px-1 py-0.5 bg-gray-100 rounded\">src/config/twitter-oauth.config.ts</code> (namespace <code class=\"px-1 py-0.5 bg-gray-100 rounded\">twitterOAuth</code> no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">ConfigService</code>). Veja <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env.example</code>. Defina <code class=\"px-1 py-0.5 bg-amber-100 rounded\">SESSION_SECRET</code> (ou use <code class=\"px-1 py-0.5 bg-gray-100 rounded\">JWT_SECRET</code>) para as sessions do PKCE.",
+      "codeHeader": { "label": "Environment", "context": ".env" }
+    },
+    "roles": {
+      "title": "Roles padrão para novos usuários Twitter",
+      "description": "Novos usuários Twitter recebem <code class=\"px-1 py-0.5 bg-gray-100 rounded\">roles: []</code> por padrão (igual ao register). Defina <code class=\"px-1 py-0.5 bg-amber-100 rounded\">TWITTER_OAUTH_DEFAULT_ROLES</code> no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> como lista separada por vírgula (ex.: <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user</code> ou <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user,manager</code>). Usuários existentes vinculados por e-mail mantêm as roles atuais."
+    },
+    "flow": {
+      "title": "Sequência",
+      "items": [
+        "Cliente abre GET /api/v1/auth/twitter?redirect=<URL na allowlist>",
+        "Usuário consente no X; o browser chama GET /api/v1/auth/twitter/callback (PKCE via session)",
+        "API faz upsert do usuário, grava exchangeCode no Redis e redireciona para redirect?code=...",
+        "Cliente faz POST { code } em /api/v1/auth/exchange e recebe os JWTs"
+      ]
+    },
+    "api": {
+      "title": "Referência da API",
+      "start": {
+        "title": "1. Iniciar OAuth",
+        "description": "Abre o consentimento do X. O query <code class=\"px-1 py-0.5 bg-gray-100 rounded\">redirect</code> deve bater com um prefixo de <code class=\"px-1 py-0.5 bg-gray-100 rounded\">TWITTER_REDIRECT_ALLOWLIST</code> (ou omita para usar a primeira entrada).",
+        "codeHeader": { "label": "HTTP", "context": "GET /api/v1/auth/twitter" },
+        "errors": "400 redirect inválido · 503 recurso desligado"
+      },
+      "callback": {
+        "title": "2. Callback",
+        "description": "Tratado pela API. Redireciona para o app com <code class=\"px-1 py-0.5 bg-gray-100 rounded\">?code=</code> (ou <code class=\"px-1 py-0.5 bg-gray-100 rounded\">&code=</code> se a URL já tiver query).",
+        "codeHeader": { "label": "HTTP", "context": "GET /api/v1/auth/twitter/callback" }
+      },
+      "exchange": {
+        "title": "3. Trocar o código",
+        "description": "Endpoint público compartilhado com Google e Facebook. Consome o código (uso único) e devolve o mesmo formato do login.",
+        "requestHeader": { "label": "HTTP Request", "context": "POST /api/v1/auth/exchange" },
+        "responseHeader": { "label": "HTTP Response", "context": "200 OK" },
+        "errors": "401 código inválido/expirado/usado · 503 auth social desligada"
+      }
+    },
+    "web": {
+      "title": "Frontend — Web (SPA)",
+      "description": "Fluxo típico: botão inicia OAuth na mesma janela (ou popup); uma rota de callback no origin do frontend lê <code class=\"px-1 py-0.5 bg-gray-100 rounded\">code</code> da query e chama exchange.",
+      "startHeader": { "label": "JavaScript", "context": "Iniciar login X / Twitter" },
+      "callbackHeader": { "label": "JavaScript", "context": "Página de callback /auth/callback" },
+      "notes": [
+        "Adicione a URL de callback do frontend em TWITTER_REDIRECT_ALLOWLIST (ex.: http://localhost:5173/auth/callback)",
+        "TWITTER_CALLBACK_URL deve apontar para a API Nest, não para a SPA",
+        "Guarde accessToken / refreshToken com segurança (memória + cookie httpOnly, conforme o app)"
+      ]
+    },
+    "mobile": {
+      "title": "Frontend — Mobile (deep link)",
+      "description": "Use um scheme customizado (ou universal link) na allowlist. Após o X, a API redireciona para <code class=\"px-1 py-0.5 bg-gray-100 rounded\">myapp://success?code=...</code>. O app abre, lê o código e chama exchange.",
+      "openHeader": { "label": "React Native", "context": "Abrir OAuth no browser" },
+      "handleHeader": { "label": "React Native", "context": "Tratar deep link + exchange" },
+      "notes": [
+        "Registre o scheme no SO / Expo app.json",
+        "Prefira Linking.addEventListener('url', ...) e getInitialURL()",
+        "Faça o exchange via HTTPS contra a base URL da API"
+      ]
+    },
+    "security": {
+      "title": "Notas de segurança",
+      "items": [
+        "URLs de redirect devem bater com prefixos de TWITTER_REDIRECT_ALLOWLIST",
+        "Códigos de exchange são de uso único e expiram em 60 segundos (Redis)",
+        "O code_verifier do PKCE fica na cookie de session Express",
+        "Usuários locais existentes são vinculados pelo e-mail verificado do Twitter (twitterId; roles inalteradas)",
+        "Usuários só-Twitter têm password null — login/change-password com senha falham até haver senha",
+        "users.email + confirmed_email são obrigatórios; o login falha se o X não devolver e-mail"
+      ]
+    },
+    "userModel": {
+      "title": "Modelo de usuário",
+      "description": "Campos da entity/interface usados pelo login X / Twitter:",
+      "items": [
+        "twitterId — ID X / Twitter único e nullable",
+        "password — nullable para contas só OAuth",
+        "isActive — true para novos usuários Twitter",
+        "roles — de TWITTER_OAUTH_DEFAULT_ROLES no env (padrão [])"
+      ]
+    },
+    "related": {
+      "title": "Relacionados",
+      "social": "Hub de Autenticação Social",
+      "google": "Guia Google OAuth2",
+      "facebook": "Guia Facebook OAuth2",
+      "auth": "Auth & JWT"
+    },
+    "samples": {
+      "fullPageRedirect": "// Redirect de página inteira: Nest → X → de volta à SPA",
+      "spaCallback": "// /auth/callback na SPA",
+      "persistTokens": "// persista os tokens conforme o app",
+      "tokenFields": "// data.accessToken, data.refreshToken, data.user"
+    }
+  }
+}

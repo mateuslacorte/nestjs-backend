@@ -17,6 +17,7 @@ type MockPostgresRepo = {
   findByUsername: jest.Mock;
   findByGoogleId: jest.Mock;
   findByFacebookId: jest.Mock;
+  findByTwitterId: jest.Mock;
   findByEmailVerificationToken: jest.Mock;
   findByPasswordToken: jest.Mock;
   update: jest.Mock;
@@ -55,6 +56,7 @@ describe('UsersService', () => {
       findByUsername: jest.fn(),
       findByGoogleId: jest.fn(),
       findByFacebookId: jest.fn(),
+      findByTwitterId: jest.fn(),
       findByEmailVerificationToken: jest.fn(),
       findByPasswordToken: jest.fn(),
       update: jest.fn(),
@@ -87,6 +89,7 @@ describe('UsersService', () => {
         'findByUsername',
         'findByGoogleId',
         'findByFacebookId',
+        'findByTwitterId',
         'findByEmailVerificationToken',
         'findByPasswordToken',
       ] as const) {
@@ -198,6 +201,18 @@ describe('UsersService', () => {
     it('forwards includePassword=true', async () => {
       await service.findByFacebookId('fb-1', true);
       expect(postgresRepo.findByFacebookId).toHaveBeenCalledWith('fb-1', true);
+    });
+  });
+
+  describe('findByTwitterId', () => {
+    it('defaults includePassword to false', async () => {
+      await service.findByTwitterId('tw-1');
+      expect(postgresRepo.findByTwitterId).toHaveBeenCalledWith('tw-1', false);
+    });
+
+    it('forwards includePassword=true', async () => {
+      await service.findByTwitterId('tw-1', true);
+      expect(postgresRepo.findByTwitterId).toHaveBeenCalledWith('tw-1', true);
     });
   });
 

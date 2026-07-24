@@ -11,6 +11,8 @@ import { createCorsOriginDelegate } from '@config/cors-origins.util';
 import * as crypto from 'crypto';
 import { join } from 'path';
 import { existsSync } from 'fs';
+import session from 'express-session';
+import passport from 'passport';
 
 // Polyfill for crypto.randomUUID() in Node.js 18 (required by @nestjs/schedule)
 if (!globalThis.crypto) {
@@ -35,6 +37,7 @@ async function bootstrap() {
             { path: 'auth/social', method: RequestMethod.GET },
             { path: 'auth/social/google', method: RequestMethod.GET },
             { path: 'auth/social/facebook', method: RequestMethod.GET },
+            { path: 'auth/social/twitter', method: RequestMethod.GET },
             { path: 'email', method: RequestMethod.GET },
             { path: 'whatsapp', method: RequestMethod.GET },
             { path: 'websocket', method: RequestMethod.GET },
@@ -74,6 +77,31 @@ async function bootstrap() {
     // Wiki assets under /static; favicon/robots/manifest also at site root
     app.useStaticAssets(publicPath, { prefix: '/static' });
     app.useStaticAssets(publicPath);
+
+    // Session required for X/Twitter OAuth 2.0 PKCE (code_verifier)
+    const isProduction =
+        configService.get<string>('app.environment') === 'production';
+    const sessionSecret =
+        configService.get<string>('SESSION_SECRET') ||
+        process.env.SESSION_SECRET ||
+        configService.get<string>('jwt.secret') ||
+        process.env.JWT_SECRET ||
+        'dev-session-secret-change-me';
+    app.use(
+        session({
+            secret: sessionSecret,
+            resave: false,
+            saveUninitialized: false,
+            cookie: {
+                secure: isProduction,
+                httpOnly: true,
+                sameSite: 'lax',
+                maxAge: 10 * 60 * 1000,
+            },
+        }),
+    );
+    app.use(passport.initialize());
+    app.use(passport.session());
 
     const graylogLogger = app.get(GraylogLoggerService);
     app.useLogger(graylogLogger);

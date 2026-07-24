@@ -69,6 +69,10 @@ block content
         h3(class="font-semibold text-indigo-900 mb-2")= t('authSocial.providers.facebook.title')
         p(class="text-sm text-indigo-800 mb-3")= t('authSocial.providers.facebook.description')
         span(class="text-sm font-medium text-indigo-600")= t('authSocial.providers.facebook.cta')
+      a(href=wikiPath('/auth/social/twitter') class="block p-6 rounded-xl border border-indigo-200 bg-indigo-50 hover:border-indigo-400 transition-colors")
+        h3(class="font-semibold text-indigo-900 mb-2")= t('authSocial.providers.twitter.title')
+        p(class="text-sm text-indigo-800 mb-3")= t('authSocial.providers.twitter.description')
+        span(class="text-sm font-medium text-indigo-600")= t('authSocial.providers.twitter.cta')
 
   section.mb-12
     h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocial.security.title')
@@ -87,3 +91,5 @@ block content
           a(href=wikiPath('/auth/social/google') class="text-indigo-600 hover:underline font-medium")= t('authSocial.related.google')
         li
           a(href=wikiPath('/auth/social/facebook') class="text-indigo-600 hover:underline font-medium")= t('authSocial.related.facebook')
+        li
+          a(href=wikiPath('/auth/social/twitter') class="text-indigo-600 hover:underline font-medium")= t('authSocial.related.twitter')

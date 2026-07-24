@@ -578,8 +578,10 @@ block content
             JWT_REFRESH_EXPIRATION_TIME=7d
             JWT_JITTER_SECONDS=60
             
-            #{t('auth.samples.bcryptConfiguration')}
-            BCRYPT_HASH_FACTOR=12
+            #{t('auth.samples.argon2Configuration')}
+            ARGON2_MEMORY_COST=19456
+            ARGON2_TIME_COST=2
+            ARGON2_PARALLELISM=1
 
       .alert.alert-warning
         svg(class="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24")
@@ -603,3 +605,5 @@ block content
           = t('auth.googleOAuth.ctaGoogle')
         a(href=wikiPath('/auth/social/facebook') class="inline-flex items-center gap-1 px-4 py-2 rounded-lg border border-indigo-200 text-indigo-700 text-sm font-medium hover:bg-indigo-50")
           = t('auth.googleOAuth.ctaFacebook')
+        a(href=wikiPath('/auth/social/twitter') class="inline-flex items-center gap-1 px-4 py-2 rounded-lg border border-indigo-200 text-indigo-700 text-sm font-medium hover:bg-indigo-50")
+          = t('auth.googleOAuth.ctaTwitter')

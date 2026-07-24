@@ -56,7 +56,7 @@
         "username — único",
         "firstName, lastName",
         "email — único",
-        "password — hash bcrypt (não exposto no GraphQL)",
+        "password — hash Argon2id (não exposto no GraphQL)",
         "isActive — default true (registro Auth cria inativo)",
         "roles — Role[] (Postgres default []; Mongo default conforme o enum do projeto)",
         "passwordResetToken / passwordResetExpires",
@@ -99,7 +99,7 @@
       },
       "update": {
         "title": "Atualizar",
-        "description": "Atualização parcial. Re-hash de senha se enviada e ainda não for bcrypt.",
+        "description": "Atualização parcial. Re-hash de senha se enviada e ainda não for Argon2.",
         "codeHeader": { "label": "HTTP Request", "context": "PATCH" }
       },
       "delete": {
@@ -146,7 +146,7 @@
       "title": "Regras de negócio",
       "items": [
         "Email e username únicos (ConflictException)",
-        "Bcrypt com BCRYPT_HASH_FACTOR; não re-hash se o valor já for bcrypt",
+        "Argon2id com ARGON2_*; não re-hash se o valor já for Argon2",
         "Helpers: updateRoles, addRole, removeRole, replaceRole (tipados com Role)",
         "Cache @EnableCache / @CacheTTL(1800) em create, findAll, update, remove; @NoCache em finders pontuais"
       ]

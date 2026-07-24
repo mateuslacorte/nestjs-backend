@@ -12,6 +12,7 @@ export interface IUser {
     roles: Role[];
     googleId?: string | null;
     facebookId?: string | null;
+    twitterId?: string | null;
     passwordResetToken?: string;
     passwordResetExpires?: Date;
     emailVerificationToken?: string;

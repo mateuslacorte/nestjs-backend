@@ -32,10 +32,10 @@ export class CreateUserDto {
 
   @ApiPropertyOptional({
     example: 'Str0ng!P@ssword',
-    description: 'Password (required unless googleId or facebookId is set)',
+    description: 'Password (required unless googleId, facebookId, or twitterId is set)',
   })
   @Field(() => String, { nullable: true })
-  @ValidateIf((o: CreateUserDto) => !o.googleId && !o.facebookId)
+  @ValidateIf((o: CreateUserDto) => !o.googleId && !o.facebookId && !o.twitterId)
   @StrongPassword({message: 'Invalid password format'})
   @IsNotEmpty({message: 'Password is required'})
   password?: string;
@@ -57,6 +57,15 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   facebookId?: string;
+
+  @ApiPropertyOptional({
+    example: '2244994945',
+    description: 'X / Twitter subject ID for OAuth users',
+  })
+  @Field(() => String, { nullable: true })
+  @IsString()
+  @IsOptional()
+  twitterId?: string;
 
   @ApiPropertyOptional({ example: true, description: 'Whether the user account is active' })
   @Field({ nullable: true })

@@ -48,7 +48,7 @@
     },
     "env": {
       "title": "Variáveis de ambiente",
-      "description": "Documentadas em <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env.example</code>.",
+      "description": "Carregadas do <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> via <code class=\"px-1 py-0.5 bg-gray-100 rounded\">src/config/google-oauth.config.ts</code> (namespace <code class=\"px-1 py-0.5 bg-gray-100 rounded\">googleOAuth</code> no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">ConfigService</code>). Veja <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env.example</code>.",
       "codeHeader": { "label": "Environment", "context": ".env" }
     },
     "roles": {
@@ -130,6 +130,7 @@
       "title": "Relacionados",
       "social": "Hub de Autenticação Social",
       "facebook": "Guia Facebook OAuth2",
+      "twitter": "Guia X / Twitter OAuth2",
       "auth": "Auth & JWT"
     },
     "samples": {

@@ -3,16 +3,17 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Model } from 'mongoose';
-import * as bcrypt from 'bcrypt';
 import { Role } from '@modules/auth/enums/role.enum';
 import { UserMongoRepository } from './mongo.repository';
 import { User } from '../schemas/user.schema';
 import { CacheService } from '@common/cache/cache.service';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { IUser } from '../interfaces/user.interface';
+import { hashPassword, isPasswordHashed } from '@common/crypto/password.util';
 
-jest.mock('bcrypt', () => ({
-  hash: jest.fn(),
+jest.mock('@common/crypto/password.util', () => ({
+  hashPassword: jest.fn(),
+  isPasswordHashed: jest.fn((value: string) => value.startsWith('$argon2')),
 }));
 
 jest.mock('uuid', () => ({
@@ -34,11 +35,12 @@ function createDoc(overrides: Record<string, unknown> = {}) {
     firstName: 'Jane',
     lastName: 'Smith',
     email: 'jane@example.com',
-    password: '$2b$10$hashedpasswordvaluehere',
+    password: '$argon2id$v=19$m=19456,t=2,p=1$hashedpasswordvaluehere',
     isActive: true,
     roles: [Role.USER],
     googleId: null,
     facebookId: null,
+    twitterId: null,
     ...overrides,
   };
 
@@ -59,11 +61,11 @@ describe('UserMongoRepository', () => {
   let repository: UserMongoRepository;
   let warnSpy: jest.SpyInstance;
   let logSpy: jest.SpyInstance;
-  const bcryptHash = bcrypt.hash as jest.Mock;
+  const hashPasswordMock = hashPassword as jest.Mock;
+  const isPasswordHashedMock = isPasswordHashed as jest.Mock;
 
   beforeEach(() => {
-    process.env.BCRYPT_HASH_FACTOR = '10';
-    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+        warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
     logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
 
     model = Object.assign(jest.fn(), {
@@ -79,7 +81,8 @@ describe('UserMongoRepository', () => {
       set: jest.fn().mockResolvedValue(undefined),
       delPattern: jest.fn().mockResolvedValue(undefined),
     };
-    bcryptHash.mockResolvedValue('$2b$10$hashedpasswordvaluehere');
+    hashPasswordMock.mockResolvedValue('$argon2id$v=19$m=19456,t=2,p=1$hashedpasswordvaluehere');
+    isPasswordHashedMock.mockImplementation((value: string) => value.startsWith('$argon2'));
 
     repository = new UserMongoRepository(
       model as unknown as Model<User>,
@@ -90,8 +93,7 @@ describe('UserMongoRepository', () => {
   afterEach(() => {
     warnSpy.mockRestore();
     logSpy.mockRestore();
-    delete process.env.BCRYPT_HASH_FACTOR;
-  });
+      });
 
   describe('create', () => {
     const dto: CreateUserDto = {
@@ -112,14 +114,15 @@ describe('UserMongoRepository', () => {
       expect(model.findOne).toHaveBeenCalledWith({
         $or: [{ email: dto.email }, { username: dto.username }],
       });
-      expect(bcryptHash).toHaveBeenCalledWith('Str0ng!P@ssw0rd', 10);
+      expect(hashPasswordMock).toHaveBeenCalledWith('Str0ng!P@ssw0rd');
       expect(model).toHaveBeenCalledWith({
         ...dto,
         _id: 'fixed-uuid',
         id: 'fixed-uuid',
-        password: '$2b$10$hashedpasswordvaluehere',
+        password: '$argon2id$v=19$m=19456,t=2,p=1$hashedpasswordvaluehere',
         googleId: null,
         facebookId: null,
+        twitterId: null,
       });
       expect(doc.save).toHaveBeenCalled();
       expect(cacheService.delPattern).toHaveBeenCalledWith('users:*');
@@ -133,7 +136,7 @@ describe('UserMongoRepository', () => {
 
       const result = await repository.create(dto, true);
 
-      expect(result.password).toBe('$2b$10$hashedpasswordvaluehere');
+      expect(result.password).toBe('$argon2id$v=19$m=19456,t=2,p=1$hashedpasswordvaluehere');
       expect(doc.toObject).toHaveBeenCalled();
     });
 
@@ -150,12 +153,13 @@ describe('UserMongoRepository', () => {
         googleId: 'g-1',
       });
 
-      expect(bcryptHash).not.toHaveBeenCalled();
+      expect(hashPasswordMock).not.toHaveBeenCalled();
       expect(model).toHaveBeenCalledWith(
         expect.objectContaining({
           password: null,
           googleId: 'g-1',
           facebookId: null,
+          twitterId: null,
         }),
       );
     });
@@ -233,12 +237,12 @@ describe('UserMongoRepository', () => {
         password: 'Str0ng!P@ssw0rd',
       });
 
-      expect(bcryptHash).toHaveBeenCalledWith('Str0ng!P@ssw0rd', 10);
+      expect(hashPasswordMock).toHaveBeenCalledWith('Str0ng!P@ssw0rd');
       expect(model.findByIdAndUpdate).toHaveBeenCalledWith(
         'fixed-uuid',
         expect.objectContaining({
           firstName: 'Janet',
-          password: '$2b$10$hashedpasswordvaluehere',
+          password: '$argon2id$v=19$m=19456,t=2,p=1$hashedpasswordvaluehere',
         }),
         { new: true },
       );
@@ -247,13 +251,13 @@ describe('UserMongoRepository', () => {
     });
 
     it('does not re-hash already hashed passwords', async () => {
-      const hashed = '$2b$12$alreadyhashedvaluexxxxxx';
+      const hashed = '$argon2id$v=19$m=19456,t=2,p=1$alreadyhashedvaluehere';
       model.findOne.mockResolvedValue(null);
       model.findByIdAndUpdate.mockResolvedValue(createDoc({ password: hashed }));
 
       await repository.update('fixed-uuid', { password: hashed });
 
-      expect(bcryptHash).not.toHaveBeenCalled();
+      expect(hashPasswordMock).not.toHaveBeenCalled();
       expect(model.findByIdAndUpdate).toHaveBeenCalledWith(
         'fixed-uuid',
         expect.objectContaining({ password: hashed }),
@@ -309,7 +313,7 @@ describe('UserMongoRepository', () => {
       );
 
       expect(updated.toObject).toHaveBeenCalled();
-      expect(result.password).toBe('$2b$10$hashedpasswordvaluehere');
+      expect(result.password).toBe('$argon2id$v=19$m=19456,t=2,p=1$hashedpasswordvaluehere');
     });
   });
 

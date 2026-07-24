@@ -6,7 +6,7 @@ import {IUser} from "@modules/users/interfaces/user.interface";
 import {EnableCache, NoCache} from "@common/cache/decorators/cache.decorator";
 import {CacheService} from "@common/cache/cache.service";
 import {CreateUserDto} from "../dtos/create-user.dto";
-import * as bcrypt from 'bcrypt';
+import { hashPassword, isPasswordHashed } from '@common/crypto/password.util';
 
 @Injectable()
 export class UserPostgresRepository {
@@ -25,7 +25,7 @@ export class UserPostgresRepository {
      */
     @EnableCache()
     async create(createUserDto: CreateUserDto, includePassword = false): Promise<IUser> {
-        const { username, email, password, googleId, facebookId } = createUserDto;
+        const { username, email, password, googleId, facebookId, twitterId } = createUserDto;
 
         const existingUser = await this.userRepository.findOne({
             where: [{ email }, { username }],
@@ -52,8 +52,17 @@ export class UserPostgresRepository {
             }
         }
 
+        if (twitterId) {
+            const existingTwitter = await this.userRepository.findOne({
+                where: { twitterId },
+            });
+            if (existingTwitter) {
+                throw new ConflictException('User with this Twitter account already exists');
+            }
+        }
+
         const hashedPassword = password
-            ? await bcrypt.hash(password, Number(process.env.BCRYPT_HASH_FACTOR))
+            ? await hashPassword(password)
             : null;
 
         const newUser = this.userRepository.create({
@@ -61,6 +70,7 @@ export class UserPostgresRepository {
             password: hashedPassword,
             googleId: googleId ?? null,
             facebookId: facebookId ?? null,
+            twitterId: twitterId ?? null,
             isActive: createUserDto.isActive ?? true,
             roles: createUserDto.roles ?? [],
         });
@@ -142,6 +152,18 @@ export class UserPostgresRepository {
     }
 
     /**
+     * Find a user by X / Twitter subject ID
+     */
+    @NoCache()
+    async findByTwitterId(twitterId: string, includePassword = false): Promise<IUser | null> {
+        const user = await this.userRepository.findOne({ where: { twitterId } });
+        if (!user) {
+            return null;
+        }
+        return includePassword ? user : this.omitPassword(user);
+    }
+
+    /**
      * Find a user by email verification token
      * @param token - The email verification token
      * @returns The user or null if not found
@@ -179,11 +201,8 @@ export class UserPostgresRepository {
             throw new NotFoundException(`User with ID ${id} not found`);
         }
 
-        if (updateUserDto.password && !this.isAlreadyHashed(updateUserDto.password)) {
-            updateUserDto.password = await bcrypt.hash(
-                updateUserDto.password,
-                Number(process.env.BCRYPT_HASH_FACTOR),
-            );
+        if (updateUserDto.password && !isPasswordHashed(updateUserDto.password)) {
+            updateUserDto.password = await hashPassword(updateUserDto.password);
         }
 
         if (updateUserDto.username || updateUserDto.email) {
@@ -266,9 +285,5 @@ export class UserPostgresRepository {
     private omitPassword(user: UserEntity): IUser {
         const { password, ...userWithoutPassword } = user;
         return userWithoutPassword as IUser;
-    }
-
-    private isAlreadyHashed(password: string): boolean {
-        return /^\$2[aby]\$\d+\$/.test(password);
     }
 }

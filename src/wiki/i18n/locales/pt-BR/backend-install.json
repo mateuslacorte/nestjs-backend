@@ -149,7 +149,7 @@
       "mongoPool": "# Mongo pool",
       "postgresPool": "# Postgres pool",
       "kafkaKRaft": "# Kafka (KRaft broker; sem Zookeeper)",
-      "bcrypt": "# Bcrypt",
+      "argon2": "# Argon2id",
       "adjustEnv": "# Ajuste .env para hosts localhost (ou portas publicadas do Compose)",
       "production": "# Produção (build local)",
       "mongodbDoc": "# Siga a doc oficial da versão 7.x para Ubuntu",

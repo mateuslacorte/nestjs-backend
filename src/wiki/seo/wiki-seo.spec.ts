@@ -44,6 +44,7 @@ describe('WIKI_SEO', () => {
         'auth-social',
         'auth-social-google',
         'auth-social-facebook',
+        'auth-social-twitter',
         'users',
         'email',
         'whatsapp',

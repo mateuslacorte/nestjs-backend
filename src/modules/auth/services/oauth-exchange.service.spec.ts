@@ -80,6 +80,26 @@ describe('OauthExchangeService', () => {
       );
     });
 
+    it('falls back to twitter OAuth TTL when google and facebook TTL are missing', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'googleOAuth.exchangeCodeTtlSeconds') return undefined;
+        if (key === 'facebookOAuth.exchangeCodeTtlSeconds') return undefined;
+        if (key === 'twitterOAuth.exchangeCodeTtlSeconds') return 75;
+        return undefined;
+      });
+
+      await service.createExchangeCode(userId);
+
+      expect(cacheService.set).toHaveBeenCalledWith(
+        `auth:oauth:exchange:${fixedCode}`,
+        { userId },
+        75,
+      );
+      expect(configService.get).toHaveBeenCalledWith(
+        'twitterOAuth.exchangeCodeTtlSeconds',
+      );
+    });
+
     it('falls back to 60 seconds when no TTL is configured', async () => {
       configService.get.mockReturnValue(undefined);
 

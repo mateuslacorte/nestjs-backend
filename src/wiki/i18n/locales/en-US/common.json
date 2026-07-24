@@ -15,6 +15,7 @@
     "authSocial": "Social Authentication",
     "authSocialGoogle": "Google",
     "authSocialFacebook": "Facebook",
+    "authSocialTwitter": "X / Twitter",
     "modulesGroup": "Modules",
     "users": "Users",
     "email": "Email",

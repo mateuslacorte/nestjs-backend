@@ -114,6 +114,13 @@ describe('WikiController', () => {
         page: 'auth-social-facebook',
       },
       {
+        method: 'getAuthSocialTwitter',
+        route: 'auth/social/twitter',
+        view: 'pages/auth-social-twitter',
+        namespace: 'authSocialTwitter',
+        page: 'auth-social-twitter',
+      },
+      {
         method: 'getEmail',
         route: 'email',
         view: 'pages/email',

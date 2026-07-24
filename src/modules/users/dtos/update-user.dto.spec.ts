@@ -36,6 +36,7 @@ describe('UpdateUserDto', () => {
       roles: [Role.USER, Role.ADMIN],
       googleId: 'g-1',
       facebookId: 'fb-1',
+      twitterId: 'tw-1',
       emailVerificationToken: 'tok',
       emailVerificationExpires: new Date('2026-12-31T23:59:59.000Z'),
     });
@@ -119,5 +120,10 @@ describe('UpdateUserDto', () => {
   it('rejects non-string facebookId', async () => {
     const errors = await validateDto({ facebookId: false });
     expect(errors.some((e) => e.property === 'facebookId')).toBe(true);
+  });
+
+  it('rejects non-string twitterId', async () => {
+    const errors = await validateDto({ twitterId: false });
+    expect(errors.some((e) => e.property === 'twitterId')).toBe(true);
   });
 });

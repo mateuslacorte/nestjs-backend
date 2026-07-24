@@ -38,6 +38,9 @@ export class User extends Document<string> {
   @Prop({ type: String, unique: true, sparse: true, default: null })
   facebookId?: string | null;
 
+  @Prop({ type: String, unique: true, sparse: true, default: null })
+  twitterId?: string | null;
+
   @Prop({type: String, default: null})
   passwordResetToken?: string;
 

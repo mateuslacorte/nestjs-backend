@@ -148,6 +148,22 @@ export class WikiController {
         );
     }
 
+    @Get('auth/social/twitter')
+    getAuthSocialTwitter(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/auth-social-twitter',
+            'authSocialTwitter',
+            'auth-social-twitter',
+        );
+    }
+
     // GET /users is registered in main.ts (Express) so it does not collide with
     // UsersController GET /api/{version}/users via setGlobalPrefix exclude.
 

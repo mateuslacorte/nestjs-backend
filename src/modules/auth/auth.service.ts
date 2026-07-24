@@ -1,7 +1,6 @@
 import { Injectable, BadRequestException, UnauthorizedException, NotFoundException, ConflictException, ServiceUnavailableException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
@@ -15,8 +14,10 @@ import { withJitter } from './utils/jwt-expiration.util';
 import { OauthExchangeService } from './services/oauth-exchange.service';
 import { GoogleProfilePayload } from './strategies/google.strategy';
 import { FacebookProfilePayload } from './strategies/facebook.strategy';
+import { TwitterProfilePayload } from './strategies/twitter.strategy';
 import { Role } from './enums/role.enum';
 import { ExchangeCodeDto } from './dtos/exchange-code.dto';
+import { verifyPassword } from '@common/crypto/password.util';
 
 @Injectable()
 export class AuthService {
@@ -178,7 +179,7 @@ export class AuthService {
             return null;
         }
 
-        const isPasswordValid = await bcrypt.compare(password, user.password);
+        const isPasswordValid = await verifyPassword(password, user.password);
         if (!isPasswordValid) {
             return null;
         }
@@ -342,7 +343,7 @@ export class AuthService {
                 'This account uses social login and has no local password',
             );
         }
-        const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+        const isCurrentPasswordValid = await verifyPassword(currentPassword, user.password);
         if (!isCurrentPasswordValid) {
             throw new BadRequestException('Current password is incorrect');
         }
@@ -409,7 +410,29 @@ export class AuthService {
     }
 
     /**
-     * Exchange a one-time OAuth code for JWT tokens (Google or Facebook).
+     * After X / Twitter OAuth callback: upsert user, create exchange code, build redirect URL.
+     */
+    async completeTwitterOAuth(
+        profile: TwitterProfilePayload,
+        state?: string,
+    ): Promise<{ redirectUrl: string }> {
+        this.assertTwitterAuthEnabled();
+
+        const redirectBase = this.parseAndValidateRedirectFromState(
+            state,
+            'twitterOAuth.redirectAllowlist',
+        );
+        const user = await this.findOrCreateTwitterUser(profile);
+        const code = await this.oauthExchangeService.createExchangeCode(user.id!);
+        const separator = redirectBase.includes('?') ? '&' : '?';
+
+        return {
+            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+        };
+    }
+
+    /**
+     * Exchange a one-time OAuth code for JWT tokens (Google, Facebook, or Twitter).
      */
     async exchangeOAuthCode(dto: ExchangeCodeDto): Promise<{
         user: Partial<IUser>;
@@ -453,10 +476,18 @@ export class AuthService {
         }
     }
 
+    private assertTwitterAuthEnabled(): void {
+        const enabled = this.configService.get<boolean>('twitterOAuth.enabled');
+        if (!enabled) {
+            throw new ServiceUnavailableException('Twitter authentication is disabled');
+        }
+    }
+
     private assertAnySocialAuthEnabled(): void {
         const google = this.configService.get<boolean>('googleOAuth.enabled');
         const facebook = this.configService.get<boolean>('facebookOAuth.enabled');
-        if (!google && !facebook) {
+        const twitter = this.configService.get<boolean>('twitterOAuth.enabled');
+        if (!google && !facebook && !twitter) {
             throw new ServiceUnavailableException('Social authentication is disabled');
         }
     }
@@ -557,6 +588,40 @@ export class AuthService {
             lastName: profile.lastName || '-',
             username,
             facebookId: profile.facebookId,
+            isActive: true,
+            roles: [...defaultRoles],
+        });
+    }
+
+    private async findOrCreateTwitterUser(
+        profile: TwitterProfilePayload,
+    ): Promise<IUser> {
+        const byTwitter = await this.usersService.findByTwitterId(profile.twitterId);
+        if (byTwitter) {
+            if (!byTwitter.isActive) {
+                return this.usersService.update(byTwitter.id!, { isActive: true });
+            }
+            return byTwitter;
+        }
+
+        const byEmail = await this.usersService.findByEmail(profile.email);
+        if (byEmail) {
+            return this.usersService.update(byEmail.id!, {
+                twitterId: profile.twitterId,
+                isActive: true,
+            });
+        }
+
+        const defaultRoles =
+            this.configService.get<Role[]>('twitterOAuth.defaultRoles') ?? [];
+        const username = await this.buildUniqueUsername(profile.email);
+
+        return this.usersService.create({
+            email: profile.email,
+            firstName: profile.firstName,
+            lastName: profile.lastName || '-',
+            username,
+            twitterId: profile.twitterId,
             isActive: true,
             roles: [...defaultRoles],
         });

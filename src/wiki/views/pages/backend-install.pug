@@ -158,8 +158,10 @@ block content
             #{t('backendInstall.samples.kafkaKRaft')}
             KAFKA_BROKERS=localhost:9092
 
-            #{t('backendInstall.samples.bcrypt')}
-            BCRYPT_HASH_FACTOR=12
+            #{t('backendInstall.samples.argon2')}
+            ARGON2_MEMORY_COST=19456
+            ARGON2_TIME_COST=2
+            ARGON2_PARALLELISM=1
 
       h3(class="font-semibold text-gray-900 mb-4")= t('backendInstall.projectSetup.connectionPools.title')
       p(class="text-gray-700 mb-2")

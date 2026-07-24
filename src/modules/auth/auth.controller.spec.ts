@@ -12,6 +12,7 @@ import { IS_PUBLIC_KEY } from './decorators/public.decorator';
 import { JwtAuthGuard } from './guards/jwtauth.guard';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { FacebookAuthGuard } from './guards/facebook-auth.guard';
+import { TwitterAuthGuard } from './guards/twitter-auth.guard';
 import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
 import { RefreshtokenDto } from './dtos/refreshtoken.dto';
@@ -21,6 +22,7 @@ import { ChangePasswordDto } from './dtos/change-password.dto';
 import { ExchangeCodeDto } from './dtos/exchange-code.dto';
 import { GoogleProfilePayload } from './strategies/google.strategy';
 import { FacebookProfilePayload } from './strategies/facebook.strategy';
+import { TwitterProfilePayload } from './strategies/twitter.strategy';
 import { Role } from './enums/role.enum';
 
 function encodeOAuthState(redirect: string): string {
@@ -35,6 +37,7 @@ describe('AuthController', () => {
     login: jest.Mock;
     completeGoogleOAuth: jest.Mock;
     completeFacebookOAuth: jest.Mock;
+    completeTwitterOAuth: jest.Mock;
     exchangeOAuthCode: jest.Mock;
     refreshToken: jest.Mock;
     createPasswordResetToken: jest.Mock;
@@ -54,6 +57,7 @@ describe('AuthController', () => {
       login: jest.fn(),
       completeGoogleOAuth: jest.fn(),
       completeFacebookOAuth: jest.fn(),
+      completeTwitterOAuth: jest.fn(),
       exchangeOAuthCode: jest.fn(),
       refreshToken: jest.fn(),
       createPasswordResetToken: jest.fn(),
@@ -80,6 +84,8 @@ describe('AuthController', () => {
       ['googleAuthCallback', RequestMethod.GET, 'google/callback'],
       ['facebookAuth', RequestMethod.GET, 'facebook'],
       ['facebookAuthCallback', RequestMethod.GET, 'facebook/callback'],
+      ['twitterAuth', RequestMethod.GET, 'twitter'],
+      ['twitterAuthCallback', RequestMethod.GET, 'twitter/callback'],
       ['exchangeCode', RequestMethod.POST, 'exchange'],
       ['verifyToken', RequestMethod.POST, 'verify-token'],
       ['refreshToken', RequestMethod.POST, 'refresh-token'],
@@ -112,6 +118,8 @@ describe('AuthController', () => {
       'googleAuthCallback',
       'facebookAuth',
       'facebookAuthCallback',
+      'twitterAuth',
+      'twitterAuthCallback',
       'exchangeCode',
       'refreshToken',
       'forgotPassword',
@@ -175,6 +183,15 @@ describe('AuthController', () => {
 
       expect(guards).toEqual(expect.arrayContaining([FacebookAuthGuard]));
     });
+
+    it('twitterAuth uses TwitterAuthGuard', () => {
+      const guards = Reflect.getMetadata(
+        GUARDS_METADATA,
+        AuthController.prototype.twitterAuth,
+      ) as unknown[];
+
+      expect(guards).toEqual(expect.arrayContaining([TwitterAuthGuard]));
+    });
   });
 
   describe('register', () => {
@@ -216,6 +233,10 @@ describe('AuthController', () => {
 
     it('facebookAuth is a no-op (guard handles redirect)', () => {
       expect(controller.facebookAuth()).toBeUndefined();
+    });
+
+    it('twitterAuth is a no-op (guard handles redirect)', () => {
+      expect(controller.twitterAuth()).toBeUndefined();
     });
   });
 
@@ -302,6 +323,37 @@ describe('AuthController', () => {
       );
       expect(res.redirect).toHaveBeenCalledWith(
         'https://app.example/cb?code=xyz',
+      );
+    });
+  });
+
+  describe('twitterAuthCallback', () => {
+    it('redirects using AuthService.completeTwitterOAuth result', async () => {
+      const profile: TwitterProfilePayload = {
+        twitterId: 'tw-1',
+        email: 'tw@example.com',
+        firstName: 'Twit',
+        lastName: 'Ter',
+      };
+      const state = encodeOAuthState('https://app.example/cb');
+      const req = {
+        user: profile,
+        query: { state },
+      } as unknown as Request;
+      const res = { redirect: jest.fn() } as unknown as Response;
+
+      authService.completeTwitterOAuth.mockResolvedValue({
+        redirectUrl: 'https://app.example/cb?code=tw',
+      });
+
+      await controller.twitterAuthCallback(req, res);
+
+      expect(authService.completeTwitterOAuth).toHaveBeenCalledWith(
+        profile,
+        state,
+      );
+      expect(res.redirect).toHaveBeenCalledWith(
+        'https://app.example/cb?code=tw',
       );
     });
   });

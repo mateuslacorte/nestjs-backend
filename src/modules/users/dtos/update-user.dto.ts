@@ -74,6 +74,14 @@ export class UpdateUserDto {
   facebookId?: string | null;
 
   @ApiPropertyOptional({
+    example: '2244994945',
+    description: 'X / Twitter subject ID for OAuth users',
+  })
+  @IsString()
+  @IsOptional()
+  twitterId?: string | null;
+
+  @ApiPropertyOptional({
     example: 'abc123def456...',
     description: 'Email verification token (internal/admin use)',
   })

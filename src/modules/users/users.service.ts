@@ -77,6 +77,14 @@ export class UsersService {
   }
 
   /**
+   * Find a user by X / Twitter subject ID
+   */
+  @NoCache()
+  async findByTwitterId(twitterId: string, includePassword = false): Promise<IUser | null> {
+    return this.postgresRepo.findByTwitterId(twitterId, includePassword);
+  }
+
+  /**
    * Find a user by email verification token
    * @param token - User's email verification token
    * @returns The user or null if not found

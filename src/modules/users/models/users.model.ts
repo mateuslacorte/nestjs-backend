@@ -28,6 +28,9 @@ export class UserModel implements IUser {
     @Field(() => String, { nullable: true })
     facebookId?: string | null;
 
+    @Field(() => String, { nullable: true })
+    twitterId?: string | null;
+
     @Field()
     isActive!: boolean;
 

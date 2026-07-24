@@ -1,13 +1,13 @@
 import { Injectable, NotFoundException, ConflictException, Optional } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import * as bcrypt from 'bcrypt';
 import { User } from '../schemas/user.schema';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { IUser } from '../interfaces/user.interface';
 import { v4 as uuidv4 } from 'uuid';
 import {EnableCache, CacheTTL} from "@common/cache/decorators/cache.decorator";
 import {CacheService} from "@common/cache/cache.service";
+import { hashPassword, isPasswordHashed } from '@common/crypto/password.util';
 
 @Injectable()
 export class UserMongoRepository {
@@ -27,7 +27,7 @@ export class UserMongoRepository {
      */
     @EnableCache()
     async create(createUserDto: CreateUserDto, includePassword = false): Promise<IUser> {
-        const { username, email, password, googleId, facebookId } = createUserDto;
+        const { username, email, password, googleId, facebookId, twitterId } = createUserDto;
         
         const existingUser = await this.userModel.findOne({ $or: [{ email }, { username }] });
         if (existingUser) {
@@ -35,7 +35,7 @@ export class UserMongoRepository {
         }
 
         const hashedPassword = password
-            ? await bcrypt.hash(password, Number(process.env.BCRYPT_HASH_FACTOR))
+            ? await hashPassword(password)
             : null;
         const userId = uuidv4();
 
@@ -46,6 +46,7 @@ export class UserMongoRepository {
             password: hashedPassword,
             googleId: googleId ?? null,
             facebookId: facebookId ?? null,
+            twitterId: twitterId ?? null,
         });
 
         await newUser.save();
@@ -86,11 +87,8 @@ export class UserMongoRepository {
      */
     @EnableCache()
     async update(id: string, updateUserDto: Partial<IUser>, shouldOmitPassword: boolean = true): Promise<IUser> {
-        if (updateUserDto.password && !this.isAlreadyHashed(updateUserDto.password)) {
-            updateUserDto.password = await bcrypt.hash(
-                updateUserDto.password,
-                Number(process.env.BCRYPT_HASH_FACTOR),
-            );
+        if (updateUserDto.password && !isPasswordHashed(updateUserDto.password)) {
+            updateUserDto.password = await hashPassword(updateUserDto.password);
         }
 
         if (updateUserDto.username || updateUserDto.email) {
@@ -138,9 +136,5 @@ export class UserMongoRepository {
         return {
             ...userWithoutPassword,
         } as IUser;
-    }
-
-    private isAlreadyHashed(password: string): boolean {
-        return /^\$2[aby]\$\d+\$/.test(password);
     }
 }

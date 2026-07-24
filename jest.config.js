@@ -32,6 +32,8 @@ module.exports = {
     'src/common/security/**/*.ts',
     '!src/common/security/**/*.spec.ts',
     '!src/common/security/**/*.interface.ts',
+    'src/common/crypto/**/*.ts',
+    '!src/common/crypto/**/*.spec.ts',
     'src/config/**/*.ts',
     '!src/config/**/*.spec.ts',
     'src/modules/whatsapp/**/*.ts',

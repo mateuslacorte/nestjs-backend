@@ -34,6 +34,9 @@ export class UserEntity implements IUser {
     @Column({ type: 'varchar', unique: true, nullable: true })
     facebookId?: string | null;
 
+    @Column({ type: 'varchar', unique: true, nullable: true })
+    twitterId?: string | null;
+
     @Column({ nullable: true })
     passwordResetToken?: string;
 

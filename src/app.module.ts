@@ -27,11 +27,12 @@ import whatsappConfig from './config/whatsapp.config';
 import minioConfig from './config/minio.config';
 import graylogConfig from './config/graylog.config';
 import graphqlConfig from './config/graphql.config';
-import bcryptConfig from './config/bcrypt.config';
+import argon2Config from './config/argon2.config';
 import jwtConfig from './config/jwt.config';
 import smtpConfig from './config/smtp.config';
 import googleOAuthConfig from './config/google-oauth.config';
 import facebookOAuthConfig from './config/facebook-oauth.config';
+import twitterOAuthConfig from './config/twitter-oauth.config';
 import corsConfig from './config/cors.config';
 import { createCorsOriginDelegate } from './config/cors-origins.util';
 import { WikiModule } from "./wiki/wiki.module";
@@ -54,11 +55,12 @@ import { HealthModule } from '@modules/health/health.module';
                 minioConfig,
                 graylogConfig,
                 graphqlConfig,
-                bcryptConfig,
+                argon2Config,
                 jwtConfig,
                 smtpConfig,
                 googleOAuthConfig,
                 facebookOAuthConfig,
+                twitterOAuthConfig,
                 corsConfig,
             ],
         }),

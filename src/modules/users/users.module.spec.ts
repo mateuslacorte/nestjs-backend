@@ -57,8 +57,8 @@ describe('UsersModule', () => {
     expect(imports).toHaveLength(2);
   });
 
-  describe('BCRYPT_SALT_ROUNDS provider', () => {
-    it('reads bcrypt.saltRounds from ConfigService', () => {
+  describe('ARGON2_OPTIONS provider', () => {
+    it('reads argon2 options from ConfigService', () => {
       const providers = Reflect.getMetadata(
         MODULE_METADATA.PROVIDERS,
         UsersModule,
@@ -68,19 +68,32 @@ describe('UsersModule', () => {
         inject?: unknown[];
       }>;
 
-      const bcryptProvider = providers.find(
-        (provider) => provider.provide === 'BCRYPT_SALT_ROUNDS',
+      const argon2Provider = providers.find(
+        (provider) => provider.provide === 'ARGON2_OPTIONS',
       );
 
-      expect(bcryptProvider).toBeDefined();
-      expect(bcryptProvider!.inject).toEqual([ConfigService]);
+      expect(argon2Provider).toBeDefined();
+      expect(argon2Provider!.inject).toEqual([ConfigService]);
 
       const configService = {
-        get: jest.fn().mockReturnValue(12),
+        get: jest.fn((key: string) => {
+          const values: Record<string, number> = {
+            'argon2.memoryCost': 19456,
+            'argon2.timeCost': 2,
+            'argon2.parallelism': 1,
+          };
+          return values[key];
+        }),
       } as unknown as ConfigService;
 
-      expect(bcryptProvider!.useFactory!(configService)).toBe(12);
-      expect(configService.get).toHaveBeenCalledWith('bcrypt.saltRounds');
+      expect(argon2Provider!.useFactory!(configService)).toEqual({
+        memoryCost: 19456,
+        timeCost: 2,
+        parallelism: 1,
+      });
+      expect(configService.get).toHaveBeenCalledWith('argon2.memoryCost');
+      expect(configService.get).toHaveBeenCalledWith('argon2.timeCost');
+      expect(configService.get).toHaveBeenCalledWith('argon2.parallelism');
     });
   });
 
@@ -113,8 +126,12 @@ describe('UsersModule', () => {
           useValue: {},
         },
         {
-          provide: 'BCRYPT_SALT_ROUNDS',
-          useValue: 10,
+          provide: 'ARGON2_OPTIONS',
+          useValue: {
+            memoryCost: 19456,
+            timeCost: 2,
+            parallelism: 1,
+          },
         },
       ],
     }).compile();

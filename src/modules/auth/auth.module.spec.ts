@@ -14,6 +14,8 @@ import { GoogleStrategy } from './strategies/google.strategy';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { FacebookStrategy } from './strategies/facebook.strategy';
 import { FacebookAuthGuard } from './guards/facebook-auth.guard';
+import { TwitterStrategy } from './strategies/twitter.strategy';
+import { TwitterAuthGuard } from './guards/twitter-auth.guard';
 import { OauthExchangeService } from './services/oauth-exchange.service';
 import { SessionSerializer } from './session.serializer';
 
@@ -78,9 +80,11 @@ describe('AuthModule', () => {
         GoogleAuthGuard,
         FacebookStrategy,
         FacebookAuthGuard,
+        TwitterStrategy,
+        TwitterAuthGuard,
         OauthExchangeService,
         SessionSerializer,
-        expect.objectContaining({ provide: 'BCRYPT_SALT_ROUNDS' }),
+        expect.objectContaining({ provide: 'ARGON2_OPTIONS' }),
       ]),
     );
   });
@@ -97,8 +101,8 @@ describe('AuthModule', () => {
     );
   });
 
-  describe('BCRYPT_SALT_ROUNDS provider', () => {
-    it('reads bcrypt.saltRounds from ConfigService', () => {
+  describe('ARGON2_OPTIONS provider', () => {
+    it('reads argon2 options from ConfigService', () => {
       const providers = Reflect.getMetadata(
         MODULE_METADATA.PROVIDERS,
         AuthModule,
@@ -108,19 +112,32 @@ describe('AuthModule', () => {
         inject?: unknown[];
       }>;
 
-      const bcryptProvider = providers.find(
-        (provider) => provider.provide === 'BCRYPT_SALT_ROUNDS',
+      const argon2Provider = providers.find(
+        (provider) => provider.provide === 'ARGON2_OPTIONS',
       );
 
-      expect(bcryptProvider).toBeDefined();
-      expect(bcryptProvider!.inject).toEqual([ConfigService]);
+      expect(argon2Provider).toBeDefined();
+      expect(argon2Provider!.inject).toEqual([ConfigService]);
 
       const configService = {
-        get: jest.fn().mockReturnValue(10),
+        get: jest.fn((key: string) => {
+          const values: Record<string, number> = {
+            'argon2.memoryCost': 19456,
+            'argon2.timeCost': 2,
+            'argon2.parallelism': 1,
+          };
+          return values[key];
+        }),
       } as unknown as ConfigService;
 
-      expect(bcryptProvider!.useFactory!(configService)).toBe(10);
-      expect(configService.get).toHaveBeenCalledWith('bcrypt.saltRounds');
+      expect(argon2Provider!.useFactory!(configService)).toEqual({
+        memoryCost: 19456,
+        timeCost: 2,
+        parallelism: 1,
+      });
+      expect(configService.get).toHaveBeenCalledWith('argon2.memoryCost');
+      expect(configService.get).toHaveBeenCalledWith('argon2.timeCost');
+      expect(configService.get).toHaveBeenCalledWith('argon2.parallelism');
     });
   });
 

@@ -5,6 +5,7 @@ import { LoginDto } from './dtos/login.dto';
 import { JwtAuthGuard } from './guards/jwtauth.guard';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { FacebookAuthGuard } from './guards/facebook-auth.guard';
+import { TwitterAuthGuard } from './guards/twitter-auth.guard';
 import { Request, Response } from 'express';
 import {ApiTags, ApiResponse, ApiBody, ApiBearerAuth, ApiOperation, ApiQuery} from '@nestjs/swagger';
 import { Public } from './decorators/public.decorator';
@@ -15,6 +16,7 @@ import {ChangePasswordDto} from "./dtos/change-password.dto";
 import { ExchangeCodeDto } from './dtos/exchange-code.dto';
 import { GoogleProfilePayload } from './strategies/google.strategy';
 import { FacebookProfilePayload } from './strategies/facebook.strategy';
+import { TwitterProfilePayload } from './strategies/twitter.strategy';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -176,6 +178,53 @@ export class AuthController {
     }
 
     /**
+     * Start X / Twitter OAuth2 (Authorization Code + PKCE). Redirects to X consent screen.
+     */
+    @Public()
+    @Get('twitter')
+    @UseGuards(TwitterAuthGuard)
+    @ApiOperation({
+        summary: 'Start X / Twitter OAuth2 login',
+        description:
+            'Redirects the browser to X (Twitter). Pass redirect (allowlisted) for the post-login deep link or web URL. Disabled when TWITTER_AUTH_ENABLED=false (503). Requires express session for PKCE.',
+    })
+    @ApiQuery({
+        name: 'redirect',
+        required: false,
+        description:
+            'Post-login redirect URL (must match TWITTER_REDIRECT_ALLOWLIST). Defaults to the first allowlist entry.',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to X / Twitter OAuth consent.' })
+    @ApiResponse({ status: 400, description: 'Invalid or missing redirect.' })
+    @ApiResponse({ status: 503, description: 'Twitter authentication is disabled.' })
+    twitterAuth() {
+        // Guard redirects to X / Twitter
+    }
+
+    /**
+     * X / Twitter OAuth2 callback — issues a one-time exchange code and redirects to the client.
+     */
+    @Public()
+    @Get('twitter/callback')
+    @UseGuards(TwitterAuthGuard)
+    @ApiOperation({
+        summary: 'X / Twitter OAuth2 callback',
+        description:
+            'Processes the Twitter profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 503, description: 'Twitter authentication is disabled.' })
+    async twitterAuthCallback(@Req() req: Request, @Res() res: Response) {
+        const profile = req.user as TwitterProfilePayload;
+        const state = typeof req.query.state === 'string' ? req.query.state : undefined;
+        const { redirectUrl } = await this.authService.completeTwitterOAuth(
+            profile,
+            state,
+        );
+        return res.redirect(redirectUrl);
+    }
+
+    /**
      * Exchange a one-time OAuth code for JWT tokens.
      */
     @Public()
@@ -184,7 +233,7 @@ export class AuthController {
     @ApiOperation({
         summary: 'Exchange OAuth code for JWT tokens',
         description:
-            'Consumes a one-time exchange code (60s TTL) from Google or Facebook OAuth and returns accessToken, refreshToken, and user — same shape as login.',
+            'Consumes a one-time exchange code (60s TTL) from Google, Facebook, or X / Twitter OAuth and returns accessToken, refreshToken, and user — same shape as login.',
     })
     @ApiBody({ type: ExchangeCodeDto })
     @ApiResponse({

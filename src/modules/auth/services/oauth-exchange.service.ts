@@ -21,6 +21,7 @@ export class OauthExchangeService {
         const ttl =
             this.configService.get<number>('googleOAuth.exchangeCodeTtlSeconds') ??
             this.configService.get<number>('facebookOAuth.exchangeCodeTtlSeconds') ??
+            this.configService.get<number>('twitterOAuth.exchangeCodeTtlSeconds') ??
             60;
 
         await this.cacheService.set(

@@ -32,7 +32,7 @@
     },
     "env": {
       "title": "Environment variables",
-      "description": "Documented in <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env.example</code>.",
+      "description": "Loaded from <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> via <code class=\"px-1 py-0.5 bg-gray-100 rounded\">src/config/facebook-oauth.config.ts</code> (namespace <code class=\"px-1 py-0.5 bg-gray-100 rounded\">facebookOAuth</code> on <code class=\"px-1 py-0.5 bg-gray-100 rounded\">ConfigService</code>). See <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env.example</code>.",
       "codeHeader": { "label": "Environment", "context": ".env" }
     },
     "roles": {
@@ -115,6 +115,7 @@
       "title": "Related",
       "social": "Social Authentication hub",
       "google": "Google OAuth2 guide",
+      "twitter": "X / Twitter OAuth2 guide",
       "auth": "Auth & JWT"
     },
     "samples": {

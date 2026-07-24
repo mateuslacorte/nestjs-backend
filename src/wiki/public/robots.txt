@@ -10,6 +10,7 @@ Allow: /auth
 Allow: /auth/social
 Allow: /auth/social/google
 Allow: /auth/social/facebook
+Allow: /auth/social/twitter
 Allow: /users
 Allow: /email
 Allow: /whatsapp

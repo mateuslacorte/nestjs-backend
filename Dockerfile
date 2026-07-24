@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 ##########
-# base: sistema + libs nativas compartilhadas (bcrypt, canvas)
+# base: sistema + libs nativas compartilhadas (argon2, canvas)
 ##########
 FROM node:22-bookworm-slim AS base
 ENV NODE_ENV=production
@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # deps: instala dependências (camada de maior cache)
 ##########
 FROM base AS deps
-# Toolchain para compilar módulos nativos (bcrypt, canvas)
+# Toolchain para compilar módulos nativos (argon2, canvas)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     python3 \
