@@ -1,0 +1,42 @@
+{
+  "authSocialCoinbase": {
+    "badge": "Developer guide",
+    "hero": {
+      "titlePrefix": "Coinbase",
+      "titleHighlight": "OAuth2",
+      "subtitle": "Plug Coinbase login into your app with one shared Code Exchange flow for web and mobile."
+    },
+    "overview": {
+      "title": "Overview",
+      "description": "Coinbase uses the OAuth2 Authorization Code flow. After consent, the API calls <code class=\"px-1 py-0.5 bg-gray-100 rounded\">GET /v2/user</code>, creates a short-lived single-use exchange code in Redis, and your client exchanges it for the same JWTs you get from password login. Scopes <code class=\"px-1 py-0.5 bg-gray-100 rounded\">wallet:user:email</code> and <code class=\"px-1 py-0.5 bg-gray-100 rounded\">wallet:user:read</code> are required for email and profile."
+    },
+    "console": {
+      "title": "Coinbase Developer Portal",
+      "description": "Register an OAuth2 client in the <a href=\"https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/integrations\" class=\"text-indigo-600 hover:underline\" target=\"_blank\" rel=\"noopener noreferrer\">Coinbase Developer Portal</a> → set Redirect URI to <code class=\"px-1 py-0.5 bg-gray-100 rounded\">COINBASE_CALLBACK_URL</code> and request scopes <code class=\"px-1 py-0.5 bg-gray-100 rounded\">wallet:user:email</code> and <code class=\"px-1 py-0.5 bg-gray-100 rounded\">wallet:user:read</code>.",
+      "codeHeader": { "label": "Environment", "context": "Variables used by the API" }
+    },
+    "api": {
+      "title": "API contract",
+      "description": "The API exposes a start URL and a callback that issues the exchange code.",
+      "start": {
+        "codeHeader": { "label": "Start", "context": "Redirect the user to Coinbase consent" }
+      },
+      "callback": {
+        "codeHeader": { "label": "Callback", "context": "Coinbase redirects back to the API" }
+      },
+      "exchange": {
+        "codeHeader": { "label": "Exchange", "context": "Client exchanges code for JWTs" }
+      }
+    },
+    "userModel": {
+      "title": "User model",
+      "description": "The Coinbase user id from GET /v2/user is stored as coinbaseId. Email and name come from the user profile when wallet:user:email and wallet:user:read scopes are granted."
+    },
+    "related": {
+      "title": "Related guides",
+      "social": "Social Authentication hub",
+      "dropbox": "Dropbox OAuth2 setup guide",
+      "microsoft": "Microsoft Entra ID setup guide"
+    }
+  }
+}

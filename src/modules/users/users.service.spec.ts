@@ -18,6 +18,26 @@ type MockPostgresRepo = {
   findByGoogleId: jest.Mock;
   findByFacebookId: jest.Mock;
   findByTwitterId: jest.Mock;
+  findByGithubId: jest.Mock;
+  findByFigmaId: jest.Mock;
+  findByLinkedinId: jest.Mock;
+  findBySlackId: jest.Mock;
+  findByAtlassianId: jest.Mock;
+  findByGitlabId: jest.Mock;
+  findByBitbucketId: jest.Mock;
+  findByDiscordId: jest.Mock;
+  findByTwitchId: jest.Mock;
+  findBySteamId: jest.Mock;
+  findByRedditId: jest.Mock;
+  findBySpotifyId: jest.Mock;
+  findByAmazonId: jest.Mock;
+  findByMicrosoftId: jest.Mock;
+  findByPatreonId: jest.Mock;
+  findByDropboxId: jest.Mock;
+  findByCoinbaseId: jest.Mock;
+  findByMetamaskId: jest.Mock;
+  findByActiveDirectoryId: jest.Mock;
+  findByAppleId: jest.Mock;
   findByEmailVerificationToken: jest.Mock;
   findByPasswordToken: jest.Mock;
   update: jest.Mock;
@@ -57,6 +77,26 @@ describe('UsersService', () => {
       findByGoogleId: jest.fn(),
       findByFacebookId: jest.fn(),
       findByTwitterId: jest.fn(),
+      findByGithubId: jest.fn(),
+      findByFigmaId: jest.fn(),
+      findByLinkedinId: jest.fn(),
+      findBySlackId: jest.fn(),
+      findByAtlassianId: jest.fn(),
+      findByGitlabId: jest.fn(),
+      findByBitbucketId: jest.fn(),
+      findByDiscordId: jest.fn(),
+      findByTwitchId: jest.fn(),
+      findBySteamId: jest.fn(),
+      findByRedditId: jest.fn(),
+      findBySpotifyId: jest.fn(),
+      findByAmazonId: jest.fn(),
+      findByMicrosoftId: jest.fn(),
+      findByPatreonId: jest.fn(),
+      findByDropboxId: jest.fn(),
+      findByCoinbaseId: jest.fn(),
+      findByMetamaskId: jest.fn(),
+      findByActiveDirectoryId: jest.fn(),
+      findByAppleId: jest.fn(),
       findByEmailVerificationToken: jest.fn(),
       findByPasswordToken: jest.fn(),
       update: jest.fn(),
@@ -90,6 +130,26 @@ describe('UsersService', () => {
         'findByGoogleId',
         'findByFacebookId',
         'findByTwitterId',
+        'findByGithubId',
+        'findByFigmaId',
+        'findByLinkedinId',
+        'findBySlackId',
+        'findByAtlassianId',
+        'findByGitlabId',
+        'findByBitbucketId',
+        'findByDiscordId',
+        'findByTwitchId',
+        'findBySteamId',
+        'findByRedditId',
+        'findBySpotifyId',
+        'findByAmazonId',
+        'findByMicrosoftId',
+        'findByPatreonId',
+        'findByDropboxId',
+        'findByCoinbaseId',
+        'findByMetamaskId',
+        'findByActiveDirectoryId',
+        'findByAppleId',
         'findByEmailVerificationToken',
         'findByPasswordToken',
       ] as const) {
@@ -140,6 +200,11 @@ describe('UsersService', () => {
       expect(postgresRepo.findById).toHaveBeenCalledWith('user-1', false);
     });
 
+    it('forwards includePassword=false explicitly', async () => {
+      await service.findById('user-1', false);
+      expect(postgresRepo.findById).toHaveBeenCalledWith('user-1', false);
+    });
+
     it('forwards includePassword=true', async () => {
       postgresRepo.findById.mockResolvedValue(createUser({ password: 'hash' }));
 
@@ -155,6 +220,14 @@ describe('UsersService', () => {
 
       await service.findByEmail('jane@example.com');
 
+      expect(postgresRepo.findByEmail).toHaveBeenCalledWith(
+        'jane@example.com',
+        false,
+      );
+    });
+
+    it('forwards includePassword=false explicitly', async () => {
+      await service.findByEmail('jane@example.com', false);
       expect(postgresRepo.findByEmail).toHaveBeenCalledWith(
         'jane@example.com',
         false,
@@ -180,40 +253,99 @@ describe('UsersService', () => {
     });
   });
 
-  describe('findByGoogleId', () => {
-    it('defaults includePassword to false', async () => {
-      await service.findByGoogleId('g-1');
-      expect(postgresRepo.findByGoogleId).toHaveBeenCalledWith('g-1', false);
-    });
+  describe('provider findBy* includePassword branches', () => {
+    const cases: Array<{
+      method: keyof UsersService & string;
+      repo: keyof MockPostgresRepo;
+      id: string;
+    }> = [
+      { method: 'findByGoogleId', repo: 'findByGoogleId', id: 'g-1' },
+      { method: 'findByFacebookId', repo: 'findByFacebookId', id: 'fb-1' },
+      { method: 'findByTwitterId', repo: 'findByTwitterId', id: 'tw-1' },
+      { method: 'findByGithubId', repo: 'findByGithubId', id: 'gh-1' },
+      { method: 'findByFigmaId', repo: 'findByFigmaId', id: 'fig-1' },
+      { method: 'findByLinkedinId', repo: 'findByLinkedinId', id: 'li-1' },
+      { method: 'findBySlackId', repo: 'findBySlackId', id: 'U0R7JM' },
+      {
+        method: 'findByAtlassianId',
+        repo: 'findByAtlassianId',
+        id: '712020:abc123',
+      },
+      { method: 'findByGitlabId', repo: 'findByGitlabId', id: '12345678' },
+      {
+        method: 'findByBitbucketId',
+        repo: 'findByBitbucketId',
+        id: '{aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee}',
+      },
+      {
+        method: 'findByDiscordId',
+        repo: 'findByDiscordId',
+        id: '123456789012345678',
+      },
+      { method: 'findByTwitchId', repo: 'findByTwitchId', id: '141981764' },
+      {
+        method: 'findBySteamId',
+        repo: 'findBySteamId',
+        id: '76561198000000000',
+      },
+      { method: 'findByRedditId', repo: 'findByRedditId', id: 'abc123' },
+      {
+        method: 'findBySpotifyId',
+        repo: 'findBySpotifyId',
+        id: 'spotify-001',
+      },
+      {
+        method: 'findByAmazonId',
+        repo: 'findByAmazonId',
+        id: 'amzn1.account.abc123',
+      },
+      {
+        method: 'findByMicrosoftId',
+        repo: 'findByMicrosoftId',
+        id: 'ms-object-id-001',
+      },
+      {
+        method: 'findByPatreonId',
+        repo: 'findByPatreonId',
+        id: 'patreon-user-001',
+      },
+      { method: 'findByDropboxId', repo: 'findByDropboxId', id: 'dbid:abc123' },
+      {
+        method: 'findByCoinbaseId',
+        repo: 'findByCoinbaseId',
+        id: '9da7a204-544e-5fd1-9a12-61176c5d4cd8',
+      },
+      {
+        method: 'findByMetamaskId',
+        repo: 'findByMetamaskId',
+        id: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
+      },
+      {
+        method: 'findByActiveDirectoryId',
+        repo: 'findByActiveDirectoryId',
+        id: 'ad-guid-001',
+      },
+      { method: 'findByAppleId', repo: 'findByAppleId', id: 'apple-sub-001' },
+    ];
 
-    it('forwards includePassword=true', async () => {
-      await service.findByGoogleId('g-1', true);
-      expect(postgresRepo.findByGoogleId).toHaveBeenCalledWith('g-1', true);
-    });
-  });
+    it.each(cases)(
+      '$method defaults false, accepts explicit false, and forwards true',
+      async ({ method, repo, id }) => {
+        const fn = service[method] as (
+          providerId: string,
+          includePassword?: boolean,
+        ) => Promise<IUser | null>;
 
-  describe('findByFacebookId', () => {
-    it('defaults includePassword to false', async () => {
-      await service.findByFacebookId('fb-1');
-      expect(postgresRepo.findByFacebookId).toHaveBeenCalledWith('fb-1', false);
-    });
+        await fn.call(service, id);
+        expect(postgresRepo[repo]).toHaveBeenCalledWith(id, false);
 
-    it('forwards includePassword=true', async () => {
-      await service.findByFacebookId('fb-1', true);
-      expect(postgresRepo.findByFacebookId).toHaveBeenCalledWith('fb-1', true);
-    });
-  });
+        await fn.call(service, id, false);
+        expect(postgresRepo[repo]).toHaveBeenCalledWith(id, false);
 
-  describe('findByTwitterId', () => {
-    it('defaults includePassword to false', async () => {
-      await service.findByTwitterId('tw-1');
-      expect(postgresRepo.findByTwitterId).toHaveBeenCalledWith('tw-1', false);
-    });
-
-    it('forwards includePassword=true', async () => {
-      await service.findByTwitterId('tw-1', true);
-      expect(postgresRepo.findByTwitterId).toHaveBeenCalledWith('tw-1', true);
-    });
+        await fn.call(service, id, true);
+        expect(postgresRepo[repo]).toHaveBeenCalledWith(id, true);
+      },
+    );
   });
 
   describe('findByEmailVerificationToken', () => {

@@ -27,7 +27,7 @@ export class UserMongoRepository {
      */
     @EnableCache()
     async create(createUserDto: CreateUserDto, includePassword = false): Promise<IUser> {
-        const { username, email, password, googleId, facebookId, twitterId } = createUserDto;
+        const { username, email, password, googleId, facebookId, twitterId, githubId, figmaId, linkedinId, slackId, atlassianId, gitlabId, bitbucketId, discordId, twitchId, steamId, redditId, appleId, spotifyId, amazonId, microsoftId, patreonId, dropboxId, coinbaseId, metamaskId, activeDirectoryId } = createUserDto;
         
         const existingUser = await this.userModel.findOne({ $or: [{ email }, { username }] });
         if (existingUser) {
@@ -47,6 +47,26 @@ export class UserMongoRepository {
             googleId: googleId ?? null,
             facebookId: facebookId ?? null,
             twitterId: twitterId ?? null,
+            githubId: githubId ?? null,
+            figmaId: figmaId ?? null,
+            linkedinId: linkedinId ?? null,
+            slackId: slackId ?? null,
+            atlassianId: atlassianId ?? null,
+            gitlabId: gitlabId ?? null,
+            bitbucketId: bitbucketId ?? null,
+            discordId: discordId ?? null,
+            twitchId: twitchId ?? null,
+            steamId: steamId ?? null,
+            redditId: redditId ?? null,
+            appleId: appleId ?? null,
+            spotifyId: spotifyId ?? null,
+            amazonId: amazonId ?? null,
+            microsoftId: microsoftId ?? null,
+            patreonId: patreonId ?? null,
+            dropboxId: dropboxId ?? null,
+            coinbaseId: coinbaseId ?? null,
+            metamaskId: metamaskId ?? null,
+            activeDirectoryId: activeDirectoryId ?? null,
         });
 
         await newUser.save();

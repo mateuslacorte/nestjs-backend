@@ -69,7 +69,178 @@ describe('CreateUserDto', () => {
     expect(errors).toHaveLength(0);
   });
 
-  it('requires password when neither googleId, facebookId, nor twitterId is set', async () => {
+  it('accepts OAuth user with githubId and no password', async () => {
+    const { password: _password, ...withoutPassword } = validBase;
+    const errors = await validateDto({
+      ...withoutPassword,
+      githubId: '12345678',
+    });
+    expect(errors).toHaveLength(0);
+  });
+
+  it('accepts OAuth user with figmaId and no password', async () => {
+    const { password: _password, ...withoutPassword } = validBase;
+    const errors = await validateDto({
+      ...withoutPassword,
+      figmaId: '1234567890123456789',
+    });
+    expect(errors).toHaveLength(0);
+  });
+
+  it('accepts OAuth user with linkedinId and no password', async () => {
+    const { password: _password, ...withoutPassword } = validBase;
+    const errors = await validateDto({
+      ...withoutPassword,
+      linkedinId: 'AbCdEfGhIj',
+    });
+    expect(errors).toHaveLength(0);
+  });
+
+  it('accepts OAuth user with slackId and no password', async () => {
+    const { password: _password, ...withoutPassword } = validBase;
+    const errors = await validateDto({
+      ...withoutPassword,
+      slackId: 'U0R7JM',
+    });
+    expect(errors).toHaveLength(0);
+  });
+
+  it('accepts OAuth user with atlassianId and no password', async () => {
+    const { password: _password, ...withoutPassword } = validBase;
+    const errors = await validateDto({
+      ...withoutPassword,
+      atlassianId: '712020:abc123',
+    });
+    expect(errors).toHaveLength(0);
+  });
+
+  it('accepts OAuth user with gitlabId and no password', async () => {
+    const { password: _password, ...withoutPassword } = validBase;
+    const errors = await validateDto({
+      ...withoutPassword,
+      gitlabId: '12345678',
+    });
+    expect(errors).toHaveLength(0);
+  });
+
+  it('accepts OAuth user with bitbucketId and no password', async () => {
+    const { password: _password, ...withoutPassword } = validBase;
+    const errors = await validateDto({
+      ...withoutPassword,
+      bitbucketId: '{aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee}',
+    });
+    expect(errors).toHaveLength(0);
+  });
+
+  it('accepts OAuth user with discordId and no password', async () => {
+    const { password: _password, ...withoutPassword } = validBase;
+    const errors = await validateDto({
+      ...withoutPassword,
+      discordId: '123456789012345678',
+    });
+    expect(errors).toHaveLength(0);
+  });
+
+  it('accepts OAuth user with twitchId and no password', async () => {
+    const { password: _password, ...withoutPassword } = validBase;
+    const errors = await validateDto({
+      ...withoutPassword,
+      twitchId: '141981764',
+    });
+    expect(errors).toHaveLength(0);
+  });
+
+  it('accepts OAuth user with steamId and no password', async () => {
+    const { password: _password, ...withoutPassword } = validBase;
+    const errors = await validateDto({
+      ...withoutPassword,
+      steamId: '76561198000000000',
+    });
+    expect(errors).toHaveLength(0);
+  });
+
+  it('accepts OAuth user with redditId and no password', async () => {
+    const { password: _password, ...withoutPassword } = validBase;
+    const errors = await validateDto({
+      ...withoutPassword,
+      redditId: 'abc123',
+    });
+    expect(errors).toHaveLength(0);
+  });
+
+  it('accepts OAuth user with spotifyId and no password', async () => {
+    const { password: _password, ...withoutPassword } = validBase;
+    const errors = await validateDto({
+      ...withoutPassword,
+      spotifyId: 'spotify-sub-001',
+    });
+    expect(errors).toHaveLength(0);
+  });
+
+  it('accepts OAuth user with amazonId and no password', async () => {
+    const { password: _password, ...withoutPassword } = validBase;
+    const errors = await validateDto({
+      ...withoutPassword,
+      amazonId: 'amzn1.account.abc123',
+    });
+    expect(errors).toHaveLength(0);
+  });
+
+  it('accepts OAuth user with microsoftId and no password', async () => {
+    const { password: _password, ...withoutPassword } = validBase;
+    const errors = await validateDto({
+      ...withoutPassword,
+      microsoftId: 'ms-object-id-001',
+    });
+    expect(errors).toHaveLength(0);
+  });
+
+  it('accepts OAuth user with patreonId and no password', async () => {
+    const { password: _password, ...withoutPassword } = validBase;
+    const errors = await validateDto({
+      ...withoutPassword,
+      patreonId: 'patreon-user-001',
+    });
+    expect(errors).toHaveLength(0);
+  });
+
+  it('accepts OAuth user with dropboxId and no password', async () => {
+    const { password: _password, ...withoutPassword } = validBase;
+    const errors = await validateDto({
+      ...withoutPassword,
+      dropboxId: 'dbid:abc123',
+    });
+    expect(errors).toHaveLength(0);
+  });
+
+  it('accepts OAuth user with coinbaseId and no password', async () => {
+    const { password: _password, ...withoutPassword } = validBase;
+    const errors = await validateDto({
+      ...withoutPassword,
+      coinbaseId: '9da7a204-544e-5fd1-9a12-61176c5d4cd8',
+    });
+    expect(errors).toHaveLength(0);
+  });
+
+  it('accepts OAuth user with metamaskId and no password', async () => {
+    const { password: _password, ...withoutPassword } = validBase;
+    const errors = await validateDto({
+      ...withoutPassword,
+      metamaskId: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
+    });
+    expect(errors).toHaveLength(0);
+  });
+
+  it('accepts OAuth user with activeDirectoryId and no password', async () => {
+    const { password: _password, ...withoutPassword } = validBase;
+    const errors = await validateDto({
+      ...withoutPassword,
+      activeDirectoryId: 'ad-guid-001',
+    });
+    expect(errors).toHaveLength(0);
+  });
+
+  it('requires password when neither googleId, facebookId, twitterId, githubId, figmaId, linkedinId, slackId, atlassianId, gitlabId, bitbucketId, discordId, twitchId, steamId, redditId, spotifyId, amazonId, microsoftId, patreonId, dropboxId, coinbaseId, metamaskId, activeDirectoryId, nor appleId is set', async () => {
     const { password: _password, ...withoutPassword } = validBase;
     const errors = await validateDto(withoutPassword);
     expect(messages(errors, 'password')).toEqual(

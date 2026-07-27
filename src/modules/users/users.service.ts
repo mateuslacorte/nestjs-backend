@@ -85,6 +85,187 @@ export class UsersService {
   }
 
   /**
+   * Find a user by GitHub subject ID
+   */
+  @NoCache()
+  async findByGithubId(githubId: string, includePassword = false): Promise<IUser | null> {
+    return this.postgresRepo.findByGithubId(githubId, includePassword);
+  }
+
+  /**
+   * Find a user by Figma subject ID
+   */
+  @NoCache()
+  async findByFigmaId(figmaId: string, includePassword = false): Promise<IUser | null> {
+    return this.postgresRepo.findByFigmaId(figmaId, includePassword);
+  }
+
+  /**
+   * Find a user by LinkedIn OpenID subject ID
+   */
+  @NoCache()
+  async findByLinkedinId(linkedinId: string, includePassword = false): Promise<IUser | null> {
+    return this.postgresRepo.findByLinkedinId(linkedinId, includePassword);
+  }
+
+  /**
+   * Find a user by Slack OpenID subject ID
+   */
+  @NoCache()
+  async findBySlackId(slackId: string, includePassword = false): Promise<IUser | null> {
+    return this.postgresRepo.findBySlackId(slackId, includePassword);
+  }
+
+  /**
+   * Find a user by Atlassian account ID
+   */
+  @NoCache()
+  async findByAtlassianId(atlassianId: string, includePassword = false): Promise<IUser | null> {
+    return this.postgresRepo.findByAtlassianId(atlassianId, includePassword);
+  }
+
+  /**
+   * Find a user by GitLab user ID
+   */
+  @NoCache()
+  async findByGitlabId(gitlabId: string, includePassword = false): Promise<IUser | null> {
+    return this.postgresRepo.findByGitlabId(gitlabId, includePassword);
+  }
+
+  /**
+   * Find a user by Bitbucket user UUID
+   */
+  @NoCache()
+  async findByBitbucketId(bitbucketId: string, includePassword = false): Promise<IUser | null> {
+    return this.postgresRepo.findByBitbucketId(bitbucketId, includePassword);
+  }
+
+  /**
+   * Find a user by Discord snowflake user ID
+   */
+  @NoCache()
+  async findByDiscordId(discordId: string, includePassword = false): Promise<IUser | null> {
+    return this.postgresRepo.findByDiscordId(discordId, includePassword);
+  }
+
+  /**
+   * Find a user by Twitch user ID
+   */
+  @NoCache()
+  async findByTwitchId(twitchId: string, includePassword = false): Promise<IUser | null> {
+    return this.postgresRepo.findByTwitchId(twitchId, includePassword);
+  }
+
+  /**
+   * Find a user by SteamID64
+   */
+  @NoCache()
+  async findBySteamId(steamId: string, includePassword = false): Promise<IUser | null> {
+    return this.postgresRepo.findBySteamId(steamId, includePassword);
+  }
+
+  /**
+   * Find a user by Reddit user ID
+   */
+  @NoCache()
+  async findByRedditId(redditId: string, includePassword = false): Promise<IUser | null> {
+    return this.postgresRepo.findByRedditId(redditId, includePassword);
+  }
+
+  /**
+   * Find a user by Spotify user ID
+   */
+  @NoCache()
+  async findBySpotifyId(spotifyId: string, includePassword = false): Promise<IUser | null> {
+    return this.postgresRepo.findBySpotifyId(spotifyId, includePassword);
+  }
+
+  /**
+   * Find a user by Amazon user ID
+   */
+  @NoCache()
+  async findByAmazonId(amazonId: string, includePassword = false): Promise<IUser | null> {
+    return this.postgresRepo.findByAmazonId(amazonId, includePassword);
+  }
+
+  /**
+   * Find a user by Microsoft Entra ID object ID
+   */
+  @NoCache()
+  async findByMicrosoftId(
+    microsoftId: string,
+    includePassword = false,
+  ): Promise<IUser | null> {
+    return this.postgresRepo.findByMicrosoftId(microsoftId, includePassword);
+  }
+
+  /**
+   * Find a user by Patreon user ID
+   */
+  @NoCache()
+  async findByPatreonId(
+    patreonId: string,
+    includePassword = false,
+  ): Promise<IUser | null> {
+    return this.postgresRepo.findByPatreonId(patreonId, includePassword);
+  }
+
+  /**
+   * Find a user by Dropbox account ID
+   */
+  @NoCache()
+  async findByDropboxId(
+    dropboxId: string,
+    includePassword = false,
+  ): Promise<IUser | null> {
+    return this.postgresRepo.findByDropboxId(dropboxId, includePassword);
+  }
+
+  /**
+   * Find a user by Coinbase user ID
+   */
+  @NoCache()
+  async findByCoinbaseId(
+    coinbaseId: string,
+    includePassword = false,
+  ): Promise<IUser | null> {
+    return this.postgresRepo.findByCoinbaseId(coinbaseId, includePassword);
+  }
+
+  /**
+   * Find a user by MetaMask Ethereum address
+   */
+  @NoCache()
+  async findByMetamaskId(
+    metamaskId: string,
+    includePassword = false,
+  ): Promise<IUser | null> {
+    return this.postgresRepo.findByMetamaskId(metamaskId, includePassword);
+  }
+
+  /**
+   * Find a user by Active Directory objectGUID
+   */
+  @NoCache()
+  async findByActiveDirectoryId(
+    activeDirectoryId: string,
+    includePassword = false,
+  ): Promise<IUser | null> {
+    return this.postgresRepo.findByActiveDirectoryId(
+      activeDirectoryId,
+      includePassword,
+    );
+  }
+
+  /**
+   * Find a user by Apple subject ID
+   */
+  @NoCache()
+  async findByAppleId(appleId: string, includePassword = false): Promise<IUser | null> {
+    return this.postgresRepo.findByAppleId(appleId, includePassword);
+  }
+
+  /**
    * Find a user by email verification token
    * @param token - User's email verification token
    * @returns The user or null if not found

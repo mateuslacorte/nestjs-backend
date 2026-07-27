@@ -1,0 +1,42 @@
+{
+  "authSocialAmazon": {
+    "badge": "Guia do desenvolvedor",
+    "hero": {
+      "titlePrefix": "Amazon",
+      "titleHighlight": "Login with Amazon",
+      "subtitle": "Adicione login Amazon ao seu app com um único fluxo de Code Exchange para web e mobile."
+    },
+    "overview": {
+      "title": "Visão geral",
+      "description": "Login with Amazon usa o fluxo padrão OAuth2 Authorization Code. Após o consentimento, a API cria um exchange code de curta duração e uso único no Redis e, em seguida, seu cliente troca esse código pelos mesmos JWTs do login por senha."
+    },
+    "console": {
+      "title": "Console Amazon Developer",
+      "description": "Crie um Security Profile no <a href=\"https://developer.amazon.com/loginwithamazon/console/sitepl/overview.html\" class=\"text-indigo-600 hover:underline\" target=\"_blank\" rel=\"noopener noreferrer\">console Login with Amazon</a>, abra <strong>Web Settings</strong> e defina Allowed Return URLs igual a <code class=\"px-1 py-0.5 bg-gray-100 rounded\">AMAZON_CALLBACK_URL</code>. Scope: <code class=\"px-1 py-0.5 bg-gray-100 rounded\">profile</code> (user_id, email, name).",
+      "codeHeader": { "label": "Ambiente", "context": "Variáveis usadas pela API" }
+    },
+    "api": {
+      "title": "Contrato da API",
+      "description": "A API expõe uma URL de início e um callback que emite o exchange code.",
+      "start": {
+        "codeHeader": { "label": "Início", "context": "Redireciona o usuário para o consent do Amazon" }
+      },
+      "callback": {
+        "codeHeader": { "label": "Callback", "context": "O Amazon retorna para a API" }
+      },
+      "exchange": {
+        "codeHeader": { "label": "Exchange", "context": "Cliente troca o code por JWTs" }
+      }
+    },
+    "userModel": {
+      "title": "Modelo de usuário",
+      "description": "O identificador único do usuário Amazon é armazenado como `amazonId` no registro do usuário (`user_id` do profile). O email vem do scope profile."
+    },
+    "related": {
+      "title": "Guias relacionados",
+      "social": "Hub de autenticação social",
+      "spotify": "Guia Spotify OAuth2",
+      "apple": "Guia Apple Sign In"
+    }
+  }
+}

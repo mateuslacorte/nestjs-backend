@@ -7,7 +7,7 @@
     "hero": {
       "titlePrefix": "Autenticação",
       "titleHighlight": "Social",
-      "subtitle": "Como conectar login Google, Facebook ou X / Twitter no seu app — um fluxo único de Code Exchange para web e mobile."
+      "subtitle": "Como conectar login Google, Facebook, X / Twitter, GitHub, Figma, LinkedIn, Slack, Atlassian, GitLab, Bitbucket, Discord, Twitch, Spotify, Amazon, Microsoft, Patreon, Dropbox, Coinbase, MetaMask ou Steam no seu app — Code Exchange OAuth na maioria; SIWE no MetaMask."
     },
     "howItWorks": {
       "title": "Como funciona",
@@ -22,13 +22,13 @@
     },
     "enable": {
       "title": "Ativar um provedor",
-      "description": "Cada provedor vem <strong>desligado por padrão</strong>. Ative no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> (carregado por <code class=\"px-1 py-0.5 bg-gray-100 rounded\">google-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">facebook-oauth.config.ts</code> e <code class=\"px-1 py-0.5 bg-gray-100 rounded\">twitter-oauth.config.ts</code> em <code class=\"px-1 py-0.5 bg-gray-100 rounded\">src/config/</code>), crie o app OAuth no IdP e aponte o callback para esta API.",
+      "description": "Cada provedor vem <strong>desligado por padrão</strong>. Ative no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> (carregado por <code class=\"px-1 py-0.5 bg-gray-100 rounded\">google-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">facebook-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">twitter-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">github-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">figma-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">linkedin-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">slack-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">atlassian-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">gitlab-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">bitbucket-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">discord-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">twitch-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">steam-openid.config.ts</code> e <code class=\"px-1 py-0.5 bg-gray-100 rounded\">reddit-oauth.config.ts</code> em <code class=\"px-1 py-0.5 bg-gray-100 rounded\">src/config/</code>), crie o app OAuth no IdP e aponte o callback para esta API.",
       "items": [
-        "Defina a feature flag do provedor como true (ex.: GOOGLE_AUTH_ENABLED, FACEBOOK_AUTH_ENABLED ou TWITTER_AUTH_ENABLED)",
+        "Defina a feature flag do provedor como true (ex.: GOOGLE_AUTH_ENABLED, FACEBOOK_AUTH_ENABLED, TWITTER_AUTH_ENABLED, GITHUB_AUTH_ENABLED, FIGMA_AUTH_ENABLED, LINKEDIN_AUTH_ENABLED, SLACK_AUTH_ENABLED, ATLASSIAN_AUTH_ENABLED, GITLAB_AUTH_ENABLED, BITBUCKET_AUTH_ENABLED, DISCORD_AUTH_ENABLED, TWITCH_AUTH_ENABLED, STEAM_AUTH_ENABLED ou REDDIT_AUTH_ENABLED)",
         "Preencha as credenciais e o CALLBACK_URL (caminho da API Nest, não da SPA)",
         "Liste as URLs pós-login permitidas no REDIRECT_ALLOWLIST do provedor (origem web e/ou deep link mobile)",
         "Opcionalmente defina *_OAUTH_DEFAULT_ROLES (valores de Role separados por vírgula) para usuários novos",
-        "Os valores ficam disponíveis via ConfigService nos namespaces googleOAuth, facebookOAuth e twitterOAuth",
+        "Os valores ficam disponíveis via ConfigService nos namespaces googleOAuth, facebookOAuth, twitterOAuth, githubOAuth, figmaOAuth, linkedinOAuth, slackOAuth, atlassianOAuth, gitlabOAuth, bitbucketOAuth, discordOAuth, twitchOAuth, steamOpenId e redditOAuth",
         "Siga a página do provedor abaixo para passos no console e nomes das variáveis"
       ]
     },
@@ -59,6 +59,101 @@
         "title": "X / Twitter",
         "description": "X Developer Portal OAuth 2.0 + PKCE, env vars, endpoints e amostras web/mobile.",
         "cta": "Guia X / Twitter →"
+      },
+      "github": {
+        "title": "GitHub",
+        "description": "GitHub OAuth App, env vars, endpoints e amostras web/mobile.",
+        "cta": "Guia GitHub →"
+      },
+      "figma": {
+        "title": "Figma",
+        "description": "App OAuth Figma, env vars, endpoints e amostras web/mobile.",
+        "cta": "Guia Figma →"
+      },
+      "linkedin": {
+        "title": "LinkedIn",
+        "description": "Sign In with LinkedIn using OpenID Connect, env vars, endpoints e amostras web/mobile.",
+        "cta": "Guia LinkedIn →"
+      },
+      "slack": {
+        "title": "Slack",
+        "description": "Sign in with Slack (OpenID Connect), env vars, endpoints e amostras web/mobile.",
+        "cta": "Guia Slack →"
+      },
+      "atlassian": {
+        "title": "Atlassian",
+        "description": "Atlassian OAuth 2.0 (3LO), env vars, endpoints e amostras web/mobile.",
+        "cta": "Guia Atlassian →"
+      },
+      "gitlab": {
+        "title": "GitLab",
+        "description": "Aplicação OAuth GitLab, env vars, endpoints e amostras web/mobile.",
+        "cta": "Guia GitLab →"
+      },
+      "bitbucket": {
+        "title": "Bitbucket",
+        "description": "OAuth consumer Bitbucket, env vars, endpoints e amostras web/mobile.",
+        "cta": "Guia Bitbucket →"
+      },
+      "discord": {
+        "title": "Discord",
+        "description": "Aplicação OAuth Discord, env vars, endpoints e amostras web/mobile.",
+        "cta": "Guia Discord →"
+      },
+      "twitch": {
+        "title": "Twitch",
+        "description": "Aplicação OAuth Twitch, env vars, endpoints e amostras web/mobile.",
+        "cta": "Guia Twitch →"
+      },
+      "steam": {
+        "title": "Steam",
+        "description": "Login Steam OpenID 2.0 (não OAuth2), Web API key opcional, env vars, endpoints e amostras web/mobile. Steam nunca devolve e-mail.",
+        "cta": "Guia Steam →"
+      },
+      "spotify": {
+        "title": "Spotify",
+        "description": "Login Spotify via OAuth2 Authorization Code, env vars, endpoints e amostras web/mobile.",
+        "cta": "Guia Spotify →"
+      },
+      "amazon": {
+        "title": "Amazon",
+        "description": "Login with Amazon via OAuth2 Authorization Code, env vars, endpoints e amostras web/mobile.",
+        "cta": "Guia Amazon →"
+      },
+      "microsoft": {
+        "title": "Microsoft",
+        "description": "Microsoft Entra ID / Azure AD via OAuth2 Authorization Code, env vars, endpoints e amostras web/mobile.",
+        "cta": "Guia Microsoft →"
+      },
+      "patreon": {
+        "title": "Patreon",
+        "description": "Patreon via OAuth2 Authorization Code, scopes identity, env vars, endpoints e amostras web/mobile.",
+        "cta": "Guia Patreon →"
+      },
+      "dropbox": {
+        "title": "Dropbox",
+        "description": "Dropbox via OAuth2 Authorization Code, scope account_info.read, env vars, endpoints e amostras web/mobile.",
+        "cta": "Guia Dropbox →"
+      },
+      "coinbase": {
+        "title": "Coinbase",
+        "description": "Coinbase via OAuth2 Authorization Code, scopes wallet:user:email, env vars, endpoints e amostras web/mobile.",
+        "cta": "Guia Coinbase →"
+      },
+      "metamask": {
+        "title": "MetaMask",
+        "description": "Sign-In with Ethereum (SIWE / EIP-4361): nonce, personal_sign, JWTs, env vars e amostras no browser.",
+        "cta": "Guia MetaMask SIWE →"
+      },
+      "reddit": {
+        "title": "Reddit",
+        "description": "Web app OAuth2 Reddit, scope identity, env vars, endpoints e amostras web/mobile. Reddit nunca devolve e-mail.",
+        "cta": "Guia Reddit →"
+      },
+      "apple": {
+        "title": "Apple",
+        "description": "Sign in with Apple OIDC form_post, JWT client secret via chave .p8, env vars, endpoints e amostras web/mobile. Nome enviado apenas no primeiro login.",
+        "cta": "Guia Apple →"
       }
     },
     "security": {
@@ -75,7 +170,26 @@
       "authJwt": "Auth & JWT — login com senha, refresh, roles e guards",
       "google": "Guia de setup Google OAuth2",
       "facebook": "Guia de setup Facebook OAuth2",
-      "twitter": "Guia de setup X / Twitter OAuth2"
+      "twitter": "Guia de setup X / Twitter OAuth2",
+      "github": "Guia de setup GitHub OAuth2",
+      "figma": "Guia de setup Figma OAuth2",
+      "linkedin": "Guia de setup LinkedIn OpenID Connect",
+      "slack": "Guia de setup Slack OpenID Connect",
+      "atlassian": "Guia de setup Atlassian OAuth 2.0 (3LO)",
+      "gitlab": "Guia de setup GitLab OAuth2",
+      "bitbucket": "Guia de setup Bitbucket OAuth2",
+      "discord": "Guia de setup Discord OAuth2",
+      "twitch": "Guia de setup Twitch OAuth2",
+      "steam": "Guia de setup Steam OpenID 2.0",
+      "spotify": "Guia de setup Spotify OAuth2",
+      "amazon": "Guia de setup Login with Amazon",
+      "microsoft": "Guia de setup Microsoft Entra ID",
+      "patreon": "Guia de setup Patreon OAuth2",
+      "dropbox": "Guia de setup Dropbox OAuth2",
+      "coinbase": "Guia de setup Coinbase OAuth2",
+      "metamask": "Guia de setup MetaMask SIWE",
+      "reddit": "Guia de setup Reddit OAuth2",
+      "apple": "Guia de setup Apple Sign In"
     },
     "samples": {
       "step1": "// 1) Inicie o OAuth (browser ou browser in-app)",

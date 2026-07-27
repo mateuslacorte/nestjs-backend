@@ -1,0 +1,42 @@
+{
+  "authSocialMicrosoft": {
+    "badge": "Developer guide",
+    "hero": {
+      "titlePrefix": "Microsoft",
+      "titleHighlight": "Entra ID",
+      "subtitle": "Plug Microsoft (Azure AD / Entra ID) login into your app with one shared Code Exchange flow for web and mobile."
+    },
+    "overview": {
+      "title": "Overview",
+      "description": "Microsoft Entra ID uses the OAuth2 Authorization Code flow (v2). After consent, the API fetches the user profile from Microsoft Graph, creates a short-lived single-use exchange code in Redis, and your client exchanges it for the same JWTs you get from password login."
+    },
+    "console": {
+      "title": "Microsoft Entra admin center",
+      "description": "Register an app in the <a href=\"https://entra.microsoft.com/\" class=\"text-indigo-600 hover:underline\" target=\"_blank\" rel=\"noopener noreferrer\">Entra admin center</a> → App registrations → set Redirect URI to <code class=\"px-1 py-0.5 bg-gray-100 rounded\">MICROSOFT_CALLBACK_URL</code>, create a client secret, and grant API permissions: <code class=\"px-1 py-0.5 bg-gray-100 rounded\">User.Read</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">openid</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">profile</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">email</code>. Use <code class=\"px-1 py-0.5 bg-gray-100 rounded\">MICROSOFT_TENANT_ID=common</code> for multi-tenant + personal Microsoft accounts, or your tenant GUID for single-tenant.",
+      "codeHeader": { "label": "Environment", "context": "Variables used by the API" }
+    },
+    "api": {
+      "title": "API contract",
+      "description": "The API exposes a start URL and a callback that issues the exchange code.",
+      "start": {
+        "codeHeader": { "label": "Start", "context": "Redirect the user to Microsoft consent" }
+      },
+      "callback": {
+        "codeHeader": { "label": "Callback", "context": "Microsoft redirects back to the API" }
+      },
+      "exchange": {
+        "codeHeader": { "label": "Exchange", "context": "Client exchanges code for JWTs" }
+      }
+    },
+    "userModel": {
+      "title": "User model",
+      "description": "The Azure AD object ID from Graph `/me` is stored as `microsoftId`. Email comes from `mail` or `userPrincipalName`."
+    },
+    "related": {
+      "title": "Related guides",
+      "social": "Social Authentication hub",
+      "amazon": "Amazon Login with Amazon setup guide",
+      "apple": "Apple Sign In setup guide"
+    }
+  }
+}

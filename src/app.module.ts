@@ -33,6 +33,26 @@ import smtpConfig from './config/smtp.config';
 import googleOAuthConfig from './config/google-oauth.config';
 import facebookOAuthConfig from './config/facebook-oauth.config';
 import twitterOAuthConfig from './config/twitter-oauth.config';
+import githubOAuthConfig from './config/github-oauth.config';
+import figmaOAuthConfig from './config/figma-oauth.config';
+import linkedinOAuthConfig from './config/linkedin-oauth.config';
+import slackOAuthConfig from './config/slack-oauth.config';
+import atlassianOAuthConfig from './config/atlassian-oauth.config';
+import gitlabOAuthConfig from './config/gitlab-oauth.config';
+import bitbucketOAuthConfig from './config/bitbucket-oauth.config';
+import discordOAuthConfig from './config/discord-oauth.config';
+import twitchOAuthConfig from './config/twitch-oauth.config';
+import steamOpenIdConfig from './config/steam-openid.config';
+import redditOAuthConfig from './config/reddit-oauth.config';
+import appleOAuthConfig from './config/apple-oauth.config';
+import spotifyOAuthConfig from './config/spotify-oauth.config';
+import amazonOAuthConfig from './config/amazon-oauth.config';
+import microsoftOAuthConfig from './config/microsoft-oauth.config';
+import patreonOAuthConfig from './config/patreon-oauth.config';
+import dropboxOAuthConfig from './config/dropbox-oauth.config';
+import coinbaseOAuthConfig from './config/coinbase-oauth.config';
+import metamaskAuthConfig from './config/metamask-auth.config';
+import adLdapConfig from './config/ad-ldap.config';
 import corsConfig from './config/cors.config';
 import { createCorsOriginDelegate } from './config/cors-origins.util';
 import { WikiModule } from "./wiki/wiki.module";
@@ -61,6 +81,26 @@ import { HealthModule } from '@modules/health/health.module';
                 googleOAuthConfig,
                 facebookOAuthConfig,
                 twitterOAuthConfig,
+                githubOAuthConfig,
+                figmaOAuthConfig,
+                linkedinOAuthConfig,
+                slackOAuthConfig,
+                atlassianOAuthConfig,
+                gitlabOAuthConfig,
+                bitbucketOAuthConfig,
+                discordOAuthConfig,
+                twitchOAuthConfig,
+                steamOpenIdConfig,
+                redditOAuthConfig,
+                appleOAuthConfig,
+                spotifyOAuthConfig,
+                amazonOAuthConfig,
+                microsoftOAuthConfig,
+                patreonOAuthConfig,
+                dropboxOAuthConfig,
+                coinbaseOAuthConfig,
+                metamaskAuthConfig,
+                adLdapConfig,
                 corsConfig,
             ],
         }),

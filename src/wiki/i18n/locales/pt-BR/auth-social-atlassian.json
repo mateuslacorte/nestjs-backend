@@ -1,0 +1,168 @@
+{
+  "authSocialAtlassian": {
+    "meta": {
+      "title": "Atlassian OAuth2 - Backend NestJS"
+    },
+    "badge": "Atlassian",
+    "hero": {
+      "titlePrefix": "Atlassian",
+      "titleHighlight": "OAuth 2.0 (3LO)",
+      "subtitle": "Authorization Code Exchange para web e mobile — setup Atlassian OAuth 2.0 (3LO), referência da API e exemplos de frontend."
+    },
+    "overview": {
+      "title": "Visão geral",
+      "description": "O login Atlassian é opcional e controlado por <code class=\"px-1 py-0.5 bg-amber-100 rounded\">ATLASSIAN_AUTH_ENABLED</code>. Quando desligado, os endpoints Atlassian respondem <strong>503 Service Unavailable</strong>. JWTs nunca vão na URL de redirect; a API emite um <code class=\"px-1 py-0.5 bg-gray-100 rounded\">exchangeCode</code> de uso único (Redis, 60 segundos). O mesmo <code class=\"px-1 py-0.5 bg-gray-100 rounded\">POST /auth/exchange</code> é compartilhado com os demais provedores sociais.",
+      "items": [
+        "Ativado por feature flag no ambiente",
+        "Strategy passport-oauth2 customizada + AtlassianAuthGuard",
+        "Perfil obtido via GET https://api.atlassian.com/me após troca do token",
+        "Params de authorize incluem audience=api.atlassian.com e prompt=consent",
+        "Allowlist de redirect evita open redirects",
+        "Mesmo formato de tokens do POST /auth/login"
+      ]
+    },
+    "console": {
+      "title": "Atlassian Developer Console",
+      "description": "Crie um app em <strong>https://developer.atlassian.com/console/myapps/</strong> → Create → OAuth 2.0 (3LO). Defina a Callback URL igual a <code class=\"px-1 py-0.5 bg-gray-100 rounded\">ATLASSIAN_CALLBACK_URL</code>. Adicione a <strong>User Identity API</strong> e o scope <code class=\"px-1 py-0.5 bg-gray-100 rounded\">read:me</code>.",
+      "steps": [
+        "Abra https://developer.atlassian.com/console/myapps/ e clique em Create → OAuth 2.0 (3LO)",
+        "Defina a Callback URL (ex.: http://localhost:3000/api/v1/auth/atlassian/callback)",
+        "Adicione a User Identity API e o scope read:me",
+        "Copie Client ID e Client Secret para o .env",
+        "Garanta que ATLASSIAN_CALLBACK_URL corresponda à Callback URL registrada no console Atlassian"
+      ]
+    },
+    "env": {
+      "title": "Variáveis de ambiente",
+      "description": "Carregadas do <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> via <code class=\"px-1 py-0.5 bg-gray-100 rounded\">src/config/atlassian-oauth.config.ts</code> (namespace <code class=\"px-1 py-0.5 bg-gray-100 rounded\">atlassianOAuth</code> no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">ConfigService</code>). Veja <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env.example</code>.",
+      "codeHeader": {
+        "label": "Environment",
+        "context": ".env"
+      }
+    },
+    "roles": {
+      "title": "Roles padrão para novos usuários Atlassian",
+      "description": "Novos usuários Atlassian recebem <code class=\"px-1 py-0.5 bg-gray-100 rounded\">roles: []</code> por padrão (igual ao register). Defina <code class=\"px-1 py-0.5 bg-amber-100 rounded\">ATLASSIAN_OAUTH_DEFAULT_ROLES</code> no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> como lista separada por vírgula (ex.: <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user</code> ou <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user,manager</code>). Usuários existentes vinculados por e-mail mantêm as roles atuais."
+    },
+    "flow": {
+      "title": "Sequência",
+      "items": [
+        "Cliente abre GET /api/v1/auth/atlassian?redirect=<URL na allowlist>",
+        "Usuário consente no Atlassian; o browser chama GET /api/v1/auth/atlassian/callback",
+        "API chama GET https://api.atlassian.com/me, faz upsert do usuário, grava exchangeCode no Redis e redireciona para redirect?code=...",
+        "Cliente faz POST { code } em /api/v1/auth/exchange e recebe os JWTs"
+      ]
+    },
+    "api": {
+      "title": "Referência da API",
+      "start": {
+        "title": "1. Iniciar OAuth",
+        "description": "Abre o consentimento do Atlassian em <code class=\"px-1 py-0.5 bg-gray-100 rounded\">https://auth.atlassian.com/authorize</code> com <code class=\"px-1 py-0.5 bg-gray-100 rounded\">audience=api.atlassian.com</code> e <code class=\"px-1 py-0.5 bg-gray-100 rounded\">prompt=consent</code>. O query <code class=\"px-1 py-0.5 bg-gray-100 rounded\">redirect</code> deve bater com um prefixo de <code class=\"px-1 py-0.5 bg-gray-100 rounded\">ATLASSIAN_REDIRECT_ALLOWLIST</code> (ou omita para usar a primeira entrada). Scope: <code class=\"px-1 py-0.5 bg-gray-100 rounded\">read:me</code>.",
+        "codeHeader": {
+          "label": "HTTP",
+          "context": "GET /api/v1/auth/atlassian"
+        },
+        "errors": "400 redirect inválido · 503 feature desligada"
+      },
+      "callback": {
+        "title": "2. Callback",
+        "description": "Tratado pela API. A troca de token usa <code class=\"px-1 py-0.5 bg-gray-100 rounded\">https://auth.atlassian.com/oauth/token</code>. Redireciona para o app com <code class=\"px-1 py-0.5 bg-gray-100 rounded\">?code=</code> (ou <code class=\"px-1 py-0.5 bg-gray-100 rounded\">&code=</code> se a URL já tiver query).",
+        "codeHeader": {
+          "label": "HTTP",
+          "context": "GET /api/v1/auth/atlassian/callback"
+        }
+      },
+      "exchange": {
+        "title": "3. Trocar código",
+        "description": "Endpoint público compartilhado com os demais provedores sociais. Consome o código (uso único) e retorna o mesmo formato do login.",
+        "requestHeader": {
+          "label": "HTTP Request",
+          "context": "POST /api/v1/auth/exchange"
+        },
+        "responseHeader": {
+          "label": "HTTP Response",
+          "context": "200 OK"
+        },
+        "errors": "401 código inválido/expirado/usado · 503 auth social desligada"
+      }
+    },
+    "web": {
+      "title": "Frontend — Web (SPA)",
+      "description": "Fluxo típico: o botão inicia OAuth na mesma janela (ou popup); a rota de callback no frontend lê <code class=\"px-1 py-0.5 bg-gray-100 rounded\">code</code> da query e chama exchange.",
+      "startHeader": {
+        "label": "JavaScript",
+        "context": "Iniciar login Atlassian"
+      },
+      "callbackHeader": {
+        "label": "JavaScript",
+        "context": "Página de callback /auth/callback"
+      },
+      "notes": [
+        "Inclua a URL de callback do frontend em ATLASSIAN_REDIRECT_ALLOWLIST (ex.: http://localhost:5173/auth/callback)",
+        "ATLASSIAN_CALLBACK_URL aponta para a API Nest, não para a SPA",
+        "Armazene accessToken / refreshToken com segurança"
+      ]
+    },
+    "mobile": {
+      "title": "Frontend — Mobile (deep link)",
+      "description": "Use um scheme customizado (ou universal link) na allowlist. Após o Atlassian, a API redireciona para <code class=\"px-1 py-0.5 bg-gray-100 rounded\">myapp://success?code=...</code>. O app abre, lê o código e chama exchange.",
+      "openHeader": {
+        "label": "React Native",
+        "context": "Abrir OAuth no browser"
+      },
+      "handleHeader": {
+        "label": "React Native",
+        "context": "Deep link + exchange"
+      },
+      "notes": [
+        "Registre o scheme no SO / Expo app.json",
+        "Prefira Linking.addEventListener('url', ...) e getInitialURL()",
+        "Faça o exchange via HTTPS na base URL da API"
+      ]
+    },
+    "security": {
+      "title": "Notas de segurança",
+      "items": [
+        "URLs de redirect devem casar com prefixos de ATLASSIAN_REDIRECT_ALLOWLIST",
+        "Códigos de exchange são de uso único e expiram em 60 segundos (Redis)",
+        "Usuários locais existentes são vinculados pelo e-mail verificado do Atlassian (atlassianId; roles inalteradas)",
+        "Usuários só-Atlassian têm password null — login/change-password com senha falham até haver senha",
+        "E-mail é obrigatório via api.atlassian.com/me; o login falha se o Atlassian não devolver e-mail (scope read:me)"
+      ]
+    },
+    "userModel": {
+      "title": "Modelo de usuário",
+      "description": "Campos da entity/interface usados pelo login Atlassian:",
+      "items": [
+        "atlassianId — account id Atlassian único e nullable (account_id do /me)",
+        "password — nullable para contas só OAuth",
+        "isActive — true para novos usuários Atlassian",
+        "roles — de ATLASSIAN_OAUTH_DEFAULT_ROLES no env (padrão [])"
+      ]
+    },
+    "related": {
+      "title": "Relacionados",
+      "social": "Hub de Autenticação Social",
+      "google": "Guia Google OAuth2",
+      "twitter": "Guia X / Twitter OAuth2",
+      "github": "Guia GitHub OAuth2",
+      "figma": "Guia Figma OAuth2",
+      "linkedin": "Guia LinkedIn OpenID Connect",
+      "slack": "Guia Slack OpenID Connect",
+      "gitlab": "Guia GitLab OAuth2",
+      "bitbucket": "Guia Bitbucket OAuth2",
+      "discord": "Guia Discord OAuth2",
+      "twitch": "Guia Twitch OAuth2",
+      "steam": "Guia Steam OpenID 2.0",
+      "reddit": "Guia Reddit OAuth2",
+      "auth": "Auth & JWT",
+      "facebook": "Guia Facebook OAuth2"
+    },
+    "samples": {
+      "fullPageRedirect": "// Redirect de página inteira: Nest → Atlassian → de volta à SPA",
+      "spaCallback": "// /auth/callback na SPA",
+      "persistTokens": "// persista os tokens como sua app exigir",
+      "tokenFields": "// data.accessToken, data.refreshToken, data.user"
+    }
+  }
+}

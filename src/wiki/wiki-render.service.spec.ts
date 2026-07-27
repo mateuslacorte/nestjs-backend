@@ -147,6 +147,12 @@ describe('WikiRenderService', () => {
       expect(service.isInfrastructurePath('/graphql')).toBe(false);
     });
 
+    it('falls back to /graphql when graphql.path is undefined', () => {
+      configService.get.mockReturnValue(undefined);
+      expect(service.isInfrastructurePath('/graphql')).toBe(true);
+      expect(service.isInfrastructurePath('/graphql/playground')).toBe(true);
+    });
+
     it('returns false for wiki pages', () => {
       expect(service.isInfrastructurePath('/')).toBe(false);
       expect(service.isInfrastructurePath('/auth')).toBe(false);
@@ -286,6 +292,59 @@ describe('WikiRenderService', () => {
       expect(locals.seo.canonicalUrl).toBe('https://docs.example.com/email');
     });
 
+    it('uses first value when x-forwarded-proto is an array', () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'app.publicUrl') return undefined;
+        if (key === 'app.apiPrefix') return 'api/v1';
+        if (key === 'graphql.path') return '/graphql';
+        return undefined;
+      });
+      const req = createReq({
+        path: '/email',
+        headers: { 'x-forwarded-proto': ['https', 'http'] },
+      });
+      const locals = service.buildLocals(req, 'en-US', {
+        titleKey: 'email.meta.title',
+        currentPage: 'email',
+        requestPath: '/email',
+      });
+      expect(locals.seo.canonicalUrl).toBe('https://docs.example.com/email');
+    });
+
+    it('falls back to req.protocol then http when proto header is missing', () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'app.publicUrl') return undefined;
+        if (key === 'app.apiPrefix') return 'api/v1';
+        if (key === 'graphql.path') return '/graphql';
+        return undefined;
+      });
+      const withProtocol = createReq({
+        path: '/p',
+        protocol: 'https',
+        headers: { 'x-forwarded-proto': undefined },
+      });
+      expect(
+        service.buildLocals(withProtocol, 'en-US', {
+          titleKey: 'x',
+          currentPage: 'home',
+          requestPath: '/p',
+        }).seo.canonicalUrl,
+      ).toBe('https://docs.example.com/p');
+
+      const withoutProtocol = createReq({
+        path: '/p',
+        protocol: undefined,
+        headers: { 'x-forwarded-proto': undefined },
+      } as Partial<Request>);
+      expect(
+        service.buildLocals(withoutProtocol, 'en-US', {
+          titleKey: 'x',
+          currentPage: 'home',
+          requestPath: '/p',
+        }).seo.canonicalUrl,
+      ).toBe('http://docs.example.com/p');
+    });
+
     it('resolves origin from app.host/port when host header missing', () => {
       configService.get.mockImplementation((key: string) => {
         const values: Record<string, unknown> = {
@@ -309,6 +368,25 @@ describe('WikiRenderService', () => {
       expect(locals.seo.canonicalUrl).toBe('http://127.0.0.1:4000/x');
     });
 
+    it('falls back to localhost:3000 when app.host and app.port are unset', () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'app.publicUrl') return undefined;
+        if (key === 'app.apiPrefix') return 'api/v1';
+        if (key === 'graphql.path') return '/graphql';
+        return undefined;
+      });
+      const req = createReq({
+        path: '/x',
+        get: jest.fn().mockReturnValue(undefined),
+      } as Partial<Request>);
+      const locals = service.buildLocals(req, 'en-US', {
+        titleKey: 'x',
+        currentPage: 'home',
+        requestPath: '/x',
+      });
+      expect(locals.seo.canonicalUrl).toBe('http://localhost:3000/x');
+    });
+
     it('uses full URL app.host as-is', () => {
       configService.get.mockImplementation((key: string) => {
         const values: Record<string, unknown> = {
@@ -329,6 +407,69 @@ describe('WikiRenderService', () => {
         requestPath: '/y',
       });
       expect(locals.seo.canonicalUrl).toBe('https://custom.example/y');
+    });
+
+    it('uses http:// app.host as-is without appending port', () => {
+      configService.get.mockImplementation((key: string) => {
+        const values: Record<string, unknown> = {
+          'app.publicUrl': undefined,
+          'app.host': 'http://intranet.local/',
+          'app.port': 3000,
+          'app.apiPrefix': 'api/v1',
+          'graphql.path': '/graphql',
+        };
+        return values[key];
+      });
+      const req = createReq({
+        get: jest.fn().mockReturnValue(undefined),
+      } as Partial<Request>);
+      const locals = service.buildLocals(req, 'en-US', {
+        titleKey: 'x',
+        currentPage: 'home',
+        requestPath: '/z',
+      });
+      expect(locals.seo.canonicalUrl).toBe('http://intranet.local/z');
+    });
+
+    it('falls back to api/v1, empty currentPage, and graphql defaults', () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'app.publicUrl') return 'https://wiki.example.com';
+        return undefined;
+      });
+      const locals = service.buildLocals(createReq({ path: '/auth' }), 'en-US', {
+        titleKey: 'auth.meta.title',
+      });
+      expect(locals.apiBasePath).toBe('/api/v1');
+      expect(locals.currentPage).toBe('');
+      expect(locals.graphqlPath).toBe('/graphql');
+      expect(locals.seo.og.localeAlternate).toBe('pt_BR');
+    });
+
+    it('sets pt-BR locale alternate to en_US', () => {
+      const locals = service.buildLocals(createReq(), 'pt-BR', {
+        titleKey: 'home.meta.title',
+        currentPage: 'home',
+      });
+      expect(locals.seo.og.locale).toBe('pt_BR');
+      expect(locals.seo.og.localeAlternate).toBe('en_US');
+    });
+
+    it('canonicalizes empty path via req.path fallback to /', () => {
+      const locals = service.buildLocals(
+        createReq({ path: undefined } as Partial<Request>),
+        'en-US',
+        { titleKey: 'home.meta.title', currentPage: 'home' },
+      );
+      expect(locals.seo.canonicalUrl).toBe('https://wiki.example.com/');
+    });
+
+    it('strips trailing slash on non-root paths for canonical URL', () => {
+      const locals = service.buildLocals(createReq({ path: '/auth/' }), 'en-US', {
+        titleKey: 'auth.meta.title',
+        currentPage: 'auth',
+        requestPath: '/auth/',
+      });
+      expect(locals.seo.canonicalUrl).toBe('https://wiki.example.com/auth');
     });
   });
 
@@ -381,6 +522,21 @@ describe('WikiRenderService', () => {
         }),
       );
     });
+
+    it('falls back to req.url when originalUrl is missing', () => {
+      const req = createReq({
+        originalUrl: undefined,
+        url: '/gone',
+      } as Partial<Request>);
+      const res = createRes();
+
+      service.renderNotFound(req, res);
+
+      expect(res.render).toHaveBeenCalledWith(
+        'pages/error-404',
+        expect.objectContaining({ requestPath: '/gone' }),
+      );
+    });
   });
 
   describe('renderServerError', () => {
@@ -398,6 +554,21 @@ describe('WikiRenderService', () => {
           statusCode: 500,
           requestPath: '/boom',
         }),
+      );
+    });
+
+    it('falls back to req.url when originalUrl is missing', () => {
+      const req = createReq({
+        originalUrl: undefined,
+        url: '/explode',
+      } as Partial<Request>);
+      const res = createRes();
+
+      service.renderServerError(req, res);
+
+      expect(res.render).toHaveBeenCalledWith(
+        'pages/error-500',
+        expect.objectContaining({ requestPath: '/explode' }),
       );
     });
   });

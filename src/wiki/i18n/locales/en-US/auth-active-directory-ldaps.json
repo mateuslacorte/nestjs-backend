@@ -1,0 +1,24 @@
+{
+  "authActiveDirectoryLdaps": {
+    "badge": "LDAPS",
+    "hero": {
+      "titlePrefix": "Active Directory",
+      "titleHighlight": "LDAPS",
+      "subtitle": "Configure TLS-encrypted LDAP (port 636) for production AD authentication."
+    },
+    "overview": {
+      "title": "Overview",
+      "description": "LDAPS wraps LDAP in TLS. Install a valid certificate on your DC or import the CA chain on the API host. Set <code class=\"px-1 py-0.5 bg-gray-100 rounded\">AD_LDAP_TLS_REJECT_UNAUTHORIZED=false</code> only for dev/self-signed certs."
+    },
+    "config": {
+      "title": "Environment",
+      "description": "Use <code class=\"px-1 py-0.5 bg-gray-100 rounded\">ldaps://dc.example.com:636</code> as <code class=\"px-1 py-0.5 bg-gray-100 rounded\">AD_LDAP_URL</code>. Open port 636 from the API to the DC.",
+      "codeHeader": { "label": "Environment", "context": "LDAPS example" }
+    },
+    "related": {
+      "title": "Related guides",
+      "hub": "Active Directory hub",
+      "ldap": "LDAP guide →"
+    }
+  }
+}

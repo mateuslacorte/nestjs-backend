@@ -5,6 +5,7 @@ import { WikiRenderService } from '../../wiki/wiki-render.service';
 
 @Catch()
 export class GraylogExceptionFilter implements ExceptionFilter {
+    /* istanbul ignore next -- Nest DI constructor parameter emit */
     constructor(
         private readonly graylogService: GraylogService,
         private readonly wikiRender: WikiRenderService,

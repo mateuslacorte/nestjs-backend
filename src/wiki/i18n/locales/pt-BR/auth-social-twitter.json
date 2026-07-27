@@ -35,7 +35,10 @@
     "env": {
       "title": "Variáveis de ambiente",
       "description": "Carregadas do <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> via <code class=\"px-1 py-0.5 bg-gray-100 rounded\">src/config/twitter-oauth.config.ts</code> (namespace <code class=\"px-1 py-0.5 bg-gray-100 rounded\">twitterOAuth</code> no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">ConfigService</code>). Veja <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env.example</code>. Defina <code class=\"px-1 py-0.5 bg-amber-100 rounded\">SESSION_SECRET</code> (ou use <code class=\"px-1 py-0.5 bg-gray-100 rounded\">JWT_SECRET</code>) para as sessions do PKCE.",
-      "codeHeader": { "label": "Environment", "context": ".env" }
+      "codeHeader": {
+        "label": "Environment",
+        "context": ".env"
+      }
     },
     "roles": {
       "title": "Roles padrão para novos usuários Twitter",
@@ -55,27 +58,45 @@
       "start": {
         "title": "1. Iniciar OAuth",
         "description": "Abre o consentimento do X. O query <code class=\"px-1 py-0.5 bg-gray-100 rounded\">redirect</code> deve bater com um prefixo de <code class=\"px-1 py-0.5 bg-gray-100 rounded\">TWITTER_REDIRECT_ALLOWLIST</code> (ou omita para usar a primeira entrada).",
-        "codeHeader": { "label": "HTTP", "context": "GET /api/v1/auth/twitter" },
+        "codeHeader": {
+          "label": "HTTP",
+          "context": "GET /api/v1/auth/twitter"
+        },
         "errors": "400 redirect inválido · 503 recurso desligado"
       },
       "callback": {
         "title": "2. Callback",
         "description": "Tratado pela API. Redireciona para o app com <code class=\"px-1 py-0.5 bg-gray-100 rounded\">?code=</code> (ou <code class=\"px-1 py-0.5 bg-gray-100 rounded\">&code=</code> se a URL já tiver query).",
-        "codeHeader": { "label": "HTTP", "context": "GET /api/v1/auth/twitter/callback" }
+        "codeHeader": {
+          "label": "HTTP",
+          "context": "GET /api/v1/auth/twitter/callback"
+        }
       },
       "exchange": {
         "title": "3. Trocar o código",
         "description": "Endpoint público compartilhado com Google e Facebook. Consome o código (uso único) e devolve o mesmo formato do login.",
-        "requestHeader": { "label": "HTTP Request", "context": "POST /api/v1/auth/exchange" },
-        "responseHeader": { "label": "HTTP Response", "context": "200 OK" },
+        "requestHeader": {
+          "label": "HTTP Request",
+          "context": "POST /api/v1/auth/exchange"
+        },
+        "responseHeader": {
+          "label": "HTTP Response",
+          "context": "200 OK"
+        },
         "errors": "401 código inválido/expirado/usado · 503 auth social desligada"
       }
     },
     "web": {
       "title": "Frontend — Web (SPA)",
       "description": "Fluxo típico: botão inicia OAuth na mesma janela (ou popup); uma rota de callback no origin do frontend lê <code class=\"px-1 py-0.5 bg-gray-100 rounded\">code</code> da query e chama exchange.",
-      "startHeader": { "label": "JavaScript", "context": "Iniciar login X / Twitter" },
-      "callbackHeader": { "label": "JavaScript", "context": "Página de callback /auth/callback" },
+      "startHeader": {
+        "label": "JavaScript",
+        "context": "Iniciar login X / Twitter"
+      },
+      "callbackHeader": {
+        "label": "JavaScript",
+        "context": "Página de callback /auth/callback"
+      },
       "notes": [
         "Adicione a URL de callback do frontend em TWITTER_REDIRECT_ALLOWLIST (ex.: http://localhost:5173/auth/callback)",
         "TWITTER_CALLBACK_URL deve apontar para a API Nest, não para a SPA",
@@ -85,8 +106,14 @@
     "mobile": {
       "title": "Frontend — Mobile (deep link)",
       "description": "Use um scheme customizado (ou universal link) na allowlist. Após o X, a API redireciona para <code class=\"px-1 py-0.5 bg-gray-100 rounded\">myapp://success?code=...</code>. O app abre, lê o código e chama exchange.",
-      "openHeader": { "label": "React Native", "context": "Abrir OAuth no browser" },
-      "handleHeader": { "label": "React Native", "context": "Tratar deep link + exchange" },
+      "openHeader": {
+        "label": "React Native",
+        "context": "Abrir OAuth no browser"
+      },
+      "handleHeader": {
+        "label": "React Native",
+        "context": "Tratar deep link + exchange"
+      },
       "notes": [
         "Registre o scheme no SO / Expo app.json",
         "Prefira Linking.addEventListener('url', ...) e getInitialURL()",
@@ -119,6 +146,17 @@
       "social": "Hub de Autenticação Social",
       "google": "Guia Google OAuth2",
       "facebook": "Guia Facebook OAuth2",
+      "github": "Guia GitHub OAuth2",
+      "figma": "Guia Figma OAuth2",
+      "linkedin": "Guia LinkedIn OpenID Connect",
+      "slack": "Guia Slack OpenID Connect",
+      "atlassian": "Guia Atlassian OAuth 2.0 (3LO)",
+      "gitlab": "Guia GitLab OAuth2",
+      "bitbucket": "Guia Bitbucket OAuth2",
+      "discord": "Guia Discord OAuth2",
+      "twitch": "Guia Twitch OAuth2",
+      "steam": "Guia Steam OpenID 2.0",
+      "reddit": "Guia Reddit OAuth2",
       "auth": "Auth & JWT"
     },
     "samples": {

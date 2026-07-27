@@ -36,12 +36,18 @@
         "jsOrigins": {
           "title": "Origens JavaScript autorizadas",
           "description": "URL base desta API Nest, incluindo a porta — sem path.",
-          "codeHeader": { "label": "Exemplo", "context": "API local" }
+          "codeHeader": {
+            "label": "Exemplo",
+            "context": "API local"
+          }
         },
         "redirects": {
           "title": "URIs de redirecionamento autorizados",
           "description": "Rota exata de callback nesta API (mesmo valor de <code class=\"px-1 py-0.5 bg-gray-100 rounded\">GOOGLE_CALLBACK_URL</code>). Não use a rota da SPA aqui.",
-          "codeHeader": { "label": "Exemplo", "context": "Callback da API" }
+          "codeHeader": {
+            "label": "Exemplo",
+            "context": "Callback da API"
+          }
         },
         "note": "Depois de salvar, copie Client ID e Client Secret para o .env. URLs de pós-login do frontend ficam em GOOGLE_REDIRECT_ALLOWLIST, não na lista de redirect do Google."
       }
@@ -49,7 +55,10 @@
     "env": {
       "title": "Variáveis de ambiente",
       "description": "Carregadas do <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> via <code class=\"px-1 py-0.5 bg-gray-100 rounded\">src/config/google-oauth.config.ts</code> (namespace <code class=\"px-1 py-0.5 bg-gray-100 rounded\">googleOAuth</code> no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">ConfigService</code>). Veja <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env.example</code>.",
-      "codeHeader": { "label": "Environment", "context": ".env" }
+      "codeHeader": {
+        "label": "Environment",
+        "context": ".env"
+      }
     },
     "roles": {
       "title": "Roles padrão para novos usuários Google",
@@ -69,27 +78,45 @@
       "start": {
         "title": "1. Iniciar OAuth",
         "description": "Abre o consentimento do Google. O query <code class=\"px-1 py-0.5 bg-gray-100 rounded\">redirect</code> deve bater com um prefixo de <code class=\"px-1 py-0.5 bg-gray-100 rounded\">GOOGLE_REDIRECT_ALLOWLIST</code> (ou omita para usar a primeira entrada).",
-        "codeHeader": { "label": "HTTP", "context": "GET /api/v1/auth/google" },
+        "codeHeader": {
+          "label": "HTTP",
+          "context": "GET /api/v1/auth/google"
+        },
         "errors": "400 redirect inválido · 503 feature desligada"
       },
       "callback": {
         "title": "2. Callback",
         "description": "Tratado pela API. Redireciona para o app com <code class=\"px-1 py-0.5 bg-gray-100 rounded\">?code=</code> (ou <code class=\"px-1 py-0.5 bg-gray-100 rounded\">&code=</code> se a URL já tiver query).",
-        "codeHeader": { "label": "HTTP", "context": "GET /api/v1/auth/google/callback" }
+        "codeHeader": {
+          "label": "HTTP",
+          "context": "GET /api/v1/auth/google/callback"
+        }
       },
       "exchange": {
         "title": "3. Trocar o código",
         "description": "Endpoint público. Consome o código (uso único) e devolve o mesmo formato do login.",
-        "requestHeader": { "label": "HTTP Request", "context": "POST /api/v1/auth/exchange" },
-        "responseHeader": { "label": "HTTP Response", "context": "200 OK" },
+        "requestHeader": {
+          "label": "HTTP Request",
+          "context": "POST /api/v1/auth/exchange"
+        },
+        "responseHeader": {
+          "label": "HTTP Response",
+          "context": "200 OK"
+        },
         "errors": "401 código inválido/expirado/já usado · 503 feature desligada"
       }
     },
     "web": {
       "title": "Frontend — Web (SPA)",
       "description": "Fluxo típico: botão inicia OAuth na mesma janela (ou popup); uma rota de callback na origem do frontend lê <code class=\"px-1 py-0.5 bg-gray-100 rounded\">code</code> da query e chama o exchange.",
-      "startHeader": { "label": "JavaScript", "context": "Iniciar login Google" },
-      "callbackHeader": { "label": "JavaScript", "context": "Página de callback /auth/callback" },
+      "startHeader": {
+        "label": "JavaScript",
+        "context": "Iniciar login Google"
+      },
+      "callbackHeader": {
+        "label": "JavaScript",
+        "context": "Página de callback /auth/callback"
+      },
       "notes": [
         "Inclua a URL de callback do frontend em GOOGLE_REDIRECT_ALLOWLIST (ex.: http://localhost:5173/auth/callback)",
         "GOOGLE_CALLBACK_URL aponta para a API Nest, não para a SPA",
@@ -99,8 +126,14 @@
     "mobile": {
       "title": "Frontend — Mobile (deep link)",
       "description": "Use um scheme customizado (ou universal link) na allowlist. Depois do Google, a API redireciona para <code class=\"px-1 py-0.5 bg-gray-100 rounded\">myapp://success?code=...</code>. O app abre, lê o código e chama o exchange.",
-      "openHeader": { "label": "React Native", "context": "Abrir OAuth no browser" },
-      "handleHeader": { "label": "React Native", "context": "Deep link + exchange" },
+      "openHeader": {
+        "label": "React Native",
+        "context": "Abrir OAuth no browser"
+      },
+      "handleHeader": {
+        "label": "React Native",
+        "context": "Deep link + exchange"
+      },
       "notes": [
         "Registre o scheme no SO / Expo app.json",
         "Prefira Linking.addEventListener('url', ...) e getInitialURL()",
@@ -131,6 +164,17 @@
       "social": "Hub de Autenticação Social",
       "facebook": "Guia Facebook OAuth2",
       "twitter": "Guia X / Twitter OAuth2",
+      "github": "Guia GitHub OAuth2",
+      "figma": "Guia Figma OAuth2",
+      "linkedin": "Guia LinkedIn OpenID Connect",
+      "slack": "Guia Slack OpenID Connect",
+      "atlassian": "Guia Atlassian OAuth 2.0 (3LO)",
+      "gitlab": "Guia GitLab OAuth2",
+      "bitbucket": "Guia Bitbucket OAuth2",
+      "discord": "Guia Discord OAuth2",
+      "twitch": "Guia Twitch OAuth2",
+      "steam": "Guia Steam OpenID 2.0",
+      "reddit": "Guia Reddit OAuth2",
       "auth": "Auth & JWT"
     },
     "samples": {

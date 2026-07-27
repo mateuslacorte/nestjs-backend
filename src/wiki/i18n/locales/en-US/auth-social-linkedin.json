@@ -1,0 +1,168 @@
+{
+  "authSocialLinkedin": {
+    "meta": {
+      "title": "LinkedIn OAuth2 - Backend NestJS"
+    },
+    "badge": "LinkedIn",
+    "hero": {
+      "titlePrefix": "LinkedIn",
+      "titleHighlight": "OpenID Connect",
+      "subtitle": "Authorization Code Exchange for web and mobile — Sign In with LinkedIn using OpenID Connect setup, API reference, and frontend examples."
+    },
+    "overview": {
+      "title": "Overview",
+      "description": "LinkedIn login is optional and controlled by <code class=\"px-1 py-0.5 bg-amber-100 rounded\">LINKEDIN_AUTH_ENABLED</code>. When disabled, LinkedIn endpoints return <strong>503 Service Unavailable</strong>. JWTs are never placed in the redirect URL; the API issues a one-time <code class=\"px-1 py-0.5 bg-gray-100 rounded\">exchangeCode</code> (Redis, 60 seconds). The same <code class=\"px-1 py-0.5 bg-gray-100 rounded\">POST /auth/exchange</code> endpoint is shared with other social providers.",
+      "items": [
+        "Feature-flagged via environment",
+        "Custom passport-oauth2 strategy + LinkedinAuthGuard (not legacy passport-linkedin)",
+        "Profile fetched via GET /v2/userinfo after token exchange",
+        "Redirect allowlist prevents open redirects",
+        "Same token response shape as POST /auth/login"
+      ]
+    },
+    "console": {
+      "title": "LinkedIn Developer Portal → My apps",
+      "description": "Create an app under LinkedIn Developer Portal → My apps. Request the <strong>Sign In with LinkedIn using OpenID Connect</strong> product. Set the redirect URI to match <code class=\"px-1 py-0.5 bg-gray-100 rounded\">LINKEDIN_CALLBACK_URL</code>. Scopes: <code class=\"px-1 py-0.5 bg-gray-100 rounded\">openid profile email</code>.",
+      "steps": [
+        "Open https://www.linkedin.com/developers/apps and create a new app",
+        "Under Products, request Sign In with LinkedIn using OpenID Connect",
+        "Set the redirect URI (e.g. http://localhost:3000/api/v1/auth/linkedin/callback)",
+        "Ensure scopes openid, profile, and email are enabled",
+        "Copy Client ID and Client Secret into your .env",
+        "Ensure LINKEDIN_CALLBACK_URL matches the redirect URI registered in LinkedIn"
+      ]
+    },
+    "env": {
+      "title": "Environment variables",
+      "description": "Loaded from <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> via <code class=\"px-1 py-0.5 bg-gray-100 rounded\">src/config/linkedin-oauth.config.ts</code> (namespace <code class=\"px-1 py-0.5 bg-gray-100 rounded\">linkedinOAuth</code> on <code class=\"px-1 py-0.5 bg-gray-100 rounded\">ConfigService</code>). See <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env.example</code>.",
+      "codeHeader": {
+        "label": "Environment",
+        "context": ".env"
+      }
+    },
+    "roles": {
+      "title": "Default roles for new LinkedIn users",
+      "description": "New LinkedIn users receive <code class=\"px-1 py-0.5 bg-gray-100 rounded\">roles: []</code> by default (same as password register). Set <code class=\"px-1 py-0.5 bg-amber-100 rounded\">LINKEDIN_OAUTH_DEFAULT_ROLES</code> in <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> to a comma-separated list of Role values (e.g. <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user</code> or <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user,manager</code>). Existing users linked by email keep their current roles."
+    },
+    "flow": {
+      "title": "Sequence",
+      "items": [
+        "Client opens GET /api/v1/auth/linkedin?redirect=<allowlisted URL>",
+        "User consents on LinkedIn; browser hits GET /api/v1/auth/linkedin/callback",
+        "API calls GET /v2/userinfo, upserts user, stores exchangeCode in Redis, redirects to redirect?code=...",
+        "Client POSTs { code } to /api/v1/auth/exchange and receives JWTs"
+      ]
+    },
+    "api": {
+      "title": "API reference",
+      "start": {
+        "title": "1. Start OAuth",
+        "description": "Opens LinkedIn consent. Query <code class=\"px-1 py-0.5 bg-gray-100 rounded\">redirect</code> must match a prefix in <code class=\"px-1 py-0.5 bg-gray-100 rounded\">LINKEDIN_REDIRECT_ALLOWLIST</code> (or omit to use the first allowlist entry).",
+        "codeHeader": {
+          "label": "HTTP",
+          "context": "GET /api/v1/auth/linkedin"
+        },
+        "errors": "400 invalid redirect · 503 feature disabled"
+      },
+      "callback": {
+        "title": "2. Callback",
+        "description": "Handled by the API. Redirects to your app with <code class=\"px-1 py-0.5 bg-gray-100 rounded\">?code=</code> (or <code class=\"px-1 py-0.5 bg-gray-100 rounded\">&code=</code> if the URL already has a query).",
+        "codeHeader": {
+          "label": "HTTP",
+          "context": "GET /api/v1/auth/linkedin/callback"
+        }
+      },
+      "exchange": {
+        "title": "3. Exchange code",
+        "description": "Public endpoint shared with other social providers. Consumes the code (single use) and returns the same shape as login.",
+        "requestHeader": {
+          "label": "HTTP Request",
+          "context": "POST /api/v1/auth/exchange"
+        },
+        "responseHeader": {
+          "label": "HTTP Response",
+          "context": "200 OK"
+        },
+        "errors": "401 invalid/expired/used code · 503 social auth disabled"
+      }
+    },
+    "web": {
+      "title": "Frontend — Web (SPA)",
+      "description": "Typical flow: button starts OAuth in the same window (or popup); a callback route on your frontend origin reads <code class=\"px-1 py-0.5 bg-gray-100 rounded\">code</code> from the query string and calls exchange.",
+      "startHeader": {
+        "label": "JavaScript",
+        "context": "Start LinkedIn login"
+      },
+      "callbackHeader": {
+        "label": "JavaScript",
+        "context": "Callback page /auth/callback"
+      },
+      "notes": [
+        "Add your frontend callback URL to LINKEDIN_REDIRECT_ALLOWLIST (e.g. http://localhost:5173/auth/callback)",
+        "LINKEDIN_CALLBACK_URL must point at the Nest API, not the SPA",
+        "Store accessToken / refreshToken securely (memory + httpOnly cookie patterns as you prefer)"
+      ]
+    },
+    "mobile": {
+      "title": "Frontend — Mobile (deep link)",
+      "description": "Use a custom scheme (or universal link) in the allowlist. After LinkedIn, the API redirects to <code class=\"px-1 py-0.5 bg-gray-100 rounded\">myapp://success?code=...</code>. The app opens, parses the code, and calls exchange.",
+      "openHeader": {
+        "label": "React Native",
+        "context": "Open OAuth in browser"
+      },
+      "handleHeader": {
+        "label": "React Native",
+        "context": "Handle deep link + exchange"
+      },
+      "notes": [
+        "Register the scheme in the OS / Expo app.json",
+        "Prefer Linking.addEventListener('url', ...) and getInitialURL()",
+        "Exchange over HTTPS against your API base URL"
+      ]
+    },
+    "security": {
+      "title": "Security notes",
+      "items": [
+        "Redirect URLs must match LINKEDIN_REDIRECT_ALLOWLIST prefixes",
+        "Exchange codes are single-use and expire in 60 seconds (Redis)",
+        "Existing local users are linked by verified LinkedIn email (linkedinId set; roles unchanged)",
+        "LinkedIn-only users have password null — password login / change-password will fail until a password is set",
+        "Email is required from GET /v2/userinfo; login fails if LinkedIn does not return an email (scopes openid profile email)"
+      ]
+    },
+    "userModel": {
+      "title": "User model",
+      "description": "Postgres entity / interface fields used by LinkedIn login:",
+      "items": [
+        "linkedinId — unique nullable LinkedIn OIDC subject (sub from userinfo)",
+        "password — nullable for OAuth-only accounts",
+        "isActive — set true for new LinkedIn users",
+        "roles — from LINKEDIN_OAUTH_DEFAULT_ROLES env (default [])"
+      ]
+    },
+    "related": {
+      "title": "Related",
+      "social": "Social Authentication hub",
+      "google": "Google OAuth2 guide",
+      "twitter": "X / Twitter OAuth2 guide",
+      "github": "GitHub OAuth2 guide",
+      "figma": "Figma OAuth2 guide",
+      "slack": "Slack OpenID Connect guide",
+      "atlassian": "Atlassian OAuth 2.0 (3LO) guide",
+      "gitlab": "GitLab OAuth2 guide",
+      "bitbucket": "Bitbucket OAuth2 guide",
+      "discord": "Discord OAuth2 guide",
+      "twitch": "Twitch OAuth2 guide",
+      "steam": "Steam OpenID 2.0 guide",
+      "reddit": "Reddit OAuth2 guide",
+      "auth": "Auth & JWT",
+      "facebook": "Facebook OAuth2 guide"
+    },
+    "samples": {
+      "fullPageRedirect": "// Full-page redirect to Nest → LinkedIn → back to SPA",
+      "spaCallback": "// /auth/callback on the SPA",
+      "persistTokens": "// persist tokens as your app requires",
+      "tokenFields": "// data.accessToken, data.refreshToken, data.user"
+    }
+  }
+}

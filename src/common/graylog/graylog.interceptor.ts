@@ -7,6 +7,7 @@ import { GraylogService } from './graylog.service';
 
 @Injectable()
 export class GraylogInterceptor implements NestInterceptor {
+    /* istanbul ignore next -- Nest DI constructor parameter emit */
     constructor(
         private readonly graylogService: GraylogService,
         private readonly reflector: Reflector,

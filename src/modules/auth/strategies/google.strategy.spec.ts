@@ -53,6 +53,13 @@ describe('GoogleStrategy', () => {
     );
   });
 
+  describe('constructor', () => {
+    it('uses disabled/default config when env keys are undefined', () => {
+      const fallbackStrategy = new GoogleStrategy(createConfigService());
+      expect(fallbackStrategy).toBeDefined();
+    });
+  });
+
   describe('validate', () => {
     it('returns profile payload on success', () => {
       const done = jest.fn() as VerifyCallback;

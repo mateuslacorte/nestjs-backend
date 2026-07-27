@@ -15,19 +15,47 @@ import { OauthExchangeService } from './services/oauth-exchange.service';
 import { GoogleProfilePayload } from './strategies/google.strategy';
 import { FacebookProfilePayload } from './strategies/facebook.strategy';
 import { TwitterProfilePayload } from './strategies/twitter.strategy';
+import { GithubProfilePayload } from './strategies/github.strategy';
+import { FigmaProfilePayload } from './strategies/figma.strategy';
+import { LinkedinProfilePayload } from './strategies/linkedin.strategy';
+import { SlackProfilePayload } from './strategies/slack.strategy';
+import { AtlassianProfilePayload } from './strategies/atlassian.strategy';
+import { GitlabProfilePayload } from './strategies/gitlab.strategy';
+import { BitbucketProfilePayload } from './strategies/bitbucket.strategy';
+import { DiscordProfilePayload } from './strategies/discord.strategy';
+import { TwitchProfilePayload } from './strategies/twitch.strategy';
+import { SteamProfilePayload } from './strategies/steam.strategy';
+import { RedditProfilePayload } from './strategies/reddit.strategy';
+import { AppleProfilePayload } from './strategies/apple.strategy';
+import { SpotifyProfilePayload } from './strategies/spotify.strategy';
+import { AmazonProfilePayload } from './strategies/amazon.strategy';
+import { MicrosoftProfilePayload } from './strategies/microsoft.strategy';
+import { PatreonProfilePayload } from './strategies/patreon.strategy';
+import { DropboxProfilePayload } from './strategies/dropbox.strategy';
+import { CoinbaseProfilePayload } from './strategies/coinbase.strategy';
+import { ActiveDirectoryProfilePayload } from './interfaces/active-directory-profile.interface';
+import { ActiveDirectoryLdapService } from './services/active-directory-ldap.service';
+import { MetamaskSiweService } from './services/metamask-siwe.service';
+import { AdLoginDto } from './dtos/ad-login.dto';
+import { MetamaskVerifyDto } from './dtos/metamask-verify.dto';
 import { Role } from './enums/role.enum';
 import { ExchangeCodeDto } from './dtos/exchange-code.dto';
 import { verifyPassword } from '@common/crypto/password.util';
+import { generateRandomDisplayName } from './utils/generate-random-display-name.util';
 
 @Injectable()
 export class AuthService {
+    /* istanbul ignore start -- Nest DI constructor parameter emit */
     constructor(
         private readonly usersService: UsersService,
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
         private readonly emailService: EmailService,
         private readonly oauthExchangeService: OauthExchangeService,
+        private readonly activeDirectoryLdapService: ActiveDirectoryLdapService,
+        private readonly metamaskSiweService: MetamaskSiweService,
     ) {}
+    /* istanbul ignore end */
 
     /**
      * Register a new user
@@ -159,6 +187,56 @@ export class AuthService {
         }
 
         // Generate tokens
+        const tokens = await this.generateTokens(user);
+
+        return {
+            user: this.sanitizeUser(user),
+            ...tokens,
+        };
+    }
+
+    /**
+     * Login with on-prem Active Directory (LDAP/LDAPS bind on domain controller).
+     */
+    async loginWithActiveDirectory(dto: AdLoginDto): Promise<{
+        user: Partial<IUser>;
+        accessToken: string;
+        refreshToken: string;
+    }> {
+        const profile = await this.activeDirectoryLdapService.authenticate(
+            dto.username,
+            dto.password,
+        );
+        const user = await this.findOrCreateActiveDirectoryUser(profile);
+        const tokens = await this.generateTokens(user);
+
+        return {
+            user: this.sanitizeUser(user),
+            ...tokens,
+        };
+    }
+
+    /**
+     * Issue a short-lived SIWE nonce for MetaMask login.
+     */
+    async issueMetamaskNonce(): Promise<{ nonce: string; expiresIn: number }> {
+        return this.metamaskSiweService.createNonce();
+    }
+
+    /**
+     * Login with MetaMask via SIWE message + signature. Returns JWT tokens
+     * (same contract as POST /auth/login).
+     */
+    async loginWithMetamask(dto: MetamaskVerifyDto): Promise<{
+        user: Partial<IUser>;
+        accessToken: string;
+        refreshToken: string;
+    }> {
+        const profile = await this.metamaskSiweService.verifyAndGetProfile(
+            dto.message,
+            dto.signature,
+        );
+        const user = await this.findOrCreateMetamaskUser(profile);
         const tokens = await this.generateTokens(user);
 
         return {
@@ -432,7 +510,381 @@ export class AuthService {
     }
 
     /**
-     * Exchange a one-time OAuth code for JWT tokens (Google, Facebook, or Twitter).
+     * After GitHub OAuth callback: upsert user, create exchange code, build redirect URL.
+     */
+    async completeGithubOAuth(
+        profile: GithubProfilePayload,
+        state?: string,
+    ): Promise<{ redirectUrl: string }> {
+        this.assertGithubAuthEnabled();
+
+        const redirectBase = this.parseAndValidateRedirectFromState(
+            state,
+            'githubOAuth.redirectAllowlist',
+        );
+        const user = await this.findOrCreateGithubUser(profile);
+        const code = await this.oauthExchangeService.createExchangeCode(user.id!);
+        const separator = redirectBase.includes('?') ? '&' : '?';
+
+        return {
+            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+        };
+    }
+
+    /**
+     * After Figma OAuth callback: upsert user, create exchange code, build redirect URL.
+     */
+    async completeFigmaOAuth(
+        profile: FigmaProfilePayload,
+        state?: string,
+    ): Promise<{ redirectUrl: string }> {
+        this.assertFigmaAuthEnabled();
+
+        const redirectBase = this.parseAndValidateRedirectFromState(
+            state,
+            'figmaOAuth.redirectAllowlist',
+        );
+        const user = await this.findOrCreateFigmaUser(profile);
+        const code = await this.oauthExchangeService.createExchangeCode(user.id!);
+        const separator = redirectBase.includes('?') ? '&' : '?';
+
+        return {
+            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+        };
+    }
+
+    /**
+     * After LinkedIn OAuth callback: upsert user, create exchange code, build redirect URL.
+     */
+    async completeLinkedinOAuth(
+        profile: LinkedinProfilePayload,
+        state?: string,
+    ): Promise<{ redirectUrl: string }> {
+        this.assertLinkedinAuthEnabled();
+
+        const redirectBase = this.parseAndValidateRedirectFromState(
+            state,
+            'linkedinOAuth.redirectAllowlist',
+        );
+        const user = await this.findOrCreateLinkedinUser(profile);
+        const code = await this.oauthExchangeService.createExchangeCode(user.id!);
+        const separator = redirectBase.includes('?') ? '&' : '?';
+
+        return {
+            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+        };
+    }
+
+    /**
+     * After Slack OAuth callback: upsert user, create exchange code, build redirect URL.
+     */
+    async completeSlackOAuth(
+        profile: SlackProfilePayload,
+        state?: string,
+    ): Promise<{ redirectUrl: string }> {
+        this.assertSlackAuthEnabled();
+
+        const redirectBase = this.parseAndValidateRedirectFromState(
+            state,
+            'slackOAuth.redirectAllowlist',
+        );
+        const user = await this.findOrCreateSlackUser(profile);
+        const code = await this.oauthExchangeService.createExchangeCode(user.id!);
+        const separator = redirectBase.includes('?') ? '&' : '?';
+
+        return {
+            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+        };
+    }
+
+    /**
+     * After Atlassian OAuth callback: upsert user, create exchange code, build redirect URL.
+     */
+    async completeAtlassianOAuth(
+        profile: AtlassianProfilePayload,
+        state?: string,
+    ): Promise<{ redirectUrl: string }> {
+        this.assertAtlassianAuthEnabled();
+
+        const redirectBase = this.parseAndValidateRedirectFromState(
+            state,
+            'atlassianOAuth.redirectAllowlist',
+        );
+        const user = await this.findOrCreateAtlassianUser(profile);
+        const code = await this.oauthExchangeService.createExchangeCode(user.id!);
+        const separator = redirectBase.includes('?') ? '&' : '?';
+
+        return {
+            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+        };
+    }
+
+    /**
+     * After GitLab OAuth callback: upsert user, create exchange code, build redirect URL.
+     */
+    async completeGitlabOAuth(
+        profile: GitlabProfilePayload,
+        state?: string,
+    ): Promise<{ redirectUrl: string }> {
+        this.assertGitlabAuthEnabled();
+
+        const redirectBase = this.parseAndValidateRedirectFromState(
+            state,
+            'gitlabOAuth.redirectAllowlist',
+        );
+        const user = await this.findOrCreateGitlabUser(profile);
+        const code = await this.oauthExchangeService.createExchangeCode(user.id!);
+        const separator = redirectBase.includes('?') ? '&' : '?';
+
+        return {
+            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+        };
+    }
+
+    /**
+     * After Bitbucket OAuth callback: upsert user, create exchange code, build redirect URL.
+     */
+    async completeBitbucketOAuth(
+        profile: BitbucketProfilePayload,
+        state?: string,
+    ): Promise<{ redirectUrl: string }> {
+        this.assertBitbucketAuthEnabled();
+
+        const redirectBase = this.parseAndValidateRedirectFromState(
+            state,
+            'bitbucketOAuth.redirectAllowlist',
+        );
+        const user = await this.findOrCreateBitbucketUser(profile);
+        const code = await this.oauthExchangeService.createExchangeCode(user.id!);
+        const separator = redirectBase.includes('?') ? '&' : '?';
+
+        return {
+            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+        };
+    }
+
+    /**
+     * After Discord OAuth callback: upsert user, create exchange code, build redirect URL.
+     */
+    async completeDiscordOAuth(
+        profile: DiscordProfilePayload,
+        state?: string,
+    ): Promise<{ redirectUrl: string }> {
+        this.assertDiscordAuthEnabled();
+
+        const redirectBase = this.parseAndValidateRedirectFromState(
+            state,
+            'discordOAuth.redirectAllowlist',
+        );
+        const user = await this.findOrCreateDiscordUser(profile);
+        const code = await this.oauthExchangeService.createExchangeCode(user.id!);
+        const separator = redirectBase.includes('?') ? '&' : '?';
+
+        return {
+            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+        };
+    }
+
+    /**
+     * After Twitch OAuth callback: upsert user, create exchange code, build redirect URL.
+     */
+    async completeTwitchOAuth(
+        profile: TwitchProfilePayload,
+        state?: string,
+    ): Promise<{ redirectUrl: string }> {
+        this.assertTwitchAuthEnabled();
+
+        const redirectBase = this.parseAndValidateRedirectFromState(
+            state,
+            'twitchOAuth.redirectAllowlist',
+        );
+        const user = await this.findOrCreateTwitchUser(profile);
+        const code = await this.oauthExchangeService.createExchangeCode(user.id!);
+        const separator = redirectBase.includes('?') ? '&' : '?';
+
+        return {
+            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+        };
+    }
+
+    /**
+     * After Steam OpenID callback: upsert user, create exchange code, build redirect URL.
+     */
+    async completeSteamOAuth(
+        profile: SteamProfilePayload,
+        state?: string,
+    ): Promise<{ redirectUrl: string }> {
+        this.assertSteamAuthEnabled();
+
+        const redirectBase = this.parseAndValidateRedirectFromState(
+            state,
+            'steamOpenId.redirectAllowlist',
+        );
+        const user = await this.findOrCreateSteamUser(profile);
+        const code = await this.oauthExchangeService.createExchangeCode(user.id!);
+        const separator = redirectBase.includes('?') ? '&' : '?';
+
+        return {
+            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+        };
+    }
+
+    /**
+     * After Reddit OAuth callback: upsert user, create exchange code, build redirect URL.
+     */
+    async completeRedditOAuth(
+        profile: RedditProfilePayload,
+        state?: string,
+    ): Promise<{ redirectUrl: string }> {
+        this.assertRedditAuthEnabled();
+
+        const redirectBase = this.parseAndValidateRedirectFromState(
+            state,
+            'redditOAuth.redirectAllowlist',
+        );
+        const user = await this.findOrCreateRedditUser(profile);
+        const code = await this.oauthExchangeService.createExchangeCode(user.id!);
+        const separator = redirectBase.includes('?') ? '&' : '?';
+
+        return {
+            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+        };
+    }
+
+    /**
+     * After Spotify OAuth callback: upsert user, create exchange code, build redirect URL.
+     */
+    async completeSpotifyOAuth(
+        profile: SpotifyProfilePayload,
+        state?: string,
+    ): Promise<{ redirectUrl: string }> {
+        this.assertSpotifyAuthEnabled();
+
+        const redirectBase = this.parseAndValidateRedirectFromState(
+            state,
+            'spotifyOAuth.redirectAllowlist',
+        );
+        const user = await this.findOrCreateSpotifyUser(profile);
+        const code = await this.oauthExchangeService.createExchangeCode(user.id!);
+        const separator = redirectBase.includes('?') ? '&' : '?';
+
+        return {
+            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+        };
+    }
+
+    /**
+     * After Amazon OAuth callback: upsert user, create exchange code, build redirect URL.
+     */
+    async completeAmazonOAuth(
+        profile: AmazonProfilePayload,
+        state?: string,
+    ): Promise<{ redirectUrl: string }> {
+        this.assertAmazonAuthEnabled();
+
+        const redirectBase = this.parseAndValidateRedirectFromState(
+            state,
+            'amazonOAuth.redirectAllowlist',
+        );
+        const user = await this.findOrCreateAmazonUser(profile);
+        const code = await this.oauthExchangeService.createExchangeCode(user.id!);
+        const separator = redirectBase.includes('?') ? '&' : '?';
+
+        return {
+            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+        };
+    }
+
+    /**
+     * After Microsoft OAuth callback: upsert user, create exchange code, build redirect URL.
+     */
+    async completeMicrosoftOAuth(
+        profile: MicrosoftProfilePayload,
+        state?: string,
+    ): Promise<{ redirectUrl: string }> {
+        this.assertMicrosoftAuthEnabled();
+
+        const redirectBase = this.parseAndValidateRedirectFromState(
+            state,
+            'microsoftOAuth.redirectAllowlist',
+        );
+        const user = await this.findOrCreateMicrosoftUser(profile);
+        const code = await this.oauthExchangeService.createExchangeCode(user.id!);
+        const separator = redirectBase.includes('?') ? '&' : '?';
+
+        return {
+            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+        };
+    }
+
+    /**
+     * After Patreon OAuth callback: upsert user, create exchange code, build redirect URL.
+     */
+    async completePatreonOAuth(
+        profile: PatreonProfilePayload,
+        state?: string,
+    ): Promise<{ redirectUrl: string }> {
+        this.assertPatreonAuthEnabled();
+
+        const redirectBase = this.parseAndValidateRedirectFromState(
+            state,
+            'patreonOAuth.redirectAllowlist',
+        );
+        const user = await this.findOrCreatePatreonUser(profile);
+        const code = await this.oauthExchangeService.createExchangeCode(user.id!);
+        const separator = redirectBase.includes('?') ? '&' : '?';
+
+        return {
+            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+        };
+    }
+
+    /**
+     * After Dropbox OAuth callback: upsert user, create exchange code, build redirect URL.
+     */
+    async completeDropboxOAuth(
+        profile: DropboxProfilePayload,
+        state?: string,
+    ): Promise<{ redirectUrl: string }> {
+        this.assertDropboxAuthEnabled();
+
+        const redirectBase = this.parseAndValidateRedirectFromState(
+            state,
+            'dropboxOAuth.redirectAllowlist',
+        );
+        const user = await this.findOrCreateDropboxUser(profile);
+        const code = await this.oauthExchangeService.createExchangeCode(user.id!);
+        const separator = redirectBase.includes('?') ? '&' : '?';
+
+        return {
+            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+        };
+    }
+
+    /**
+     * After Coinbase OAuth callback: upsert user, create exchange code, build redirect URL.
+     */
+    async completeCoinbaseOAuth(
+        profile: CoinbaseProfilePayload,
+        state?: string,
+    ): Promise<{ redirectUrl: string }> {
+        this.assertCoinbaseAuthEnabled();
+
+        const redirectBase = this.parseAndValidateRedirectFromState(
+            state,
+            'coinbaseOAuth.redirectAllowlist',
+        );
+        const user = await this.findOrCreateCoinbaseUser(profile);
+        const code = await this.oauthExchangeService.createExchangeCode(user.id!);
+        const separator = redirectBase.includes('?') ? '&' : '?';
+
+        return {
+            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+        };
+    }
+
+    /**
+     * Exchange a one-time OAuth code for JWT tokens (Google, Facebook, Twitter, GitHub, Figma, LinkedIn, Slack, Atlassian, GitLab, Bitbucket, Discord, Twitch, Steam, Reddit, Apple, Spotify, Amazon, Microsoft, Patreon, Dropbox, or Coinbase).
      */
     async exchangeOAuthCode(dto: ExchangeCodeDto): Promise<{
         user: Partial<IUser>;
@@ -483,11 +935,204 @@ export class AuthService {
         }
     }
 
+    private assertGithubAuthEnabled(): void {
+        const enabled = this.configService.get<boolean>('githubOAuth.enabled');
+        if (!enabled) {
+            throw new ServiceUnavailableException('GitHub authentication is disabled');
+        }
+    }
+
+    private assertFigmaAuthEnabled(): void {
+        const enabled = this.configService.get<boolean>('figmaOAuth.enabled');
+        if (!enabled) {
+            throw new ServiceUnavailableException('Figma authentication is disabled');
+        }
+    }
+
+    private assertLinkedinAuthEnabled(): void {
+        const enabled = this.configService.get<boolean>('linkedinOAuth.enabled');
+        if (!enabled) {
+            throw new ServiceUnavailableException('LinkedIn authentication is disabled');
+        }
+    }
+
+    private assertSlackAuthEnabled(): void {
+        const enabled = this.configService.get<boolean>('slackOAuth.enabled');
+        if (!enabled) {
+            throw new ServiceUnavailableException('Slack authentication is disabled');
+        }
+    }
+
+    private assertAtlassianAuthEnabled(): void {
+        const enabled = this.configService.get<boolean>('atlassianOAuth.enabled');
+        if (!enabled) {
+            throw new ServiceUnavailableException('Atlassian authentication is disabled');
+        }
+    }
+
+    private assertGitlabAuthEnabled(): void {
+        const enabled = this.configService.get<boolean>('gitlabOAuth.enabled');
+        if (!enabled) {
+            throw new ServiceUnavailableException('GitLab authentication is disabled');
+        }
+    }
+
+    private assertBitbucketAuthEnabled(): void {
+        const enabled = this.configService.get<boolean>('bitbucketOAuth.enabled');
+        if (!enabled) {
+            throw new ServiceUnavailableException('Bitbucket authentication is disabled');
+        }
+    }
+
+    private assertDiscordAuthEnabled(): void {
+        const enabled = this.configService.get<boolean>('discordOAuth.enabled');
+        if (!enabled) {
+            throw new ServiceUnavailableException('Discord authentication is disabled');
+        }
+    }
+
+    private assertTwitchAuthEnabled(): void {
+        const enabled = this.configService.get<boolean>('twitchOAuth.enabled');
+        if (!enabled) {
+            throw new ServiceUnavailableException('Twitch authentication is disabled');
+        }
+    }
+
+    private assertSpotifyAuthEnabled(): void {
+        const enabled = this.configService.get<boolean>('spotifyOAuth.enabled');
+        if (!enabled) {
+            throw new ServiceUnavailableException('Spotify authentication is disabled');
+        }
+    }
+
+    private assertAmazonAuthEnabled(): void {
+        const enabled = this.configService.get<boolean>('amazonOAuth.enabled');
+        if (!enabled) {
+            throw new ServiceUnavailableException('Amazon authentication is disabled');
+        }
+    }
+
+    private assertMicrosoftAuthEnabled(): void {
+        const enabled = this.configService.get<boolean>('microsoftOAuth.enabled');
+        if (!enabled) {
+            throw new ServiceUnavailableException(
+                'Microsoft authentication is disabled',
+            );
+        }
+    }
+
+    private assertPatreonAuthEnabled(): void {
+        const enabled = this.configService.get<boolean>('patreonOAuth.enabled');
+        if (!enabled) {
+            throw new ServiceUnavailableException(
+                'Patreon authentication is disabled',
+            );
+        }
+    }
+
+    private assertDropboxAuthEnabled(): void {
+        const enabled = this.configService.get<boolean>('dropboxOAuth.enabled');
+        if (!enabled) {
+            throw new ServiceUnavailableException(
+                'Dropbox authentication is disabled',
+            );
+        }
+    }
+
+    private assertCoinbaseAuthEnabled(): void {
+        const enabled = this.configService.get<boolean>('coinbaseOAuth.enabled');
+        if (!enabled) {
+            throw new ServiceUnavailableException(
+                'Coinbase authentication is disabled',
+            );
+        }
+    }
+
+    private assertSteamAuthEnabled(): void {
+        const enabled = this.configService.get<boolean>('steamOpenId.enabled');
+        if (!enabled) {
+            throw new ServiceUnavailableException('Steam authentication is disabled');
+        }
+    }
+
+    async completeAppleOAuth(
+        profile: AppleProfilePayload,
+        state: string | undefined,
+    ): Promise<{ redirectUrl: string }> {
+        this.assertAppleAuthEnabled();
+
+        const redirectBase = this.parseAndValidateRedirectFromState(
+            state,
+            'appleOAuth.redirectAllowlist',
+        );
+        const user = await this.findOrCreateAppleUser(profile);
+        const code = await this.oauthExchangeService.createExchangeCode(user.id!);
+        const separator = redirectBase.includes('?') ? '&' : '?';
+
+        return {
+            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+        };
+    }
+
+    private assertRedditAuthEnabled(): void {
+        const enabled = this.configService.get<boolean>('redditOAuth.enabled');
+        if (!enabled) {
+            throw new ServiceUnavailableException('Reddit authentication is disabled');
+        }
+    }
+
+    private assertAppleAuthEnabled(): void {
+        const enabled = this.configService.get<boolean>('appleOAuth.enabled');
+        if (!enabled) {
+            throw new ServiceUnavailableException('Apple authentication is disabled');
+        }
+    }
+
     private assertAnySocialAuthEnabled(): void {
         const google = this.configService.get<boolean>('googleOAuth.enabled');
         const facebook = this.configService.get<boolean>('facebookOAuth.enabled');
         const twitter = this.configService.get<boolean>('twitterOAuth.enabled');
-        if (!google && !facebook && !twitter) {
+        const github = this.configService.get<boolean>('githubOAuth.enabled');
+        const figma = this.configService.get<boolean>('figmaOAuth.enabled');
+        const linkedin = this.configService.get<boolean>('linkedinOAuth.enabled');
+        const slack = this.configService.get<boolean>('slackOAuth.enabled');
+        const atlassian = this.configService.get<boolean>('atlassianOAuth.enabled');
+        const gitlab = this.configService.get<boolean>('gitlabOAuth.enabled');
+        const bitbucket = this.configService.get<boolean>('bitbucketOAuth.enabled');
+        const discord = this.configService.get<boolean>('discordOAuth.enabled');
+        const twitch = this.configService.get<boolean>('twitchOAuth.enabled');
+        const steam = this.configService.get<boolean>('steamOpenId.enabled');
+        const reddit = this.configService.get<boolean>('redditOAuth.enabled');
+        const apple = this.configService.get<boolean>('appleOAuth.enabled');
+        const spotify = this.configService.get<boolean>('spotifyOAuth.enabled');
+        const amazon = this.configService.get<boolean>('amazonOAuth.enabled');
+        const microsoft = this.configService.get<boolean>('microsoftOAuth.enabled');
+        const patreon = this.configService.get<boolean>('patreonOAuth.enabled');
+        const dropbox = this.configService.get<boolean>('dropboxOAuth.enabled');
+        const coinbase = this.configService.get<boolean>('coinbaseOAuth.enabled');
+        if (
+            !google &&
+            !facebook &&
+            !twitter &&
+            !github &&
+            !figma &&
+            !linkedin &&
+            !slack &&
+            !atlassian &&
+            !gitlab &&
+            !bitbucket &&
+            !discord &&
+            !twitch &&
+            !steam &&
+            !reddit &&
+            !apple &&
+            !spotify &&
+            !amazon &&
+            !microsoft &&
+            !patreon &&
+            !dropbox &&
+            !coinbase
+        ) {
             throw new ServiceUnavailableException('Social authentication is disabled');
         }
     }
@@ -622,6 +1267,701 @@ export class AuthService {
             lastName: profile.lastName || '-',
             username,
             twitterId: profile.twitterId,
+            isActive: true,
+            roles: [...defaultRoles],
+        });
+    }
+
+    private async findOrCreateGithubUser(
+        profile: GithubProfilePayload,
+    ): Promise<IUser> {
+        const byGithub = await this.usersService.findByGithubId(profile.githubId);
+        if (byGithub) {
+            if (!byGithub.isActive) {
+                return this.usersService.update(byGithub.id!, { isActive: true });
+            }
+            return byGithub;
+        }
+
+        const byEmail = await this.usersService.findByEmail(profile.email);
+        if (byEmail) {
+            return this.usersService.update(byEmail.id!, {
+                githubId: profile.githubId,
+                isActive: true,
+            });
+        }
+
+        const defaultRoles =
+            this.configService.get<Role[]>('githubOAuth.defaultRoles') ?? [];
+        const username = await this.buildUniqueUsername(profile.email);
+
+        return this.usersService.create({
+            email: profile.email,
+            firstName: profile.firstName,
+            lastName: profile.lastName || '-',
+            username,
+            githubId: profile.githubId,
+            isActive: true,
+            roles: [...defaultRoles],
+        });
+    }
+
+    private async findOrCreateFigmaUser(
+        profile: FigmaProfilePayload,
+    ): Promise<IUser> {
+        const byFigma = await this.usersService.findByFigmaId(profile.figmaId);
+        if (byFigma) {
+            if (!byFigma.isActive) {
+                return this.usersService.update(byFigma.id!, { isActive: true });
+            }
+            return byFigma;
+        }
+
+        const byEmail = await this.usersService.findByEmail(profile.email);
+        if (byEmail) {
+            return this.usersService.update(byEmail.id!, {
+                figmaId: profile.figmaId,
+                isActive: true,
+            });
+        }
+
+        const defaultRoles =
+            this.configService.get<Role[]>('figmaOAuth.defaultRoles') ?? [];
+        const username = await this.buildUniqueUsername(profile.email);
+
+        return this.usersService.create({
+            email: profile.email,
+            firstName: profile.firstName,
+            lastName: profile.lastName || '-',
+            username,
+            figmaId: profile.figmaId,
+            isActive: true,
+            roles: [...defaultRoles],
+        });
+    }
+
+    private async findOrCreateLinkedinUser(
+        profile: LinkedinProfilePayload,
+    ): Promise<IUser> {
+        const byLinkedin = await this.usersService.findByLinkedinId(
+            profile.linkedinId,
+        );
+        if (byLinkedin) {
+            if (!byLinkedin.isActive) {
+                return this.usersService.update(byLinkedin.id!, { isActive: true });
+            }
+            return byLinkedin;
+        }
+
+        const byEmail = await this.usersService.findByEmail(profile.email);
+        if (byEmail) {
+            return this.usersService.update(byEmail.id!, {
+                linkedinId: profile.linkedinId,
+                isActive: true,
+            });
+        }
+
+        const defaultRoles =
+            this.configService.get<Role[]>('linkedinOAuth.defaultRoles') ?? [];
+        const username = await this.buildUniqueUsername(profile.email);
+
+        return this.usersService.create({
+            email: profile.email,
+            firstName: profile.firstName,
+            lastName: profile.lastName || '-',
+            username,
+            linkedinId: profile.linkedinId,
+            isActive: true,
+            roles: [...defaultRoles],
+        });
+    }
+
+    private async findOrCreateSlackUser(
+        profile: SlackProfilePayload,
+    ): Promise<IUser> {
+        const bySlack = await this.usersService.findBySlackId(profile.slackId);
+        if (bySlack) {
+            if (!bySlack.isActive) {
+                return this.usersService.update(bySlack.id!, { isActive: true });
+            }
+            return bySlack;
+        }
+
+        const byEmail = await this.usersService.findByEmail(profile.email);
+        if (byEmail) {
+            return this.usersService.update(byEmail.id!, {
+                slackId: profile.slackId,
+                isActive: true,
+            });
+        }
+
+        const defaultRoles =
+            this.configService.get<Role[]>('slackOAuth.defaultRoles') ?? [];
+        const username = await this.buildUniqueUsername(profile.email);
+
+        return this.usersService.create({
+            email: profile.email,
+            firstName: profile.firstName,
+            lastName: profile.lastName || '-',
+            username,
+            slackId: profile.slackId,
+            isActive: true,
+            roles: [...defaultRoles],
+        });
+    }
+
+    private async findOrCreateAtlassianUser(
+        profile: AtlassianProfilePayload,
+    ): Promise<IUser> {
+        const byAtlassian = await this.usersService.findByAtlassianId(
+            profile.atlassianId,
+        );
+        if (byAtlassian) {
+            if (!byAtlassian.isActive) {
+                return this.usersService.update(byAtlassian.id!, { isActive: true });
+            }
+            return byAtlassian;
+        }
+
+        const byEmail = await this.usersService.findByEmail(profile.email);
+        if (byEmail) {
+            return this.usersService.update(byEmail.id!, {
+                atlassianId: profile.atlassianId,
+                isActive: true,
+            });
+        }
+
+        const defaultRoles =
+            this.configService.get<Role[]>('atlassianOAuth.defaultRoles') ?? [];
+        const username = await this.buildUniqueUsername(profile.email);
+
+        return this.usersService.create({
+            email: profile.email,
+            firstName: profile.firstName,
+            lastName: profile.lastName || '-',
+            username,
+            atlassianId: profile.atlassianId,
+            isActive: true,
+            roles: [...defaultRoles],
+        });
+    }
+
+    private async findOrCreateGitlabUser(
+        profile: GitlabProfilePayload,
+    ): Promise<IUser> {
+        const byGitlab = await this.usersService.findByGitlabId(profile.gitlabId);
+        if (byGitlab) {
+            if (!byGitlab.isActive) {
+                return this.usersService.update(byGitlab.id!, { isActive: true });
+            }
+            return byGitlab;
+        }
+
+        const byEmail = await this.usersService.findByEmail(profile.email);
+        if (byEmail) {
+            return this.usersService.update(byEmail.id!, {
+                gitlabId: profile.gitlabId,
+                isActive: true,
+            });
+        }
+
+        const defaultRoles =
+            this.configService.get<Role[]>('gitlabOAuth.defaultRoles') ?? [];
+        const username = await this.buildUniqueUsername(profile.email);
+
+        return this.usersService.create({
+            email: profile.email,
+            firstName: profile.firstName,
+            lastName: profile.lastName || '-',
+            username,
+            gitlabId: profile.gitlabId,
+            isActive: true,
+            roles: [...defaultRoles],
+        });
+    }
+
+    private async findOrCreateBitbucketUser(
+        profile: BitbucketProfilePayload,
+    ): Promise<IUser> {
+        const byBitbucket = await this.usersService.findByBitbucketId(
+            profile.bitbucketId,
+        );
+        if (byBitbucket) {
+            if (!byBitbucket.isActive) {
+                return this.usersService.update(byBitbucket.id!, { isActive: true });
+            }
+            return byBitbucket;
+        }
+
+        const byEmail = await this.usersService.findByEmail(profile.email);
+        if (byEmail) {
+            return this.usersService.update(byEmail.id!, {
+                bitbucketId: profile.bitbucketId,
+                isActive: true,
+            });
+        }
+
+        const defaultRoles =
+            this.configService.get<Role[]>('bitbucketOAuth.defaultRoles') ?? [];
+        const username = await this.buildUniqueUsername(profile.email);
+
+        return this.usersService.create({
+            email: profile.email,
+            firstName: profile.firstName,
+            lastName: profile.lastName || '-',
+            username,
+            bitbucketId: profile.bitbucketId,
+            isActive: true,
+            roles: [...defaultRoles],
+        });
+    }
+
+    private async findOrCreateDiscordUser(
+        profile: DiscordProfilePayload,
+    ): Promise<IUser> {
+        const byDiscord = await this.usersService.findByDiscordId(profile.discordId);
+        if (byDiscord) {
+            if (!byDiscord.isActive) {
+                return this.usersService.update(byDiscord.id!, { isActive: true });
+            }
+            return byDiscord;
+        }
+
+        const byEmail = await this.usersService.findByEmail(profile.email);
+        if (byEmail) {
+            return this.usersService.update(byEmail.id!, {
+                discordId: profile.discordId,
+                isActive: true,
+            });
+        }
+
+        const defaultRoles =
+            this.configService.get<Role[]>('discordOAuth.defaultRoles') ?? [];
+        const username = await this.buildUniqueUsername(profile.email);
+
+        return this.usersService.create({
+            email: profile.email,
+            firstName: profile.firstName,
+            lastName: profile.lastName || '-',
+            username,
+            discordId: profile.discordId,
+            isActive: true,
+            roles: [...defaultRoles],
+        });
+    }
+
+    private async findOrCreateTwitchUser(
+        profile: TwitchProfilePayload,
+    ): Promise<IUser> {
+        const byTwitch = await this.usersService.findByTwitchId(profile.twitchId);
+        if (byTwitch) {
+            if (!byTwitch.isActive) {
+                return this.usersService.update(byTwitch.id!, { isActive: true });
+            }
+            return byTwitch;
+        }
+
+        const byEmail = await this.usersService.findByEmail(profile.email);
+        if (byEmail) {
+            return this.usersService.update(byEmail.id!, {
+                twitchId: profile.twitchId,
+                isActive: true,
+            });
+        }
+
+        const defaultRoles =
+            this.configService.get<Role[]>('twitchOAuth.defaultRoles') ?? [];
+        const username = await this.buildUniqueUsername(profile.email);
+
+        return this.usersService.create({
+            email: profile.email,
+            firstName: profile.firstName,
+            lastName: profile.lastName || '-',
+            username,
+            twitchId: profile.twitchId,
+            isActive: true,
+            roles: [...defaultRoles],
+        });
+    }
+
+    private async findOrCreateSpotifyUser(
+        profile: SpotifyProfilePayload,
+    ): Promise<IUser> {
+        const bySpotify = await this.usersService.findBySpotifyId(
+            profile.spotifyId,
+        );
+        if (bySpotify) {
+            if (!bySpotify.isActive) {
+                return this.usersService.update(bySpotify.id!, { isActive: true });
+            }
+            return bySpotify;
+        }
+
+        const byEmail = await this.usersService.findByEmail(profile.email);
+        if (byEmail) {
+            return this.usersService.update(byEmail.id!, {
+                spotifyId: profile.spotifyId,
+                isActive: true,
+            });
+        }
+
+        const defaultRoles =
+            this.configService.get<Role[]>('spotifyOAuth.defaultRoles') ?? [];
+        const username = await this.buildUniqueUsername(profile.email);
+
+        return this.usersService.create({
+            email: profile.email,
+            firstName: profile.firstName,
+            lastName: profile.lastName || '-',
+            username,
+            spotifyId: profile.spotifyId,
+            isActive: true,
+            roles: [...defaultRoles],
+        });
+    }
+
+    private async findOrCreateAmazonUser(
+        profile: AmazonProfilePayload,
+    ): Promise<IUser> {
+        const byAmazon = await this.usersService.findByAmazonId(profile.amazonId);
+        if (byAmazon) {
+            if (!byAmazon.isActive) {
+                return this.usersService.update(byAmazon.id!, { isActive: true });
+            }
+            return byAmazon;
+        }
+
+        const byEmail = await this.usersService.findByEmail(profile.email);
+        if (byEmail) {
+            return this.usersService.update(byEmail.id!, {
+                amazonId: profile.amazonId,
+                isActive: true,
+            });
+        }
+
+        const defaultRoles =
+            this.configService.get<Role[]>('amazonOAuth.defaultRoles') ?? [];
+        const username = await this.buildUniqueUsername(profile.email);
+
+        return this.usersService.create({
+            email: profile.email,
+            firstName: profile.firstName,
+            lastName: profile.lastName || '-',
+            username,
+            amazonId: profile.amazonId,
+            isActive: true,
+            roles: [...defaultRoles],
+        });
+    }
+
+    private async findOrCreateMicrosoftUser(
+        profile: MicrosoftProfilePayload,
+    ): Promise<IUser> {
+        const byMicrosoft = await this.usersService.findByMicrosoftId(
+            profile.microsoftId,
+        );
+        if (byMicrosoft) {
+            if (!byMicrosoft.isActive) {
+                return this.usersService.update(byMicrosoft.id!, {
+                    isActive: true,
+                });
+            }
+            return byMicrosoft;
+        }
+
+        const byEmail = await this.usersService.findByEmail(profile.email);
+        if (byEmail) {
+            return this.usersService.update(byEmail.id!, {
+                microsoftId: profile.microsoftId,
+                isActive: true,
+            });
+        }
+
+        const defaultRoles =
+            this.configService.get<Role[]>('microsoftOAuth.defaultRoles') ?? [];
+        const username = await this.buildUniqueUsername(profile.email);
+
+        return this.usersService.create({
+            email: profile.email,
+            firstName: profile.firstName,
+            lastName: profile.lastName || '-',
+            username,
+            microsoftId: profile.microsoftId,
+            isActive: true,
+            roles: [...defaultRoles],
+        });
+    }
+
+    private async findOrCreatePatreonUser(
+        profile: PatreonProfilePayload,
+    ): Promise<IUser> {
+        const byPatreon = await this.usersService.findByPatreonId(profile.patreonId);
+        if (byPatreon) {
+            if (!byPatreon.isActive) {
+                return this.usersService.update(byPatreon.id!, { isActive: true });
+            }
+            return byPatreon;
+        }
+
+        const byEmail = await this.usersService.findByEmail(profile.email);
+        if (byEmail) {
+            return this.usersService.update(byEmail.id!, {
+                patreonId: profile.patreonId,
+                isActive: true,
+            });
+        }
+
+        const defaultRoles =
+            this.configService.get<Role[]>('patreonOAuth.defaultRoles') ?? [];
+        const username = await this.buildUniqueUsername(profile.email);
+
+        return this.usersService.create({
+            email: profile.email,
+            firstName: profile.firstName,
+            lastName: profile.lastName || '-',
+            username,
+            patreonId: profile.patreonId,
+            isActive: true,
+            roles: [...defaultRoles],
+        });
+    }
+
+    private async findOrCreateDropboxUser(
+        profile: DropboxProfilePayload,
+    ): Promise<IUser> {
+        const byDropbox = await this.usersService.findByDropboxId(profile.dropboxId);
+        if (byDropbox) {
+            if (!byDropbox.isActive) {
+                return this.usersService.update(byDropbox.id!, { isActive: true });
+            }
+            return byDropbox;
+        }
+
+        const byEmail = await this.usersService.findByEmail(profile.email);
+        if (byEmail) {
+            return this.usersService.update(byEmail.id!, {
+                dropboxId: profile.dropboxId,
+                isActive: true,
+            });
+        }
+
+        const defaultRoles =
+            this.configService.get<Role[]>('dropboxOAuth.defaultRoles') ?? [];
+        const username = await this.buildUniqueUsername(profile.email);
+
+        return this.usersService.create({
+            email: profile.email,
+            firstName: profile.firstName,
+            lastName: profile.lastName || '-',
+            username,
+            dropboxId: profile.dropboxId,
+            isActive: true,
+            roles: [...defaultRoles],
+        });
+    }
+
+    private async findOrCreateCoinbaseUser(
+        profile: CoinbaseProfilePayload,
+    ): Promise<IUser> {
+        const byCoinbase = await this.usersService.findByCoinbaseId(
+            profile.coinbaseId,
+        );
+        if (byCoinbase) {
+            if (!byCoinbase.isActive) {
+                return this.usersService.update(byCoinbase.id!, { isActive: true });
+            }
+            return byCoinbase;
+        }
+
+        const byEmail = await this.usersService.findByEmail(profile.email);
+        if (byEmail) {
+            return this.usersService.update(byEmail.id!, {
+                coinbaseId: profile.coinbaseId,
+                isActive: true,
+            });
+        }
+
+        const defaultRoles =
+            this.configService.get<Role[]>('coinbaseOAuth.defaultRoles') ?? [];
+        const username = await this.buildUniqueUsername(profile.email);
+
+        return this.usersService.create({
+            email: profile.email,
+            firstName: profile.firstName,
+            lastName: profile.lastName || '-',
+            username,
+            coinbaseId: profile.coinbaseId,
+            isActive: true,
+            roles: [...defaultRoles],
+        });
+    }
+
+    private async findOrCreateActiveDirectoryUser(
+        profile: ActiveDirectoryProfilePayload,
+    ): Promise<IUser> {
+        const byAd = await this.usersService.findByActiveDirectoryId(
+            profile.activeDirectoryId,
+        );
+        if (byAd) {
+            if (!byAd.isActive) {
+                return this.usersService.update(byAd.id!, { isActive: true });
+            }
+            return byAd;
+        }
+
+        const byEmail = await this.usersService.findByEmail(profile.email);
+        if (byEmail) {
+            return this.usersService.update(byEmail.id!, {
+                activeDirectoryId: profile.activeDirectoryId,
+                isActive: true,
+            });
+        }
+
+        const defaultRoles =
+            this.configService.get<Role[]>('adLdap.defaultRoles') ?? [];
+        const usernameBase =
+            profile.samAccountName ?? profile.email.split('@')[0];
+        const username = await this.buildUniqueUsername(usernameBase);
+
+        return this.usersService.create({
+            email: profile.email,
+            firstName: profile.firstName,
+            lastName: profile.lastName || '-',
+            username,
+            activeDirectoryId: profile.activeDirectoryId,
+            isActive: true,
+            roles: [...defaultRoles],
+        });
+    }
+
+    private async findOrCreateMetamaskUser(
+        profile: { metamaskId: string; email: string },
+    ): Promise<IUser> {
+        const byMetamask = await this.usersService.findByMetamaskId(
+            profile.metamaskId,
+        );
+        if (byMetamask) {
+            if (!byMetamask.isActive) {
+                return this.usersService.update(byMetamask.id!, {
+                    isActive: true,
+                });
+            }
+            return byMetamask;
+        }
+
+        const defaultRoles =
+            this.configService.get<Role[]>('metamaskAuth.defaultRoles') ?? [];
+        const username = await this.buildUniqueUsername(profile.email);
+        const { firstName, lastName } = generateRandomDisplayName();
+
+        return this.usersService.create({
+            email: profile.email,
+            firstName,
+            lastName: lastName || '-',
+            username,
+            metamaskId: profile.metamaskId,
+            isActive: true,
+            roles: [...defaultRoles],
+        });
+    }
+
+    private async findOrCreateSteamUser(
+        profile: SteamProfilePayload,
+    ): Promise<IUser> {
+        const bySteam = await this.usersService.findBySteamId(profile.steamId);
+        if (bySteam) {
+            if (!bySteam.isActive) {
+                return this.usersService.update(bySteam.id!, { isActive: true });
+            }
+            return bySteam;
+        }
+
+        const byEmail = await this.usersService.findByEmail(profile.email);
+        if (byEmail) {
+            return this.usersService.update(byEmail.id!, {
+                steamId: profile.steamId,
+                isActive: true,
+            });
+        }
+
+        const defaultRoles =
+            this.configService.get<Role[]>('steamOpenId.defaultRoles') ?? [];
+        const username = await this.buildUniqueUsername(profile.email);
+
+        return this.usersService.create({
+            email: profile.email,
+            firstName: profile.firstName,
+            lastName: profile.lastName || '-',
+            username,
+            steamId: profile.steamId,
+            isActive: true,
+            roles: [...defaultRoles],
+        });
+    }
+
+    private async findOrCreateRedditUser(
+        profile: RedditProfilePayload,
+    ): Promise<IUser> {
+        const byReddit = await this.usersService.findByRedditId(profile.redditId);
+        if (byReddit) {
+            if (!byReddit.isActive) {
+                return this.usersService.update(byReddit.id!, { isActive: true });
+            }
+            return byReddit;
+        }
+
+        const byEmail = await this.usersService.findByEmail(profile.email);
+        if (byEmail) {
+            return this.usersService.update(byEmail.id!, {
+                redditId: profile.redditId,
+                isActive: true,
+            });
+        }
+
+        const defaultRoles =
+            this.configService.get<Role[]>('redditOAuth.defaultRoles') ?? [];
+        const username = await this.buildUniqueUsername(profile.email);
+
+        return this.usersService.create({
+            email: profile.email,
+            firstName: profile.firstName,
+            lastName: profile.lastName || '-',
+            username,
+            redditId: profile.redditId,
+            isActive: true,
+            roles: [...defaultRoles],
+        });
+    }
+
+    private async findOrCreateAppleUser(
+        profile: AppleProfilePayload,
+    ): Promise<IUser> {
+        const byApple = await this.usersService.findByAppleId(profile.appleId);
+        if (byApple) {
+            if (!byApple.isActive) {
+                return this.usersService.update(byApple.id!, { isActive: true });
+            }
+            return byApple;
+        }
+
+        const byEmail = await this.usersService.findByEmail(profile.email);
+        if (byEmail) {
+            return this.usersService.update(byEmail.id!, {
+                appleId: profile.appleId,
+                isActive: true,
+            });
+        }
+
+        const defaultRoles =
+            this.configService.get<Role[]>('appleOAuth.defaultRoles') ?? [];
+        const username = await this.buildUniqueUsername(profile.email);
+
+        return this.usersService.create({
+            email: profile.email,
+            firstName: profile.firstName,
+            lastName: profile.lastName || '-',
+            username,
+            appleId: profile.appleId,
             isActive: true,
             roles: [...defaultRoles],
         });

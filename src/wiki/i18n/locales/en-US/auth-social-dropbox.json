@@ -1,0 +1,42 @@
+{
+  "authSocialDropbox": {
+    "badge": "Developer guide",
+    "hero": {
+      "titlePrefix": "Dropbox",
+      "titleHighlight": "OAuth2",
+      "subtitle": "Plug Dropbox login into your app with one shared Code Exchange flow for web and mobile."
+    },
+    "overview": {
+      "title": "Overview",
+      "description": "Dropbox uses the OAuth2 Authorization Code flow. After consent, the API calls <code class=\"px-1 py-0.5 bg-gray-100 rounded\">users/get_current_account</code>, creates a short-lived single-use exchange code in Redis, and your client exchanges it for the same JWTs you get from password login. Scope <code class=\"px-1 py-0.5 bg-gray-100 rounded\">account_info.read</code> is sufficient for login."
+    },
+    "console": {
+      "title": "Dropbox App Console",
+      "description": "Create an app in the <a href=\"https://www.dropbox.com/developers/apps\" class=\"text-indigo-600 hover:underline\" target=\"_blank\" rel=\"noopener noreferrer\">Dropbox App Console</a> → set OAuth2 Redirect URI to <code class=\"px-1 py-0.5 bg-gray-100 rounded\">DROPBOX_CALLBACK_URL</code> and enable scope <code class=\"px-1 py-0.5 bg-gray-100 rounded\">account_info.read</code>.",
+      "codeHeader": { "label": "Environment", "context": "Variables used by the API" }
+    },
+    "api": {
+      "title": "API contract",
+      "description": "The API exposes a start URL and a callback that issues the exchange code.",
+      "start": {
+        "codeHeader": { "label": "Start", "context": "Redirect the user to Dropbox consent" }
+      },
+      "callback": {
+        "codeHeader": { "label": "Callback", "context": "Dropbox redirects back to the API" }
+      },
+      "exchange": {
+        "codeHeader": { "label": "Exchange", "context": "Client exchanges code for JWTs" }
+      }
+    },
+    "userModel": {
+      "title": "User model",
+      "description": "The Dropbox account_id from get_current_account is stored as dropboxId. Email and name come from the account profile when account_info.read scope is granted."
+    },
+    "related": {
+      "title": "Related guides",
+      "social": "Social Authentication hub",
+      "patreon": "Patreon OAuth2 setup guide",
+      "microsoft": "Microsoft Entra ID setup guide"
+    }
+  }
+}

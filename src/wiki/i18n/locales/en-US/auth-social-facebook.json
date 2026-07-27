@@ -33,7 +33,10 @@
     "env": {
       "title": "Environment variables",
       "description": "Loaded from <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> via <code class=\"px-1 py-0.5 bg-gray-100 rounded\">src/config/facebook-oauth.config.ts</code> (namespace <code class=\"px-1 py-0.5 bg-gray-100 rounded\">facebookOAuth</code> on <code class=\"px-1 py-0.5 bg-gray-100 rounded\">ConfigService</code>). See <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env.example</code>.",
-      "codeHeader": { "label": "Environment", "context": ".env" }
+      "codeHeader": {
+        "label": "Environment",
+        "context": ".env"
+      }
     },
     "roles": {
       "title": "Default roles for new Facebook users",
@@ -53,27 +56,45 @@
       "start": {
         "title": "1. Start OAuth",
         "description": "Opens Facebook consent. Query <code class=\"px-1 py-0.5 bg-gray-100 rounded\">redirect</code> must match a prefix in <code class=\"px-1 py-0.5 bg-gray-100 rounded\">FACEBOOK_REDIRECT_ALLOWLIST</code> (or omit to use the first allowlist entry).",
-        "codeHeader": { "label": "HTTP", "context": "GET /api/v1/auth/facebook" },
+        "codeHeader": {
+          "label": "HTTP",
+          "context": "GET /api/v1/auth/facebook"
+        },
         "errors": "400 invalid redirect · 503 feature disabled"
       },
       "callback": {
         "title": "2. Callback",
         "description": "Handled by the API. Redirects to your app with <code class=\"px-1 py-0.5 bg-gray-100 rounded\">?code=</code> (or <code class=\"px-1 py-0.5 bg-gray-100 rounded\">&code=</code> if the URL already has a query).",
-        "codeHeader": { "label": "HTTP", "context": "GET /api/v1/auth/facebook/callback" }
+        "codeHeader": {
+          "label": "HTTP",
+          "context": "GET /api/v1/auth/facebook/callback"
+        }
       },
       "exchange": {
         "title": "3. Exchange code",
         "description": "Public endpoint shared with Google. Consumes the code (single use) and returns the same shape as login.",
-        "requestHeader": { "label": "HTTP Request", "context": "POST /api/v1/auth/exchange" },
-        "responseHeader": { "label": "HTTP Response", "context": "200 OK" },
+        "requestHeader": {
+          "label": "HTTP Request",
+          "context": "POST /api/v1/auth/exchange"
+        },
+        "responseHeader": {
+          "label": "HTTP Response",
+          "context": "200 OK"
+        },
         "errors": "401 invalid/expired/used code · 503 social auth disabled"
       }
     },
     "web": {
       "title": "Frontend — Web (SPA)",
       "description": "Typical flow: button starts OAuth in the same window (or popup); a callback route on your frontend origin reads <code class=\"px-1 py-0.5 bg-gray-100 rounded\">code</code> from the query string and calls exchange.",
-      "startHeader": { "label": "JavaScript", "context": "Start Facebook login" },
-      "callbackHeader": { "label": "JavaScript", "context": "Callback page /auth/callback" },
+      "startHeader": {
+        "label": "JavaScript",
+        "context": "Start Facebook login"
+      },
+      "callbackHeader": {
+        "label": "JavaScript",
+        "context": "Callback page /auth/callback"
+      },
       "notes": [
         "Add your frontend callback URL to FACEBOOK_REDIRECT_ALLOWLIST (e.g. http://localhost:5173/auth/callback)",
         "FACEBOOK_CALLBACK_URL must point at the Nest API, not the SPA",
@@ -83,8 +104,14 @@
     "mobile": {
       "title": "Frontend — Mobile (deep link)",
       "description": "Use a custom scheme (or universal link) in the allowlist. After Facebook, the API redirects to <code class=\"px-1 py-0.5 bg-gray-100 rounded\">myapp://success?code=...</code>. The app opens, parses the code, and calls exchange.",
-      "openHeader": { "label": "React Native", "context": "Open OAuth in browser" },
-      "handleHeader": { "label": "React Native", "context": "Handle deep link + exchange" },
+      "openHeader": {
+        "label": "React Native",
+        "context": "Open OAuth in browser"
+      },
+      "handleHeader": {
+        "label": "React Native",
+        "context": "Handle deep link + exchange"
+      },
       "notes": [
         "Register the scheme in the OS / Expo app.json",
         "Prefer Linking.addEventListener('url', ...) and getInitialURL()",
@@ -116,6 +143,17 @@
       "social": "Social Authentication hub",
       "google": "Google OAuth2 guide",
       "twitter": "X / Twitter OAuth2 guide",
+      "github": "GitHub OAuth2 guide",
+      "figma": "Figma OAuth2 guide",
+      "linkedin": "LinkedIn OpenID Connect guide",
+      "slack": "Slack OpenID Connect guide",
+      "atlassian": "Atlassian OAuth 2.0 (3LO) guide",
+      "gitlab": "GitLab OAuth2 guide",
+      "bitbucket": "Bitbucket OAuth2 guide",
+      "discord": "Discord OAuth2 guide",
+      "twitch": "Twitch OAuth2 guide",
+      "steam": "Steam OpenID 2.0 guide",
+      "reddit": "Reddit OAuth2 guide",
       "auth": "Auth & JWT"
     },
     "samples": {

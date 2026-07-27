@@ -1,0 +1,177 @@
+{
+  "authSocialSteam": {
+    "meta": {
+      "title": "Steam OpenID 2.0 - Backend NestJS"
+    },
+    "badge": "Steam",
+    "hero": {
+      "titlePrefix": "Steam",
+      "titleHighlight": "OpenID 2.0",
+      "subtitle": "Code Exchange para web e mobile — Steam usa OpenID 2.0 (não OAuth2), nunca devolve e-mail, Web API key opcional para enriquecer o perfil, referência da API e exemplos de frontend."
+    },
+    "overview": {
+      "title": "Visão geral",
+      "description": "O login Steam é opcional e controlado por <code class=\"px-1 py-0.5 bg-amber-100 rounded\">STEAM_AUTH_ENABLED</code>. Quando desligado, os endpoints Steam respondem <strong>503 Service Unavailable</strong>. Diferente dos provedores OAuth2, o Steam usa <strong>OpenID 2.0</strong> em <code class=\"px-1 py-0.5 bg-gray-100 rounded\">https://steamcommunity.com/openid/login</code> — não há client secret e o <strong>Steam nunca devolve endereço de e-mail</strong>. A API atribui um e-mail sintético estável <code class=\"px-1 py-0.5 bg-gray-100 rounded\">{steamId}@users.noreply.steamcommunity.com</code> para o upsert da conta. JWTs nunca vão na URL de redirect; a API emite um <code class=\"px-1 py-0.5 bg-gray-100 rounded\">exchangeCode</code> de uso único (Redis, 60 segundos). O mesmo <code class=\"px-1 py-0.5 bg-gray-100 rounded\">POST /auth/exchange</code> é compartilhado com os demais provedores sociais.",
+      "items": [
+        "Feature flag via environment",
+        "Strategy passport OpenID 2.0 customizada + SteamAuthGuard (não OAuth2)",
+        "Identidade verificada via POST check_authentication em steamcommunity.com/openid/login",
+        "SteamID64 extraído de openid.claimed_id — armazenado como steamId",
+        "Sem e-mail do Steam — sintético {steamId}@users.noreply.steamcommunity.com",
+        "Nome de persona opcional via GET https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/ quando STEAM_API_KEY está definida",
+        "Allowlist de redirect evita open redirects",
+        "Mesmo formato de resposta de token que POST /auth/login"
+      ]
+    },
+    "console": {
+      "title": "Configuração Steam",
+      "description": "O login OpenID do Steam <strong>não</strong> exige conta Steamworks partner. Opcionalmente registre uma Web API key em <strong><a href=\"https://steamcommunity.com/dev/apikey\" class=\"text-indigo-600 hover:underline\">steamcommunity.com/dev/apikey</a></strong> para enriquecer perfis com <code class=\"px-1 py-0.5 bg-gray-100 rounded\">GetPlayerSummaries</code> (persona name). Defina <code class=\"px-1 py-0.5 bg-gray-100 rounded\">STEAM_CALLBACK_URL</code> e <code class=\"px-1 py-0.5 bg-gray-100 rounded\">STEAM_REALM</code> no environment — a API redireciona usuários para <code class=\"px-1 py-0.5 bg-gray-100 rounded\">https://steamcommunity.com/openid/login</code>.",
+      "steps": [
+        "Abra https://steamcommunity.com/dev/apikey (opcional — para enriquecimento via GetPlayerSummaries)",
+        "Registre um domínio e copie a Web API key para STEAM_API_KEY (OpenID funciona sem ela)",
+        "Defina STEAM_CALLBACK_URL para o callback da API Nest (ex.: http://localhost:3000/api/v1/auth/steam/callback)",
+        "Defina STEAM_REALM para a origem da API (ex.: http://localhost:3000/) — enviado como openid.realm",
+        "Garanta que STEAM_REDIRECT_ALLOWLIST inclua URLs da SPA ou deep links mobile",
+        "Ative STEAM_AUTH_ENABLED=true no .env"
+      ]
+    },
+    "env": {
+      "title": "Variáveis de ambiente",
+      "description": "Carregadas do <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> via <code class=\"px-1 py-0.5 bg-gray-100 rounded\">src/config/steam-openid.config.ts</code> (namespace <code class=\"px-1 py-0.5 bg-gray-100 rounded\">steamOpenId</code> no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">ConfigService</code>). Veja <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env.example</code>. <code class=\"px-1 py-0.5 bg-gray-100 rounded\">STEAM_API_KEY</code> é opcional — a identidade OpenID funciona sem ela.",
+      "codeHeader": {
+        "label": "Environment",
+        "context": ".env"
+      }
+    },
+    "roles": {
+      "title": "Roles padrão para novos usuários Steam",
+      "description": "Novos usuários Steam recebem <code class=\"px-1 py-0.5 bg-gray-100 rounded\">roles: []</code> por padrão (igual ao register). Defina <code class=\"px-1 py-0.5 bg-amber-100 rounded\">STEAM_OAUTH_DEFAULT_ROLES</code> no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> como lista separada por vírgula (ex.: <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user</code> ou <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user,manager</code>). Usuários existentes vinculados por steamId mantêm as roles atuais."
+    },
+    "flow": {
+      "title": "Sequência",
+      "items": [
+        "Cliente abre GET /api/v1/auth/steam?redirect=<URL na allowlist>",
+        "API redireciona para Steam OpenID (checkid_setup); usuário faz login no Steam",
+        "Browser chama GET /api/v1/auth/steam/callback com query openid.*; API verifica via check_authentication",
+        "API opcionalmente chama GetPlayerSummaries, faz upsert por steamId, grava exchangeCode no Redis e redireciona para redirect?code=...",
+        "Cliente faz POST { code } em /api/v1/auth/exchange e recebe JWTs"
+      ]
+    },
+    "api": {
+      "title": "Referência da API",
+      "start": {
+        "title": "1. Iniciar login OpenID",
+        "description": "Redireciona o browser para <code class=\"px-1 py-0.5 bg-gray-100 rounded\">https://steamcommunity.com/openid/login</code> com OpenID 2.0 <code class=\"px-1 py-0.5 bg-gray-100 rounded\">checkid_setup</code> (não é URL OAuth2 authorize). O query <code class=\"px-1 py-0.5 bg-gray-100 rounded\">redirect</code> deve bater com um prefixo de <code class=\"px-1 py-0.5 bg-gray-100 rounded\">STEAM_REDIRECT_ALLOWLIST</code> (ou omita para usar a primeira entrada). Usa <code class=\"px-1 py-0.5 bg-gray-100 rounded\">STEAM_REALM</code> e <code class=\"px-1 py-0.5 bg-gray-100 rounded\">STEAM_CALLBACK_URL</code>.",
+        "codeHeader": {
+          "label": "HTTP",
+          "context": "GET /api/v1/auth/steam"
+        },
+        "errors": "400 redirect inválido · 503 feature desligada"
+      },
+      "callback": {
+        "title": "2. Callback",
+        "description": "Tratado pela API. O Steam devolve <code class=\"px-1 py-0.5 bg-gray-100 rounded\">openid.mode=id_res</code> e demais parâmetros <code class=\"px-1 py-0.5 bg-gray-100 rounded\">openid.*</code>. A API faz POST <code class=\"px-1 py-0.5 bg-gray-100 rounded\">check_authentication</code> para verificar, extrai SteamID64 de <code class=\"px-1 py-0.5 bg-gray-100 rounded\">openid.claimed_id</code> e redireciona para o app com <code class=\"px-1 py-0.5 bg-gray-100 rounded\">?code=</code> (exchange code, não authorization code OAuth).",
+        "codeHeader": {
+          "label": "HTTP",
+          "context": "GET /api/v1/auth/steam/callback"
+        }
+      },
+      "exchange": {
+        "title": "3. Trocar código",
+        "description": "Endpoint público compartilhado com outros provedores sociais. Consome o código (uso único) e devolve o mesmo formato do login.",
+        "requestHeader": {
+          "label": "HTTP Request",
+          "context": "POST /api/v1/auth/exchange"
+        },
+        "responseHeader": {
+          "label": "HTTP Response",
+          "context": "200 OK"
+        },
+        "errors": "401 código inválido/expirado/usado · 503 auth social desligada"
+      }
+    },
+    "web": {
+      "title": "Frontend — Web (SPA)",
+      "description": "Mesmo padrão dos provedores OAuth: iniciar login no browser; sua rota de callback lê <code class=\"px-1 py-0.5 bg-gray-100 rounded\">code</code> da query e chama exchange. O objeto user inclui <code class=\"px-1 py-0.5 bg-gray-100 rounded\">steamId</code> e e-mail sintético — não use para envio de e-mail.",
+      "startHeader": {
+        "label": "JavaScript",
+        "context": "Iniciar login Steam"
+      },
+      "callbackHeader": {
+        "label": "JavaScript",
+        "context": "Página de callback /auth/callback"
+      },
+      "notes": [
+        "Inclua a URL de callback do frontend em STEAM_REDIRECT_ALLOWLIST (ex.: http://localhost:5173/auth/callback)",
+        "STEAM_CALLBACK_URL aponta para a API Nest, não para a SPA",
+        "Steam nunca devolve e-mail real — user.email é sintético e não entregável",
+        "Armazene accessToken / refreshToken com segurança (memória + httpOnly cookie conforme sua app)"
+      ]
+    },
+    "mobile": {
+      "title": "Frontend — Mobile (deep link)",
+      "description": "Use um scheme customizado (ou universal link) na allowlist. Após Steam OpenID, a API redireciona para <code class=\"px-1 py-0.5 bg-gray-100 rounded\">myapp://success?code=...</code>. O app abre, lê o código e chama exchange.",
+      "openHeader": {
+        "label": "React Native",
+        "context": "Abrir OpenID no browser"
+      },
+      "handleHeader": {
+        "label": "React Native",
+        "context": "Tratar deep link + exchange"
+      },
+      "notes": [
+        "Registre o scheme no SO / Expo app.json",
+        "Prefira Linking.addEventListener('url', ...) e getInitialURL()",
+        "Exchange via HTTPS na URL base da API",
+        "Identifique usuários por steamId — não pelo e-mail sintético"
+      ]
+    },
+    "security": {
+      "title": "Notas de segurança",
+      "items": [
+        "Steam usa OpenID 2.0, não OAuth2 — sem client secret; verifique respostas com check_authentication",
+        "URLs de redirect devem casar com prefixos de STEAM_REDIRECT_ALLOWLIST",
+        "Exchange codes são de uso único e expiram em 60 segundos (Redis)",
+        "Steam nunca fornece e-mail — endereço sintético é só para upsert interno, não para notificações",
+        "Contas existentes são vinculadas por steamId; linking por e-mail não se aplica a usuários só-Steam",
+        "Usuários só-Steam têm password null — login/change-password com senha falham até haver senha"
+      ]
+    },
+    "userModel": {
+      "title": "Modelo de usuário",
+      "description": "Campos da entity/interface usados pelo login Steam:",
+      "items": [
+        "steamId — SteamID64 único e nullable (de openid.claimed_id)",
+        "email — sintético {steamId}@users.noreply.steamcommunity.com (Steam não expõe e-mail)",
+        "password — nullable para contas só OpenID",
+        "isActive — true para novos usuários Steam",
+        "roles — de STEAM_OAUTH_DEFAULT_ROLES no env (padrão [])"
+      ]
+    },
+    "related": {
+      "title": "Relacionados",
+      "social": "Hub de Autenticação Social",
+      "google": "Guia Google OAuth2",
+      "twitter": "Guia X / Twitter OAuth2",
+      "github": "Guia GitHub OAuth2",
+      "figma": "Guia Figma OAuth2",
+      "linkedin": "Guia LinkedIn OpenID Connect",
+      "slack": "Guia Slack OpenID Connect",
+      "atlassian": "Guia Atlassian OAuth 2.0 (3LO)",
+      "gitlab": "Guia GitLab OAuth2",
+      "bitbucket": "Guia Bitbucket OAuth2",
+      "discord": "Guia Discord OAuth2",
+      "twitch": "Guia Twitch OAuth2",
+      "reddit": "Guia Reddit OAuth2",
+      "auth": "Auth & JWT",
+      "facebook": "Guia Facebook OAuth2"
+    },
+    "samples": {
+      "fullPageRedirect": "// Redirect de página inteira: Nest → Steam OpenID → de volta à SPA",
+      "spaCallback": "// /auth/callback na SPA",
+      "persistTokens": "// persista os tokens como sua app exigir",
+      "tokenFields": "// data.accessToken, data.refreshToken, data.user",
+      "logSteamId": "// Steam não tem e-mail real — use steamId como identificador estável"
+    }
+  }
+}

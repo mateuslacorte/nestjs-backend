@@ -1,0 +1,42 @@
+{
+  "authSocialCoinbase": {
+    "badge": "Guia para desenvolvedores",
+    "hero": {
+      "titlePrefix": "Coinbase",
+      "titleHighlight": "OAuth2",
+      "subtitle": "Conecte login Coinbase no seu app com um fluxo único de Code Exchange para web e mobile."
+    },
+    "overview": {
+      "title": "Visão geral",
+      "description": "Coinbase usa OAuth2 Authorization Code. Após o consent, a API chama <code class=\"px-1 py-0.5 bg-gray-100 rounded\">GET /v2/user</code>, cria um código de exchange de uso único no Redis e o cliente troca pelos mesmos JWTs do login por senha. Scopes <code class=\"px-1 py-0.5 bg-gray-100 rounded\">wallet:user:email</code> e <code class=\"px-1 py-0.5 bg-gray-100 rounded\">wallet:user:read</code> são necessários para email e perfil."
+    },
+    "console": {
+      "title": "Portal de desenvolvedores Coinbase",
+      "description": "Registre um client OAuth2 no <a href=\"https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/integrations\" class=\"text-indigo-600 hover:underline\" target=\"_blank\" rel=\"noopener noreferrer\">Portal Coinbase</a> → Redirect URI = <code class=\"px-1 py-0.5 bg-gray-100 rounded\">COINBASE_CALLBACK_URL</code> e scopes <code class=\"px-1 py-0.5 bg-gray-100 rounded\">wallet:user:email</code> e <code class=\"px-1 py-0.5 bg-gray-100 rounded\">wallet:user:read</code>.",
+      "codeHeader": { "label": "Ambiente", "context": "Variáveis usadas pela API" }
+    },
+    "api": {
+      "title": "Contrato da API",
+      "description": "A API expõe URL de início e callback que emite o código de exchange.",
+      "start": {
+        "codeHeader": { "label": "Início", "context": "Redireciona ao consent Coinbase" }
+      },
+      "callback": {
+        "codeHeader": { "label": "Callback", "context": "Coinbase redireciona de volta à API" }
+      },
+      "exchange": {
+        "codeHeader": { "label": "Exchange", "context": "Cliente troca código por JWTs" }
+      }
+    },
+    "userModel": {
+      "title": "Modelo de usuário",
+      "description": "O id do user Coinbase de GET /v2/user é salvo como coinbaseId. Email e nome vêm do perfil com scopes wallet:user:email e wallet:user:read."
+    },
+    "related": {
+      "title": "Guias relacionados",
+      "social": "Hub de Autenticação Social",
+      "dropbox": "Guia Dropbox OAuth2",
+      "microsoft": "Guia Microsoft Entra ID"
+    }
+  }
+}

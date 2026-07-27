@@ -1,0 +1,42 @@
+{
+  "authSocialDropbox": {
+    "badge": "Guia para desenvolvedores",
+    "hero": {
+      "titlePrefix": "Dropbox",
+      "titleHighlight": "OAuth2",
+      "subtitle": "Conecte login Dropbox no seu app com um fluxo único de Code Exchange para web e mobile."
+    },
+    "overview": {
+      "title": "Visão geral",
+      "description": "Dropbox usa OAuth2 Authorization Code. Após o consent, a API chama <code class=\"px-1 py-0.5 bg-gray-100 rounded\">users/get_current_account</code>, cria um código de exchange de uso único no Redis e o cliente troca pelos mesmos JWTs do login por senha. Scope <code class=\"px-1 py-0.5 bg-gray-100 rounded\">account_info.read</code> é suficiente para login."
+    },
+    "console": {
+      "title": "Dropbox App Console",
+      "description": "Crie um app no <a href=\"https://www.dropbox.com/developers/apps\" class=\"text-indigo-600 hover:underline\" target=\"_blank\" rel=\"noopener noreferrer\">Dropbox App Console</a> → Redirect URI OAuth2 = <code class=\"px-1 py-0.5 bg-gray-100 rounded\">DROPBOX_CALLBACK_URL</code> e scope <code class=\"px-1 py-0.5 bg-gray-100 rounded\">account_info.read</code>.",
+      "codeHeader": { "label": "Ambiente", "context": "Variáveis usadas pela API" }
+    },
+    "api": {
+      "title": "Contrato da API",
+      "description": "A API expõe URL de início e callback que emite o código de exchange.",
+      "start": {
+        "codeHeader": { "label": "Início", "context": "Redireciona ao consent Dropbox" }
+      },
+      "callback": {
+        "codeHeader": { "label": "Callback", "context": "Dropbox redireciona de volta à API" }
+      },
+      "exchange": {
+        "codeHeader": { "label": "Exchange", "context": "Cliente troca código por JWTs" }
+      }
+    },
+    "userModel": {
+      "title": "Modelo de usuário",
+      "description": "O account_id do Dropbox é salvo como dropboxId. Email e nome vêm do perfil da conta com scope account_info.read."
+    },
+    "related": {
+      "title": "Guias relacionados",
+      "social": "Hub de Autenticação Social",
+      "patreon": "Guia Patreon OAuth2",
+      "microsoft": "Guia Microsoft Entra ID"
+    }
+  }
+}

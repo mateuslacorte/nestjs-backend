@@ -1,0 +1,108 @@
+extends ../layouts/main
+
+block content
+  .mb-12
+    .inline-flex.items-center.gap-2.px-3.py-1.bg-indigo-50.rounded-full.text-indigo-700.text-sm.font-medium.mb-4
+      svg(class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z")
+      span= t('authSocialMetamask.badge')
+    h1(class="text-4xl font-bold text-gray-900 mb-4")
+      | #{t('authSocialMetamask.hero.titlePrefix')}
+      span.gradient-text= t('authSocialMetamask.hero.titleHighlight')
+    p(class="text-xl text-gray-600 max-w-3xl")
+      = t('authSocialMetamask.hero.subtitle')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMetamask.overview.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-0")
+        != t('authSocialMetamask.overview.description')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMetamask.console.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")
+        != t('authSocialMetamask.console.description')
+      .code-block
+        .code-header
+          span= t('authSocialMetamask.console.codeHeader.label')
+          span= t('authSocialMetamask.console.codeHeader.context')
+        .code-content
+          pre.
+            METAMASK_AUTH_ENABLED=true
+            METAMASK_DOMAIN=localhost
+            METAMASK_URI=http://localhost:3000
+            METAMASK_STATEMENT=Sign in to the NestJS Boilerplate
+            METAMASK_CHAIN_IDS=1
+            METAMASK_NONCE_TTL_SECONDS=300
+            METAMASK_OAUTH_DEFAULT_ROLES=
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMetamask.api.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")= t('authSocialMetamask.api.description')
+      .code-block.mb-2
+        .code-header
+          span= t('authSocialMetamask.api.nonce.codeHeader.label')
+          span= t('authSocialMetamask.api.nonce.codeHeader.context')
+        .code-content
+          pre.
+            POST #{apiBasePath}/auth/metamask/nonce
+            → { "nonce": "...", "expiresIn": 300 }
+      .code-block.mb-0
+        .code-header
+          span= t('authSocialMetamask.api.verify.codeHeader.label')
+          span= t('authSocialMetamask.api.verify.codeHeader.context')
+        .code-content
+          pre.
+            POST #{apiBasePath}/auth/metamask/verify
+            Content-Type: application/json
+
+            { "message": "<EIP-4361 SIWE message>", "signature": "0x..." }
+            → { "user": {...}, "accessToken": "...", "refreshToken": "..." }
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMetamask.client.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")= t('authSocialMetamask.client.description')
+      .code-block.mb-0
+        .code-header
+          span= t('authSocialMetamask.client.codeHeader.label')
+          span= t('authSocialMetamask.client.codeHeader.context')
+        .code-content
+          pre.
+            const [{ nonce }] = await Promise.all([
+              fetch('/api/v1/auth/metamask/nonce', { method: 'POST' }).then(r => r.json()),
+              window.ethereum.request({ method: 'eth_requestAccounts' }),
+            ]);
+            const [address] = await window.ethereum.request({ method: 'eth_accounts' });
+            const message =
+              `${window.location.host} wants you to sign in with your Ethereum account:\\n` +
+              `${address}\\n\\nSign in to the NestJS Boilerplate\\n\\n` +
+              `URI: ${window.location.origin}\\nVersion: 1\\nChain ID: 1\\nNonce: ${nonce}\\n` +
+              `Issued At: ${new Date().toISOString()}`;
+            const signature = await window.ethereum.request({
+              method: 'personal_sign',
+              params: [message, address],
+            });
+            const tokens = await fetch('/api/v1/auth/metamask/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ message, signature }),
+            }).then(r => r.json());
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMetamask.userModel.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-0")= t('authSocialMetamask.userModel.description')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMetamask.related.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      ul.space-y-2
+        li
+          a(href=wikiPath('/auth/social') class="text-indigo-600 hover:underline font-medium")= t('authSocialMetamask.related.social')
+        li
+          a(href=wikiPath('/auth/social/coinbase') class="text-indigo-600 hover:underline font-medium")= t('authSocialMetamask.related.coinbase')
+        li
+          a(href=wikiPath('/auth') class="text-indigo-600 hover:underline font-medium")= t('authSocialMetamask.related.auth')

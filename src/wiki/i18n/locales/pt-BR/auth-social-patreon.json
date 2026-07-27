@@ -1,0 +1,42 @@
+{
+  "authSocialPatreon": {
+    "badge": "Guia para desenvolvedores",
+    "hero": {
+      "titlePrefix": "Patreon",
+      "titleHighlight": "OAuth2",
+      "subtitle": "Conecte login Patreon no seu app com um fluxo único de Code Exchange para web e mobile."
+    },
+    "overview": {
+      "title": "Visão geral",
+      "description": "Patreon usa OAuth2 Authorization Code. Após o consent, a API busca a identidade na API v2 do Patreon, cria um código de exchange de uso único no Redis e o cliente troca pelos mesmos JWTs do login por senha. Scopes <code class=\"px-1 py-0.5 bg-gray-100 rounded\">identity</code> e <code class=\"px-1 py-0.5 bg-gray-100 rounded\">identity[email]</code> são necessários para email."
+    },
+    "console": {
+      "title": "Portal de desenvolvedores Patreon",
+      "description": "Registre um client no <a href=\"https://www.patreon.com/portal/registration/register-clients\" class=\"text-indigo-600 hover:underline\" target=\"_blank\" rel=\"noopener noreferrer\">Portal Patreon</a> → Redirect URI = <code class=\"px-1 py-0.5 bg-gray-100 rounded\">PATREON_CALLBACK_URL</code> e scopes <code class=\"px-1 py-0.5 bg-gray-100 rounded\">identity</code> e <code class=\"px-1 py-0.5 bg-gray-100 rounded\">identity[email]</code>.",
+      "codeHeader": { "label": "Ambiente", "context": "Variáveis usadas pela API" }
+    },
+    "api": {
+      "title": "Contrato da API",
+      "description": "A API expõe URL de início e callback que emite o código de exchange.",
+      "start": {
+        "codeHeader": { "label": "Início", "context": "Redireciona ao consent Patreon" }
+      },
+      "callback": {
+        "codeHeader": { "label": "Callback", "context": "Patreon redireciona de volta à API" }
+      },
+      "exchange": {
+        "codeHeader": { "label": "Exchange", "context": "Cliente troca código por JWTs" }
+      }
+    },
+    "userModel": {
+      "title": "Modelo de usuário",
+      "description": "O id do recurso user do Patreon é salvo como patreonId. Email vem dos atributos identity com scope identity[email]."
+    },
+    "related": {
+      "title": "Guias relacionados",
+      "social": "Hub de Autenticação Social",
+      "microsoft": "Guia Microsoft Entra ID",
+      "discord": "Guia Discord OAuth2"
+    }
+  }
+}

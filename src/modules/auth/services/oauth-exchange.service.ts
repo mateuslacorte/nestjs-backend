@@ -11,6 +11,7 @@ interface ExchangeCodePayload {
 export class OauthExchangeService {
     private readonly keyPrefix = 'auth:oauth:exchange:';
 
+    /* istanbul ignore next -- Nest DI constructor parameter emit */
     constructor(
         private readonly cacheService: CacheService,
         private readonly configService: ConfigService,
@@ -22,6 +23,24 @@ export class OauthExchangeService {
             this.configService.get<number>('googleOAuth.exchangeCodeTtlSeconds') ??
             this.configService.get<number>('facebookOAuth.exchangeCodeTtlSeconds') ??
             this.configService.get<number>('twitterOAuth.exchangeCodeTtlSeconds') ??
+            this.configService.get<number>('githubOAuth.exchangeCodeTtlSeconds') ??
+            this.configService.get<number>('figmaOAuth.exchangeCodeTtlSeconds') ??
+            this.configService.get<number>('linkedinOAuth.exchangeCodeTtlSeconds') ??
+            this.configService.get<number>('slackOAuth.exchangeCodeTtlSeconds') ??
+            this.configService.get<number>('atlassianOAuth.exchangeCodeTtlSeconds') ??
+            this.configService.get<number>('gitlabOAuth.exchangeCodeTtlSeconds') ??
+            this.configService.get<number>('bitbucketOAuth.exchangeCodeTtlSeconds') ??
+            this.configService.get<number>('discordOAuth.exchangeCodeTtlSeconds') ??
+            this.configService.get<number>('twitchOAuth.exchangeCodeTtlSeconds') ??
+            this.configService.get<number>('steamOpenId.exchangeCodeTtlSeconds') ??
+            this.configService.get<number>('redditOAuth.exchangeCodeTtlSeconds') ??
+            this.configService.get<number>('appleOAuth.exchangeCodeTtlSeconds') ??
+            this.configService.get<number>('spotifyOAuth.exchangeCodeTtlSeconds') ??
+            this.configService.get<number>('amazonOAuth.exchangeCodeTtlSeconds') ??
+            this.configService.get<number>('microsoftOAuth.exchangeCodeTtlSeconds') ??
+            this.configService.get<number>('patreonOAuth.exchangeCodeTtlSeconds') ??
+            this.configService.get<number>('dropboxOAuth.exchangeCodeTtlSeconds') ??
+            this.configService.get<number>('coinbaseOAuth.exchangeCodeTtlSeconds') ??
             60;
 
         await this.cacheService.set(

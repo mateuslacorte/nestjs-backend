@@ -6,6 +6,24 @@ import { JwtAuthGuard } from './guards/jwtauth.guard';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { FacebookAuthGuard } from './guards/facebook-auth.guard';
 import { TwitterAuthGuard } from './guards/twitter-auth.guard';
+import { GithubAuthGuard } from './guards/github-auth.guard';
+import { FigmaAuthGuard } from './guards/figma-auth.guard';
+import { LinkedinAuthGuard } from './guards/linkedin-auth.guard';
+import { SlackAuthGuard } from './guards/slack-auth.guard';
+import { AtlassianAuthGuard } from './guards/atlassian-auth.guard';
+import { GitlabAuthGuard } from './guards/gitlab-auth.guard';
+import { BitbucketAuthGuard } from './guards/bitbucket-auth.guard';
+import { DiscordAuthGuard } from './guards/discord-auth.guard';
+import { TwitchAuthGuard } from './guards/twitch-auth.guard';
+import { SteamAuthGuard } from './guards/steam-auth.guard';
+import { RedditAuthGuard } from './guards/reddit-auth.guard';
+import { AppleAuthGuard } from './guards/apple-auth.guard';
+import { SpotifyAuthGuard } from './guards/spotify-auth.guard';
+import { AmazonAuthGuard } from './guards/amazon-auth.guard';
+import { MicrosoftAuthGuard } from './guards/microsoft-auth.guard';
+import { PatreonAuthGuard } from './guards/patreon-auth.guard';
+import { DropboxAuthGuard } from './guards/dropbox-auth.guard';
+import { CoinbaseAuthGuard } from './guards/coinbase-auth.guard';
 import { Request, Response } from 'express';
 import {ApiTags, ApiResponse, ApiBody, ApiBearerAuth, ApiOperation, ApiQuery} from '@nestjs/swagger';
 import { Public } from './decorators/public.decorator';
@@ -14,9 +32,29 @@ import {ResetPasswordDto} from "./dtos/reset-password.dto";
 import {RefreshtokenDto} from "@modules/auth/dtos/refreshtoken.dto";
 import {ChangePasswordDto} from "./dtos/change-password.dto";
 import { ExchangeCodeDto } from './dtos/exchange-code.dto';
+import { AdLoginDto } from './dtos/ad-login.dto';
+import { MetamaskVerifyDto } from './dtos/metamask-verify.dto';
 import { GoogleProfilePayload } from './strategies/google.strategy';
 import { FacebookProfilePayload } from './strategies/facebook.strategy';
 import { TwitterProfilePayload } from './strategies/twitter.strategy';
+import { GithubProfilePayload } from './strategies/github.strategy';
+import { FigmaProfilePayload } from './strategies/figma.strategy';
+import { LinkedinProfilePayload } from './strategies/linkedin.strategy';
+import { SlackProfilePayload } from './strategies/slack.strategy';
+import { AtlassianProfilePayload } from './strategies/atlassian.strategy';
+import { GitlabProfilePayload } from './strategies/gitlab.strategy';
+import { BitbucketProfilePayload } from './strategies/bitbucket.strategy';
+import { DiscordProfilePayload } from './strategies/discord.strategy';
+import { TwitchProfilePayload } from './strategies/twitch.strategy';
+import { SteamProfilePayload } from './strategies/steam.strategy';
+import { RedditProfilePayload } from './strategies/reddit.strategy';
+import { AppleProfilePayload } from './strategies/apple.strategy';
+import { SpotifyProfilePayload } from './strategies/spotify.strategy';
+import { AmazonProfilePayload } from './strategies/amazon.strategy';
+import { MicrosoftProfilePayload } from './strategies/microsoft.strategy';
+import { PatreonProfilePayload } from './strategies/patreon.strategy';
+import { DropboxProfilePayload } from './strategies/dropbox.strategy';
+import { CoinbaseProfilePayload } from './strategies/coinbase.strategy';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -81,6 +119,84 @@ export class AuthController {
     })
     async login(@Body() loginDto: LoginDto) {
         return await this.authService.login(loginDto);
+    }
+
+    /**
+     * Login with on-prem Active Directory (LDAP/LDAPS).
+     */
+    @Public()
+    @Post('ad/login')
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({
+        summary: 'Login with Active Directory (LDAP/LDAPS)',
+        description:
+            'Authenticates against on-prem AD DS via LDAP bind. Returns JWT tokens (same contract as POST /auth/login). Disabled when AD_LDAP_ENABLED=false (503).',
+    })
+    @ApiResponse({ status: 200, description: 'User successfully logged in.' })
+    @ApiResponse({ status: 401, description: 'Invalid credentials.' })
+    @ApiResponse({
+        status: 503,
+        description: 'Active Directory authentication is disabled or unavailable.',
+    })
+    @ApiBody({
+        type: AdLoginDto,
+        description: 'Active Directory credentials',
+        examples: {
+            adLogin: {
+                summary: 'AD Login Example',
+                description: 'sAMAccountName or userPrincipalName',
+                value: {
+                    username: 'jdoe',
+                    password: 'StrongP@ssw0rd123',
+                },
+            },
+        },
+    })
+    async adLogin(@Body() adLoginDto: AdLoginDto) {
+        return await this.authService.loginWithActiveDirectory(adLoginDto);
+    }
+
+    /**
+     * Issue a SIWE nonce for MetaMask Sign-In with Ethereum.
+     */
+    @Public()
+    @Post('metamask/nonce')
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({
+        summary: 'Issue MetaMask SIWE nonce',
+        description:
+            'Returns a one-time nonce (stored in Redis) for building an EIP-4361 SIWE message. Disabled when METAMASK_AUTH_ENABLED=false (503).',
+    })
+    @ApiResponse({ status: 200, description: 'Nonce issued.' })
+    @ApiResponse({
+        status: 503,
+        description: 'MetaMask authentication is disabled.',
+    })
+    async metamaskNonce() {
+        return await this.authService.issueMetamaskNonce();
+    }
+
+    /**
+     * Verify MetaMask SIWE message + signature and return JWT tokens.
+     */
+    @Public()
+    @Post('metamask/verify')
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({
+        summary: 'Verify MetaMask SIWE login',
+        description:
+            'Validates the SIWE message and signature, upserts the user by Ethereum address, and returns JWT tokens (same contract as POST /auth/login). Disabled when METAMASK_AUTH_ENABLED=false (503).',
+    })
+    @ApiResponse({ status: 200, description: 'User successfully logged in.' })
+    @ApiResponse({ status: 400, description: 'Invalid SIWE message.' })
+    @ApiResponse({ status: 401, description: 'Invalid signature or nonce.' })
+    @ApiResponse({
+        status: 503,
+        description: 'MetaMask authentication is disabled.',
+    })
+    @ApiBody({ type: MetamaskVerifyDto })
+    async metamaskVerify(@Body() dto: MetamaskVerifyDto) {
+        return await this.authService.loginWithMetamask(dto);
     }
 
     /**
@@ -225,6 +341,857 @@ export class AuthController {
     }
 
     /**
+     * Start GitHub OAuth2 (Authorization Code). Redirects to GitHub consent screen.
+     */
+    @Public()
+    @Get('github')
+    @UseGuards(GithubAuthGuard)
+    @ApiOperation({
+        summary: 'Start GitHub OAuth2 login',
+        description:
+            'Redirects the browser to GitHub. Pass redirect (allowlisted) for the post-login deep link or web URL. Disabled when GITHUB_AUTH_ENABLED=false (503).',
+    })
+    @ApiQuery({
+        name: 'redirect',
+        required: false,
+        description:
+            'Post-login redirect URL (must match GITHUB_REDIRECT_ALLOWLIST). Defaults to the first allowlist entry.',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to GitHub OAuth consent.' })
+    @ApiResponse({ status: 400, description: 'Invalid or missing redirect.' })
+    @ApiResponse({ status: 503, description: 'GitHub authentication is disabled.' })
+    githubAuth() {
+        // Guard redirects to GitHub
+    }
+
+    /**
+     * GitHub OAuth2 callback — issues a one-time exchange code and redirects to the client.
+     */
+    @Public()
+    @Get('github/callback')
+    @UseGuards(GithubAuthGuard)
+    @ApiOperation({
+        summary: 'GitHub OAuth2 callback',
+        description:
+            'Processes the GitHub profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 503, description: 'GitHub authentication is disabled.' })
+    async githubAuthCallback(@Req() req: Request, @Res() res: Response) {
+        const profile = req.user as GithubProfilePayload;
+        const state = typeof req.query.state === 'string' ? req.query.state : undefined;
+        const { redirectUrl } = await this.authService.completeGithubOAuth(
+            profile,
+            state,
+        );
+        return res.redirect(redirectUrl);
+    }
+
+    /**
+     * Start Figma OAuth2 (Authorization Code). Redirects to Figma consent screen.
+     */
+    @Public()
+    @Get('figma')
+    @UseGuards(FigmaAuthGuard)
+    @ApiOperation({
+        summary: 'Start Figma OAuth2 login',
+        description:
+            'Redirects the browser to Figma. Pass redirect (allowlisted) for the post-login deep link or web URL. Disabled when FIGMA_AUTH_ENABLED=false (503).',
+    })
+    @ApiQuery({
+        name: 'redirect',
+        required: false,
+        description:
+            'Post-login redirect URL (must match FIGMA_REDIRECT_ALLOWLIST). Defaults to the first allowlist entry.',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to Figma OAuth consent.' })
+    @ApiResponse({ status: 400, description: 'Invalid or missing redirect.' })
+    @ApiResponse({ status: 503, description: 'Figma authentication is disabled.' })
+    figmaAuth() {
+        // Guard redirects to Figma
+    }
+
+    /**
+     * Figma OAuth2 callback — issues a one-time exchange code and redirects to the client.
+     */
+    @Public()
+    @Get('figma/callback')
+    @UseGuards(FigmaAuthGuard)
+    @ApiOperation({
+        summary: 'Figma OAuth2 callback',
+        description:
+            'Processes the Figma profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 503, description: 'Figma authentication is disabled.' })
+    async figmaAuthCallback(@Req() req: Request, @Res() res: Response) {
+        const profile = req.user as FigmaProfilePayload;
+        const state = typeof req.query.state === 'string' ? req.query.state : undefined;
+        const { redirectUrl } = await this.authService.completeFigmaOAuth(
+            profile,
+            state,
+        );
+        return res.redirect(redirectUrl);
+    }
+
+    /**
+     * Start LinkedIn OAuth2 / OpenID Connect. Redirects to LinkedIn consent screen.
+     */
+    @Public()
+    @Get('linkedin')
+    @UseGuards(LinkedinAuthGuard)
+    @ApiOperation({
+        summary: 'Start LinkedIn OAuth2 login',
+        description:
+            'Redirects the browser to LinkedIn. Pass redirect (allowlisted) for the post-login deep link or web URL. Disabled when LINKEDIN_AUTH_ENABLED=false (503).',
+    })
+    @ApiQuery({
+        name: 'redirect',
+        required: false,
+        description:
+            'Post-login redirect URL (must match LINKEDIN_REDIRECT_ALLOWLIST). Defaults to the first allowlist entry.',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to LinkedIn OAuth consent.' })
+    @ApiResponse({ status: 400, description: 'Invalid or missing redirect.' })
+    @ApiResponse({ status: 503, description: 'LinkedIn authentication is disabled.' })
+    linkedinAuth() {
+        // Guard redirects to LinkedIn
+    }
+
+    /**
+     * LinkedIn OAuth2 callback — issues a one-time exchange code and redirects to the client.
+     */
+    @Public()
+    @Get('linkedin/callback')
+    @UseGuards(LinkedinAuthGuard)
+    @ApiOperation({
+        summary: 'LinkedIn OAuth2 callback',
+        description:
+            'Processes the LinkedIn profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 503, description: 'LinkedIn authentication is disabled.' })
+    async linkedinAuthCallback(@Req() req: Request, @Res() res: Response) {
+        const profile = req.user as LinkedinProfilePayload;
+        const state = typeof req.query.state === 'string' ? req.query.state : undefined;
+        const { redirectUrl } = await this.authService.completeLinkedinOAuth(
+            profile,
+            state,
+        );
+        return res.redirect(redirectUrl);
+    }
+
+    /**
+     * Start Slack OAuth2 / OpenID Connect (Sign in with Slack). Redirects to Slack consent.
+     */
+    @Public()
+    @Get('slack')
+    @UseGuards(SlackAuthGuard)
+    @ApiOperation({
+        summary: 'Start Slack OAuth2 login',
+        description:
+            'Redirects the browser to Slack. Pass redirect (allowlisted) for the post-login deep link or web URL. Disabled when SLACK_AUTH_ENABLED=false (503).',
+    })
+    @ApiQuery({
+        name: 'redirect',
+        required: false,
+        description:
+            'Post-login redirect URL (must match SLACK_REDIRECT_ALLOWLIST). Defaults to the first allowlist entry.',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to Slack OAuth consent.' })
+    @ApiResponse({ status: 400, description: 'Invalid or missing redirect.' })
+    @ApiResponse({ status: 503, description: 'Slack authentication is disabled.' })
+    slackAuth() {
+        // Guard redirects to Slack
+    }
+
+    /**
+     * Slack OAuth2 callback — issues a one-time exchange code and redirects to the client.
+     */
+    @Public()
+    @Get('slack/callback')
+    @UseGuards(SlackAuthGuard)
+    @ApiOperation({
+        summary: 'Slack OAuth2 callback',
+        description:
+            'Processes the Slack profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 503, description: 'Slack authentication is disabled.' })
+    async slackAuthCallback(@Req() req: Request, @Res() res: Response) {
+        const profile = req.user as SlackProfilePayload;
+        const state = typeof req.query.state === 'string' ? req.query.state : undefined;
+        const { redirectUrl } = await this.authService.completeSlackOAuth(
+            profile,
+            state,
+        );
+        return res.redirect(redirectUrl);
+    }
+
+    /**
+     * Start Atlassian OAuth 2.0 (3LO). Redirects to Atlassian consent screen.
+     */
+    @Public()
+    @Get('atlassian')
+    @UseGuards(AtlassianAuthGuard)
+    @ApiOperation({
+        summary: 'Start Atlassian OAuth2 login',
+        description:
+            'Redirects the browser to Atlassian. Pass redirect (allowlisted) for the post-login deep link or web URL. Disabled when ATLASSIAN_AUTH_ENABLED=false (503).',
+    })
+    @ApiQuery({
+        name: 'redirect',
+        required: false,
+        description:
+            'Post-login redirect URL (must match ATLASSIAN_REDIRECT_ALLOWLIST). Defaults to the first allowlist entry.',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to Atlassian OAuth consent.' })
+    @ApiResponse({ status: 400, description: 'Invalid or missing redirect.' })
+    @ApiResponse({ status: 503, description: 'Atlassian authentication is disabled.' })
+    atlassianAuth() {
+        // Guard redirects to Atlassian
+    }
+
+    /**
+     * Atlassian OAuth2 callback — issues a one-time exchange code and redirects to the client.
+     */
+    @Public()
+    @Get('atlassian/callback')
+    @UseGuards(AtlassianAuthGuard)
+    @ApiOperation({
+        summary: 'Atlassian OAuth2 callback',
+        description:
+            'Processes the Atlassian profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 503, description: 'Atlassian authentication is disabled.' })
+    async atlassianAuthCallback(@Req() req: Request, @Res() res: Response) {
+        const profile = req.user as AtlassianProfilePayload;
+        const state = typeof req.query.state === 'string' ? req.query.state : undefined;
+        const { redirectUrl } = await this.authService.completeAtlassianOAuth(
+            profile,
+            state,
+        );
+        return res.redirect(redirectUrl);
+    }
+
+    /**
+     * Start GitLab OAuth2 (Authorization Code). Redirects to GitLab consent screen.
+     */
+    @Public()
+    @Get('gitlab')
+    @UseGuards(GitlabAuthGuard)
+    @ApiOperation({
+        summary: 'Start GitLab OAuth2 login',
+        description:
+            'Redirects the browser to GitLab. Pass redirect (allowlisted) for the post-login deep link or web URL. Disabled when GITLAB_AUTH_ENABLED=false (503).',
+    })
+    @ApiQuery({
+        name: 'redirect',
+        required: false,
+        description:
+            'Post-login redirect URL (must match GITLAB_REDIRECT_ALLOWLIST). Defaults to the first allowlist entry.',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to GitLab OAuth consent.' })
+    @ApiResponse({ status: 400, description: 'Invalid or missing redirect.' })
+    @ApiResponse({ status: 503, description: 'GitLab authentication is disabled.' })
+    gitlabAuth() {
+        // Guard redirects to GitLab
+    }
+
+    /**
+     * GitLab OAuth2 callback — issues a one-time exchange code and redirects to the client.
+     */
+    @Public()
+    @Get('gitlab/callback')
+    @UseGuards(GitlabAuthGuard)
+    @ApiOperation({
+        summary: 'GitLab OAuth2 callback',
+        description:
+            'Processes the GitLab profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 503, description: 'GitLab authentication is disabled.' })
+    async gitlabAuthCallback(@Req() req: Request, @Res() res: Response) {
+        const profile = req.user as GitlabProfilePayload;
+        const state = typeof req.query.state === 'string' ? req.query.state : undefined;
+        const { redirectUrl } = await this.authService.completeGitlabOAuth(
+            profile,
+            state,
+        );
+        return res.redirect(redirectUrl);
+    }
+
+    /**
+     * Start Bitbucket OAuth2 (Authorization Code). Redirects to Bitbucket consent screen.
+     */
+    @Public()
+    @Get('bitbucket')
+    @UseGuards(BitbucketAuthGuard)
+    @ApiOperation({
+        summary: 'Start Bitbucket OAuth2 login',
+        description:
+            'Redirects the browser to Bitbucket. Pass redirect (allowlisted) for the post-login deep link or web URL. Disabled when BITBUCKET_AUTH_ENABLED=false (503).',
+    })
+    @ApiQuery({
+        name: 'redirect',
+        required: false,
+        description:
+            'Post-login redirect URL (must match BITBUCKET_REDIRECT_ALLOWLIST). Defaults to the first allowlist entry.',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to Bitbucket OAuth consent.' })
+    @ApiResponse({ status: 400, description: 'Invalid or missing redirect.' })
+    @ApiResponse({ status: 503, description: 'Bitbucket authentication is disabled.' })
+    bitbucketAuth() {
+        // Guard redirects to Bitbucket
+    }
+
+    /**
+     * Bitbucket OAuth2 callback — issues a one-time exchange code and redirects to the client.
+     */
+    @Public()
+    @Get('bitbucket/callback')
+    @UseGuards(BitbucketAuthGuard)
+    @ApiOperation({
+        summary: 'Bitbucket OAuth2 callback',
+        description:
+            'Processes the Bitbucket profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 503, description: 'Bitbucket authentication is disabled.' })
+    async bitbucketAuthCallback(@Req() req: Request, @Res() res: Response) {
+        const profile = req.user as BitbucketProfilePayload;
+        const state = typeof req.query.state === 'string' ? req.query.state : undefined;
+        const { redirectUrl } = await this.authService.completeBitbucketOAuth(
+            profile,
+            state,
+        );
+        return res.redirect(redirectUrl);
+    }
+
+    /**
+     * Start Discord OAuth2 (Authorization Code). Redirects to Discord consent screen.
+     */
+    @Public()
+    @Get('discord')
+    @UseGuards(DiscordAuthGuard)
+    @ApiOperation({
+        summary: 'Start Discord OAuth2 login',
+        description:
+            'Redirects the browser to Discord. Pass redirect (allowlisted) for the post-login deep link or web URL. Disabled when DISCORD_AUTH_ENABLED=false (503).',
+    })
+    @ApiQuery({
+        name: 'redirect',
+        required: false,
+        description:
+            'Post-login redirect URL (must match DISCORD_REDIRECT_ALLOWLIST). Defaults to the first allowlist entry.',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to Discord OAuth consent.' })
+    @ApiResponse({ status: 400, description: 'Invalid or missing redirect.' })
+    @ApiResponse({ status: 503, description: 'Discord authentication is disabled.' })
+    discordAuth() {
+        // Guard redirects to Discord
+    }
+
+    /**
+     * Discord OAuth2 callback — issues a one-time exchange code and redirects to the client.
+     */
+    @Public()
+    @Get('discord/callback')
+    @UseGuards(DiscordAuthGuard)
+    @ApiOperation({
+        summary: 'Discord OAuth2 callback',
+        description:
+            'Processes the Discord profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 503, description: 'Discord authentication is disabled.' })
+    async discordAuthCallback(@Req() req: Request, @Res() res: Response) {
+        const profile = req.user as DiscordProfilePayload;
+        const state = typeof req.query.state === 'string' ? req.query.state : undefined;
+        const { redirectUrl } = await this.authService.completeDiscordOAuth(
+            profile,
+            state,
+        );
+        return res.redirect(redirectUrl);
+    }
+
+    /**
+     * Start Twitch OAuth2 (Authorization Code). Redirects to Twitch consent screen.
+     */
+    @Public()
+    @Get('twitch')
+    @UseGuards(TwitchAuthGuard)
+    @ApiOperation({
+        summary: 'Start Twitch OAuth2 login',
+        description:
+            'Redirects the browser to Twitch. Pass redirect (allowlisted) for the post-login deep link or web URL. Disabled when TWITCH_AUTH_ENABLED=false (503).',
+    })
+    @ApiQuery({
+        name: 'redirect',
+        required: false,
+        description:
+            'Post-login redirect URL (must match TWITCH_REDIRECT_ALLOWLIST). Defaults to the first allowlist entry.',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to Twitch OAuth consent.' })
+    @ApiResponse({ status: 400, description: 'Invalid or missing redirect.' })
+    @ApiResponse({ status: 503, description: 'Twitch authentication is disabled.' })
+    twitchAuth() {
+        // Guard redirects to Twitch
+    }
+
+    /**
+     * Twitch OAuth2 callback — issues a one-time exchange code and redirects to the client.
+     */
+    @Public()
+    @Get('twitch/callback')
+    @UseGuards(TwitchAuthGuard)
+    @ApiOperation({
+        summary: 'Twitch OAuth2 callback',
+        description:
+            'Processes the Twitch profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 503, description: 'Twitch authentication is disabled.' })
+    async twitchAuthCallback(@Req() req: Request, @Res() res: Response) {
+        const profile = req.user as TwitchProfilePayload;
+        const state = typeof req.query.state === 'string' ? req.query.state : undefined;
+        const { redirectUrl } = await this.authService.completeTwitchOAuth(
+            profile,
+            state,
+        );
+        return res.redirect(redirectUrl);
+    }
+
+    /**
+     * Start Spotify OAuth2 (Authorization Code). Redirects to Spotify consent screen.
+     */
+    @Public()
+    @Get('spotify')
+    @UseGuards(SpotifyAuthGuard)
+    @ApiOperation({
+        summary: 'Start Spotify OAuth2 login',
+        description:
+            'Redirects the browser to Spotify. Pass redirect (allowlisted) for the post-login deep link or web URL. Disabled when SPOTIFY_AUTH_ENABLED=false (503).',
+    })
+    @ApiQuery({
+        name: 'redirect',
+        required: false,
+        description:
+            'Post-login redirect URL (must match SPOTIFY_REDIRECT_ALLOWLIST). Defaults to the first allowlist entry.',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to Spotify OAuth consent.' })
+    @ApiResponse({ status: 400, description: 'Invalid or missing redirect.' })
+    @ApiResponse({ status: 503, description: 'Spotify authentication is disabled.' })
+    spotifyAuth() {
+        // Guard redirects to Spotify
+    }
+
+    /**
+     * Spotify OAuth2 callback — issues a one-time exchange code and redirects to the client.
+     */
+    @Public()
+    @Get('spotify/callback')
+    @UseGuards(SpotifyAuthGuard)
+    @ApiOperation({
+        summary: 'Spotify OAuth2 callback',
+        description:
+            'Processes the Spotify profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 503, description: 'Spotify authentication is disabled.' })
+    async spotifyAuthCallback(@Req() req: Request, @Res() res: Response) {
+        const profile = req.user as SpotifyProfilePayload;
+        const state = typeof req.query.state === 'string' ? req.query.state : undefined;
+        const { redirectUrl } = await this.authService.completeSpotifyOAuth(
+            profile,
+            state,
+        );
+        return res.redirect(redirectUrl);
+    }
+
+    /**
+     * Start Amazon Login with Amazon (Authorization Code). Redirects to Amazon consent screen.
+     */
+    @Public()
+    @Get('amazon')
+    @UseGuards(AmazonAuthGuard)
+    @ApiOperation({
+        summary: 'Start Amazon OAuth2 login',
+        description:
+            'Redirects the browser to Amazon. Pass redirect (allowlisted) for the post-login deep link or web URL. Disabled when AMAZON_AUTH_ENABLED=false (503).',
+    })
+    @ApiQuery({
+        name: 'redirect',
+        required: false,
+        description:
+            'Post-login redirect URL (must match AMAZON_REDIRECT_ALLOWLIST). Defaults to the first allowlist entry.',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to Amazon OAuth consent.' })
+    @ApiResponse({ status: 400, description: 'Invalid or missing redirect.' })
+    @ApiResponse({ status: 503, description: 'Amazon authentication is disabled.' })
+    amazonAuth() {
+        // Guard redirects to Amazon
+    }
+
+    /**
+     * Amazon OAuth2 callback — issues a one-time exchange code and redirects to the client.
+     */
+    @Public()
+    @Get('amazon/callback')
+    @UseGuards(AmazonAuthGuard)
+    @ApiOperation({
+        summary: 'Amazon OAuth2 callback',
+        description:
+            'Processes the Amazon profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 503, description: 'Amazon authentication is disabled.' })
+    async amazonAuthCallback(@Req() req: Request, @Res() res: Response) {
+        const profile = req.user as AmazonProfilePayload;
+        const state = typeof req.query.state === 'string' ? req.query.state : undefined;
+        const { redirectUrl } = await this.authService.completeAmazonOAuth(
+            profile,
+            state,
+        );
+        return res.redirect(redirectUrl);
+    }
+
+    /**
+     * Start Microsoft Entra ID / Azure AD OAuth2 (Authorization Code). Redirects to Microsoft consent screen.
+     */
+    @Public()
+    @Get('microsoft')
+    @UseGuards(MicrosoftAuthGuard)
+    @ApiOperation({
+        summary: 'Start Microsoft OAuth2 login',
+        description:
+            'Redirects the browser to Microsoft. Pass redirect (allowlisted) for the post-login deep link or web URL. Disabled when MICROSOFT_AUTH_ENABLED=false (503).',
+    })
+    @ApiQuery({
+        name: 'redirect',
+        required: false,
+        description:
+            'Post-login redirect URL (must match MICROSOFT_REDIRECT_ALLOWLIST). Defaults to the first allowlist entry.',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to Microsoft OAuth consent.' })
+    @ApiResponse({ status: 400, description: 'Invalid or missing redirect.' })
+    @ApiResponse({ status: 503, description: 'Microsoft authentication is disabled.' })
+    microsoftAuth() {
+        // Guard redirects to Microsoft
+    }
+
+    /**
+     * Microsoft OAuth2 callback — issues a one-time exchange code and redirects to the client.
+     */
+    @Public()
+    @Get('microsoft/callback')
+    @UseGuards(MicrosoftAuthGuard)
+    @ApiOperation({
+        summary: 'Microsoft OAuth2 callback',
+        description:
+            'Processes the Microsoft profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 503, description: 'Microsoft authentication is disabled.' })
+    async microsoftAuthCallback(@Req() req: Request, @Res() res: Response) {
+        const profile = req.user as MicrosoftProfilePayload;
+        const state = typeof req.query.state === 'string' ? req.query.state : undefined;
+        const { redirectUrl } = await this.authService.completeMicrosoftOAuth(
+            profile,
+            state,
+        );
+        return res.redirect(redirectUrl);
+    }
+
+    /**
+     * Start Patreon OAuth2 (Authorization Code). Redirects to Patreon consent screen.
+     */
+    @Public()
+    @Get('patreon')
+    @UseGuards(PatreonAuthGuard)
+    @ApiOperation({
+        summary: 'Start Patreon OAuth2 login',
+        description:
+            'Redirects the browser to Patreon. Pass redirect (allowlisted) for the post-login deep link or web URL. Disabled when PATREON_AUTH_ENABLED=false (503).',
+    })
+    @ApiQuery({
+        name: 'redirect',
+        required: false,
+        description:
+            'Post-login redirect URL (must match PATREON_REDIRECT_ALLOWLIST). Defaults to the first allowlist entry.',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to Patreon OAuth consent.' })
+    @ApiResponse({ status: 400, description: 'Invalid or missing redirect.' })
+    @ApiResponse({ status: 503, description: 'Patreon authentication is disabled.' })
+    patreonAuth() {
+        // Guard redirects to Patreon
+    }
+
+    /**
+     * Patreon OAuth2 callback — issues a one-time exchange code and redirects to the client.
+     */
+    @Public()
+    @Get('patreon/callback')
+    @UseGuards(PatreonAuthGuard)
+    @ApiOperation({
+        summary: 'Patreon OAuth2 callback',
+        description:
+            'Processes the Patreon profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 503, description: 'Patreon authentication is disabled.' })
+    async patreonAuthCallback(@Req() req: Request, @Res() res: Response) {
+        const profile = req.user as PatreonProfilePayload;
+        const state = typeof req.query.state === 'string' ? req.query.state : undefined;
+        const { redirectUrl } = await this.authService.completePatreonOAuth(
+            profile,
+            state,
+        );
+        return res.redirect(redirectUrl);
+    }
+
+    /**
+     * Start Dropbox OAuth2 (Authorization Code). Redirects to Dropbox consent screen.
+     */
+    @Public()
+    @Get('dropbox')
+    @UseGuards(DropboxAuthGuard)
+    @ApiOperation({
+        summary: 'Start Dropbox OAuth2 login',
+        description:
+            'Redirects the browser to Dropbox. Pass redirect (allowlisted) for the post-login deep link or web URL. Disabled when DROPBOX_AUTH_ENABLED=false (503).',
+    })
+    @ApiQuery({
+        name: 'redirect',
+        required: false,
+        description:
+            'Post-login redirect URL (must match DROPBOX_REDIRECT_ALLOWLIST). Defaults to the first allowlist entry.',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to Dropbox OAuth consent.' })
+    @ApiResponse({ status: 400, description: 'Invalid or missing redirect.' })
+    @ApiResponse({ status: 503, description: 'Dropbox authentication is disabled.' })
+    dropboxAuth() {
+        // Guard redirects to Dropbox
+    }
+
+    /**
+     * Dropbox OAuth2 callback — issues a one-time exchange code and redirects to the client.
+     */
+    @Public()
+    @Get('dropbox/callback')
+    @UseGuards(DropboxAuthGuard)
+    @ApiOperation({
+        summary: 'Dropbox OAuth2 callback',
+        description:
+            'Processes the Dropbox profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 503, description: 'Dropbox authentication is disabled.' })
+    async dropboxAuthCallback(@Req() req: Request, @Res() res: Response) {
+        const profile = req.user as DropboxProfilePayload;
+        const state = typeof req.query.state === 'string' ? req.query.state : undefined;
+        const { redirectUrl } = await this.authService.completeDropboxOAuth(
+            profile,
+            state,
+        );
+        return res.redirect(redirectUrl);
+    }
+
+    /**
+     * Start Coinbase OAuth2 (Authorization Code). Redirects to Coinbase consent screen.
+     */
+    @Public()
+    @Get('coinbase')
+    @UseGuards(CoinbaseAuthGuard)
+    @ApiOperation({
+        summary: 'Start Coinbase OAuth2 login',
+        description:
+            'Redirects the browser to Coinbase. Pass redirect (allowlisted) for the post-login deep link or web URL. Disabled when COINBASE_AUTH_ENABLED=false (503).',
+    })
+    @ApiQuery({
+        name: 'redirect',
+        required: false,
+        description:
+            'Post-login redirect URL (must match COINBASE_REDIRECT_ALLOWLIST). Defaults to the first allowlist entry.',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to Coinbase OAuth consent.' })
+    @ApiResponse({ status: 400, description: 'Invalid or missing redirect.' })
+    @ApiResponse({ status: 503, description: 'Coinbase authentication is disabled.' })
+    coinbaseAuth() {
+        // Guard redirects to Coinbase
+    }
+
+    /**
+     * Coinbase OAuth2 callback — issues a one-time exchange code and redirects to the client.
+     */
+    @Public()
+    @Get('coinbase/callback')
+    @UseGuards(CoinbaseAuthGuard)
+    @ApiOperation({
+        summary: 'Coinbase OAuth2 callback',
+        description:
+            'Processes the Coinbase profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 503, description: 'Coinbase authentication is disabled.' })
+    async coinbaseAuthCallback(@Req() req: Request, @Res() res: Response) {
+        const profile = req.user as CoinbaseProfilePayload;
+        const state = typeof req.query.state === 'string' ? req.query.state : undefined;
+        const { redirectUrl } = await this.authService.completeCoinbaseOAuth(
+            profile,
+            state,
+        );
+        return res.redirect(redirectUrl);
+    }
+
+    /**
+     * Start Steam OpenID 2.0 login. Redirects to Steam sign-in.
+     */
+    @Public()
+    @Get('steam')
+    @UseGuards(SteamAuthGuard)
+    @ApiOperation({
+        summary: 'Start Steam OpenID login',
+        description:
+            'Redirects the browser to Steam OpenID. Pass redirect (allowlisted) for the post-login deep link or web URL. Disabled when STEAM_AUTH_ENABLED=false (503). Steam does not provide email — a synthetic address is used.',
+    })
+    @ApiQuery({
+        name: 'redirect',
+        required: false,
+        description:
+            'Post-login redirect URL (must match STEAM_REDIRECT_ALLOWLIST). Defaults to the first allowlist entry.',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to Steam OpenID.' })
+    @ApiResponse({ status: 400, description: 'Invalid or missing redirect.' })
+    @ApiResponse({ status: 503, description: 'Steam authentication is disabled.' })
+    steamAuth() {
+        // Guard redirects to Steam
+    }
+
+    /**
+     * Steam OpenID callback — issues a one-time exchange code and redirects to the client.
+     */
+    @Public()
+    @Get('steam/callback')
+    @UseGuards(SteamAuthGuard)
+    @ApiOperation({
+        summary: 'Steam OpenID callback',
+        description:
+            'Verifies the Steam OpenID assertion, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 503, description: 'Steam authentication is disabled.' })
+    async steamAuthCallback(@Req() req: Request, @Res() res: Response) {
+        const profile = req.user as SteamProfilePayload;
+        const state = typeof req.query.state === 'string' ? req.query.state : undefined;
+        const { redirectUrl } = await this.authService.completeSteamOAuth(
+            profile,
+            state,
+        );
+        return res.redirect(redirectUrl);
+    }
+
+    /**
+     * Start Reddit OAuth2 (Authorization Code). Redirects to Reddit consent screen.
+     */
+    @Public()
+    @Get('reddit')
+    @UseGuards(RedditAuthGuard)
+    @ApiOperation({
+        summary: 'Start Reddit OAuth2 login',
+        description:
+            'Redirects the browser to Reddit. Pass redirect (allowlisted) for the post-login deep link or web URL. Disabled when REDDIT_AUTH_ENABLED=false (503). Reddit does not provide email — a synthetic address is used.',
+    })
+    @ApiQuery({
+        name: 'redirect',
+        required: false,
+        description:
+            'Post-login redirect URL (must match REDDIT_REDIRECT_ALLOWLIST). Defaults to the first allowlist entry.',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to Reddit OAuth consent.' })
+    @ApiResponse({ status: 400, description: 'Invalid or missing redirect.' })
+    @ApiResponse({ status: 503, description: 'Reddit authentication is disabled.' })
+    redditAuth() {
+        // Guard redirects to Reddit
+    }
+
+    /**
+     * Reddit OAuth2 callback — issues a one-time exchange code and redirects to the client.
+     */
+    @Public()
+    @Get('reddit/callback')
+    @UseGuards(RedditAuthGuard)
+    @ApiOperation({
+        summary: 'Reddit OAuth2 callback',
+        description:
+            'Processes the Reddit profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 503, description: 'Reddit authentication is disabled.' })
+    async redditAuthCallback(@Req() req: Request, @Res() res: Response) {
+        const profile = req.user as RedditProfilePayload;
+        const state = typeof req.query.state === 'string' ? req.query.state : undefined;
+        const { redirectUrl } = await this.authService.completeRedditOAuth(
+            profile,
+            state,
+        );
+        return res.redirect(redirectUrl);
+    }
+
+    /**
+     * Start Apple Sign In (OIDC form_post). Redirects to Apple consent screen.
+     *
+     * Note: Apple's callback is a POST (form_post response mode), not a GET.
+     */
+    @Public()
+    @Get('apple')
+    @UseGuards(AppleAuthGuard)
+    @ApiOperation({
+        summary: 'Start Apple Sign In',
+        description:
+            'Redirects the browser to Apple. Pass redirect (allowlisted) for the post-login deep link or web URL. Disabled when APPLE_AUTH_ENABLED=false (503). Apple delivers the callback as HTTP POST (form_post).',
+    })
+    @ApiQuery({
+        name: 'redirect',
+        required: false,
+        description:
+            'Post-login redirect URL (must match APPLE_REDIRECT_ALLOWLIST). Defaults to the first allowlist entry.',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to Apple Sign In consent.' })
+    @ApiResponse({ status: 400, description: 'Invalid or missing redirect.' })
+    @ApiResponse({ status: 503, description: 'Apple authentication is disabled.' })
+    appleAuth() {
+        // Guard redirects to Apple
+    }
+
+    /**
+     * Apple Sign In callback — Apple POSTs here (form_post response mode).
+     *
+     * Apple only sends the user's name on the very first successful login.
+     * On subsequent logins only the id_token (sub + email) is available.
+     */
+    @Public()
+    @Post('apple/callback')
+    @UseGuards(AppleAuthGuard)
+    @ApiOperation({
+        summary: 'Apple Sign In callback (POST, form_post)',
+        description:
+            'Apple POSTs to this endpoint after consent. Decodes id_token, upserts user, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
+    })
+    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 503, description: 'Apple authentication is disabled.' })
+    async appleAuthCallback(@Req() req: Request, @Res() res: Response) {
+        const profile = req.user as AppleProfilePayload;
+        const state = typeof req.body?.state === 'string' ? req.body.state : undefined;
+        const { redirectUrl } = await this.authService.completeAppleOAuth(
+            profile,
+            state,
+        );
+        return res.redirect(redirectUrl);
+    }
+
+    /**
      * Exchange a one-time OAuth code for JWT tokens.
      */
     @Public()
@@ -233,7 +1200,7 @@ export class AuthController {
     @ApiOperation({
         summary: 'Exchange OAuth code for JWT tokens',
         description:
-            'Consumes a one-time exchange code (60s TTL) from Google, Facebook, or X / Twitter OAuth and returns accessToken, refreshToken, and user — same shape as login.',
+            'Consumes a one-time exchange code (60s TTL) from Google, Facebook, X / Twitter, GitHub, Figma, LinkedIn, Slack, Atlassian, GitLab, Bitbucket, Discord, Twitch, Steam, Reddit, or Apple and returns accessToken, refreshToken, and user — same shape as login.',
     })
     @ApiBody({ type: ExchangeCodeDto })
     @ApiResponse({

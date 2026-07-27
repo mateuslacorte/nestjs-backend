@@ -1,0 +1,29 @@
+{
+  "authActiveDirectory": {
+    "badge": "Guia para desenvolvedores",
+    "hero": {
+      "titlePrefix": "Active Directory",
+      "titleHighlight": "LDAP / LDAPS",
+      "subtitle": "Autentique usuários contra Microsoft AD DS on-prem com o mesmo contrato JWT do login email/senha."
+    },
+    "overview": {
+      "title": "Visão geral",
+      "description": "A API faz bind no controlador de domínio via LDAP ou LDAPS, valida credenciais, provisiona usuários locais automaticamente e retorna JWTs. Separado do Microsoft Entra ID (OAuth na nuvem) — focado em AD DS no DC."
+    },
+    "api": {
+      "title": "Contrato da API",
+      "description": "Use sAMAccountName ou userPrincipalName como username. A resposta é igual ao POST /auth/login.",
+      "codeHeader": { "label": "Login", "context": "Bind Active Directory" }
+    },
+    "transport": {
+      "title": "LDAP vs LDAPS",
+      "description": "Configure <code class=\"px-1 py-0.5 bg-gray-100 rounded\">AD_LDAP_URL</code> com <code class=\"px-1 py-0.5 bg-gray-100 rounded\">ldap://</code> ou <code class=\"px-1 py-0.5 bg-gray-100 rounded\">ldaps://</code>. Veja os guias de transporte para portas, firewall e TLS.",
+      "ctaLdap": "Guia LDAP →",
+      "ctaLdaps": "Guia LDAPS →"
+    },
+    "userModel": {
+      "title": "Modelo de usuário",
+      "description": "O <code class=\"px-1 py-0.5 bg-gray-100 rounded\">objectGUID</code> do AD é salvo como <code class=\"px-1 py-0.5 bg-gray-100 rounded\">activeDirectoryId</code>. Email vem de <code class=\"px-1 py-0.5 bg-gray-100 rounded\">mail</code> ou <code class=\"px-1 py-0.5 bg-gray-100 rounded\">userPrincipalName</code>."
+    }
+  }
+}

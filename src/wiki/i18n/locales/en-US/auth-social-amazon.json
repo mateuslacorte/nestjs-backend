@@ -1,0 +1,42 @@
+{
+  "authSocialAmazon": {
+    "badge": "Developer guide",
+    "hero": {
+      "titlePrefix": "Amazon",
+      "titleHighlight": "Login with Amazon",
+      "subtitle": "Plug Amazon login into your app with one shared Code Exchange flow for web and mobile."
+    },
+    "overview": {
+      "title": "Overview",
+      "description": "Login with Amazon uses the standard OAuth2 Authorization Code flow. After consent, the API creates a short-lived single-use exchange code in Redis and then your client exchanges it for the same JWTs you get from password login."
+    },
+    "console": {
+      "title": "Amazon Developer Console",
+      "description": "Create a Security Profile in the <a href=\"https://developer.amazon.com/loginwithamazon/console/sitepl/overview.html\" class=\"text-indigo-600 hover:underline\" target=\"_blank\" rel=\"noopener noreferrer\">Login with Amazon console</a>, open <strong>Web Settings</strong>, and set Allowed Return URLs to match <code class=\"px-1 py-0.5 bg-gray-100 rounded\">AMAZON_CALLBACK_URL</code>. Scope: <code class=\"px-1 py-0.5 bg-gray-100 rounded\">profile</code> (user_id, email, name).",
+      "codeHeader": { "label": "Environment", "context": "Variables used by the API" }
+    },
+    "api": {
+      "title": "API contract",
+      "description": "The API exposes a start URL and a callback that issues the exchange code.",
+      "start": {
+        "codeHeader": { "label": "Start", "context": "Redirect the user to Amazon consent" }
+      },
+      "callback": {
+        "codeHeader": { "label": "Callback", "context": "Amazon redirects back to the API" }
+      },
+      "exchange": {
+        "codeHeader": { "label": "Exchange", "context": "Client exchanges code for JWTs" }
+      }
+    },
+    "userModel": {
+      "title": "User model",
+      "description": "Amazon's unique user identifier is stored as `amazonId` on the user record (profile `user_id`). Email comes from the profile scope."
+    },
+    "related": {
+      "title": "Related guides",
+      "social": "Social Authentication hub",
+      "spotify": "Spotify OAuth2 setup guide",
+      "apple": "Apple Sign In setup guide"
+    }
+  }
+}

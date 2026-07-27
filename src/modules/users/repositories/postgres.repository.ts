@@ -25,7 +25,7 @@ export class UserPostgresRepository {
      */
     @EnableCache()
     async create(createUserDto: CreateUserDto, includePassword = false): Promise<IUser> {
-        const { username, email, password, googleId, facebookId, twitterId } = createUserDto;
+        const { username, email, password, googleId, facebookId, twitterId, githubId, figmaId, linkedinId, slackId, atlassianId, gitlabId, bitbucketId, discordId, twitchId, steamId, redditId, appleId, spotifyId, amazonId, microsoftId, patreonId, dropboxId, coinbaseId, metamaskId, activeDirectoryId } = createUserDto;
 
         const existingUser = await this.userRepository.findOne({
             where: [{ email }, { username }],
@@ -61,6 +61,198 @@ export class UserPostgresRepository {
             }
         }
 
+        if (githubId) {
+            const existingGithub = await this.userRepository.findOne({
+                where: { githubId },
+            });
+            if (existingGithub) {
+                throw new ConflictException('User with this GitHub account already exists');
+            }
+        }
+
+        if (figmaId) {
+            const existingFigma = await this.userRepository.findOne({
+                where: { figmaId },
+            });
+            if (existingFigma) {
+                throw new ConflictException('User with this Figma account already exists');
+            }
+        }
+
+        if (linkedinId) {
+            const existingLinkedin = await this.userRepository.findOne({
+                where: { linkedinId },
+            });
+            if (existingLinkedin) {
+                throw new ConflictException('User with this LinkedIn account already exists');
+            }
+        }
+
+        if (slackId) {
+            const existingSlack = await this.userRepository.findOne({
+                where: { slackId },
+            });
+            if (existingSlack) {
+                throw new ConflictException('User with this Slack account already exists');
+            }
+        }
+
+        if (atlassianId) {
+            const existingAtlassian = await this.userRepository.findOne({
+                where: { atlassianId },
+            });
+            if (existingAtlassian) {
+                throw new ConflictException('User with this Atlassian account already exists');
+            }
+        }
+
+        if (gitlabId) {
+            const existingGitlab = await this.userRepository.findOne({
+                where: { gitlabId },
+            });
+            if (existingGitlab) {
+                throw new ConflictException('User with this GitLab account already exists');
+            }
+        }
+
+        if (bitbucketId) {
+            const existingBitbucket = await this.userRepository.findOne({
+                where: { bitbucketId },
+            });
+            if (existingBitbucket) {
+                throw new ConflictException('User with this Bitbucket account already exists');
+            }
+        }
+
+        if (discordId) {
+            const existingDiscord = await this.userRepository.findOne({
+                where: { discordId },
+            });
+            if (existingDiscord) {
+                throw new ConflictException('User with this Discord account already exists');
+            }
+        }
+
+        if (twitchId) {
+            const existingTwitch = await this.userRepository.findOne({
+                where: { twitchId },
+            });
+            if (existingTwitch) {
+                throw new ConflictException('User with this Twitch account already exists');
+            }
+        }
+
+        if (steamId) {
+            const existingSteam = await this.userRepository.findOne({
+                where: { steamId },
+            });
+            if (existingSteam) {
+                throw new ConflictException('User with this Steam account already exists');
+            }
+        }
+
+        if (redditId) {
+            const existingReddit = await this.userRepository.findOne({
+                where: { redditId },
+            });
+            if (existingReddit) {
+                throw new ConflictException('User with this Reddit account already exists');
+            }
+        }
+
+        if (appleId) {
+            const existingApple = await this.userRepository.findOne({
+                where: { appleId },
+            });
+            if (existingApple) {
+                throw new ConflictException('User with this Apple account already exists');
+            }
+        }
+
+        if (spotifyId) {
+            const existingSpotify = await this.userRepository.findOne({
+                where: { spotifyId },
+            });
+            if (existingSpotify) {
+                throw new ConflictException('User with this Spotify account already exists');
+            }
+        }
+
+        if (amazonId) {
+            const existingAmazon = await this.userRepository.findOne({
+                where: { amazonId },
+            });
+            if (existingAmazon) {
+                throw new ConflictException('User with this Amazon account already exists');
+            }
+        }
+
+        if (microsoftId) {
+            const existingMicrosoft = await this.userRepository.findOne({
+                where: { microsoftId },
+            });
+            if (existingMicrosoft) {
+                throw new ConflictException(
+                    'User with this Microsoft account already exists',
+                );
+            }
+        }
+
+        if (patreonId) {
+            const existingPatreon = await this.userRepository.findOne({
+                where: { patreonId },
+            });
+            if (existingPatreon) {
+                throw new ConflictException(
+                    'User with this Patreon account already exists',
+                );
+            }
+        }
+
+        if (dropboxId) {
+            const existingDropbox = await this.userRepository.findOne({
+                where: { dropboxId },
+            });
+            if (existingDropbox) {
+                throw new ConflictException(
+                    'User with this Dropbox account already exists',
+                );
+            }
+        }
+
+        if (coinbaseId) {
+            const existingCoinbase = await this.userRepository.findOne({
+                where: { coinbaseId },
+            });
+            if (existingCoinbase) {
+                throw new ConflictException(
+                    'User with this Coinbase account already exists',
+                );
+            }
+        }
+
+        if (metamaskId) {
+            const existingMetamask = await this.userRepository.findOne({
+                where: { metamaskId },
+            });
+            if (existingMetamask) {
+                throw new ConflictException(
+                    'User with this MetaMask account already exists',
+                );
+            }
+        }
+
+        if (activeDirectoryId) {
+            const existingAd = await this.userRepository.findOne({
+                where: { activeDirectoryId },
+            });
+            if (existingAd) {
+                throw new ConflictException(
+                    'User with this Active Directory account already exists',
+                );
+            }
+        }
+
         const hashedPassword = password
             ? await hashPassword(password)
             : null;
@@ -71,6 +263,26 @@ export class UserPostgresRepository {
             googleId: googleId ?? null,
             facebookId: facebookId ?? null,
             twitterId: twitterId ?? null,
+            githubId: githubId ?? null,
+            figmaId: figmaId ?? null,
+            linkedinId: linkedinId ?? null,
+            slackId: slackId ?? null,
+            atlassianId: atlassianId ?? null,
+            gitlabId: gitlabId ?? null,
+            bitbucketId: bitbucketId ?? null,
+            discordId: discordId ?? null,
+            twitchId: twitchId ?? null,
+            steamId: steamId ?? null,
+            redditId: redditId ?? null,
+            appleId: appleId ?? null,
+            spotifyId: spotifyId ?? null,
+            amazonId: amazonId ?? null,
+            microsoftId: microsoftId ?? null,
+            patreonId: patreonId ?? null,
+            dropboxId: dropboxId ?? null,
+            coinbaseId: coinbaseId ?? null,
+            metamaskId: metamaskId ?? null,
+            activeDirectoryId: activeDirectoryId ?? null,
             isActive: createUserDto.isActive ?? true,
             roles: createUserDto.roles ?? [],
         });
@@ -157,6 +369,272 @@ export class UserPostgresRepository {
     @NoCache()
     async findByTwitterId(twitterId: string, includePassword = false): Promise<IUser | null> {
         const user = await this.userRepository.findOne({ where: { twitterId } });
+        if (!user) {
+            return null;
+        }
+        return includePassword ? user : this.omitPassword(user);
+    }
+
+    /**
+     * Find a user by GitHub subject ID
+     */
+    @NoCache()
+    async findByGithubId(githubId: string, includePassword = false): Promise<IUser | null> {
+        const user = await this.userRepository.findOne({ where: { githubId } });
+        if (!user) {
+            return null;
+        }
+        return includePassword ? user : this.omitPassword(user);
+    }
+
+    /**
+     * Find a user by Figma subject ID
+     */
+    @NoCache()
+    async findByFigmaId(figmaId: string, includePassword = false): Promise<IUser | null> {
+        const user = await this.userRepository.findOne({ where: { figmaId } });
+        if (!user) {
+            return null;
+        }
+        return includePassword ? user : this.omitPassword(user);
+    }
+
+    /**
+     * Find a user by LinkedIn OpenID subject ID
+     */
+    @NoCache()
+    async findByLinkedinId(linkedinId: string, includePassword = false): Promise<IUser | null> {
+        const user = await this.userRepository.findOne({ where: { linkedinId } });
+        if (!user) {
+            return null;
+        }
+        return includePassword ? user : this.omitPassword(user);
+    }
+
+    /**
+     * Find a user by Slack OpenID subject ID
+     */
+    @NoCache()
+    async findBySlackId(slackId: string, includePassword = false): Promise<IUser | null> {
+        const user = await this.userRepository.findOne({ where: { slackId } });
+        if (!user) {
+            return null;
+        }
+        return includePassword ? user : this.omitPassword(user);
+    }
+
+    /**
+     * Find a user by Atlassian account ID
+     */
+    @NoCache()
+    async findByAtlassianId(atlassianId: string, includePassword = false): Promise<IUser | null> {
+        const user = await this.userRepository.findOne({ where: { atlassianId } });
+        if (!user) {
+            return null;
+        }
+        return includePassword ? user : this.omitPassword(user);
+    }
+
+    /**
+     * Find a user by GitLab user ID
+     */
+    @NoCache()
+    async findByGitlabId(gitlabId: string, includePassword = false): Promise<IUser | null> {
+        const user = await this.userRepository.findOne({ where: { gitlabId } });
+        if (!user) {
+            return null;
+        }
+        return includePassword ? user : this.omitPassword(user);
+    }
+
+    /**
+     * Find a user by Bitbucket user UUID
+     */
+    @NoCache()
+    async findByBitbucketId(bitbucketId: string, includePassword = false): Promise<IUser | null> {
+        const user = await this.userRepository.findOne({ where: { bitbucketId } });
+        if (!user) {
+            return null;
+        }
+        return includePassword ? user : this.omitPassword(user);
+    }
+
+    /**
+     * Find a user by Discord snowflake user ID
+     */
+    @NoCache()
+    async findByDiscordId(discordId: string, includePassword = false): Promise<IUser | null> {
+        const user = await this.userRepository.findOne({ where: { discordId } });
+        if (!user) {
+            return null;
+        }
+        return includePassword ? user : this.omitPassword(user);
+    }
+
+    /**
+     * Find a user by Twitch user ID
+     */
+    @NoCache()
+    async findByTwitchId(twitchId: string, includePassword = false): Promise<IUser | null> {
+        const user = await this.userRepository.findOne({ where: { twitchId } });
+        if (!user) {
+            return null;
+        }
+        return includePassword ? user : this.omitPassword(user);
+    }
+
+    /**
+     * Find a user by SteamID64
+     */
+    @NoCache()
+    async findBySteamId(steamId: string, includePassword = false): Promise<IUser | null> {
+        const user = await this.userRepository.findOne({ where: { steamId } });
+        if (!user) {
+            return null;
+        }
+        return includePassword ? user : this.omitPassword(user);
+    }
+
+    /**
+     * Find a user by Reddit user ID
+     */
+    @NoCache()
+    async findByRedditId(redditId: string, includePassword = false): Promise<IUser | null> {
+        const user = await this.userRepository.findOne({ where: { redditId } });
+        if (!user) {
+            return null;
+        }
+        return includePassword ? user : this.omitPassword(user);
+    }
+
+    /**
+     * Find a user by Spotify user ID
+     */
+    @NoCache()
+    async findBySpotifyId(
+        spotifyId: string,
+        includePassword = false,
+    ): Promise<IUser | null> {
+        const user = await this.userRepository.findOne({ where: { spotifyId } });
+        if (!user) {
+            return null;
+        }
+        return includePassword ? user : this.omitPassword(user);
+    }
+
+    /**
+     * Find a user by Amazon user ID
+     */
+    @NoCache()
+    async findByAmazonId(
+        amazonId: string,
+        includePassword = false,
+    ): Promise<IUser | null> {
+        const user = await this.userRepository.findOne({ where: { amazonId } });
+        if (!user) {
+            return null;
+        }
+        return includePassword ? user : this.omitPassword(user);
+    }
+
+    /**
+     * Find a user by Microsoft Entra ID object ID
+     */
+    @NoCache()
+    async findByMicrosoftId(
+        microsoftId: string,
+        includePassword = false,
+    ): Promise<IUser | null> {
+        const user = await this.userRepository.findOne({ where: { microsoftId } });
+        if (!user) {
+            return null;
+        }
+        return includePassword ? user : this.omitPassword(user);
+    }
+
+    /**
+     * Find a user by Patreon user ID
+     */
+    @NoCache()
+    async findByPatreonId(
+        patreonId: string,
+        includePassword = false,
+    ): Promise<IUser | null> {
+        const user = await this.userRepository.findOne({ where: { patreonId } });
+        if (!user) {
+            return null;
+        }
+        return includePassword ? user : this.omitPassword(user);
+    }
+
+    /**
+     * Find a user by Dropbox account ID
+     */
+    @NoCache()
+    async findByDropboxId(
+        dropboxId: string,
+        includePassword = false,
+    ): Promise<IUser | null> {
+        const user = await this.userRepository.findOne({ where: { dropboxId } });
+        if (!user) {
+            return null;
+        }
+        return includePassword ? user : this.omitPassword(user);
+    }
+
+    /**
+     * Find a user by Coinbase user ID
+     */
+    @NoCache()
+    async findByCoinbaseId(
+        coinbaseId: string,
+        includePassword = false,
+    ): Promise<IUser | null> {
+        const user = await this.userRepository.findOne({ where: { coinbaseId } });
+        if (!user) {
+            return null;
+        }
+        return includePassword ? user : this.omitPassword(user);
+    }
+
+    /**
+     * Find a user by MetaMask Ethereum address
+     */
+    @NoCache()
+    async findByMetamaskId(
+        metamaskId: string,
+        includePassword = false,
+    ): Promise<IUser | null> {
+        const user = await this.userRepository.findOne({ where: { metamaskId } });
+        if (!user) {
+            return null;
+        }
+        return includePassword ? user : this.omitPassword(user);
+    }
+
+    /**
+     * Find a user by Active Directory objectGUID
+     */
+    @NoCache()
+    async findByActiveDirectoryId(
+        activeDirectoryId: string,
+        includePassword = false,
+    ): Promise<IUser | null> {
+        const user = await this.userRepository.findOne({
+            where: { activeDirectoryId },
+        });
+        if (!user) {
+            return null;
+        }
+        return includePassword ? user : this.omitPassword(user);
+    }
+
+    /**
+     * Find a user by Apple subject ID
+     */
+    @NoCache()
+    async findByAppleId(appleId: string, includePassword = false): Promise<IUser | null> {
+        const user = await this.userRepository.findOne({ where: { appleId } });
         if (!user) {
             return null;
         }

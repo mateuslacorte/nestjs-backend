@@ -37,6 +37,25 @@ describe('UpdateUserDto', () => {
       googleId: 'g-1',
       facebookId: 'fb-1',
       twitterId: 'tw-1',
+      githubId: 'gh-1',
+      figmaId: 'fig-1',
+      linkedinId: 'li-1',
+      slackId: 'U0R7JM',
+      atlassianId: '712020:abc123',
+      gitlabId: '12345678',
+      bitbucketId: '{aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee}',
+      discordId: '123456789012345678',
+      twitchId: '141981764',
+      steamId: '76561198000000000',
+      redditId: 'abc123',
+      spotifyId: 'spotify-sub-001',
+      amazonId: 'amzn1.account.abc123',
+      microsoftId: 'ms-object-id-001',
+      patreonId: 'patreon-user-001',
+      dropboxId: 'dbid:abc123',
+      coinbaseId: '9da7a204-544e-5fd1-9a12-61176c5d4cd8',
+      metamaskId: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
+      activeDirectoryId: 'ad-guid-001',
       emailVerificationToken: 'tok',
       emailVerificationExpires: new Date('2026-12-31T23:59:59.000Z'),
     });
@@ -125,5 +144,114 @@ describe('UpdateUserDto', () => {
   it('rejects non-string twitterId', async () => {
     const errors = await validateDto({ twitterId: false });
     expect(errors.some((e) => e.property === 'twitterId')).toBe(true);
+  });
+
+  it('rejects non-string githubId', async () => {
+    const errors = await validateDto({ githubId: false });
+    expect(errors.some((e) => e.property === 'githubId')).toBe(true);
+  });
+
+  it('rejects non-string figmaId', async () => {
+    const errors = await validateDto({ figmaId: false });
+    expect(errors.some((e) => e.property === 'figmaId')).toBe(true);
+  });
+
+  it('rejects non-string linkedinId', async () => {
+    const errors = await validateDto({ linkedinId: false });
+    expect(errors.some((e) => e.property === 'linkedinId')).toBe(true);
+  });
+
+  it('rejects non-string slackId', async () => {
+    const errors = await validateDto({ slackId: false });
+    expect(errors.some((e) => e.property === 'slackId')).toBe(true);
+  });
+
+  it('rejects non-string atlassianId', async () => {
+    const errors = await validateDto({ atlassianId: false });
+    expect(errors.some((e) => e.property === 'atlassianId')).toBe(true);
+  });
+
+  it('rejects non-string gitlabId', async () => {
+    const errors = await validateDto({ gitlabId: false });
+    expect(errors.some((e) => e.property === 'gitlabId')).toBe(true);
+  });
+
+  it('rejects non-string bitbucketId', async () => {
+    const errors = await validateDto({ bitbucketId: false });
+    expect(errors.some((e) => e.property === 'bitbucketId')).toBe(true);
+  });
+
+  it('rejects non-string discordId', async () => {
+    const errors = await validateDto({ discordId: false });
+    expect(errors.some((e) => e.property === 'discordId')).toBe(true);
+  });
+
+  it('rejects non-string twitchId', async () => {
+    const errors = await validateDto({ twitchId: false });
+    expect(errors.some((e) => e.property === 'twitchId')).toBe(true);
+  });
+
+  it('rejects non-string steamId', async () => {
+    const errors = await validateDto({ steamId: false });
+    expect(errors.some((e) => e.property === 'steamId')).toBe(true);
+  });
+
+  it('rejects non-string redditId', async () => {
+    const errors = await validateDto({ redditId: false });
+    expect(errors.some((e) => e.property === 'redditId')).toBe(true);
+  });
+
+  it('rejects non-string spotifyId', async () => {
+    const errors = await validateDto({ spotifyId: false });
+    expect(errors.some((e) => e.property === 'spotifyId')).toBe(true);
+  });
+
+  it('rejects non-string amazonId', async () => {
+    const errors = await validateDto({ amazonId: false });
+    expect(errors.some((e) => e.property === 'amazonId')).toBe(true);
+  });
+
+  it('rejects non-string microsoftId', async () => {
+    const errors = await validateDto({ microsoftId: false });
+    expect(errors.some((e) => e.property === 'microsoftId')).toBe(true);
+  });
+
+  it('rejects non-string patreonId', async () => {
+    const errors = await validateDto({ patreonId: false });
+    expect(errors.some((e) => e.property === 'patreonId')).toBe(true);
+  });
+
+  it('rejects non-string dropboxId', async () => {
+    const errors = await validateDto({ dropboxId: false });
+    expect(errors.some((e) => e.property === 'dropboxId')).toBe(true);
+  });
+
+  it('rejects non-string coinbaseId', async () => {
+    const errors = await validateDto({ coinbaseId: false });
+    expect(errors.some((e) => e.property === 'coinbaseId')).toBe(true);
+  });
+
+  it('rejects non-string metamaskId', async () => {
+    const errors = await validateDto({ metamaskId: false });
+    expect(errors.some((e) => e.property === 'metamaskId')).toBe(true);
+  });
+
+  it('rejects non-string activeDirectoryId', async () => {
+    const errors = await validateDto({ activeDirectoryId: false });
+    expect(errors.some((e) => e.property === 'activeDirectoryId')).toBe(true);
+  });
+
+  it('exposes roles as Role array via GraphQL Field typeFn', () => {
+    const { TypeMetadataStorage } = require('@nestjs/graphql');
+    const {
+      LazyMetadataStorage,
+    } = require('@nestjs/graphql/dist/schema-builder/storages/lazy-metadata.storage');
+    LazyMetadataStorage.load([UpdateUserDto]);
+    TypeMetadataStorage.compile();
+    const meta = TypeMetadataStorage.getInputTypeMetadataByTarget(UpdateUserDto);
+    const rolesField = meta?.properties?.find(
+      (property: { name: string }) => property.name === 'roles',
+    );
+    expect(rolesField?.typeFn()).toBe(Role);
   });
 });

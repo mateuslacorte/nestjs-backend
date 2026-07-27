@@ -1,6 +1,6 @@
 # Backend NestJS
 
-Template NestJS com REST + GraphQL, autenticação JWT e login social (Google / Facebook / X Twitter), cache Redis, Kafka, MinIO, email (SMTP/MailHog) e logging estruturado via **Graylog** (GELF).
+Template NestJS com REST + GraphQL, autenticação JWT e login social (Google / Facebook / X Twitter / GitHub / Figma / LinkedIn / Slack / Atlassian / GitLab / Bitbucket / Discord / Twitch / Spotify / Amazon / Microsoft / Patreon / Dropbox / Coinbase / MetaMask / Steam / Reddit / Apple), cache Redis, Kafka, MinIO, email (SMTP/MailHog) e logging estruturado via **Graylog** (GELF).
 
 ## Stack
 
@@ -19,8 +19,9 @@ O acesso a dados usa **Repository pattern**. Hoje o `UsersService` lê e escreve
 ## Autenticação
 
 - JWT (login/registro, refresh, roles e guards)
-- Login social via OAuth2 (Google, Facebook e X / Twitter) com fluxo de *code exchange* (PKCE no Twitter)
-- Guias na wiki: [/auth](/auth), [/auth/social](/auth/social), [/auth/social/google](/auth/social/google), [/auth/social/facebook](/auth/social/facebook), [/auth/social/twitter](/auth/social/twitter)
+- Active Directory on-prem (LDAP/LDAPS bind contra AD DS no DC) — `POST /auth/ad/login`, guias em [/auth/active-directory](/auth/active-directory), [/auth/active-directory/ldap](/auth/active-directory/ldap), [/auth/active-directory/ldaps](/auth/active-directory/ldaps)
+- Login social via OAuth2 (Google, Facebook, X / Twitter, GitHub, Figma, LinkedIn, Slack, Atlassian, GitLab, Bitbucket, Discord, Twitch, Spotify, Amazon, Microsoft, Patreon, Dropbox, Coinbase e Reddit), MetaMask SIWE (EIP-4361), Steam OpenID 2.0 e Apple Sign In (OIDC form_post) com fluxo de *code exchange* (PKCE no Twitter)
+- Guias na wiki: [/auth](/auth), [/auth/active-directory](/auth/active-directory), [/auth/social](/auth/social), [/auth/social/google](/auth/social/google), [/auth/social/facebook](/auth/social/facebook), [/auth/social/twitter](/auth/social/twitter), [/auth/social/github](/auth/social/github), [/auth/social/figma](/auth/social/figma), [/auth/social/linkedin](/auth/social/linkedin), [/auth/social/slack](/auth/social/slack), [/auth/social/atlassian](/auth/social/atlassian), [/auth/social/gitlab](/auth/social/gitlab), [/auth/social/bitbucket](/auth/social/bitbucket), [/auth/social/discord](/auth/social/discord), [/auth/social/twitch](/auth/social/twitch), [/auth/social/spotify](/auth/social/spotify), [/auth/social/amazon](/auth/social/amazon), [/auth/social/microsoft](/auth/social/microsoft), [/auth/social/patreon](/auth/social/patreon), [/auth/social/dropbox](/auth/social/dropbox), [/auth/social/coinbase](/auth/social/coinbase), [/auth/social/metamask](/auth/social/metamask), [/auth/social/steam](/auth/social/steam), [/auth/social/reddit](/auth/social/reddit), [/auth/social/apple](/auth/social/apple)
 
 ## Testes e coverage
 

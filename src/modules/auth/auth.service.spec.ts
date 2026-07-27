@@ -2,6 +2,13 @@ jest.mock('@common/crypto/password.util', () => ({
   verifyPassword: jest.fn(),
 }));
 
+jest.mock('./utils/generate-random-display-name.util', () => ({
+  generateRandomDisplayName: jest.fn(() => ({
+    firstName: 'Fearful',
+    lastName: 'Bear',
+  })),
+}));
+
 const mockRandomBytes = jest.fn((size: number) => Buffer.alloc(size, 0xab));
 
 jest.mock('crypto', () => {
@@ -33,6 +40,25 @@ import { LoginDto } from './dtos/login.dto';
 import { GoogleProfilePayload } from './strategies/google.strategy';
 import { FacebookProfilePayload } from './strategies/facebook.strategy';
 import { TwitterProfilePayload } from './strategies/twitter.strategy';
+import { GithubProfilePayload } from './strategies/github.strategy';
+import { FigmaProfilePayload } from './strategies/figma.strategy';
+import { LinkedinProfilePayload } from './strategies/linkedin.strategy';
+import { SlackProfilePayload } from './strategies/slack.strategy';
+import { AtlassianProfilePayload } from './strategies/atlassian.strategy';
+import { GitlabProfilePayload } from './strategies/gitlab.strategy';
+import { BitbucketProfilePayload } from './strategies/bitbucket.strategy';
+import { DiscordProfilePayload } from './strategies/discord.strategy';
+import { TwitchProfilePayload } from './strategies/twitch.strategy';
+import { SteamProfilePayload } from './strategies/steam.strategy';
+import { RedditProfilePayload } from './strategies/reddit.strategy';
+import { AppleProfilePayload } from './strategies/apple.strategy';
+import { SpotifyProfilePayload } from './strategies/spotify.strategy';
+import { AmazonProfilePayload } from './strategies/amazon.strategy';
+import { MicrosoftProfilePayload } from './strategies/microsoft.strategy';
+import { PatreonProfilePayload } from './strategies/patreon.strategy';
+import { DropboxProfilePayload } from './strategies/dropbox.strategy';
+import { CoinbaseProfilePayload } from './strategies/coinbase.strategy';
+import { generateRandomDisplayName } from './utils/generate-random-display-name.util';
 
 function createUser(overrides: Partial<IUser> = {}): IUser {
   return {
@@ -78,6 +104,114 @@ const defaultConfig: Record<string, unknown> = {
     'https://app.example/',
   ],
   'twitterOAuth.defaultRoles': [Role.USER],
+  'githubOAuth.enabled': true,
+  'githubOAuth.redirectAllowlist': [
+    'https://app.example/cb',
+    'https://app.example/',
+  ],
+  'githubOAuth.defaultRoles': [Role.USER],
+  'figmaOAuth.enabled': true,
+  'figmaOAuth.redirectAllowlist': [
+    'https://app.example/cb',
+    'https://app.example/',
+  ],
+  'figmaOAuth.defaultRoles': [Role.USER],
+  'linkedinOAuth.enabled': true,
+  'linkedinOAuth.redirectAllowlist': [
+    'https://app.example/cb',
+    'https://app.example/',
+  ],
+  'linkedinOAuth.defaultRoles': [Role.USER],
+  'slackOAuth.enabled': true,
+  'slackOAuth.redirectAllowlist': [
+    'https://app.example/cb',
+    'https://app.example/',
+  ],
+  'slackOAuth.defaultRoles': [Role.USER],
+  'atlassianOAuth.enabled': true,
+  'atlassianOAuth.redirectAllowlist': [
+    'https://app.example/cb',
+    'https://app.example/',
+  ],
+  'atlassianOAuth.defaultRoles': [Role.USER],
+  'gitlabOAuth.enabled': true,
+  'gitlabOAuth.redirectAllowlist': [
+    'https://app.example/cb',
+    'https://app.example/',
+  ],
+  'gitlabOAuth.defaultRoles': [Role.USER],
+  'bitbucketOAuth.enabled': true,
+  'bitbucketOAuth.redirectAllowlist': [
+    'https://app.example/cb',
+    'https://app.example/',
+  ],
+  'bitbucketOAuth.defaultRoles': [Role.USER],
+  'discordOAuth.enabled': true,
+  'discordOAuth.redirectAllowlist': [
+    'https://app.example/cb',
+    'https://app.example/',
+  ],
+  'discordOAuth.defaultRoles': [Role.USER],
+  'twitchOAuth.enabled': true,
+  'twitchOAuth.redirectAllowlist': [
+    'https://app.example/cb',
+    'https://app.example/',
+  ],
+  'twitchOAuth.defaultRoles': [Role.USER],
+  'steamOpenId.enabled': true,
+  'steamOpenId.redirectAllowlist': [
+    'https://app.example/cb',
+    'https://app.example/',
+  ],
+  'steamOpenId.defaultRoles': [Role.USER],
+  'redditOAuth.enabled': true,
+  'redditOAuth.redirectAllowlist': [
+    'https://app.example/cb',
+    'https://app.example/',
+  ],
+  'redditOAuth.defaultRoles': [Role.USER],
+  'appleOAuth.enabled': true,
+  'appleOAuth.redirectAllowlist': [
+    'https://app.example/cb',
+    'https://app.example/',
+  ],
+  'appleOAuth.defaultRoles': [Role.USER],
+  'spotifyOAuth.enabled': true,
+  'spotifyOAuth.redirectAllowlist': [
+    'https://app.example/cb',
+    'https://app.example/',
+  ],
+  'spotifyOAuth.defaultRoles': [Role.USER],
+  'amazonOAuth.enabled': true,
+  'amazonOAuth.redirectAllowlist': [
+    'https://app.example/cb',
+    'https://app.example/',
+  ],
+  'amazonOAuth.defaultRoles': [Role.USER],
+  'microsoftOAuth.enabled': true,
+  'microsoftOAuth.redirectAllowlist': [
+    'https://app.example/cb',
+    'https://app.example/',
+  ],
+  'microsoftOAuth.defaultRoles': [Role.USER],
+  'patreonOAuth.enabled': true,
+  'patreonOAuth.redirectAllowlist': [
+    'https://app.example/cb',
+    'https://app.example/',
+  ],
+  'patreonOAuth.defaultRoles': [Role.USER],
+  'dropboxOAuth.enabled': true,
+  'dropboxOAuth.redirectAllowlist': [
+    'https://app.example/cb',
+    'https://app.example/',
+  ],
+  'dropboxOAuth.defaultRoles': [Role.USER],
+  'coinbaseOAuth.enabled': true,
+  'coinbaseOAuth.redirectAllowlist': [
+    'https://app.example/cb',
+    'https://app.example/',
+  ],
+  'coinbaseOAuth.defaultRoles': [Role.USER],
 };
 
 describe('AuthService', () => {
@@ -90,6 +224,26 @@ describe('AuthService', () => {
     findByGoogleId: jest.Mock;
     findByFacebookId: jest.Mock;
     findByTwitterId: jest.Mock;
+    findByGithubId: jest.Mock;
+    findByFigmaId: jest.Mock;
+    findByLinkedinId: jest.Mock;
+    findBySlackId: jest.Mock;
+    findByAtlassianId: jest.Mock;
+    findByGitlabId: jest.Mock;
+    findByBitbucketId: jest.Mock;
+    findByDiscordId: jest.Mock;
+    findByTwitchId: jest.Mock;
+    findBySteamId: jest.Mock;
+    findByRedditId: jest.Mock;
+    findBySpotifyId: jest.Mock;
+    findByAmazonId: jest.Mock;
+    findByMicrosoftId: jest.Mock;
+    findByPatreonId: jest.Mock;
+    findByDropboxId: jest.Mock;
+    findByCoinbaseId: jest.Mock;
+    findByMetamaskId: jest.Mock;
+    findByActiveDirectoryId: jest.Mock;
+    findByAppleId: jest.Mock;
     findByEmailVerificationToken: jest.Mock;
     findByPasswordToken: jest.Mock;
     update: jest.Mock;
@@ -106,6 +260,11 @@ describe('AuthService', () => {
     createExchangeCode: jest.Mock;
     consumeExchangeCode: jest.Mock;
   };
+  let activeDirectoryLdapService: { authenticate: jest.Mock };
+  let metamaskSiweService: {
+    createNonce: jest.Mock;
+    verifyAndGetProfile: jest.Mock;
+  };
 
   beforeEach(() => {
     usersService = {
@@ -116,6 +275,26 @@ describe('AuthService', () => {
       findByGoogleId: jest.fn(),
       findByFacebookId: jest.fn(),
       findByTwitterId: jest.fn(),
+      findByGithubId: jest.fn(),
+      findByFigmaId: jest.fn(),
+      findByLinkedinId: jest.fn(),
+      findBySlackId: jest.fn(),
+      findByAtlassianId: jest.fn(),
+      findByGitlabId: jest.fn(),
+      findByBitbucketId: jest.fn(),
+      findByDiscordId: jest.fn(),
+      findByTwitchId: jest.fn(),
+      findBySteamId: jest.fn(),
+      findByRedditId: jest.fn(),
+      findBySpotifyId: jest.fn(),
+      findByAmazonId: jest.fn(),
+      findByMicrosoftId: jest.fn(),
+      findByPatreonId: jest.fn(),
+      findByDropboxId: jest.fn(),
+      findByCoinbaseId: jest.fn(),
+      findByMetamaskId: jest.fn(),
+      findByActiveDirectoryId: jest.fn(),
+      findByAppleId: jest.fn(),
       findByEmailVerificationToken: jest.fn(),
       findByPasswordToken: jest.fn(),
       update: jest.fn(),
@@ -147,12 +326,23 @@ describe('AuthService', () => {
       consumeExchangeCode: jest.fn(),
     };
 
+    activeDirectoryLdapService = {
+      authenticate: jest.fn(),
+    };
+
+    metamaskSiweService = {
+      createNonce: jest.fn(),
+      verifyAndGetProfile: jest.fn(),
+    };
+
     service = new AuthService(
       usersService as unknown as UsersService,
       jwtService as unknown as JwtService,
       configService as unknown as ConfigService,
       emailService as unknown as EmailService,
       oauthExchangeService as unknown as OauthExchangeService,
+      activeDirectoryLdapService as unknown as import('./services/active-directory-ldap.service').ActiveDirectoryLdapService,
+      metamaskSiweService as unknown as import('./services/metamask-siwe.service').MetamaskSiweService,
     );
 
     mockRandomBytes.mockImplementation((size: number) =>
@@ -412,6 +602,228 @@ describe('AuthService', () => {
     });
   });
 
+  describe('loginWithActiveDirectory', () => {
+    const adProfile = {
+      activeDirectoryId: 'ad-guid-001',
+      email: 'jdoe@example.com',
+      firstName: 'John',
+      lastName: 'Doe',
+      samAccountName: 'jdoe',
+    };
+
+    it('returns sanitized user and tokens on success', async () => {
+      activeDirectoryLdapService.authenticate.mockResolvedValue(adProfile);
+      usersService.findByActiveDirectoryId.mockResolvedValue(
+        createUser({ activeDirectoryId: 'ad-guid-001' }),
+      );
+
+      const result = await service.loginWithActiveDirectory({
+        username: 'jdoe',
+        password: 'pass',
+      });
+
+      expect(activeDirectoryLdapService.authenticate).toHaveBeenCalledWith(
+        'jdoe',
+        'pass',
+      );
+      expect(result).toEqual({
+        user: expect.not.objectContaining({ password: expect.anything() }),
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+      });
+    });
+
+    it('links activeDirectoryId to existing email user', async () => {
+      activeDirectoryLdapService.authenticate.mockResolvedValue(adProfile);
+      usersService.findByActiveDirectoryId.mockResolvedValue(null);
+      const byEmail = createUser({ email: adProfile.email });
+      usersService.findByEmail.mockResolvedValue(byEmail);
+      usersService.update.mockResolvedValue({
+        ...byEmail,
+        activeDirectoryId: adProfile.activeDirectoryId,
+      });
+
+      await service.loginWithActiveDirectory({
+        username: 'jdoe',
+        password: 'pass',
+      });
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        activeDirectoryId: 'ad-guid-001',
+        isActive: true,
+      });
+    });
+
+    it('auto-provisions new AD user', async () => {
+      activeDirectoryLdapService.authenticate.mockResolvedValue(adProfile);
+      usersService.findByActiveDirectoryId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(createUser());
+
+      await service.loginWithActiveDirectory({
+        username: 'jdoe',
+        password: 'pass',
+      });
+
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          activeDirectoryId: 'ad-guid-001',
+          email: 'jdoe@example.com',
+          isActive: true,
+        }),
+      );
+    });
+
+    it('reactivates inactive AD user', async () => {
+      activeDirectoryLdapService.authenticate.mockResolvedValue(adProfile);
+      usersService.findByActiveDirectoryId.mockResolvedValue(
+        createUser({ activeDirectoryId: 'ad-guid-001', isActive: false }),
+      );
+      usersService.update.mockResolvedValue(createUser({ isActive: true }));
+
+      await service.loginWithActiveDirectory({
+        username: 'jdoe',
+        password: 'pass',
+      });
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        isActive: true,
+      });
+    });
+
+    it('uses dash lastName and email local when samAccountName/lastName empty', async () => {
+      activeDirectoryLdapService.authenticate.mockResolvedValue({
+        ...adProfile,
+        lastName: '',
+        samAccountName: undefined,
+      });
+      usersService.findByActiveDirectoryId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(createUser());
+
+      await service.loginWithActiveDirectory({
+        username: 'jdoe',
+        password: 'pass',
+      });
+
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lastName: '-',
+          username: 'jdoe',
+          roles: [],
+        }),
+      );
+    });
+  });
+
+  describe('issueMetamaskNonce', () => {
+    it('delegates to MetamaskSiweService.createNonce', async () => {
+      metamaskSiweService.createNonce.mockResolvedValue({
+        nonce: 'nonce-1',
+        expiresIn: 300,
+      });
+
+      await expect(service.issueMetamaskNonce()).resolves.toEqual({
+        nonce: 'nonce-1',
+        expiresIn: 300,
+      });
+    });
+  });
+
+  describe('loginWithMetamask', () => {
+    const profile = {
+      metamaskId: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
+      email: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266@users.noreply.metamask.local',
+    };
+
+    it('returns sanitized user and tokens for existing metamask user', async () => {
+      metamaskSiweService.verifyAndGetProfile.mockResolvedValue(profile);
+      usersService.findByMetamaskId.mockResolvedValue(
+        createUser({ metamaskId: profile.metamaskId }),
+      );
+
+      const result = await service.loginWithMetamask({
+        message: 'siwe',
+        signature: '0xsig',
+      });
+
+      expect(metamaskSiweService.verifyAndGetProfile).toHaveBeenCalledWith(
+        'siwe',
+        '0xsig',
+      );
+      expect(result).toEqual({
+        user: expect.not.objectContaining({ password: expect.anything() }),
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+      });
+    });
+
+    it('reactivates inactive metamask user', async () => {
+      metamaskSiweService.verifyAndGetProfile.mockResolvedValue(profile);
+      usersService.findByMetamaskId.mockResolvedValue(
+        createUser({ metamaskId: profile.metamaskId, isActive: false }),
+      );
+      usersService.update.mockResolvedValue(createUser({ isActive: true }));
+
+      await service.loginWithMetamask({
+        message: 'siwe',
+        signature: '0xsig',
+      });
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        isActive: true,
+      });
+    });
+
+    it('creates new user with random display name (no email linking)', async () => {
+      metamaskSiweService.verifyAndGetProfile.mockResolvedValue(profile);
+      usersService.findByMetamaskId.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(createUser());
+
+      await service.loginWithMetamask({
+        message: 'siwe',
+        signature: '0xsig',
+      });
+
+      expect(usersService.findByEmail).not.toHaveBeenCalled();
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          metamaskId: profile.metamaskId,
+          email: profile.email,
+          firstName: 'Fearful',
+          lastName: 'Bear',
+          isActive: true,
+        }),
+      );
+    });
+
+    it('uses dash lastName when generated display lastName is empty', async () => {
+      (generateRandomDisplayName as jest.Mock).mockReturnValueOnce({
+        firstName: 'Fearful',
+        lastName: '',
+      });
+      metamaskSiweService.verifyAndGetProfile.mockResolvedValue(profile);
+      usersService.findByMetamaskId.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(createUser());
+
+      await service.loginWithMetamask({
+        message: 'siwe',
+        signature: '0xsig',
+      });
+
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          firstName: 'Fearful',
+          lastName: '-',
+        }),
+      );
+    });
+  });
+
   describe('validateUserById', () => {
     it('delegates to UsersService.findById', async () => {
       const user = createUser();
@@ -437,6 +849,34 @@ describe('AuthService', () => {
         accessToken: 'access-token',
         refreshToken: 'refresh-token',
       });
+    });
+
+    it('uses jwt TTL fallbacks when expiration config is undefined', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (
+          key === 'jwt.jitterSeconds' ||
+          key === 'jwt.expirationTime' ||
+          key === 'jwt.refreshExpirationTime'
+        ) {
+          return undefined;
+        }
+        return defaultConfig[key];
+      });
+      const user = createUser();
+      jwtService.verify.mockReturnValue({ id: 'user-1' });
+      usersService.findById.mockResolvedValue(user);
+
+      await service.refreshToken({ refreshToken: 'valid-refresh' });
+
+      // withJitter converts default '1h' / '7d' string TTLs to seconds
+      expect(jwtService.sign).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'user-1' }),
+        expect.objectContaining({ expiresIn: 3600 }),
+      );
+      expect(jwtService.sign).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'user-1' }),
+        expect.objectContaining({ expiresIn: 604800 }),
+      );
     });
 
     it('wraps verification errors as 401 Invalid refresh token', async () => {
@@ -702,12 +1142,68 @@ describe('AuthService', () => {
       ).rejects.toThrow(new BadRequestException('Invalid OAuth state'));
     });
 
+    it('throws 400 when state JSON is missing redirect (r)', async () => {
+      const badState = Buffer.from(JSON.stringify({}), 'utf8').toString(
+        'base64url',
+      );
+
+      await expect(
+        service.completeGoogleOAuth(profile, badState),
+      ).rejects.toThrow(new BadRequestException('Invalid OAuth state'));
+    });
+
+    it('throws 400 when state redirect (r) is not a string', async () => {
+      const badState = Buffer.from(
+        JSON.stringify({ r: 123 }),
+        'utf8',
+      ).toString('base64url');
+
+      await expect(
+        service.completeGoogleOAuth(profile, badState),
+      ).rejects.toThrow(new BadRequestException('Invalid OAuth state'));
+    });
+
     it('throws 400 when redirect is not allowlisted', async () => {
       const badState = encodeOAuthState('https://evil.example/cb');
 
       await expect(
         service.completeGoogleOAuth(profile, badState),
       ).rejects.toThrow(new BadRequestException('Redirect URL is not allowed'));
+    });
+
+    it('treats undefined allowlist config as empty (rejects redirect)', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'googleOAuth.redirectAllowlist') return undefined;
+        return defaultConfig[key];
+      });
+
+      await expect(
+        service.completeGoogleOAuth(profile, state),
+      ).rejects.toThrow(new BadRequestException('Redirect URL is not allowed'));
+    });
+
+    it('allows redirect via allowlist prefix match', async () => {
+      const existing = createUser({ googleId: 'google-1' });
+      usersService.findByGoogleId.mockResolvedValue(existing);
+      const prefixState = encodeOAuthState('https://app.example/dashboard');
+
+      const result = await service.completeGoogleOAuth(profile, prefixState);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/dashboard?code=exchange-code-123',
+      );
+    });
+
+    it('allows redirect via exact allowlist match', async () => {
+      const existing = createUser({ googleId: 'google-1' });
+      usersService.findByGoogleId.mockResolvedValue(existing);
+      const exactState = encodeOAuthState('https://app.example/cb');
+
+      const result = await service.completeGoogleOAuth(profile, exactState);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?code=exchange-code-123',
+      );
     });
 
     it('returns existing user by google id and builds redirect with ?', async () => {
@@ -808,6 +1304,60 @@ describe('AuthService', () => {
         }),
       );
     });
+
+    it('uses empty roles when defaultRoles config is undefined', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'googleOAuth.defaultRoles') return undefined;
+        return defaultConfig[key];
+      });
+      usersService.findByGoogleId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(createUser());
+
+      await service.completeGoogleOAuth(profile, state);
+
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          roles: [],
+          googleId: 'google-1',
+        }),
+      );
+    });
+
+    it('falls back to user username when email local part sanitizes empty', async () => {
+      usersService.findByGoogleId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(createUser());
+
+      await service.completeGoogleOAuth(
+        { ...profile, email: '!!!@example.com' },
+        state,
+      );
+
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          username: 'user',
+        }),
+      );
+    });
+
+    it('appends timestamp when username candidates are exhausted', async () => {
+      usersService.findByGoogleId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(createUser());
+      usersService.create.mockResolvedValue(createUser());
+
+      await service.completeGoogleOAuth(profile, state);
+
+      expect(usersService.findByUsername).toHaveBeenCalledTimes(20);
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          username: expect.stringMatching(/^google[a-z0-9]+$/),
+        }),
+      );
+    });
   });
 
   describe('completeFacebookOAuth', () => {
@@ -875,6 +1425,10 @@ describe('AuthService', () => {
     });
 
     it('creates new user with dash lastName when empty', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'facebookOAuth.defaultRoles') return undefined;
+        return defaultConfig[key];
+      });
       usersService.findByFacebookId.mockResolvedValue(null);
       usersService.findByEmail.mockResolvedValue(null);
       usersService.findByUsername.mockResolvedValue(null);
@@ -886,7 +1440,20 @@ describe('AuthService', () => {
       );
 
       expect(usersService.create).toHaveBeenCalledWith(
-        expect.objectContaining({ lastName: '-' }),
+        expect.objectContaining({ lastName: '-', roles: [] }),
+      );
+    });
+
+    it('uses & separator when redirect already has query params', async () => {
+      const queryState = encodeOAuthState('https://app.example/cb?foo=1');
+      usersService.findByFacebookId.mockResolvedValue(
+        createUser({ facebookId: 'fb-1' }),
+      );
+
+      const result = await service.completeFacebookOAuth(profile, queryState);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?foo=1&code=exchange-code-123',
       );
     });
   });
@@ -956,6 +1523,10 @@ describe('AuthService', () => {
     });
 
     it('creates new user with dash lastName when empty', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'twitterOAuth.defaultRoles') return undefined;
+        return defaultConfig[key];
+      });
       usersService.findByTwitterId.mockResolvedValue(null);
       usersService.findByEmail.mockResolvedValue(null);
       usersService.findByUsername.mockResolvedValue(null);
@@ -969,8 +1540,1887 @@ describe('AuthService', () => {
       expect(usersService.create).toHaveBeenCalledWith(
         expect.objectContaining({
           lastName: '-',
+          roles: [],
           twitterId: 'tw-1',
         }),
+      );
+    });
+
+    it('uses & separator when redirect already has query params', async () => {
+      const queryState = encodeOAuthState('https://app.example/cb?foo=1');
+      usersService.findByTwitterId.mockResolvedValue(
+        createUser({ twitterId: 'tw-1' }),
+      );
+
+      const result = await service.completeTwitterOAuth(profile, queryState);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?foo=1&code=exchange-code-123',
+      );
+    });
+  });
+
+  describe('completeGithubOAuth', () => {
+    const profile: GithubProfilePayload = {
+      githubId: 'gh-1',
+      email: 'gh@example.com',
+      firstName: 'Git',
+      lastName: 'Hub',
+    };
+    const state = encodeOAuthState('https://app.example/cb');
+
+    it('throws 503 when GitHub auth is disabled', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'githubOAuth.enabled') return false;
+        return defaultConfig[key];
+      });
+
+      await expect(
+        service.completeGithubOAuth(profile, state),
+      ).rejects.toThrow(
+        new ServiceUnavailableException('GitHub authentication is disabled'),
+      );
+    });
+
+    it('returns redirect URL for existing github user', async () => {
+      usersService.findByGithubId.mockResolvedValue(
+        createUser({ githubId: 'gh-1' }),
+      );
+
+      const result = await service.completeGithubOAuth(profile, state);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?code=exchange-code-123',
+      );
+    });
+
+    it('reactivates inactive github user', async () => {
+      usersService.findByGithubId.mockResolvedValue(
+        createUser({ githubId: 'gh-1', isActive: false }),
+      );
+      usersService.update.mockResolvedValue(createUser({ isActive: true }));
+
+      await service.completeGithubOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        isActive: true,
+      });
+    });
+
+    it('links github id to existing email user', async () => {
+      const byEmail = createUser({ email: profile.email });
+      usersService.findByGithubId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(byEmail);
+      usersService.update.mockResolvedValue({
+        ...byEmail,
+        githubId: profile.githubId,
+      });
+
+      await service.completeGithubOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        githubId: 'gh-1',
+        isActive: true,
+      });
+    });
+
+    it('creates new user with dash lastName when empty', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'githubOAuth.defaultRoles') return undefined;
+        return defaultConfig[key];
+      });
+      usersService.findByGithubId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(createUser());
+
+      await service.completeGithubOAuth(
+        { ...profile, lastName: '' },
+        state,
+      );
+
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lastName: '-',
+          roles: [],
+          githubId: 'gh-1',
+        }),
+      );
+    });
+
+    it('uses & separator when redirect already has query params', async () => {
+      const queryState = encodeOAuthState('https://app.example/cb?foo=1');
+      usersService.findByGithubId.mockResolvedValue(
+        createUser({ githubId: 'gh-1' }),
+      );
+
+      const result = await service.completeGithubOAuth(profile, queryState);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?foo=1&code=exchange-code-123',
+      );
+    });
+  });
+
+  describe('completeFigmaOAuth', () => {
+    const profile: FigmaProfilePayload = {
+      figmaId: 'fig-1',
+      email: 'fig@example.com',
+      firstName: 'Fig',
+      lastName: 'Ma',
+    };
+    const state = encodeOAuthState('https://app.example/cb');
+
+    it('throws 503 when Figma auth is disabled', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'figmaOAuth.enabled') return false;
+        return defaultConfig[key];
+      });
+
+      await expect(
+        service.completeFigmaOAuth(profile, state),
+      ).rejects.toThrow(
+        new ServiceUnavailableException('Figma authentication is disabled'),
+      );
+    });
+
+    it('returns redirect URL for existing figma user', async () => {
+      usersService.findByFigmaId.mockResolvedValue(
+        createUser({ figmaId: 'fig-1' }),
+      );
+
+      const result = await service.completeFigmaOAuth(profile, state);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?code=exchange-code-123',
+      );
+    });
+
+    it('reactivates inactive figma user', async () => {
+      usersService.findByFigmaId.mockResolvedValue(
+        createUser({ figmaId: 'fig-1', isActive: false }),
+      );
+      usersService.update.mockResolvedValue(createUser({ isActive: true }));
+
+      await service.completeFigmaOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        isActive: true,
+      });
+    });
+
+    it('links figma id to existing email user', async () => {
+      const byEmail = createUser({ email: profile.email });
+      usersService.findByFigmaId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(byEmail);
+      usersService.update.mockResolvedValue({
+        ...byEmail,
+        figmaId: profile.figmaId,
+      });
+
+      await service.completeFigmaOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        figmaId: 'fig-1',
+        isActive: true,
+      });
+    });
+
+    it('creates new user with dash lastName when empty', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'figmaOAuth.defaultRoles') return undefined;
+        return defaultConfig[key];
+      });
+      usersService.findByFigmaId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(createUser());
+
+      await service.completeFigmaOAuth(
+        { ...profile, lastName: '' },
+        state,
+      );
+
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lastName: '-',
+          roles: [],
+          figmaId: 'fig-1',
+        }),
+      );
+    });
+
+    it('uses & separator when redirect already has query params', async () => {
+      const queryState = encodeOAuthState('https://app.example/cb?foo=1');
+      usersService.findByFigmaId.mockResolvedValue(
+        createUser({ figmaId: 'fig-1' }),
+      );
+
+      const result = await service.completeFigmaOAuth(profile, queryState);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?foo=1&code=exchange-code-123',
+      );
+    });
+  });
+
+  describe('completeLinkedinOAuth', () => {
+    const profile: LinkedinProfilePayload = {
+      linkedinId: 'li-1',
+      email: 'li@example.com',
+      firstName: 'Link',
+      lastName: 'EdIn',
+    };
+    const state = encodeOAuthState('https://app.example/cb');
+
+    it('throws 503 when LinkedIn auth is disabled', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'linkedinOAuth.enabled') return false;
+        return defaultConfig[key];
+      });
+
+      await expect(
+        service.completeLinkedinOAuth(profile, state),
+      ).rejects.toThrow(
+        new ServiceUnavailableException('LinkedIn authentication is disabled'),
+      );
+    });
+
+    it('returns redirect URL for existing linkedin user', async () => {
+      usersService.findByLinkedinId.mockResolvedValue(
+        createUser({ linkedinId: 'li-1' }),
+      );
+
+      const result = await service.completeLinkedinOAuth(profile, state);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?code=exchange-code-123',
+      );
+    });
+
+    it('reactivates inactive linkedin user', async () => {
+      usersService.findByLinkedinId.mockResolvedValue(
+        createUser({ linkedinId: 'li-1', isActive: false }),
+      );
+      usersService.update.mockResolvedValue(createUser({ isActive: true }));
+
+      await service.completeLinkedinOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        isActive: true,
+      });
+    });
+
+    it('links linkedin id to existing email user', async () => {
+      const byEmail = createUser({ email: profile.email });
+      usersService.findByLinkedinId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(byEmail);
+      usersService.update.mockResolvedValue({
+        ...byEmail,
+        linkedinId: profile.linkedinId,
+      });
+
+      await service.completeLinkedinOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        linkedinId: 'li-1',
+        isActive: true,
+      });
+    });
+
+    it('creates new user with dash lastName when empty', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'linkedinOAuth.defaultRoles') return undefined;
+        return defaultConfig[key];
+      });
+      usersService.findByLinkedinId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(createUser());
+
+      await service.completeLinkedinOAuth(
+        { ...profile, lastName: '' },
+        state,
+      );
+
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lastName: '-',
+          roles: [],
+          linkedinId: 'li-1',
+        }),
+      );
+    });
+
+    it('uses & separator when redirect already has query params', async () => {
+      const queryState = encodeOAuthState('https://app.example/cb?foo=1');
+      usersService.findByLinkedinId.mockResolvedValue(
+        createUser({ linkedinId: 'li-1' }),
+      );
+
+      const result = await service.completeLinkedinOAuth(profile, queryState);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?foo=1&code=exchange-code-123',
+      );
+    });
+  });
+
+  describe('completeSlackOAuth', () => {
+    const profile: SlackProfilePayload = {
+      slackId: 'U0R7JM',
+      email: 'slack@example.com',
+      firstName: 'Slack',
+      lastName: 'User',
+    };
+    const state = encodeOAuthState('https://app.example/cb');
+
+    it('throws 503 when Slack auth is disabled', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'slackOAuth.enabled') return false;
+        return defaultConfig[key];
+      });
+
+      await expect(
+        service.completeSlackOAuth(profile, state),
+      ).rejects.toThrow(
+        new ServiceUnavailableException('Slack authentication is disabled'),
+      );
+    });
+
+    it('returns redirect URL for existing slack user', async () => {
+      usersService.findBySlackId.mockResolvedValue(
+        createUser({ slackId: 'U0R7JM' }),
+      );
+
+      const result = await service.completeSlackOAuth(profile, state);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?code=exchange-code-123',
+      );
+    });
+
+    it('reactivates inactive slack user', async () => {
+      usersService.findBySlackId.mockResolvedValue(
+        createUser({ slackId: 'U0R7JM', isActive: false }),
+      );
+      usersService.update.mockResolvedValue(createUser({ isActive: true }));
+
+      await service.completeSlackOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        isActive: true,
+      });
+    });
+
+    it('links slack id to existing email user', async () => {
+      const byEmail = createUser({ email: profile.email });
+      usersService.findBySlackId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(byEmail);
+      usersService.update.mockResolvedValue({
+        ...byEmail,
+        slackId: profile.slackId,
+      });
+
+      await service.completeSlackOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        slackId: 'U0R7JM',
+        isActive: true,
+      });
+    });
+
+    it('creates new user with dash lastName when empty', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'slackOAuth.defaultRoles') return undefined;
+        return defaultConfig[key];
+      });
+      usersService.findBySlackId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(createUser());
+
+      await service.completeSlackOAuth(
+        { ...profile, lastName: '' },
+        state,
+      );
+
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lastName: '-',
+          roles: [],
+          slackId: 'U0R7JM',
+        }),
+      );
+    });
+
+    it('uses & separator when redirect already has query params', async () => {
+      const queryState = encodeOAuthState('https://app.example/cb?foo=1');
+      usersService.findBySlackId.mockResolvedValue(
+        createUser({ slackId: 'U0R7JM' }),
+      );
+
+      const result = await service.completeSlackOAuth(profile, queryState);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?foo=1&code=exchange-code-123',
+      );
+    });
+  });
+
+  describe('completeAtlassianOAuth', () => {
+    const profile: AtlassianProfilePayload = {
+      atlassianId: '712020:abc123',
+      email: 'atlassian@example.com',
+      firstName: 'Atlassian',
+      lastName: 'User',
+    };
+    const state = encodeOAuthState('https://app.example/cb');
+
+    it('throws 503 when Atlassian auth is disabled', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'atlassianOAuth.enabled') return false;
+        return defaultConfig[key];
+      });
+
+      await expect(
+        service.completeAtlassianOAuth(profile, state),
+      ).rejects.toThrow(
+        new ServiceUnavailableException('Atlassian authentication is disabled'),
+      );
+    });
+
+    it('returns redirect URL for existing atlassian user', async () => {
+      usersService.findByAtlassianId.mockResolvedValue(
+        createUser({ atlassianId: '712020:abc123' }),
+      );
+
+      const result = await service.completeAtlassianOAuth(profile, state);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?code=exchange-code-123',
+      );
+    });
+
+    it('reactivates inactive atlassian user', async () => {
+      usersService.findByAtlassianId.mockResolvedValue(
+        createUser({ atlassianId: '712020:abc123', isActive: false }),
+      );
+      usersService.update.mockResolvedValue(createUser({ isActive: true }));
+
+      await service.completeAtlassianOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        isActive: true,
+      });
+    });
+
+    it('links atlassian id to existing email user', async () => {
+      const byEmail = createUser({ email: profile.email });
+      usersService.findByAtlassianId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(byEmail);
+      usersService.update.mockResolvedValue({
+        ...byEmail,
+        atlassianId: profile.atlassianId,
+      });
+
+      await service.completeAtlassianOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        atlassianId: '712020:abc123',
+        isActive: true,
+      });
+    });
+
+    it('creates new user with dash lastName when empty', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'atlassianOAuth.defaultRoles') return undefined;
+        return defaultConfig[key];
+      });
+      usersService.findByAtlassianId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(createUser());
+
+      await service.completeAtlassianOAuth(
+        { ...profile, lastName: '' },
+        state,
+      );
+
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lastName: '-',
+          roles: [],
+          atlassianId: '712020:abc123',
+        }),
+      );
+    });
+
+    it('uses & separator when redirect already has query params', async () => {
+      const queryState = encodeOAuthState('https://app.example/cb?foo=1');
+      usersService.findByAtlassianId.mockResolvedValue(
+        createUser({ atlassianId: '712020:abc123' }),
+      );
+
+      const result = await service.completeAtlassianOAuth(profile, queryState);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?foo=1&code=exchange-code-123',
+      );
+    });
+  });
+
+  describe('completeGitlabOAuth', () => {
+    const profile: GitlabProfilePayload = {
+      gitlabId: '12345678',
+      email: 'gitlab@example.com',
+      firstName: 'GitLab',
+      lastName: 'User',
+    };
+    const state = encodeOAuthState('https://app.example/cb');
+
+    it('throws 503 when GitLab auth is disabled', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'gitlabOAuth.enabled') return false;
+        return defaultConfig[key];
+      });
+
+      await expect(
+        service.completeGitlabOAuth(profile, state),
+      ).rejects.toThrow(
+        new ServiceUnavailableException('GitLab authentication is disabled'),
+      );
+    });
+
+    it('returns redirect URL for existing gitlab user', async () => {
+      usersService.findByGitlabId.mockResolvedValue(
+        createUser({ gitlabId: '12345678' }),
+      );
+
+      const result = await service.completeGitlabOAuth(profile, state);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?code=exchange-code-123',
+      );
+    });
+
+    it('reactivates inactive gitlab user', async () => {
+      usersService.findByGitlabId.mockResolvedValue(
+        createUser({ gitlabId: '12345678', isActive: false }),
+      );
+      usersService.update.mockResolvedValue(createUser({ isActive: true }));
+
+      await service.completeGitlabOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        isActive: true,
+      });
+    });
+
+    it('links gitlab id to existing email user', async () => {
+      const byEmail = createUser({ email: profile.email });
+      usersService.findByGitlabId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(byEmail);
+      usersService.update.mockResolvedValue({
+        ...byEmail,
+        gitlabId: profile.gitlabId,
+      });
+
+      await service.completeGitlabOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        gitlabId: '12345678',
+        isActive: true,
+      });
+    });
+
+    it('creates new user with dash lastName when empty', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'gitlabOAuth.defaultRoles') return undefined;
+        return defaultConfig[key];
+      });
+      usersService.findByGitlabId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(createUser());
+
+      await service.completeGitlabOAuth(
+        { ...profile, lastName: '' },
+        state,
+      );
+
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lastName: '-',
+          roles: [],
+          gitlabId: '12345678',
+        }),
+      );
+    });
+
+    it('uses & separator when redirect already has query params', async () => {
+      const queryState = encodeOAuthState('https://app.example/cb?foo=1');
+      usersService.findByGitlabId.mockResolvedValue(
+        createUser({ gitlabId: '12345678' }),
+      );
+
+      const result = await service.completeGitlabOAuth(profile, queryState);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?foo=1&code=exchange-code-123',
+      );
+    });
+  });
+
+  describe('completeBitbucketOAuth', () => {
+    const profile: BitbucketProfilePayload = {
+      bitbucketId: '{aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee}',
+      email: 'bitbucket@example.com',
+      firstName: 'Bitbucket',
+      lastName: 'User',
+    };
+    const state = encodeOAuthState('https://app.example/cb');
+
+    it('throws 503 when Bitbucket auth is disabled', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'bitbucketOAuth.enabled') return false;
+        return defaultConfig[key];
+      });
+
+      await expect(
+        service.completeBitbucketOAuth(profile, state),
+      ).rejects.toThrow(
+        new ServiceUnavailableException('Bitbucket authentication is disabled'),
+      );
+    });
+
+    it('returns redirect URL for existing bitbucket user', async () => {
+      usersService.findByBitbucketId.mockResolvedValue(
+        createUser({ bitbucketId: '{aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee}' }),
+      );
+
+      const result = await service.completeBitbucketOAuth(profile, state);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?code=exchange-code-123',
+      );
+    });
+
+    it('reactivates inactive bitbucket user', async () => {
+      usersService.findByBitbucketId.mockResolvedValue(
+        createUser({
+          bitbucketId: '{aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee}',
+          isActive: false,
+        }),
+      );
+      usersService.update.mockResolvedValue(createUser({ isActive: true }));
+
+      await service.completeBitbucketOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        isActive: true,
+      });
+    });
+
+    it('links bitbucket id to existing email user', async () => {
+      const byEmail = createUser({ email: profile.email });
+      usersService.findByBitbucketId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(byEmail);
+      usersService.update.mockResolvedValue({
+        ...byEmail,
+        bitbucketId: profile.bitbucketId,
+      });
+
+      await service.completeBitbucketOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        bitbucketId: '{aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee}',
+        isActive: true,
+      });
+    });
+
+    it('creates new user with dash lastName when empty', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'bitbucketOAuth.defaultRoles') return undefined;
+        return defaultConfig[key];
+      });
+      usersService.findByBitbucketId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(createUser());
+
+      await service.completeBitbucketOAuth(
+        { ...profile, lastName: '' },
+        state,
+      );
+
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lastName: '-',
+          roles: [],
+          bitbucketId: '{aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee}',
+        }),
+      );
+    });
+
+    it('uses & separator when redirect already has query params', async () => {
+      const queryState = encodeOAuthState('https://app.example/cb?foo=1');
+      usersService.findByBitbucketId.mockResolvedValue(
+        createUser({ bitbucketId: '{aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee}' }),
+      );
+
+      const result = await service.completeBitbucketOAuth(profile, queryState);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?foo=1&code=exchange-code-123',
+      );
+    });
+  });
+
+  describe('completeDiscordOAuth', () => {
+    const profile: DiscordProfilePayload = {
+      discordId: '123456789012345678',
+      email: 'discord@example.com',
+      firstName: 'Discord',
+      lastName: 'User',
+    };
+    const state = encodeOAuthState('https://app.example/cb');
+
+    it('throws 503 when Discord auth is disabled', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'discordOAuth.enabled') return false;
+        return defaultConfig[key];
+      });
+
+      await expect(
+        service.completeDiscordOAuth(profile, state),
+      ).rejects.toThrow(
+        new ServiceUnavailableException('Discord authentication is disabled'),
+      );
+    });
+
+    it('returns redirect URL for existing discord user', async () => {
+      usersService.findByDiscordId.mockResolvedValue(
+        createUser({ discordId: '123456789012345678' }),
+      );
+
+      const result = await service.completeDiscordOAuth(profile, state);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?code=exchange-code-123',
+      );
+    });
+
+    it('reactivates inactive discord user', async () => {
+      usersService.findByDiscordId.mockResolvedValue(
+        createUser({
+          discordId: '123456789012345678',
+          isActive: false,
+        }),
+      );
+      usersService.update.mockResolvedValue(createUser({ isActive: true }));
+
+      await service.completeDiscordOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        isActive: true,
+      });
+    });
+
+    it('links discord id to existing email user', async () => {
+      const byEmail = createUser({ email: profile.email });
+      usersService.findByDiscordId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(byEmail);
+      usersService.update.mockResolvedValue({
+        ...byEmail,
+        discordId: profile.discordId,
+      });
+
+      await service.completeDiscordOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        discordId: '123456789012345678',
+        isActive: true,
+      });
+    });
+
+    it('creates new user with dash lastName when empty', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'discordOAuth.defaultRoles') return undefined;
+        return defaultConfig[key];
+      });
+      usersService.findByDiscordId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(createUser());
+
+      await service.completeDiscordOAuth(
+        { ...profile, lastName: '' },
+        state,
+      );
+
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lastName: '-',
+          roles: [],
+          discordId: '123456789012345678',
+        }),
+      );
+    });
+
+    it('uses & separator when redirect already has query params', async () => {
+      const queryState = encodeOAuthState('https://app.example/cb?foo=1');
+      usersService.findByDiscordId.mockResolvedValue(
+        createUser({ discordId: '123456789012345678' }),
+      );
+
+      const result = await service.completeDiscordOAuth(profile, queryState);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?foo=1&code=exchange-code-123',
+      );
+    });
+  });
+
+  describe('completeTwitchOAuth', () => {
+    const profile: TwitchProfilePayload = {
+      twitchId: '141981764',
+      email: 'twitch@example.com',
+      firstName: 'Twitch',
+      lastName: 'User',
+    };
+    const state = encodeOAuthState('https://app.example/cb');
+
+    it('throws 503 when Twitch auth is disabled', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'twitchOAuth.enabled') return false;
+        return defaultConfig[key];
+      });
+
+      await expect(
+        service.completeTwitchOAuth(profile, state),
+      ).rejects.toThrow(
+        new ServiceUnavailableException('Twitch authentication is disabled'),
+      );
+    });
+
+    it('returns redirect URL for existing twitch user', async () => {
+      usersService.findByTwitchId.mockResolvedValue(
+        createUser({ twitchId: '141981764' }),
+      );
+
+      const result = await service.completeTwitchOAuth(profile, state);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?code=exchange-code-123',
+      );
+    });
+
+    it('reactivates inactive twitch user', async () => {
+      usersService.findByTwitchId.mockResolvedValue(
+        createUser({
+          twitchId: '141981764',
+          isActive: false,
+        }),
+      );
+      usersService.update.mockResolvedValue(createUser({ isActive: true }));
+
+      await service.completeTwitchOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        isActive: true,
+      });
+    });
+
+    it('links twitch id to existing email user', async () => {
+      const byEmail = createUser({ email: profile.email });
+      usersService.findByTwitchId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(byEmail);
+      usersService.update.mockResolvedValue({
+        ...byEmail,
+        twitchId: profile.twitchId,
+      });
+
+      await service.completeTwitchOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        twitchId: '141981764',
+        isActive: true,
+      });
+    });
+
+    it('creates new user with dash lastName when empty', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'twitchOAuth.defaultRoles') return undefined;
+        return defaultConfig[key];
+      });
+      usersService.findByTwitchId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(createUser());
+
+      await service.completeTwitchOAuth(
+        { ...profile, lastName: '' },
+        state,
+      );
+
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lastName: '-',
+          roles: [],
+          twitchId: '141981764',
+        }),
+      );
+    });
+
+    it('uses & separator when redirect already has query params', async () => {
+      const queryState = encodeOAuthState('https://app.example/cb?foo=1');
+      usersService.findByTwitchId.mockResolvedValue(
+        createUser({ twitchId: '141981764' }),
+      );
+
+      const result = await service.completeTwitchOAuth(profile, queryState);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?foo=1&code=exchange-code-123',
+      );
+    });
+  });
+
+  describe('completeSteamOAuth', () => {
+    const profile: SteamProfilePayload = {
+      steamId: '76561198000000000',
+      email: '76561198000000000@users.noreply.steamcommunity.com',
+      firstName: 'Steam',
+      lastName: 'User',
+    };
+    const state = encodeOAuthState('https://app.example/cb');
+
+    it('throws 503 when Steam auth is disabled', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'steamOpenId.enabled') return false;
+        return defaultConfig[key];
+      });
+
+      await expect(
+        service.completeSteamOAuth(profile, state),
+      ).rejects.toThrow(
+        new ServiceUnavailableException('Steam authentication is disabled'),
+      );
+    });
+
+    it('returns redirect URL for existing steam user', async () => {
+      usersService.findBySteamId.mockResolvedValue(
+        createUser({ steamId: '76561198000000000' }),
+      );
+
+      const result = await service.completeSteamOAuth(profile, state);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?code=exchange-code-123',
+      );
+    });
+
+    it('reactivates inactive steam user', async () => {
+      usersService.findBySteamId.mockResolvedValue(
+        createUser({
+          steamId: '76561198000000000',
+          isActive: false,
+        }),
+      );
+      usersService.update.mockResolvedValue(createUser({ isActive: true }));
+
+      await service.completeSteamOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        isActive: true,
+      });
+    });
+
+    it('links steam id to existing email user', async () => {
+      const byEmail = createUser({ email: profile.email });
+      usersService.findBySteamId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(byEmail);
+      usersService.update.mockResolvedValue({
+        ...byEmail,
+        steamId: profile.steamId,
+      });
+
+      await service.completeSteamOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        steamId: '76561198000000000',
+        isActive: true,
+      });
+    });
+
+    it('creates new user with dash lastName when empty', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'steamOpenId.defaultRoles') return undefined;
+        return defaultConfig[key];
+      });
+      usersService.findBySteamId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(createUser());
+
+      await service.completeSteamOAuth(
+        { ...profile, lastName: '' },
+        state,
+      );
+
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lastName: '-',
+          roles: [],
+          steamId: '76561198000000000',
+        }),
+      );
+    });
+
+    it('uses & separator when redirect already has query params', async () => {
+      const queryState = encodeOAuthState('https://app.example/cb?foo=1');
+      usersService.findBySteamId.mockResolvedValue(
+        createUser({ steamId: '76561198000000000' }),
+      );
+
+      const result = await service.completeSteamOAuth(profile, queryState);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?foo=1&code=exchange-code-123',
+      );
+    });
+  });
+
+  describe('completeRedditOAuth', () => {
+    const profile: RedditProfilePayload = {
+      redditId: 'abc123',
+      email: 'abc123@users.noreply.reddit.com',
+      firstName: 'Reddit',
+      lastName: 'User',
+    };
+    const state = encodeOAuthState('https://app.example/cb');
+
+    it('throws 503 when Reddit auth is disabled', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'redditOAuth.enabled') return false;
+        return defaultConfig[key];
+      });
+
+      await expect(
+        service.completeRedditOAuth(profile, state),
+      ).rejects.toThrow(
+        new ServiceUnavailableException('Reddit authentication is disabled'),
+      );
+    });
+
+    it('returns redirect URL for existing reddit user', async () => {
+      usersService.findByRedditId.mockResolvedValue(
+        createUser({ redditId: 'abc123' }),
+      );
+
+      const result = await service.completeRedditOAuth(profile, state);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?code=exchange-code-123',
+      );
+    });
+
+    it('reactivates inactive reddit user', async () => {
+      usersService.findByRedditId.mockResolvedValue(
+        createUser({
+          redditId: 'abc123',
+          isActive: false,
+        }),
+      );
+      usersService.update.mockResolvedValue(createUser({ isActive: true }));
+
+      await service.completeRedditOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        isActive: true,
+      });
+    });
+
+    it('links reddit id to existing email user', async () => {
+      const byEmail = createUser({ email: profile.email });
+      usersService.findByRedditId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(byEmail);
+      usersService.update.mockResolvedValue({
+        ...byEmail,
+        redditId: profile.redditId,
+      });
+
+      await service.completeRedditOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        redditId: 'abc123',
+        isActive: true,
+      });
+    });
+
+    it('creates new user with dash lastName when empty', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'redditOAuth.defaultRoles') return undefined;
+        return defaultConfig[key];
+      });
+      usersService.findByRedditId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(createUser());
+
+      await service.completeRedditOAuth(
+        { ...profile, lastName: '' },
+        state,
+      );
+
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lastName: '-',
+          roles: [],
+          redditId: 'abc123',
+        }),
+      );
+    });
+
+    it('uses & separator when redirect already has query params', async () => {
+      const queryState = encodeOAuthState('https://app.example/cb?foo=1');
+      usersService.findByRedditId.mockResolvedValue(
+        createUser({ redditId: 'abc123' }),
+      );
+
+      const result = await service.completeRedditOAuth(profile, queryState);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?foo=1&code=exchange-code-123',
+      );
+    });
+  });
+
+  describe('completeSpotifyOAuth', () => {
+    const profile: SpotifyProfilePayload = {
+      spotifyId: 'spotify-001',
+      email: 'spotify@example.com',
+      firstName: 'Jane',
+      lastName: 'Doe',
+    };
+    const state = encodeOAuthState('https://app.example/cb');
+
+    it('throws 503 when Spotify auth is disabled', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'spotifyOAuth.enabled') return false;
+        return defaultConfig[key];
+      });
+
+      await expect(
+        service.completeSpotifyOAuth(profile, state),
+      ).rejects.toThrow(
+        new ServiceUnavailableException('Spotify authentication is disabled'),
+      );
+    });
+
+    it('returns redirect URL for existing spotify user', async () => {
+      usersService.findBySpotifyId.mockResolvedValue(
+        createUser({ spotifyId: 'spotify-001' }),
+      );
+
+      const result = await service.completeSpotifyOAuth(profile, state);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?code=exchange-code-123',
+      );
+    });
+
+    it('reactivates inactive spotify user', async () => {
+      usersService.findBySpotifyId.mockResolvedValue(
+        createUser({ spotifyId: 'spotify-001', isActive: false }),
+      );
+      usersService.update.mockResolvedValue(createUser({ isActive: true }));
+
+      await service.completeSpotifyOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        isActive: true,
+      });
+    });
+
+    it('links spotify id to existing email user', async () => {
+      const byEmail = createUser({ email: profile.email });
+      usersService.findBySpotifyId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(byEmail);
+      usersService.update.mockResolvedValue({
+        ...byEmail,
+        spotifyId: profile.spotifyId,
+      });
+
+      await service.completeSpotifyOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        spotifyId: 'spotify-001',
+        isActive: true,
+      });
+    });
+
+    it('creates new user with dash lastName when empty', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'spotifyOAuth.defaultRoles') return undefined;
+        return defaultConfig[key];
+      });
+      usersService.findBySpotifyId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(createUser());
+
+      await service.completeSpotifyOAuth(
+        { ...profile, lastName: '' },
+        state,
+      );
+
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lastName: '-',
+          roles: [],
+          spotifyId: 'spotify-001',
+        }),
+      );
+    });
+
+    it('uses & separator when redirect already has query params', async () => {
+      const queryState = encodeOAuthState('https://app.example/cb?foo=1');
+      usersService.findBySpotifyId.mockResolvedValue(
+        createUser({ spotifyId: 'spotify-001' }),
+      );
+
+      const result = await service.completeSpotifyOAuth(profile, queryState);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?foo=1&code=exchange-code-123',
+      );
+    });
+  });
+
+  describe('completeAppleOAuth', () => {
+    const profile: AppleProfilePayload = {
+      appleId: 'apple-sub-001',
+      email: 'user@privaterelay.appleid.com',
+      firstName: 'Jane',
+      lastName: 'Doe',
+    };
+    const state = encodeOAuthState('https://app.example/cb');
+
+    it('throws 503 when Apple auth is disabled', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'appleOAuth.enabled') return false;
+        return defaultConfig[key];
+      });
+
+      await expect(
+        service.completeAppleOAuth(profile, state),
+      ).rejects.toThrow(
+        new ServiceUnavailableException('Apple authentication is disabled'),
+      );
+    });
+
+    it('returns redirect URL for existing apple user', async () => {
+      usersService.findByAppleId.mockResolvedValue(
+        createUser({ appleId: 'apple-sub-001' }),
+      );
+
+      const result = await service.completeAppleOAuth(profile, state);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?code=exchange-code-123',
+      );
+    });
+
+    it('reactivates inactive apple user', async () => {
+      usersService.findByAppleId.mockResolvedValue(
+        createUser({ appleId: 'apple-sub-001', isActive: false }),
+      );
+      usersService.update.mockResolvedValue(createUser({ isActive: true }));
+
+      await service.completeAppleOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        isActive: true,
+      });
+    });
+
+    it('links apple id to existing email user', async () => {
+      const byEmail = createUser({ email: profile.email });
+      usersService.findByAppleId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(byEmail);
+      usersService.update.mockResolvedValue({
+        ...byEmail,
+        appleId: profile.appleId,
+      });
+
+      await service.completeAppleOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        appleId: 'apple-sub-001',
+        isActive: true,
+      });
+    });
+
+    it('creates new user with dash lastName when empty', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'appleOAuth.defaultRoles') return undefined;
+        return defaultConfig[key];
+      });
+      usersService.findByAppleId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(createUser());
+
+      await service.completeAppleOAuth(
+        { ...profile, lastName: '' },
+        state,
+      );
+
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lastName: '-',
+          roles: [],
+          appleId: 'apple-sub-001',
+        }),
+      );
+    });
+
+    it('uses & separator when redirect already has query params', async () => {
+      const queryState = encodeOAuthState('https://app.example/cb?foo=1');
+      usersService.findByAppleId.mockResolvedValue(
+        createUser({ appleId: 'apple-sub-001' }),
+      );
+
+      const result = await service.completeAppleOAuth(profile, queryState);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?foo=1&code=exchange-code-123',
+      );
+    });
+  });
+
+  describe('completeAmazonOAuth', () => {
+    const profile: AmazonProfilePayload = {
+      amazonId: 'amzn1.account.abc123',
+      email: 'amazon@example.com',
+      firstName: 'Jane',
+      lastName: 'Doe',
+    };
+    const state = encodeOAuthState('https://app.example/cb');
+
+    it('throws 503 when Amazon auth is disabled', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'amazonOAuth.enabled') return false;
+        return defaultConfig[key];
+      });
+
+      await expect(
+        service.completeAmazonOAuth(profile, state),
+      ).rejects.toThrow(
+        new ServiceUnavailableException('Amazon authentication is disabled'),
+      );
+    });
+
+    it('returns redirect URL for existing amazon user', async () => {
+      usersService.findByAmazonId.mockResolvedValue(
+        createUser({ amazonId: 'amzn1.account.abc123' }),
+      );
+
+      const result = await service.completeAmazonOAuth(profile, state);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?code=exchange-code-123',
+      );
+    });
+
+    it('reactivates inactive amazon user', async () => {
+      usersService.findByAmazonId.mockResolvedValue(
+        createUser({ amazonId: 'amzn1.account.abc123', isActive: false }),
+      );
+      usersService.update.mockResolvedValue(createUser({ isActive: true }));
+
+      await service.completeAmazonOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        isActive: true,
+      });
+    });
+
+    it('links amazon id to existing email user', async () => {
+      const byEmail = createUser({ email: profile.email });
+      usersService.findByAmazonId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(byEmail);
+      usersService.update.mockResolvedValue({
+        ...byEmail,
+        amazonId: profile.amazonId,
+      });
+
+      await service.completeAmazonOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        amazonId: 'amzn1.account.abc123',
+        isActive: true,
+      });
+    });
+
+    it('creates new user with dash lastName when empty', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'amazonOAuth.defaultRoles') return undefined;
+        return defaultConfig[key];
+      });
+      usersService.findByAmazonId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(createUser());
+
+      await service.completeAmazonOAuth(
+        { ...profile, lastName: '' },
+        state,
+      );
+
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lastName: '-',
+          roles: [],
+          amazonId: 'amzn1.account.abc123',
+        }),
+      );
+    });
+
+    it('uses & separator when redirect already has query params', async () => {
+      const queryState = encodeOAuthState('https://app.example/cb?foo=1');
+      usersService.findByAmazonId.mockResolvedValue(
+        createUser({ amazonId: 'amzn1.account.abc123' }),
+      );
+
+      const result = await service.completeAmazonOAuth(profile, queryState);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?foo=1&code=exchange-code-123',
+      );
+    });
+  });
+
+  describe('completeMicrosoftOAuth', () => {
+    const profile: MicrosoftProfilePayload = {
+      microsoftId: 'ms-object-id-001',
+      email: 'microsoft@example.com',
+      firstName: 'Jane',
+      lastName: 'Doe',
+    };
+    const state = encodeOAuthState('https://app.example/cb');
+
+    it('throws 503 when Microsoft auth is disabled', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'microsoftOAuth.enabled') return false;
+        return defaultConfig[key];
+      });
+
+      await expect(
+        service.completeMicrosoftOAuth(profile, state),
+      ).rejects.toThrow(
+        new ServiceUnavailableException(
+          'Microsoft authentication is disabled',
+        ),
+      );
+    });
+
+    it('returns redirect URL for existing microsoft user', async () => {
+      usersService.findByMicrosoftId.mockResolvedValue(
+        createUser({ microsoftId: 'ms-object-id-001' }),
+      );
+
+      const result = await service.completeMicrosoftOAuth(profile, state);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?code=exchange-code-123',
+      );
+    });
+
+    it('reactivates inactive microsoft user', async () => {
+      usersService.findByMicrosoftId.mockResolvedValue(
+        createUser({ microsoftId: 'ms-object-id-001', isActive: false }),
+      );
+      usersService.update.mockResolvedValue(createUser({ isActive: true }));
+
+      await service.completeMicrosoftOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        isActive: true,
+      });
+    });
+
+    it('links microsoft id to existing email user', async () => {
+      const byEmail = createUser({ email: profile.email });
+      usersService.findByMicrosoftId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(byEmail);
+      usersService.update.mockResolvedValue({
+        ...byEmail,
+        microsoftId: profile.microsoftId,
+      });
+
+      await service.completeMicrosoftOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        microsoftId: 'ms-object-id-001',
+        isActive: true,
+      });
+    });
+
+    it('creates new user with dash lastName when empty', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'microsoftOAuth.defaultRoles') return undefined;
+        return defaultConfig[key];
+      });
+      usersService.findByMicrosoftId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(createUser());
+
+      await service.completeMicrosoftOAuth(
+        { ...profile, lastName: '' },
+        state,
+      );
+
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lastName: '-',
+          roles: [],
+          microsoftId: 'ms-object-id-001',
+        }),
+      );
+    });
+
+    it('uses & separator when redirect already has query params', async () => {
+      const queryState = encodeOAuthState('https://app.example/cb?foo=1');
+      usersService.findByMicrosoftId.mockResolvedValue(
+        createUser({ microsoftId: 'ms-object-id-001' }),
+      );
+
+      const result = await service.completeMicrosoftOAuth(profile, queryState);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?foo=1&code=exchange-code-123',
+      );
+    });
+  });
+
+  describe('completePatreonOAuth', () => {
+    const profile: PatreonProfilePayload = {
+      patreonId: 'patreon-user-001',
+      email: 'patreon@example.com',
+      firstName: 'Pat',
+      lastName: 'Creator',
+    };
+    const state = encodeOAuthState('https://app.example/cb');
+
+    it('throws 503 when Patreon auth is disabled', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'patreonOAuth.enabled') return false;
+        return defaultConfig[key];
+      });
+
+      await expect(
+        service.completePatreonOAuth(profile, state),
+      ).rejects.toThrow(
+        new ServiceUnavailableException(
+          'Patreon authentication is disabled',
+        ),
+      );
+    });
+
+    it('returns redirect URL for existing patreon user', async () => {
+      usersService.findByPatreonId.mockResolvedValue(
+        createUser({ patreonId: 'patreon-user-001' }),
+      );
+
+      const result = await service.completePatreonOAuth(profile, state);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?code=exchange-code-123',
+      );
+    });
+
+    it('reactivates inactive patreon user', async () => {
+      usersService.findByPatreonId.mockResolvedValue(
+        createUser({ patreonId: 'patreon-user-001', isActive: false }),
+      );
+      usersService.update.mockResolvedValue(createUser({ isActive: true }));
+
+      await service.completePatreonOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        isActive: true,
+      });
+    });
+
+    it('links patreon id to existing email user', async () => {
+      const byEmail = createUser({ email: profile.email });
+      usersService.findByPatreonId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(byEmail);
+      usersService.update.mockResolvedValue({
+        ...byEmail,
+        patreonId: profile.patreonId,
+      });
+
+      await service.completePatreonOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        patreonId: 'patreon-user-001',
+        isActive: true,
+      });
+    });
+
+    it('creates new user with dash lastName when empty', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'patreonOAuth.defaultRoles') return undefined;
+        return defaultConfig[key];
+      });
+      usersService.findByPatreonId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(createUser());
+
+      await service.completePatreonOAuth(
+        { ...profile, lastName: '' },
+        state,
+      );
+
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lastName: '-',
+          roles: [],
+          patreonId: 'patreon-user-001',
+        }),
+      );
+    });
+
+    it('uses & separator when redirect already has query params', async () => {
+      const queryState = encodeOAuthState('https://app.example/cb?foo=1');
+      usersService.findByPatreonId.mockResolvedValue(
+        createUser({ patreonId: 'patreon-user-001' }),
+      );
+
+      const result = await service.completePatreonOAuth(profile, queryState);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?foo=1&code=exchange-code-123',
+      );
+    });
+  });
+
+  describe('completeDropboxOAuth', () => {
+    const profile: DropboxProfilePayload = {
+      dropboxId: 'dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc',
+      email: 'dropbox@example.com',
+      firstName: 'Drop',
+      lastName: 'Box',
+    };
+    const state = encodeOAuthState('https://app.example/cb');
+
+    it('throws 503 when Dropbox auth is disabled', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'dropboxOAuth.enabled') return false;
+        return defaultConfig[key];
+      });
+
+      await expect(
+        service.completeDropboxOAuth(profile, state),
+      ).rejects.toThrow(
+        new ServiceUnavailableException(
+          'Dropbox authentication is disabled',
+        ),
+      );
+    });
+
+    it('returns redirect URL for existing dropbox user', async () => {
+      usersService.findByDropboxId.mockResolvedValue(
+        createUser({ dropboxId: 'dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc' }),
+      );
+
+      const result = await service.completeDropboxOAuth(profile, state);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?code=exchange-code-123',
+      );
+    });
+
+    it('reactivates inactive dropbox user', async () => {
+      usersService.findByDropboxId.mockResolvedValue(
+        createUser({
+          dropboxId: 'dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc',
+          isActive: false,
+        }),
+      );
+      usersService.update.mockResolvedValue(createUser({ isActive: true }));
+
+      await service.completeDropboxOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        isActive: true,
+      });
+    });
+
+    it('links dropbox id to existing email user', async () => {
+      const byEmail = createUser({ email: profile.email });
+      usersService.findByDropboxId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(byEmail);
+      usersService.update.mockResolvedValue({
+        ...byEmail,
+        dropboxId: profile.dropboxId,
+      });
+
+      await service.completeDropboxOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        dropboxId: 'dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc',
+        isActive: true,
+      });
+    });
+
+    it('creates new user with dash lastName when empty', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'dropboxOAuth.defaultRoles') return undefined;
+        return defaultConfig[key];
+      });
+      usersService.findByDropboxId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(createUser());
+
+      await service.completeDropboxOAuth(
+        { ...profile, lastName: '' },
+        state,
+      );
+
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lastName: '-',
+          roles: [],
+          dropboxId: 'dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc',
+        }),
+      );
+    });
+
+    it('uses & separator when redirect already has query params', async () => {
+      const queryState = encodeOAuthState('https://app.example/cb?foo=1');
+      usersService.findByDropboxId.mockResolvedValue(
+        createUser({ dropboxId: 'dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc' }),
+      );
+
+      const result = await service.completeDropboxOAuth(profile, queryState);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?foo=1&code=exchange-code-123',
+      );
+    });
+  });
+
+  describe('completeCoinbaseOAuth', () => {
+    const profile: CoinbaseProfilePayload = {
+      coinbaseId: '9da7a204-544e-5fd1-9a12-61176c5d4cd8',
+      email: 'coinbase@example.com',
+      firstName: 'Coin',
+      lastName: 'Base',
+    };
+    const state = encodeOAuthState('https://app.example/cb');
+
+    it('throws 503 when Coinbase auth is disabled', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'coinbaseOAuth.enabled') return false;
+        return defaultConfig[key];
+      });
+
+      await expect(
+        service.completeCoinbaseOAuth(profile, state),
+      ).rejects.toThrow(
+        new ServiceUnavailableException(
+          'Coinbase authentication is disabled',
+        ),
+      );
+    });
+
+    it('returns redirect URL for existing coinbase user', async () => {
+      usersService.findByCoinbaseId.mockResolvedValue(
+        createUser({ coinbaseId: '9da7a204-544e-5fd1-9a12-61176c5d4cd8' }),
+      );
+
+      const result = await service.completeCoinbaseOAuth(profile, state);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?code=exchange-code-123',
+      );
+    });
+
+    it('reactivates inactive coinbase user', async () => {
+      usersService.findByCoinbaseId.mockResolvedValue(
+        createUser({
+          coinbaseId: '9da7a204-544e-5fd1-9a12-61176c5d4cd8',
+          isActive: false,
+        }),
+      );
+      usersService.update.mockResolvedValue(createUser({ isActive: true }));
+
+      await service.completeCoinbaseOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        isActive: true,
+      });
+    });
+
+    it('links coinbase id to existing email user', async () => {
+      const byEmail = createUser({ email: profile.email });
+      usersService.findByCoinbaseId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(byEmail);
+      usersService.update.mockResolvedValue({
+        ...byEmail,
+        coinbaseId: profile.coinbaseId,
+      });
+
+      await service.completeCoinbaseOAuth(profile, state);
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        coinbaseId: '9da7a204-544e-5fd1-9a12-61176c5d4cd8',
+        isActive: true,
+      });
+    });
+
+    it('creates new user with dash lastName when empty', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'coinbaseOAuth.defaultRoles') return undefined;
+        return defaultConfig[key];
+      });
+      usersService.findByCoinbaseId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(createUser());
+
+      await service.completeCoinbaseOAuth(
+        { ...profile, lastName: '' },
+        state,
+      );
+
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lastName: '-',
+          roles: [],
+          coinbaseId: '9da7a204-544e-5fd1-9a12-61176c5d4cd8',
+        }),
+      );
+    });
+
+    it('uses & separator when redirect already has query params', async () => {
+      const queryState = encodeOAuthState('https://app.example/cb?foo=1');
+      usersService.findByCoinbaseId.mockResolvedValue(
+        createUser({ coinbaseId: '9da7a204-544e-5fd1-9a12-61176c5d4cd8' }),
+      );
+
+      const result = await service.completeCoinbaseOAuth(profile, queryState);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?foo=1&code=exchange-code-123',
       );
     });
   });
@@ -981,7 +3431,25 @@ describe('AuthService', () => {
         if (
           key === 'googleOAuth.enabled' ||
           key === 'facebookOAuth.enabled' ||
-          key === 'twitterOAuth.enabled'
+          key === 'twitterOAuth.enabled' ||
+          key === 'githubOAuth.enabled' ||
+          key === 'figmaOAuth.enabled' ||
+          key === 'linkedinOAuth.enabled' ||
+          key === 'slackOAuth.enabled' ||
+          key === 'atlassianOAuth.enabled' ||
+          key === 'gitlabOAuth.enabled' ||
+          key === 'bitbucketOAuth.enabled' ||
+          key === 'discordOAuth.enabled' ||
+          key === 'twitchOAuth.enabled' ||
+          key === 'steamOpenId.enabled' ||
+          key === 'redditOAuth.enabled' ||
+          key === 'appleOAuth.enabled' ||
+          key === 'spotifyOAuth.enabled' ||
+          key === 'amazonOAuth.enabled' ||
+          key === 'microsoftOAuth.enabled' ||
+          key === 'patreonOAuth.enabled' ||
+          key === 'dropboxOAuth.enabled' ||
+          key === 'coinbaseOAuth.enabled'
         ) {
           return false;
         }

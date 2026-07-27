@@ -16,7 +16,7 @@
         "title": "O que já vem pronto",
         "items": [
           "Testes unitários com Jest + ts-jest em ambiente Node",
-          "Limiar global de 80% para branches, functions, lines e statements",
+          "Limiar global de 97% para branches e functions, e 80% para lines e statements",
           "Scripts npm para rodar uma vez, em watch ou com relatório HTML de coverage",
           "Pre-commit com Husky que falha o commit se os testes falharem ou a coverage cair abaixo da baseline"
         ]
@@ -54,8 +54,8 @@
       "thresholds": {
         "title": "Limiares globais",
         "items": [
-          "branches: 80%",
-          "functions: 80%",
+          "branches: 97%",
+          "functions: 97%",
           "lines: 80%",
           "statements: 80%"
         ]
@@ -84,7 +84,7 @@
       },
       "fail": {
         "title": "Quando a coverage falha",
-        "description": "Se qualquer métrica global ficar abaixo de 80%, o Jest termina com status diferente de zero. Corrija adicionando ou reforçando testes unitários nos ramos e caminhos descobertos — não baixe o limiar sem uma decisão explícita do time."
+        "description": "Se branches ou functions ficarem abaixo de 97%, ou lines/statements abaixo de 80%, o Jest termina com status diferente de zero. Corrija adicionando ou reforçando testes unitários nos ramos e caminhos descobertos — não baixe o limiar sem uma decisão explícita do time."
       }
     },
     "precommit": {
@@ -95,7 +95,7 @@
         "items": [
           "O Git dispara <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">.husky/pre-commit</code>",
           "O hook executa <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">npm run test:cov</code>",
-          "Se algum teste falhar ou a coverage ficar abaixo de 80%, o commit é abortado",
+          "Se algum teste falhar ou a coverage ficar abaixo dos limiares globais (97% branches/functions, 80% lines/statements), o commit é abortado",
           "Em caso de sucesso, o commit segue normalmente"
         ]
       },
@@ -119,7 +119,7 @@
         "Nomeie specs como <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">*.spec.ts</code> e mantenha-os ao lado da unidade sob teste",
         "Prefira testes unitários focados com colaboradores mockados a suítes E2E lentas para a lógica de domínio",
         "Siga os padrões dos módulos existentes (controller / service / DTO / repository) ao estender o código",
-        "Trate o limiar global de 80% como piso — código novo não deve regredir a suíte"
+        "Trate os limiares de 97% branches/functions e 80% lines/statements como piso — código novo não deve regredir a suíte"
       ]
     },
     "checklist": {
@@ -127,7 +127,7 @@
       "items": [
         "Feature ou correção inclui testes unitários",
         "<code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">npm test</code> está verde localmente",
-        "<code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">npm run test:cov</code> atinge ou supera 80% nas quatro métricas",
+        "<code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">npm run test:cov</code> atinge ou supera 97% em branches/functions e 80% em lines/statements",
         "Novas áreas de código entram em <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">collectCoverageFrom</code> quando tiverem specs",
         "O commit conclui sem pular o pre-commit"
       ]

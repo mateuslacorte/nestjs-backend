@@ -41,6 +41,66 @@ export class User extends Document<string> {
   @Prop({ type: String, unique: true, sparse: true, default: null })
   twitterId?: string | null;
 
+  @Prop({ type: String, unique: true, sparse: true, default: null })
+  githubId?: string | null;
+
+  @Prop({ type: String, unique: true, sparse: true, default: null })
+  figmaId?: string | null;
+
+  @Prop({ type: String, unique: true, sparse: true, default: null })
+  linkedinId?: string | null;
+
+  @Prop({ type: String, unique: true, sparse: true, default: null })
+  slackId?: string | null;
+
+  @Prop({ type: String, unique: true, sparse: true, default: null })
+  atlassianId?: string | null;
+
+  @Prop({ type: String, unique: true, sparse: true, default: null })
+  gitlabId?: string | null;
+
+  @Prop({ type: String, unique: true, sparse: true, default: null })
+  bitbucketId?: string | null;
+
+  @Prop({ type: String, unique: true, sparse: true, default: null })
+  discordId?: string | null;
+
+  @Prop({ type: String, unique: true, sparse: true, default: null })
+  twitchId?: string | null;
+
+  @Prop({ type: String, unique: true, sparse: true, default: null })
+  steamId?: string | null;
+
+  @Prop({ type: String, unique: true, sparse: true, default: null })
+  redditId?: string | null;
+
+  @Prop({ type: String, unique: true, sparse: true, default: null })
+  appleId?: string | null;
+
+  @Prop({ type: String, unique: true, sparse: true, default: null })
+  spotifyId?: string | null;
+
+  @Prop({ type: String, unique: true, sparse: true, default: null })
+  amazonId?: string | null;
+
+  @Prop({ type: String, unique: true, sparse: true, default: null })
+  microsoftId?: string | null;
+
+  @Prop({ type: String, unique: true, sparse: true, default: null })
+  patreonId?: string | null;
+
+  @Prop({ type: String, unique: true, sparse: true, default: null })
+  dropboxId?: string | null;
+
+  @Prop({ type: String, unique: true, sparse: true, default: null })
+  coinbaseId?: string | null;
+
+  @Prop({ type: String, unique: true, sparse: true, default: null })
+  metamaskId?: string | null;
+
+  @Prop({ type: String, unique: true, sparse: true, default: null })
+  activeDirectoryId?: string | null;
+
   @Prop({type: String, default: null})
   passwordResetToken?: string;
 

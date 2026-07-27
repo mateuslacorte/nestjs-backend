@@ -1,0 +1,42 @@
+{
+  "authSocialPatreon": {
+    "badge": "Developer guide",
+    "hero": {
+      "titlePrefix": "Patreon",
+      "titleHighlight": "OAuth2",
+      "subtitle": "Plug Patreon login into your app with one shared Code Exchange flow for web and mobile."
+    },
+    "overview": {
+      "title": "Overview",
+      "description": "Patreon uses the OAuth2 Authorization Code flow. After consent, the API fetches the user identity from Patreon API v2, creates a short-lived single-use exchange code in Redis, and your client exchanges it for the same JWTs you get from password login. Scopes <code class=\"px-1 py-0.5 bg-gray-100 rounded\">identity</code> and <code class=\"px-1 py-0.5 bg-gray-100 rounded\">identity[email]</code> are required for email."
+    },
+    "console": {
+      "title": "Patreon Developer Portal",
+      "description": "Register a client in the <a href=\"https://www.patreon.com/portal/registration/register-clients\" class=\"text-indigo-600 hover:underline\" target=\"_blank\" rel=\"noopener noreferrer\">Patreon Developer Portal</a> → set Redirect URI to <code class=\"px-1 py-0.5 bg-gray-100 rounded\">PATREON_CALLBACK_URL</code> and request scopes <code class=\"px-1 py-0.5 bg-gray-100 rounded\">identity</code> and <code class=\"px-1 py-0.5 bg-gray-100 rounded\">identity[email]</code>.",
+      "codeHeader": { "label": "Environment", "context": "Variables used by the API" }
+    },
+    "api": {
+      "title": "API contract",
+      "description": "The API exposes a start URL and a callback that issues the exchange code.",
+      "start": {
+        "codeHeader": { "label": "Start", "context": "Redirect the user to Patreon consent" }
+      },
+      "callback": {
+        "codeHeader": { "label": "Callback", "context": "Patreon redirects back to the API" }
+      },
+      "exchange": {
+        "codeHeader": { "label": "Exchange", "context": "Client exchanges code for JWTs" }
+      }
+    },
+    "userModel": {
+      "title": "User model",
+      "description": "The Patreon user resource id from identity is stored as patreonId. Email comes from the identity attributes when identity[email] scope is granted."
+    },
+    "related": {
+      "title": "Related guides",
+      "social": "Social Authentication hub",
+      "microsoft": "Microsoft Entra ID setup guide",
+      "discord": "Discord OAuth2 setup guide"
+    }
+  }
+}

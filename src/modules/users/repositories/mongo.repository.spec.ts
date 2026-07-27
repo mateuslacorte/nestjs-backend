@@ -41,6 +41,25 @@ function createDoc(overrides: Record<string, unknown> = {}) {
     googleId: null,
     facebookId: null,
     twitterId: null,
+    githubId: null,
+    figmaId: null,
+    linkedinId: null,
+    slackId: null,
+    atlassianId: null,
+    gitlabId: null,
+    bitbucketId: null,
+    discordId: null,
+    twitchId: null,
+    steamId: null,
+    redditId: null,
+    appleId: null,
+    spotifyId: null,
+    amazonId: null,
+    microsoftId: null,
+    patreonId: null,
+    dropboxId: null,
+    coinbaseId: null,
+    metamaskId: null,
     ...overrides,
   };
 
@@ -123,6 +142,26 @@ describe('UserMongoRepository', () => {
         googleId: null,
         facebookId: null,
         twitterId: null,
+        githubId: null,
+        figmaId: null,
+        linkedinId: null,
+        slackId: null,
+        atlassianId: null,
+        gitlabId: null,
+        bitbucketId: null,
+        discordId: null,
+        twitchId: null,
+        steamId: null,
+        redditId: null,
+        appleId: null,
+        spotifyId: null,
+        amazonId: null,
+        microsoftId: null,
+        patreonId: null,
+        dropboxId: null,
+        coinbaseId: null,
+        metamaskId: null,
+        activeDirectoryId: null,
       });
       expect(doc.save).toHaveBeenCalled();
       expect(cacheService.delPattern).toHaveBeenCalledWith('users:*');
@@ -138,6 +177,105 @@ describe('UserMongoRepository', () => {
 
       expect(result.password).toBe('$argon2id$v=19$m=19456,t=2,p=1$hashedpasswordvaluehere');
       expect(doc.toObject).toHaveBeenCalled();
+    });
+
+    it('omits password when includePassword is explicitly false', async () => {
+      model.findOne.mockResolvedValue(null);
+      const doc = createDoc();
+      model.mockImplementation(() => doc);
+
+      const result = await repository.create(dto, false);
+
+      expect(result).not.toHaveProperty('password');
+    });
+
+    it('preserves provided optional provider ids (non-null coalescing)', async () => {
+      model.findOne.mockResolvedValue(null);
+      const doc = createDoc({
+        googleId: 'g-1',
+        facebookId: 'fb-1',
+        twitterId: 'tw-1',
+        githubId: 'gh-1',
+        figmaId: 'fig-1',
+        linkedinId: 'li-1',
+        slackId: 'sl-1',
+        atlassianId: 'at-1',
+        gitlabId: 'gl-1',
+        bitbucketId: 'bb-1',
+        discordId: 'dc-1',
+        twitchId: 'twitch-1',
+        steamId: 'steam-1',
+        redditId: 'rd-1',
+        appleId: 'ap-1',
+        spotifyId: 'sp-1',
+        amazonId: 'am-1',
+        microsoftId: 'ms-1',
+        patreonId: 'pt-1',
+        dropboxId: 'db-1',
+        coinbaseId: 'cb-1',
+        metamaskId: '0xabc',
+        activeDirectoryId: 'ad-1',
+      });
+      model.mockImplementation(() => doc);
+
+      await repository.create({
+        firstName: 'Jane',
+        lastName: 'Smith',
+        username: 'janesmith',
+        email: 'jane@example.com',
+        googleId: 'g-1',
+        facebookId: 'fb-1',
+        twitterId: 'tw-1',
+        githubId: 'gh-1',
+        figmaId: 'fig-1',
+        linkedinId: 'li-1',
+        slackId: 'sl-1',
+        atlassianId: 'at-1',
+        gitlabId: 'gl-1',
+        bitbucketId: 'bb-1',
+        discordId: 'dc-1',
+        twitchId: 'twitch-1',
+        steamId: 'steam-1',
+        redditId: 'rd-1',
+        appleId: 'ap-1',
+        spotifyId: 'sp-1',
+        amazonId: 'am-1',
+        microsoftId: 'ms-1',
+        patreonId: 'pt-1',
+        dropboxId: 'db-1',
+        coinbaseId: 'cb-1',
+        metamaskId: '0xabc',
+        activeDirectoryId: 'ad-1',
+      });
+
+      expect(model).toHaveBeenCalledWith(
+        expect.objectContaining({
+          googleId: 'g-1',
+          facebookId: 'fb-1',
+          twitterId: 'tw-1',
+          githubId: 'gh-1',
+          figmaId: 'fig-1',
+          linkedinId: 'li-1',
+          slackId: 'sl-1',
+          atlassianId: 'at-1',
+          gitlabId: 'gl-1',
+          bitbucketId: 'bb-1',
+          discordId: 'dc-1',
+          twitchId: 'twitch-1',
+          steamId: 'steam-1',
+          redditId: 'rd-1',
+          appleId: 'ap-1',
+          spotifyId: 'sp-1',
+          amazonId: 'am-1',
+          microsoftId: 'ms-1',
+          patreonId: 'pt-1',
+          dropboxId: 'db-1',
+          coinbaseId: 'cb-1',
+          metamaskId: '0xabc',
+          activeDirectoryId: 'ad-1',
+          password: null,
+        }),
+      );
     });
 
     it('stores null password when password is omitted', async () => {
@@ -160,6 +298,21 @@ describe('UserMongoRepository', () => {
           googleId: 'g-1',
           facebookId: null,
           twitterId: null,
+          githubId: null,
+          figmaId: null,
+          linkedinId: null,
+          slackId: null,
+          atlassianId: null,
+          gitlabId: null,
+          bitbucketId: null,
+          discordId: null,
+          twitchId: null,
+          steamId: null,
+          redditId: null,
+          appleId: null,
+          spotifyId: null,
+    amazonId: null,
+    microsoftId: null,
         }),
       );
     });
@@ -201,6 +354,14 @@ describe('UserMongoRepository', () => {
       expect(result).toHaveLength(2);
       expect(result[0]).not.toHaveProperty('password');
     });
+
+    it('returns cached list on cache hit', async () => {
+      const cached = [{ id: '1', email: 'a@b.com' }];
+      cacheService.get.mockResolvedValueOnce(cached);
+
+      await expect(repository.findAll()).resolves.toEqual(cached);
+      expect(model.find).not.toHaveBeenCalled();
+    });
   });
 
   describe('findById', () => {
@@ -223,6 +384,14 @@ describe('UserMongoRepository', () => {
       expect(model.findById).toHaveBeenCalledWith('fixed-uuid');
       expect(result).not.toHaveProperty('password');
       expect(result.id).toBe('fixed-uuid');
+    });
+
+    it('returns cached user on cache hit', async () => {
+      const cached = { id: 'fixed-uuid', email: 'cached@example.com' };
+      cacheService.get.mockResolvedValueOnce(cached);
+
+      await expect(repository.findById('fixed-uuid')).resolves.toEqual(cached);
+      expect(model.findById).not.toHaveBeenCalled();
     });
   });
 
@@ -294,6 +463,20 @@ describe('UserMongoRepository', () => {
       });
     });
 
+    it('builds conflict query with only email when username omitted', async () => {
+      model.findOne.mockResolvedValue(null);
+      model.findByIdAndUpdate.mockResolvedValue(createDoc());
+
+      await repository.update('fixed-uuid', {
+        email: 'only-email@example.com',
+      });
+
+      expect(model.findOne).toHaveBeenCalledWith({
+        _id: { $ne: 'fixed-uuid' },
+        email: 'only-email@example.com',
+      });
+    });
+
     it('throws NotFoundException when update target is missing', async () => {
       model.findByIdAndUpdate.mockResolvedValue(null);
 
@@ -314,6 +497,19 @@ describe('UserMongoRepository', () => {
 
       expect(updated.toObject).toHaveBeenCalled();
       expect(result.password).toBe('$argon2id$v=19$m=19456,t=2,p=1$hashedpasswordvaluehere');
+    });
+
+    it('omits password when shouldOmitPassword is explicitly true', async () => {
+      const updated = createDoc();
+      model.findByIdAndUpdate.mockResolvedValue(updated);
+
+      const result = await repository.update(
+        'fixed-uuid',
+        { firstName: 'Janet' },
+        true,
+      );
+
+      expect(result).not.toHaveProperty('password');
     });
   });
 

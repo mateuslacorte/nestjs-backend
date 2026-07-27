@@ -96,6 +96,94 @@ export const WIKI_SEO = {
             description:
                 'X / Twitter OAuth2 Code Exchange guide for the NestJS Boilerplate — Developer Portal setup, PKCE, API endpoints, and web/mobile frontend examples.',
         },
+        'auth-social-github': {
+            description:
+                'GitHub OAuth2 Code Exchange guide for the NestJS Boilerplate — OAuth App setup, API endpoints, and web/mobile frontend examples.',
+        },
+        'auth-social-figma': {
+            description:
+                'Figma OAuth2 Code Exchange guide for the NestJS Boilerplate — OAuth app setup, API endpoints, and web/mobile frontend examples.',
+        },
+        'auth-social-linkedin': {
+            description:
+                'LinkedIn OpenID Connect Code Exchange guide for the NestJS Boilerplate — Sign In with LinkedIn setup, API endpoints, and web/mobile frontend examples.',
+        },
+        'auth-social-slack': {
+            description:
+                'Slack OpenID Connect Code Exchange guide for the NestJS Boilerplate — Sign in with Slack setup, API endpoints, and web/mobile frontend examples.',
+        },
+        'auth-social-atlassian': {
+            description:
+                'Atlassian OAuth 2.0 (3LO) Code Exchange guide for the NestJS Boilerplate — Atlassian OAuth app setup, API endpoints, and web/mobile frontend examples.',
+        },
+        'auth-social-gitlab': {
+            description:
+                'GitLab OAuth2 Code Exchange guide for the NestJS Boilerplate — GitLab OAuth application setup, API endpoints, and web/mobile frontend examples.',
+        },
+        'auth-social-bitbucket': {
+            description:
+                'Bitbucket OAuth2 Code Exchange guide for the NestJS Boilerplate — Bitbucket OAuth consumer setup, API endpoints, and web/mobile frontend examples.',
+        },
+        'auth-social-discord': {
+            description:
+                'Discord OAuth2 Code Exchange guide for the NestJS Boilerplate — Discord application setup, API endpoints, and web/mobile frontend examples.',
+        },
+        'auth-social-twitch': {
+            description:
+                'Twitch OAuth2 Code Exchange guide for the NestJS Boilerplate — Twitch Developer Console setup, API endpoints, and web/mobile frontend examples.',
+        },
+        'auth-social-steam': {
+            description:
+                'Steam OpenID 2.0 Code Exchange guide for the NestJS Boilerplate — Steam Web API key (optional), OpenID login setup, no email from Steam, API endpoints, and web/mobile frontend examples.',
+        },
+        'auth-social-reddit': {
+            description:
+                'Reddit OAuth2 Code Exchange guide for the NestJS Boilerplate — Reddit app preferences setup, identity scope, no email from Reddit, HTTP Basic token exchange, API endpoints, and web/mobile frontend examples.',
+        },
+        'auth-social-spotify': {
+            description:
+                'Spotify OAuth2 Code Exchange guide for the NestJS Boilerplate — Spotify app setup, Authorization Code flow, API endpoints, scopes, and web/mobile frontend examples.',
+        },
+        'auth-social-amazon': {
+            description:
+                'Login with Amazon Code Exchange guide for the NestJS Boilerplate — Security Profile setup, Authorization Code flow, profile scope, API endpoints, and web/mobile frontend examples.',
+        },
+        'auth-social-microsoft': {
+            description:
+                'Microsoft Entra ID / Azure AD Code Exchange guide for the NestJS Boilerplate — app registration, Microsoft Graph User.Read, tenant configuration, API endpoints, and web/mobile frontend examples.',
+        },
+        'auth-social-patreon': {
+            description:
+                'Patreon OAuth2 Code Exchange guide for the NestJS Boilerplate — developer portal setup, identity scopes, API v2 identity endpoint, and web/mobile frontend examples.',
+        },
+        'auth-social-dropbox': {
+            description:
+                'Dropbox OAuth2 Code Exchange guide for the NestJS Boilerplate — App Console setup, account_info.read scope, get_current_account endpoint, and web/mobile frontend examples.',
+        },
+        'auth-social-coinbase': {
+            description:
+                'Coinbase OAuth2 Code Exchange guide for the NestJS Boilerplate — Developer Portal setup, wallet:user:email and wallet:user:read scopes, GET /v2/user endpoint, and web/mobile frontend examples.',
+        },
+        'auth-social-metamask': {
+            description:
+                'MetaMask Sign-In with Ethereum (SIWE / EIP-4361) guide for the NestJS Boilerplate — nonce issuance, personal_sign verification, JWT contract, and browser samples.',
+        },
+        'auth-active-directory': {
+            description:
+                'Active Directory LDAP/LDAPS login guide for the NestJS Boilerplate — on-prem AD DS bind authentication, auto-provisioning, JWT contract, and environment configuration.',
+        },
+        'auth-active-directory-ldap': {
+            description:
+                'LDAP (port 389) setup for Active Directory authentication in the NestJS Boilerplate — domain controller URL, service account bind, and firewall guidance.',
+        },
+        'auth-active-directory-ldaps': {
+            description:
+                'LDAPS (port 636) setup for Active Directory authentication in the NestJS Boilerplate — TLS certificates, AD_LDAP_TLS_REJECT_UNAUTHORIZED, and production hardening.',
+        },
+        'auth-social-apple': {
+            description:
+                'Sign in with Apple guide for the NestJS Boilerplate — Apple Developer console setup, JWT client secret, form_post POST callback, first-login name capture, private relay email, API endpoints, and web/mobile frontend examples.',
+        },
         users: {
             description:
                 'Users module in the NestJS Boilerplate — CRUD patterns, repository design, and CQRS-ready persistence for NestJS / Node.js APIs.',
@@ -114,7 +202,7 @@ export const WIKI_SEO = {
         },
         tests: {
             description:
-                'Testing guide — Jest unit tests, 80% global coverage baseline, coverage reports, and the Husky pre-commit quality gate.',
+                'Testing guide — Jest unit tests, 97% branches/functions and 80% lines/statements coverage baseline, coverage reports, and the Husky pre-commit quality gate.',
         },
         websocket: {
             description:

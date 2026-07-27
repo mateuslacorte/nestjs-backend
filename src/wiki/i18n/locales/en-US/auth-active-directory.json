@@ -1,0 +1,29 @@
+{
+  "authActiveDirectory": {
+    "badge": "Developer guide",
+    "hero": {
+      "titlePrefix": "Active Directory",
+      "titleHighlight": "LDAP / LDAPS",
+      "subtitle": "Authenticate users against on-prem Microsoft Active Directory Domain Services with the same JWT contract as email/password login."
+    },
+    "overview": {
+      "title": "Overview",
+      "description": "The API binds to your domain controller over LDAP or LDAPS, verifies credentials, auto-provisions local users, and returns JWT access and refresh tokens. This is separate from Microsoft Entra ID (cloud OAuth) — it targets AD DS on your DC."
+    },
+    "api": {
+      "title": "API contract",
+      "description": "Use sAMAccountName or userPrincipalName as username. Response matches POST /auth/login.",
+      "codeHeader": { "label": "Login", "context": "Active Directory bind" }
+    },
+    "transport": {
+      "title": "LDAP vs LDAPS",
+      "description": "Set <code class=\"px-1 py-0.5 bg-gray-100 rounded\">AD_LDAP_URL</code> to <code class=\"px-1 py-0.5 bg-gray-100 rounded\">ldap://</code> or <code class=\"px-1 py-0.5 bg-gray-100 rounded\">ldaps://</code>. See the transport-specific guides for ports, firewall, and TLS.",
+      "ctaLdap": "LDAP guide →",
+      "ctaLdaps": "LDAPS guide →"
+    },
+    "userModel": {
+      "title": "User model",
+      "description": "AD <code class=\"px-1 py-0.5 bg-gray-100 rounded\">objectGUID</code> is stored as <code class=\"px-1 py-0.5 bg-gray-100 rounded\">activeDirectoryId</code>. Email comes from <code class=\"px-1 py-0.5 bg-gray-100 rounded\">mail</code> or <code class=\"px-1 py-0.5 bg-gray-100 rounded\">userPrincipalName</code>."
+    }
+  }
+}

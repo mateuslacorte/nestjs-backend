@@ -16,7 +16,7 @@
         "title": "What you get out of the box",
         "items": [
           "Unit tests with Jest + ts-jest in a Node environment",
-          "Global coverage threshold of 80% for branches, functions, lines, and statements",
+          "Global coverage threshold of 97% for branches and functions, and 80% for lines and statements",
           "npm scripts to run tests once, in watch mode, or with an HTML coverage report",
           "Husky pre-commit that fails the commit when tests fail or coverage drops below the baseline"
         ]
@@ -54,8 +54,8 @@
       "thresholds": {
         "title": "Global thresholds",
         "items": [
-          "branches: 80%",
-          "functions: 80%",
+          "branches: 97%",
+          "functions: 97%",
           "lines: 80%",
           "statements: 80%"
         ]
@@ -84,7 +84,7 @@
       },
       "fail": {
         "title": "When coverage fails",
-        "description": "If any global metric falls below 80%, Jest exits with a non-zero status. Fix by adding or strengthening unit tests for uncovered branches and paths — do not lower the threshold without a deliberate team decision."
+        "description": "If branches or functions fall below 97%, or lines/statements fall below 80%, Jest exits with a non-zero status. Fix by adding or strengthening unit tests for uncovered branches and paths — do not lower the threshold without a deliberate team decision."
       }
     },
     "precommit": {
@@ -95,7 +95,7 @@
         "items": [
           "Git triggers <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">.husky/pre-commit</code>",
           "The hook runs <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">npm run test:cov</code>",
-          "If any test fails or coverage is under 80%, the commit is aborted",
+          "If any test fails or coverage is under the global thresholds (97% branches/functions, 80% lines/statements), the commit is aborted",
           "On success, the commit proceeds as usual"
         ]
       },
@@ -119,7 +119,7 @@
         "Name specs <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">*.spec.ts</code> and keep them next to the unit under test",
         "Prefer focused unit tests with mocked collaborators over slow end-to-end suites for domain logic",
         "Match existing module patterns (controller / service / DTO / repository specs) when extending the codebase",
-        "Treat the 80% global threshold as a floor — new code should not regress the suite"
+        "Treat the 97% branches/functions and 80% lines/statements thresholds as a floor — new code should not regress the suite"
       ]
     },
     "checklist": {
@@ -127,7 +127,7 @@
       "items": [
         "New feature or bugfix includes unit tests",
         "<code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">npm test</code> is green locally",
-        "<code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">npm run test:cov</code> meets or exceeds 80% on all four metrics",
+        "<code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">npm run test:cov</code> meets or exceeds 97% on branches/functions and 80% on lines/statements",
         "New source areas are listed in <code class=\"px-1.5 py-0.5 bg-gray-100 rounded text-sm\">collectCoverageFrom</code> when they have specs",
         "Commit succeeds without skipping the pre-commit hook"
       ]

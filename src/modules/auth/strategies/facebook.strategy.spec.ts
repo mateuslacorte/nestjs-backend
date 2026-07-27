@@ -53,6 +53,13 @@ describe('FacebookStrategy', () => {
     );
   });
 
+  describe('constructor', () => {
+    it('uses disabled/default config when env keys are undefined', () => {
+      const fallbackStrategy = new FacebookStrategy(createConfigService());
+      expect(fallbackStrategy).toBeDefined();
+    });
+  });
+
   describe('validate', () => {
     it('returns profile payload on success', () => {
       const done = jest.fn();

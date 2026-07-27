@@ -1,0 +1,24 @@
+{
+  "authActiveDirectoryLdap": {
+    "badge": "LDAP",
+    "hero": {
+      "titlePrefix": "Active Directory",
+      "titleHighlight": "LDAP",
+      "subtitle": "Configure plain LDAP (port 389) against your domain controller for development or trusted networks."
+    },
+    "overview": {
+      "title": "Overview",
+      "description": "LDAP sends credentials without TLS by default. Use only on trusted networks or when LDAP signing/channel binding is enforced. For production, prefer <a href=\"/auth/active-directory/ldaps\" class=\"text-indigo-600 hover:underline\">LDAPS</a>."
+    },
+    "config": {
+      "title": "Environment",
+      "description": "Point <code class=\"px-1 py-0.5 bg-gray-100 rounded\">AD_LDAP_URL</code> at your DC with the <code class=\"px-1 py-0.5 bg-gray-100 rounded\">ldap://</code> scheme. Ensure port 389 is reachable from the API host.",
+      "codeHeader": { "label": "Environment", "context": "LDAP example" }
+    },
+    "related": {
+      "title": "Related guides",
+      "hub": "Active Directory hub",
+      "ldaps": "LDAPS guide →"
+    }
+  }
+}

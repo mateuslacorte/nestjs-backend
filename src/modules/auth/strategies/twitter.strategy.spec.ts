@@ -55,6 +55,13 @@ describe('TwitterStrategy', () => {
     );
   });
 
+  describe('constructor', () => {
+    it('uses disabled/default config when env keys are undefined', () => {
+      const fallbackStrategy = new TwitterStrategy(createConfigService());
+      expect(fallbackStrategy).toBeDefined();
+    });
+  });
+
   describe('validate', () => {
     it('returns profile payload from confirmed_email', () => {
       const done = jest.fn();
@@ -150,6 +157,24 @@ describe('TwitterStrategy', () => {
         null,
         expect.objectContaining({
           firstName: 'User',
+        }),
+      );
+    });
+
+    it('uses username when displayName is whitespace-only', () => {
+      const done = jest.fn();
+      const profile = createProfile({
+        displayName: '   ',
+        username: 'spacey',
+      });
+
+      strategy.validate('access', 'refresh', profile, done);
+
+      expect(done).toHaveBeenCalledWith(
+        null,
+        expect.objectContaining({
+          firstName: 'spacey',
+          lastName: '',
         }),
       );
     });

@@ -1,0 +1,166 @@
+{
+  "authSocialGithub": {
+    "meta": {
+      "title": "GitHub OAuth2 - Backend NestJS"
+    },
+    "badge": "GitHub",
+    "hero": {
+      "titlePrefix": "GitHub",
+      "titleHighlight": "OAuth2",
+      "subtitle": "Authorization Code Exchange para web e mobile — setup no Meta, referência da API e exemplos de frontend."
+    },
+    "overview": {
+      "title": "Visão geral",
+      "description": "O login GitHub é opcional e controlado por <code class=\"px-1 py-0.5 bg-amber-100 rounded\">GITHUB_AUTH_ENABLED</code>. Quando desligado, os endpoints GitHub respondem <strong>503 Service Unavailable</strong>. JWTs nunca vão na URL de redirect; a API emite um <code class=\"px-1 py-0.5 bg-gray-100 rounded\">exchangeCode</code> de uso único (Redis, 60 segundos). O mesmo <code class=\"px-1 py-0.5 bg-gray-100 rounded\">POST /auth/exchange</code> é compartilhado com o Google.",
+      "items": [
+        "Ativado por feature flag no ambiente",
+        "Passport GitHub strategy + GithubAuthGuard",
+        "Allowlist de redirect evita open redirects",
+        "Mesmo formato de tokens do POST /auth/login"
+      ]
+    },
+    "console": {
+      "title": "GitHub Developer Settings",
+      "description": "Crie um OAuth App em GitHub → Settings → Developer settings → OAuth Apps. Defina Authorization callback URL igual a <code class=\"px-1 py-0.5 bg-gray-100 rounded\">GITHUB_CALLBACK_URL</code>.",
+      "steps": [
+        "Abra https://github.com/settings/developers → OAuth Apps → New OAuth App",
+        "Defina Application name e Homepage URL",
+        "Defina Authorization callback URL (ex.: http://localhost:3000/api/v1/auth/github/callback)",
+        "Copie Client ID e gere um Client Secret para o .env",
+        "Garanta o scope user:email (necessário para e-mail)"
+      ]
+    },
+    "env": {
+      "title": "Variáveis de ambiente",
+      "description": "Carregadas do <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> via <code class=\"px-1 py-0.5 bg-gray-100 rounded\">src/config/github-oauth.config.ts</code> (namespace <code class=\"px-1 py-0.5 bg-gray-100 rounded\">githubOAuth</code> no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">ConfigService</code>). Veja <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env.example</code>.",
+      "codeHeader": {
+        "label": "Environment",
+        "context": ".env"
+      }
+    },
+    "roles": {
+      "title": "Roles padrão para novos usuários GitHub",
+      "description": "Novos usuários GitHub recebem <code class=\"px-1 py-0.5 bg-gray-100 rounded\">roles: []</code> por padrão (igual ao register). Defina <code class=\"px-1 py-0.5 bg-amber-100 rounded\">GITHUB_OAUTH_DEFAULT_ROLES</code> no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> como lista separada por vírgula (ex.: <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user</code> ou <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user,manager</code>). Usuários existentes vinculados por e-mail mantêm as roles atuais."
+    },
+    "flow": {
+      "title": "Sequência",
+      "items": [
+        "Cliente abre GET /api/v1/auth/github?redirect=<URL na allowlist>",
+        "Usuário consente no GitHub; o browser chama GET /api/v1/auth/github/callback",
+        "API faz upsert do usuário, grava exchangeCode no Redis e redireciona para redirect?code=...",
+        "Cliente faz POST { code } em /api/v1/auth/exchange e recebe os JWTs"
+      ]
+    },
+    "api": {
+      "title": "Referência da API",
+      "start": {
+        "title": "1. Iniciar OAuth",
+        "description": "Abre o consentimento do GitHub. O query <code class=\"px-1 py-0.5 bg-gray-100 rounded\">redirect</code> deve bater com um prefixo de <code class=\"px-1 py-0.5 bg-gray-100 rounded\">GITHUB_REDIRECT_ALLOWLIST</code> (ou omita para usar a primeira entrada).",
+        "codeHeader": {
+          "label": "HTTP",
+          "context": "GET /api/v1/auth/github"
+        },
+        "errors": "400 redirect inválido · 503 feature desligada"
+      },
+      "callback": {
+        "title": "2. Callback",
+        "description": "Tratado pela API. Redireciona para o app com <code class=\"px-1 py-0.5 bg-gray-100 rounded\">?code=</code> (ou <code class=\"px-1 py-0.5 bg-gray-100 rounded\">&code=</code> se a URL já tiver query).",
+        "codeHeader": {
+          "label": "HTTP",
+          "context": "GET /api/v1/auth/github/callback"
+        }
+      },
+      "exchange": {
+        "title": "3. Trocar código",
+        "description": "Endpoint público compartilhado com o Google. Consome o código (uso único) e retorna o mesmo formato do login.",
+        "requestHeader": {
+          "label": "HTTP Request",
+          "context": "POST /api/v1/auth/exchange"
+        },
+        "responseHeader": {
+          "label": "HTTP Response",
+          "context": "200 OK"
+        },
+        "errors": "401 código inválido/expirado/usado · 503 auth social desligada"
+      }
+    },
+    "web": {
+      "title": "Frontend — Web (SPA)",
+      "description": "Fluxo típico: o botão inicia OAuth na mesma janela (ou popup); a rota de callback no frontend lê <code class=\"px-1 py-0.5 bg-gray-100 rounded\">code</code> da query e chama exchange.",
+      "startHeader": {
+        "label": "JavaScript",
+        "context": "Iniciar login GitHub"
+      },
+      "callbackHeader": {
+        "label": "JavaScript",
+        "context": "Página de callback /auth/callback"
+      },
+      "notes": [
+        "Inclua a URL de callback do frontend em GITHUB_REDIRECT_ALLOWLIST (ex.: http://localhost:5173/auth/callback)",
+        "GITHUB_CALLBACK_URL aponta para a API Nest, não para a SPA",
+        "Armazene accessToken / refreshToken com segurança"
+      ]
+    },
+    "mobile": {
+      "title": "Frontend — Mobile (deep link)",
+      "description": "Use um scheme customizado (ou universal link) na allowlist. Após o GitHub, a API redireciona para <code class=\"px-1 py-0.5 bg-gray-100 rounded\">myapp://success?code=...</code>. O app abre, lê o código e chama exchange.",
+      "openHeader": {
+        "label": "React Native",
+        "context": "Abrir OAuth no browser"
+      },
+      "handleHeader": {
+        "label": "React Native",
+        "context": "Deep link + exchange"
+      },
+      "notes": [
+        "Registre o scheme no SO / Expo app.json",
+        "Prefira Linking.addEventListener('url', ...) e getInitialURL()",
+        "Faça o exchange via HTTPS na base URL da API"
+      ]
+    },
+    "security": {
+      "title": "Notas de segurança",
+      "items": [
+        "URLs de redirect devem casar com prefixos de GITHUB_REDIRECT_ALLOWLIST",
+        "Códigos de exchange são de uso único e expiram em 60 segundos (Redis)",
+        "Usuários locais existentes são vinculados pelo e-mail verificado do GitHub (githubId; roles inalteradas)",
+        "Usuários só-GitHub têm password null — login/change-password com senha falham até haver senha",
+        "Permissão email é obrigatória; o login falha se o GitHub não devolver e-mail"
+      ]
+    },
+    "userModel": {
+      "title": "Modelo de usuário",
+      "description": "Campos da entity/interface usados pelo login GitHub:",
+      "items": [
+        "githubId — ID GitHub único e nullable",
+        "password — nullable para contas só OAuth",
+        "isActive — true para novos usuários GitHub",
+        "roles — de GITHUB_OAUTH_DEFAULT_ROLES no env (padrão [])"
+      ]
+    },
+    "related": {
+      "title": "Relacionados",
+      "social": "Hub de Autenticação Social",
+      "google": "Guia Google OAuth2",
+      "twitter": "Guia X / Twitter OAuth2",
+      "auth": "Auth & JWT",
+      "facebook": "Guia Facebook OAuth2",
+      "figma": "Guia Figma OAuth2",
+      "linkedin": "Guia LinkedIn OpenID Connect",
+      "slack": "Guia Slack OpenID Connect",
+      "atlassian": "Guia Atlassian OAuth 2.0 (3LO)",
+      "gitlab": "Guia GitLab OAuth2",
+      "bitbucket": "Guia Bitbucket OAuth2",
+      "discord": "Guia Discord OAuth2",
+      "twitch": "Guia Twitch OAuth2",
+      "steam": "Guia Steam OpenID 2.0",
+      "reddit": "Guia Reddit OAuth2"
+    },
+    "samples": {
+      "fullPageRedirect": "// Redirect de página inteira: Nest → GitHub → de volta à SPA",
+      "spaCallback": "// /auth/callback na SPA",
+      "persistTokens": "// persista os tokens como sua app exigir",
+      "tokenFields": "// data.accessToken, data.refreshToken, data.user"
+    }
+  }
+}

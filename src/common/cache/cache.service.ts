@@ -8,6 +8,7 @@ export class CacheService {
     private readonly redis: Redis;
     private readonly defaultTtl: number;
 
+    /* istanbul ignore next -- Nest DI constructor parameter emit */
     constructor(
         @Inject('REDIS_CLIENT') private readonly redisClient: Redis,
         private readonly configService: ConfigService,

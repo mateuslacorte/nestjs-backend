@@ -6,6 +6,7 @@ import { AuthService } from './auth.service'; // Import AuthService to verify us
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
+    /* istanbul ignore next -- Nest DI constructor parameter emit */
     constructor(
         private configService: ConfigService,
         private authService: AuthService

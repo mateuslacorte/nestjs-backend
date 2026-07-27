@@ -100,6 +100,54 @@ export class WikiController {
         );
     }
 
+    @Get('auth/active-directory')
+    getAuthActiveDirectory(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/auth-active-directory',
+            'authActiveDirectory',
+            'auth-active-directory',
+        );
+    }
+
+    @Get('auth/active-directory/ldap')
+    getAuthActiveDirectoryLdap(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/auth-active-directory-ldap',
+            'authActiveDirectoryLdap',
+            'auth-active-directory-ldap',
+        );
+    }
+
+    @Get('auth/active-directory/ldaps')
+    getAuthActiveDirectoryLdaps(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/auth-active-directory-ldaps',
+            'authActiveDirectoryLdaps',
+            'auth-active-directory-ldaps',
+        );
+    }
+
     @Get('auth/social')
     getAuthSocial(
         @Req() req: Request,
@@ -161,6 +209,310 @@ export class WikiController {
             'pages/auth-social-twitter',
             'authSocialTwitter',
             'auth-social-twitter',
+        );
+    }
+
+    @Get('auth/social/github')
+    getAuthSocialGithub(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/auth-social-github',
+            'authSocialGithub',
+            'auth-social-github',
+        );
+    }
+
+    @Get('auth/social/figma')
+    getAuthSocialFigma(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/auth-social-figma',
+            'authSocialFigma',
+            'auth-social-figma',
+        );
+    }
+
+    @Get('auth/social/linkedin')
+    getAuthSocialLinkedin(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/auth-social-linkedin',
+            'authSocialLinkedin',
+            'auth-social-linkedin',
+        );
+    }
+
+    @Get('auth/social/slack')
+    getAuthSocialSlack(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/auth-social-slack',
+            'authSocialSlack',
+            'auth-social-slack',
+        );
+    }
+
+    @Get('auth/social/atlassian')
+    getAuthSocialAtlassian(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/auth-social-atlassian',
+            'authSocialAtlassian',
+            'auth-social-atlassian',
+        );
+    }
+
+    @Get('auth/social/gitlab')
+    getAuthSocialGitlab(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/auth-social-gitlab',
+            'authSocialGitlab',
+            'auth-social-gitlab',
+        );
+    }
+
+    @Get('auth/social/bitbucket')
+    getAuthSocialBitbucket(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/auth-social-bitbucket',
+            'authSocialBitbucket',
+            'auth-social-bitbucket',
+        );
+    }
+
+    @Get('auth/social/discord')
+    getAuthSocialDiscord(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/auth-social-discord',
+            'authSocialDiscord',
+            'auth-social-discord',
+        );
+    }
+
+    @Get('auth/social/twitch')
+    getAuthSocialTwitch(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/auth-social-twitch',
+            'authSocialTwitch',
+            'auth-social-twitch',
+        );
+    }
+
+    @Get('auth/social/spotify')
+    getAuthSocialSpotify(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/auth-social-spotify',
+            'authSocialSpotify',
+            'auth-social-spotify',
+        );
+    }
+
+    @Get('auth/social/amazon')
+    getAuthSocialAmazon(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/auth-social-amazon',
+            'authSocialAmazon',
+            'auth-social-amazon',
+        );
+    }
+
+    @Get('auth/social/microsoft')
+    getAuthSocialMicrosoft(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/auth-social-microsoft',
+            'authSocialMicrosoft',
+            'auth-social-microsoft',
+        );
+    }
+
+    @Get('auth/social/patreon')
+    getAuthSocialPatreon(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/auth-social-patreon',
+            'authSocialPatreon',
+            'auth-social-patreon',
+        );
+    }
+
+    @Get('auth/social/dropbox')
+    getAuthSocialDropbox(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/auth-social-dropbox',
+            'authSocialDropbox',
+            'auth-social-dropbox',
+        );
+    }
+
+    @Get('auth/social/coinbase')
+    getAuthSocialCoinbase(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/auth-social-coinbase',
+            'authSocialCoinbase',
+            'auth-social-coinbase',
+        );
+    }
+
+    @Get('auth/social/metamask')
+    getAuthSocialMetamask(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/auth-social-metamask',
+            'authSocialMetamask',
+            'auth-social-metamask',
+        );
+    }
+
+    @Get('auth/social/steam')
+    getAuthSocialSteam(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/auth-social-steam',
+            'authSocialSteam',
+            'auth-social-steam',
+        );
+    }
+
+    @Get('auth/social/reddit')
+    getAuthSocialReddit(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/auth-social-reddit',
+            'authSocialReddit',
+            'auth-social-reddit',
+        );
+    }
+
+    @Get('auth/social/apple')
+    getAuthSocialApple(
+        @Req() req: Request,
+        @Res() res: Response,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            res,
+            lang,
+            'pages/auth-social-apple',
+            'authSocialApple',
+            'auth-social-apple',
         );
     }
 

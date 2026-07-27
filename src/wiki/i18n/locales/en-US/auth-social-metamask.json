@@ -1,0 +1,44 @@
+{
+  "authSocialMetamask": {
+    "badge": "Developer guide",
+    "hero": {
+      "titlePrefix": "MetaMask",
+      "titleHighlight": "SIWE",
+      "subtitle": "Sign in with your Ethereum wallet using EIP-4361 — nonce, personal_sign, JWT tokens."
+    },
+    "overview": {
+      "title": "Overview",
+      "description": "MetaMask is not OAuth. The API implements <strong>Sign-In with Ethereum (SIWE / EIP-4361)</strong>: issue a one-time nonce, have the wallet sign a structured message, verify the signature, upsert the user by address, and return the same JWT contract as password login. New users get a random display name (e.g. Fearful Bear)."
+    },
+    "console": {
+      "title": "Configuration",
+      "description": "No Developer Portal app is required. Align <code class=\"px-1 py-0.5 bg-gray-100 rounded\">METAMASK_DOMAIN</code> / <code class=\"px-1 py-0.5 bg-gray-100 rounded\">METAMASK_URI</code> with the host and origin used in the client SIWE message, and allow the chain IDs your users will sign on.",
+      "codeHeader": { "label": "Environment", "context": "Variables used by the API" }
+    },
+    "api": {
+      "title": "API contract",
+      "description": "Two POST endpoints — no browser redirect callback.",
+      "nonce": {
+        "codeHeader": { "label": "Nonce", "context": "Issue a short-lived SIWE nonce" }
+      },
+      "verify": {
+        "codeHeader": { "label": "Verify", "context": "Exchange signature for JWTs" }
+      }
+    },
+    "client": {
+      "title": "Browser sample",
+      "description": "Minimal MetaMask flow. Domain, URI, chain ID, and statement must match server config.",
+      "codeHeader": { "label": "JavaScript", "context": "eth_requestAccounts + personal_sign" }
+    },
+    "userModel": {
+      "title": "User model",
+      "description": "The lowercased Ethereum address is stored as metamaskId. Email is synthetic (address@users.noreply.metamask.local). Display names are random adjective+noun pairs generated only on first login."
+    },
+    "related": {
+      "title": "Related guides",
+      "social": "Social Authentication hub",
+      "coinbase": "Coinbase OAuth2 setup guide",
+      "auth": "Auth & JWT overview"
+    }
+  }
+}

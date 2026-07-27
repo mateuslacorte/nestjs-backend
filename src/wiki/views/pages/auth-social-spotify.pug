@@ -1,0 +1,84 @@
+extends ../layouts/main
+
+block content
+  .mb-12
+    .inline-flex.items-center.gap-2.px-3.py-1.bg-indigo-50.rounded-full.text-indigo-700.text-sm.font-medium.mb-4
+      svg(class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 18V6a3 3 0 016 0v12m-6 0h6m-3-9h0")
+      span= t('authSocialSpotify.badge')
+    h1(class="text-4xl font-bold text-gray-900 mb-4")
+      | #{t('authSocialSpotify.hero.titlePrefix')}
+      span.gradient-text= t('authSocialSpotify.hero.titleHighlight')
+    p(class="text-xl text-gray-600 max-w-3xl")
+      = t('authSocialSpotify.hero.subtitle')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialSpotify.overview.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-0")
+        != t('authSocialSpotify.overview.description')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialSpotify.console.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")
+        != t('authSocialSpotify.console.description')
+      .code-block
+        .code-header
+          span= t('authSocialSpotify.console.codeHeader.label')
+          span= t('authSocialSpotify.console.codeHeader.context')
+        .code-content
+          pre.
+            SPOTIFY_AUTH_ENABLED=true
+            SPOTIFY_CLIENT_ID=your-spotify-client-id
+            SPOTIFY_CLIENT_SECRET=your-spotify-client-secret
+            SPOTIFY_CALLBACK_URL=http://localhost:3000/api/v1/auth/spotify/callback
+            SPOTIFY_REDIRECT_ALLOWLIST=myapp://success,http://localhost:5173/auth/callback
+            SPOTIFY_OAUTH_DEFAULT_ROLES=
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialSpotify.api.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")= t('authSocialSpotify.api.description')
+      .code-block.mb-2
+        .code-header
+          span= t('authSocialSpotify.api.start.codeHeader.label')
+          span= t('authSocialSpotify.api.start.codeHeader.context')
+        .code-content
+          pre.
+            GET #{apiBasePath}/auth/spotify?redirect=http%3A%2F%2Flocalhost%3A5173%2Fauth%2Fcallback
+      .code-block.mb-2
+        .code-header
+          span= t('authSocialSpotify.api.callback.codeHeader.label')
+          span= t('authSocialSpotify.api.callback.codeHeader.context')
+        .code-content
+          pre.
+            GET #{apiBasePath}/auth/spotify/callback?code=SPOTIFY_AUTH_CODE&state=...
+            → 302 Location: http://localhost:5173/auth/callback?code=EXCHANGE_CODE
+      .code-block.mb-0
+        .code-header
+          span= t('authSocialSpotify.api.exchange.codeHeader.label')
+          span= t('authSocialSpotify.api.exchange.codeHeader.context')
+        .code-content
+          pre.
+            POST #{apiBasePath}/auth/exchange
+            Content-Type: application/json
+
+            { "code": "EXCHANGE_CODE" }
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialSpotify.userModel.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-0")= t('authSocialSpotify.userModel.description')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialSpotify.related.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      ul.space-y-2
+        li
+          a(href=wikiPath('/auth/social') class="text-indigo-600 hover:underline font-medium")= t('authSocialSpotify.related.social')
+        li
+          a(href=wikiPath('/auth/social/apple') class="text-indigo-600 hover:underline font-medium")= t('authSocialSpotify.related.apple')
+        li
+          a(href=wikiPath('/auth/social/reddit') class="text-indigo-600 hover:underline font-medium")= t('authSocialSpotify.related.reddit')
+

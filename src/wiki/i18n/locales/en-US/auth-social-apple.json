@@ -1,0 +1,183 @@
+{
+  "authSocialApple": {
+    "meta": {
+      "title": "Apple Sign In - Backend NestJS"
+    },
+    "badge": "Apple",
+    "hero": {
+      "titlePrefix": "Sign in with",
+      "titleHighlight": "Apple",
+      "subtitle": "OIDC form_post flow for web and mobile — Apple Developer console setup, JWT client secret, POST callback, first-login name capture, private relay email, API reference, and frontend examples."
+    },
+    "overview": {
+      "title": "Overview",
+      "description": "Apple Sign In is optional and controlled by <code class=\"px-1 py-0.5 bg-amber-100 rounded\">APPLE_AUTH_ENABLED</code>. When disabled, Apple endpoints return <strong>503 Service Unavailable</strong>. Apple uses OpenID Connect with <code class=\"px-1 py-0.5 bg-gray-100 rounded\">response_mode=form_post</code>, meaning <strong>the callback is a POST</strong> (not a GET). The client secret is a short-lived <strong>JWT signed with your .p8 key</strong> — the <code class=\"px-1 py-0.5 bg-gray-100 rounded\">passport-apple</code> library handles this automatically. The user's stable ID (<code class=\"px-1 py-0.5 bg-gray-100 rounded\">appleId</code>) is the <code class=\"px-1 py-0.5 bg-gray-100 rounded\">sub</code> claim of the <code class=\"px-1 py-0.5 bg-gray-100 rounded\">id_token</code>. Apple provides the user's name and email <strong>only on the very first login</strong>; subsequent logins only deliver the id_token. Email may be a private relay address (<code class=\"px-1 py-0.5 bg-gray-100 rounded\">*@privaterelay.appleid.com</code>). JWTs are never placed in the redirect URL; the API issues a one-time <code class=\"px-1 py-0.5 bg-gray-100 rounded\">exchangeCode</code> (Redis, 60 seconds). The same <code class=\"px-1 py-0.5 bg-gray-100 rounded\">POST /auth/exchange</code> endpoint is shared with other social providers.",
+      "items": [
+        "Feature-flagged via environment",
+        "passport-apple strategy + AppleAuthGuard",
+        "id_token decoded to extract sub (appleId) and email",
+        "POST callback (form_post) — not a GET redirect like other OAuth2 providers",
+        "User name sent by Apple on first login only via req.body.user JSON field",
+        "Email may be a private relay address — still usable as account identifier",
+        "Client secret is a JWT generated from your .p8 private key — handled by passport-apple",
+        "Redirect allowlist prevents open redirects",
+        "Same token response shape as POST /auth/login"
+      ]
+    },
+    "console": {
+      "title": "Apple Developer console",
+      "description": "Configure Sign in with Apple at <strong><a href=\"https://developer.apple.com/account\" class=\"text-indigo-600 hover:underline\">developer.apple.com</a></strong>. You need an App ID, a Services ID (client ID), and a private key.",
+      "steps": [
+        "Open Certificates, Identifiers & Profiles in Apple Developer",
+        "Create an App ID (Identifiers → App IDs) and enable 'Sign In with Apple' capability",
+        "Create a Services ID (Identifiers → Services IDs) — this is your APPLE_CLIENT_ID (e.g. com.example.service). Enable 'Sign In with Apple', configure Domains & Subdomains and Return URLs to match APPLE_CALLBACK_URL",
+        "Create a Key (Keys → +) and enable 'Sign In with Apple'. Download the .p8 file — it is only available once",
+        "Note: Team ID (top-right of developer.apple.com/account), Key ID (listed next to the key), Services ID",
+        "Paste the .p8 file contents into APPLE_PRIVATE_KEY, replacing newlines with literal \\n (Docker-safe)",
+        "APPLE_CALLBACK_URL must be an HTTPS URL registered in the Services ID return URLs — localhost is allowed only for development with ngrok or similar"
+      ]
+    },
+    "env": {
+      "title": "Environment variables",
+      "description": "Loaded from <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> via <code class=\"px-1 py-0.5 bg-gray-100 rounded\">src/config/apple-oauth.config.ts</code> (namespace <code class=\"px-1 py-0.5 bg-gray-100 rounded\">appleOAuth</code> on <code class=\"px-1 py-0.5 bg-gray-100 rounded\">ConfigService</code>). See <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env.example</code>. Store <code class=\"px-1 py-0.5 bg-amber-100 rounded\">APPLE_PRIVATE_KEY</code> with literal <code class=\"px-1 py-0.5 bg-gray-100 rounded\">\\n</code> between lines — the config replaces them with real newlines at startup.",
+      "codeHeader": {
+        "label": "Environment",
+        "context": ".env"
+      }
+    },
+    "roles": {
+      "title": "Default roles for new Apple users",
+      "description": "New Apple users receive <code class=\"px-1 py-0.5 bg-gray-100 rounded\">roles: []</code> by default (same as password register). Set <code class=\"px-1 py-0.5 bg-amber-100 rounded\">APPLE_OAUTH_DEFAULT_ROLES</code> in <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> to a comma-separated list of Role values (e.g. <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user</code> or <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user,manager</code>). Existing users linked by appleId keep their current roles."
+    },
+    "flow": {
+      "title": "Sequence",
+      "items": [
+        "Client opens GET /api/v1/auth/apple?redirect=<allowlisted URL>",
+        "User consents on Apple; Apple POSTs to POST /api/v1/auth/apple/callback (form_post response mode)",
+        "API decodes id_token (sub → appleId, email), reads name from req.body.user on first login, upserts user, stores exchangeCode in Redis, and redirects to redirect?code=...",
+        "Client POSTs { code } to /api/v1/auth/exchange and receives JWTs"
+      ]
+    },
+    "api": {
+      "title": "API reference",
+      "start": {
+        "title": "1. Start Sign In",
+        "description": "Opens Apple Sign In consent. Query <code class=\"px-1 py-0.5 bg-gray-100 rounded\">redirect</code> must match a prefix in <code class=\"px-1 py-0.5 bg-gray-100 rounded\">APPLE_REDIRECT_ALLOWLIST</code> (or omit to use the first allowlist entry). Scope: <code class=\"px-1 py-0.5 bg-gray-100 rounded\">name email</code>.",
+        "codeHeader": {
+          "label": "HTTP",
+          "context": "GET /api/v1/auth/apple"
+        },
+        "errors": "400 invalid redirect · 503 feature disabled"
+      },
+      "callback": {
+        "title": "2. Callback (POST — form_post)",
+        "description": "Apple POSTs to this endpoint after consent. Unlike other OAuth2 providers, this is a <strong>POST</strong> request. The state parameter (with the redirect URL) is delivered in <code class=\"px-1 py-0.5 bg-gray-100 rounded\">req.body.state</code>. The user's name is in <code class=\"px-1 py-0.5 bg-gray-100 rounded\">req.body.user</code> (JSON string) on first login only. The API decodes the id_token and redirects to your app with <code class=\"px-1 py-0.5 bg-gray-100 rounded\">?code=</code>.",
+        "codeHeader": {
+          "label": "HTTP",
+          "context": "POST /api/v1/auth/apple/callback"
+        }
+      },
+      "exchange": {
+        "title": "3. Exchange code",
+        "description": "Public endpoint shared with other social providers. Consumes the code (single use) and returns the same shape as login.",
+        "requestHeader": {
+          "label": "HTTP Request",
+          "context": "POST /api/v1/auth/exchange"
+        },
+        "responseHeader": {
+          "label": "HTTP Response",
+          "context": "200 OK"
+        },
+        "errors": "401 invalid/expired/used code · 503 social auth disabled"
+      }
+    },
+    "web": {
+      "title": "Frontend — Web (SPA)",
+      "description": "Same pattern as other OAuth providers: initiate login in the browser; your callback route reads <code class=\"px-1 py-0.5 bg-gray-100 rounded\">code</code> from the query string and calls exchange. Note: Apple's callback is a POST handled server-side — your frontend only ever sees the redirect with <code class=\"px-1 py-0.5 bg-gray-100 rounded\">?code=</code>.",
+      "startHeader": {
+        "label": "JavaScript",
+        "context": "Start Apple Sign In"
+      },
+      "callbackHeader": {
+        "label": "JavaScript",
+        "context": "Callback page /auth/callback"
+      },
+      "notes": [
+        "Add your frontend callback URL to APPLE_REDIRECT_ALLOWLIST (e.g. https://app.example.com/auth/callback)",
+        "APPLE_CALLBACK_URL must be an HTTPS URL pointing at the Nest API (registered in Apple Developer)",
+        "Apple only sends name on the first login — store it immediately; it will not be sent again",
+        "Email may be a private relay address — use appleId as the stable identifier, not email",
+        "Store accessToken / refreshToken securely (memory + httpOnly cookie patterns as you prefer)"
+      ]
+    },
+    "mobile": {
+      "title": "Frontend — Mobile (deep link)",
+      "description": "Use a custom scheme (or universal link) in the allowlist. After Apple Sign In, the API redirects to <code class=\"px-1 py-0.5 bg-gray-100 rounded\">myapp://success?code=...</code>. The app opens, parses the code, and calls exchange. On iOS you may also use the native <code class=\"px-1 py-0.5 bg-gray-100 rounded\">AuthenticationServices</code> ASWebAuthenticationSession.",
+      "openHeader": {
+        "label": "React Native",
+        "context": "Open Sign In in browser"
+      },
+      "handleHeader": {
+        "label": "React Native",
+        "context": "Handle deep link + exchange"
+      },
+      "notes": [
+        "Register the scheme in the OS / Expo app.json",
+        "Prefer Linking.addEventListener('url', ...) and getInitialURL()",
+        "Exchange over HTTPS against your API base URL",
+        "Identify users by appleId — not by email (may be private relay or change if user revokes)"
+      ]
+    },
+    "security": {
+      "title": "Security notes",
+      "items": [
+        "Redirect URLs must match APPLE_REDIRECT_ALLOWLIST prefixes",
+        "Exchange codes are single-use and expire in 60 seconds (Redis)",
+        "APPLE_PRIVATE_KEY is a secret — never commit it to version control",
+        "The JWT client secret is generated per-request from the private key by passport-apple",
+        "Apple sends name and email only on the first consent — subsequent logins only deliver id_token",
+        "Private relay emails (*@privaterelay.appleid.com) are real and deliverable, but tied to the user's Apple ID",
+        "Users can revoke Apple Sign In from device settings — handle account deactivation via isActive",
+        "Apple-only users have password null — password login / change-password will fail until a password is set"
+      ]
+    },
+    "userModel": {
+      "title": "User model",
+      "description": "Postgres entity / interface fields used by Apple Sign In:",
+      "items": [
+        "appleId — unique nullable Apple subject ID (sub from id_token)",
+        "email — from id_token; may be a private relay address",
+        "firstName / lastName — from req.body.user on first login; defaults to 'Apple' / '' on subsequent logins",
+        "password — nullable for OAuth-only accounts",
+        "isActive — set true for new Apple users",
+        "roles — from APPLE_OAUTH_DEFAULT_ROLES env (default [])"
+      ]
+    },
+    "related": {
+      "title": "Related",
+      "social": "Social Authentication hub",
+      "google": "Google OAuth2 guide",
+      "twitter": "X / Twitter OAuth2 guide",
+      "github": "GitHub OAuth2 guide",
+      "figma": "Figma OAuth2 guide",
+      "linkedin": "LinkedIn OpenID Connect guide",
+      "slack": "Slack OpenID Connect guide",
+      "atlassian": "Atlassian OAuth 2.0 (3LO) guide",
+      "gitlab": "GitLab OAuth2 guide",
+      "bitbucket": "Bitbucket OAuth2 guide",
+      "discord": "Discord OAuth2 guide",
+      "twitch": "Twitch OAuth2 guide",
+      "steam": "Steam OpenID 2.0 guide",
+      "reddit": "Reddit OAuth2 guide",
+      "auth": "Auth & JWT",
+      "facebook": "Facebook OAuth2 guide"
+    },
+    "samples": {
+      "fullPageRedirect": "// Full-page redirect to Nest → Apple → back to SPA",
+      "spaCallback": "// /auth/callback on the SPA",
+      "persistTokens": "// persist tokens as your app requires",
+      "tokenFields": "// data.accessToken, data.refreshToken, data.user",
+      "logAppleId": "// Use appleId as the stable identifier — email may be private relay"
+    }
+  }
+}

@@ -1,0 +1,83 @@
+extends ../layouts/main
+
+block content
+  .mb-12
+    .inline-flex.items-center.gap-2.px-3.py-1.bg-indigo-50.rounded-full.text-indigo-700.text-sm.font-medium.mb-4
+      svg(class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z")
+      span= t('authSocialPatreon.badge')
+    h1(class="text-4xl font-bold text-gray-900 mb-4")
+      | #{t('authSocialPatreon.hero.titlePrefix')}
+      span.gradient-text= t('authSocialPatreon.hero.titleHighlight')
+    p(class="text-xl text-gray-600 max-w-3xl")
+      = t('authSocialPatreon.hero.subtitle')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialPatreon.overview.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-0")
+        != t('authSocialPatreon.overview.description')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialPatreon.console.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")
+        != t('authSocialPatreon.console.description')
+      .code-block
+        .code-header
+          span= t('authSocialPatreon.console.codeHeader.label')
+          span= t('authSocialPatreon.console.codeHeader.context')
+        .code-content
+          pre.
+            PATREON_AUTH_ENABLED=true
+            PATREON_CLIENT_ID=your-patreon-client-id
+            PATREON_CLIENT_SECRET=your-patreon-client-secret
+            PATREON_CALLBACK_URL=http://localhost:3000/api/v1/auth/patreon/callback
+            PATREON_REDIRECT_ALLOWLIST=myapp://success,http://localhost:5173/auth/callback
+            PATREON_OAUTH_DEFAULT_ROLES=
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialPatreon.api.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")= t('authSocialPatreon.api.description')
+      .code-block.mb-2
+        .code-header
+          span= t('authSocialPatreon.api.start.codeHeader.label')
+          span= t('authSocialPatreon.api.start.codeHeader.context')
+        .code-content
+          pre.
+            GET #{apiBasePath}/auth/patreon?redirect=http%3A%2F%2Flocalhost%3A5173%2Fauth%2Fcallback
+      .code-block.mb-2
+        .code-header
+          span= t('authSocialPatreon.api.callback.codeHeader.label')
+          span= t('authSocialPatreon.api.callback.codeHeader.context')
+        .code-content
+          pre.
+            GET #{apiBasePath}/auth/patreon/callback?code=PATREON_AUTH_CODE&state=...
+            → 302 Location: http://localhost:5173/auth/callback?code=EXCHANGE_CODE
+      .code-block.mb-0
+        .code-header
+          span= t('authSocialPatreon.api.exchange.codeHeader.label')
+          span= t('authSocialPatreon.api.exchange.codeHeader.context')
+        .code-content
+          pre.
+            POST #{apiBasePath}/auth/exchange
+            Content-Type: application/json
+
+            { "code": "EXCHANGE_CODE" }
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialPatreon.userModel.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-0")= t('authSocialPatreon.userModel.description')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialPatreon.related.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      ul.space-y-2
+        li
+          a(href=wikiPath('/auth/social') class="text-indigo-600 hover:underline font-medium")= t('authSocialPatreon.related.social')
+        li
+          a(href=wikiPath('/auth/social/microsoft') class="text-indigo-600 hover:underline font-medium")= t('authSocialPatreon.related.microsoft')
+        li
+          a(href=wikiPath('/auth/social/discord') class="text-indigo-600 hover:underline font-medium")= t('authSocialPatreon.related.discord')

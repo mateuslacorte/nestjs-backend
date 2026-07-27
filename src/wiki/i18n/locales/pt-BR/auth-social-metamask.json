@@ -1,0 +1,44 @@
+{
+  "authSocialMetamask": {
+    "badge": "Guia para desenvolvedores",
+    "hero": {
+      "titlePrefix": "MetaMask",
+      "titleHighlight": "SIWE",
+      "subtitle": "Entre com sua carteira Ethereum via EIP-4361 — nonce, personal_sign e tokens JWT."
+    },
+    "overview": {
+      "title": "Visão geral",
+      "description": "MetaMask não é OAuth. A API implementa <strong>Sign-In with Ethereum (SIWE / EIP-4361)</strong>: emite um nonce de uso único, a carteira assina a mensagem, a API verifica a assinatura, faz upsert pelo endereço e devolve o mesmo contrato JWT do login por senha. Novos usuários recebem um nome aleatório (ex.: Fearful Bear)."
+    },
+    "console": {
+      "title": "Configuração",
+      "description": "Não há app em portal de desenvolvedor. Alinhe <code class=\"px-1 py-0.5 bg-gray-100 rounded\">METAMASK_DOMAIN</code> / <code class=\"px-1 py-0.5 bg-gray-100 rounded\">METAMASK_URI</code> com o host/origin usados na mensagem SIWE do cliente e permita os chain IDs em que os usuários vão assinar.",
+      "codeHeader": { "label": "Ambiente", "context": "Variáveis usadas pela API" }
+    },
+    "api": {
+      "title": "Contrato da API",
+      "description": "Dois endpoints POST — sem callback de redirect no navegador.",
+      "nonce": {
+        "codeHeader": { "label": "Nonce", "context": "Emite um nonce SIWE de curta duração" }
+      },
+      "verify": {
+        "codeHeader": { "label": "Verify", "context": "Troca assinatura por JWTs" }
+      }
+    },
+    "client": {
+      "title": "Amostra no browser",
+      "description": "Fluxo mínimo com MetaMask. Domain, URI, chain ID e statement devem bater com a config do servidor.",
+      "codeHeader": { "label": "JavaScript", "context": "eth_requestAccounts + personal_sign" }
+    },
+    "userModel": {
+      "title": "Modelo de usuário",
+      "description": "O endereço Ethereum em minúsculas é salvo como metamaskId. O email é sintético (address@users.noreply.metamask.local). Nomes de exibição são pares aleatórios adjetivo+substantivo gerados só no primeiro login."
+    },
+    "related": {
+      "title": "Guias relacionados",
+      "social": "Hub de Autenticação Social",
+      "coinbase": "Guia Coinbase OAuth2",
+      "auth": "Visão geral Auth & JWT"
+    }
+  }
+}

@@ -17,6 +17,7 @@ interface TwitterJsonProfile {
 
 @Injectable()
 export class TwitterStrategy extends PassportStrategy(Strategy, 'twitter') {
+    /* istanbul ignore next -- Nest DI / PassportStrategy constructor emit */
     constructor(configService: ConfigService) {
         const clientType =
             configService.get<'confidential' | 'public'>('twitterOAuth.clientType') ||

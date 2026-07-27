@@ -1,0 +1,170 @@
+{
+  "authSocialTwitch": {
+    "meta": {
+      "title": "Twitch OAuth2 - Backend NestJS"
+    },
+    "badge": "Twitch",
+    "hero": {
+      "titlePrefix": "Twitch",
+      "titleHighlight": "OAuth2",
+      "subtitle": "Authorization Code Exchange for web and mobile — Twitch Developer Console setup, API reference, and frontend examples."
+    },
+    "overview": {
+      "title": "Overview",
+      "description": "Twitch login is optional and controlled by <code class=\"px-1 py-0.5 bg-amber-100 rounded\">TWITCH_AUTH_ENABLED</code>. When disabled, Twitch endpoints return <strong>503 Service Unavailable</strong>. JWTs are never placed in the redirect URL; the API issues a one-time <code class=\"px-1 py-0.5 bg-gray-100 rounded\">exchangeCode</code> (Redis, 60 seconds). The same <code class=\"px-1 py-0.5 bg-gray-100 rounded\">POST /auth/exchange</code> endpoint is shared with other social providers.",
+      "items": [
+        "Feature-flagged via environment",
+        "Custom passport-oauth2 strategy + TwitchAuthGuard",
+        "Profile fetched via GET https://api.twitch.tv/helix/users after token exchange (Authorization: Bearer + Client-Id)",
+        "Scope user:read:email for profile and email",
+        "Redirect allowlist prevents open redirects",
+        "Same token response shape as POST /auth/login"
+      ]
+    },
+    "console": {
+      "title": "Twitch Developer Console",
+      "description": "Register an application under <strong>Twitch Developer Console → Applications → Register Your Application</strong> and set the OAuth Redirect URL to match <code class=\"px-1 py-0.5 bg-gray-100 rounded\">TWITCH_CALLBACK_URL</code>. Enable the <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user:read:email</code> scope.",
+      "steps": [
+        "Open Twitch Developer Console → Applications",
+        "Click Register Your Application",
+        "Enter a name and OAuth Redirect URL (e.g. http://localhost:3000/api/v1/auth/twitch/callback)",
+        "Select a category and confirm the application",
+        "Copy Client ID and generate a Client Secret",
+        "Ensure TWITCH_CALLBACK_URL matches the OAuth Redirect URL registered in Twitch",
+        "Request the user:read:email scope during authorization"
+      ]
+    },
+    "env": {
+      "title": "Environment variables",
+      "description": "Loaded from <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> via <code class=\"px-1 py-0.5 bg-gray-100 rounded\">src/config/twitch-oauth.config.ts</code> (namespace <code class=\"px-1 py-0.5 bg-gray-100 rounded\">twitchOAuth</code> on <code class=\"px-1 py-0.5 bg-gray-100 rounded\">ConfigService</code>). See <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env.example</code>.",
+      "codeHeader": {
+        "label": "Environment",
+        "context": ".env"
+      }
+    },
+    "roles": {
+      "title": "Default roles for new Twitch users",
+      "description": "New Twitch users receive <code class=\"px-1 py-0.5 bg-gray-100 rounded\">roles: []</code> by default (same as password register). Set <code class=\"px-1 py-0.5 bg-amber-100 rounded\">TWITCH_OAUTH_DEFAULT_ROLES</code> in <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> to a comma-separated list of Role values (e.g. <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user</code> or <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user,manager</code>). Existing users linked by email keep their current roles."
+    },
+    "flow": {
+      "title": "Sequence",
+      "items": [
+        "Client opens GET /api/v1/auth/twitch?redirect=<allowlisted URL>",
+        "User consents on Twitch; browser hits GET /api/v1/auth/twitch/callback",
+        "API calls GET https://api.twitch.tv/helix/users, upserts user, stores exchangeCode in Redis, redirects to redirect?code=...",
+        "Client POSTs { code } to /api/v1/auth/exchange and receives JWTs"
+      ]
+    },
+    "api": {
+      "title": "API reference",
+      "start": {
+        "title": "1. Start OAuth",
+        "description": "Opens Twitch consent at <code class=\"px-1 py-0.5 bg-gray-100 rounded\">https://id.twitch.tv/oauth2/authorize</code>. Query <code class=\"px-1 py-0.5 bg-gray-100 rounded\">redirect</code> must match a prefix in <code class=\"px-1 py-0.5 bg-gray-100 rounded\">TWITCH_REDIRECT_ALLOWLIST</code> (or omit to use the first allowlist entry). Scope: <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user:read:email</code>.",
+        "codeHeader": {
+          "label": "HTTP",
+          "context": "GET /api/v1/auth/twitch"
+        },
+        "errors": "400 invalid redirect · 503 feature disabled"
+      },
+      "callback": {
+        "title": "2. Callback",
+        "description": "Handled by the API. Token exchange uses <code class=\"px-1 py-0.5 bg-gray-100 rounded\">https://id.twitch.tv/oauth2/token</code>. Redirects to your app with <code class=\"px-1 py-0.5 bg-gray-100 rounded\">?code=</code> (or <code class=\"px-1 py-0.5 bg-gray-100 rounded\">&code=</code> if the URL already has a query).",
+        "codeHeader": {
+          "label": "HTTP",
+          "context": "GET /api/v1/auth/twitch/callback"
+        }
+      },
+      "exchange": {
+        "title": "3. Exchange code",
+        "description": "Public endpoint shared with other social providers. Consumes the code (single use) and returns the same shape as login.",
+        "requestHeader": {
+          "label": "HTTP Request",
+          "context": "POST /api/v1/auth/exchange"
+        },
+        "responseHeader": {
+          "label": "HTTP Response",
+          "context": "200 OK"
+        },
+        "errors": "401 invalid/expired/used code · 503 social auth disabled"
+      }
+    },
+    "web": {
+      "title": "Frontend — Web (SPA)",
+      "description": "Typical flow: button starts OAuth in the same window (or popup); a callback route on your frontend origin reads <code class=\"px-1 py-0.5 bg-gray-100 rounded\">code</code> from the query string and calls exchange.",
+      "startHeader": {
+        "label": "JavaScript",
+        "context": "Start Twitch login"
+      },
+      "callbackHeader": {
+        "label": "JavaScript",
+        "context": "Callback page /auth/callback"
+      },
+      "notes": [
+        "Add your frontend callback URL to TWITCH_REDIRECT_ALLOWLIST (e.g. http://localhost:5173/auth/callback)",
+        "TWITCH_CALLBACK_URL must point at the Nest API, not the SPA",
+        "Store accessToken / refreshToken securely (memory + httpOnly cookie patterns as you prefer)"
+      ]
+    },
+    "mobile": {
+      "title": "Frontend — Mobile (deep link)",
+      "description": "Use a custom scheme (or universal link) in the allowlist. After Twitch, the API redirects to <code class=\"px-1 py-0.5 bg-gray-100 rounded\">myapp://success?code=...</code>. The app opens, parses the code, and calls exchange.",
+      "openHeader": {
+        "label": "React Native",
+        "context": "Open OAuth in browser"
+      },
+      "handleHeader": {
+        "label": "React Native",
+        "context": "Handle deep link + exchange"
+      },
+      "notes": [
+        "Register the scheme in the OS / Expo app.json",
+        "Prefer Linking.addEventListener('url', ...) and getInitialURL()",
+        "Exchange over HTTPS against your API base URL"
+      ]
+    },
+    "security": {
+      "title": "Security notes",
+      "items": [
+        "Redirect URLs must match TWITCH_REDIRECT_ALLOWLIST prefixes",
+        "Exchange codes are single-use and expire in 60 seconds (Redis)",
+        "Existing local users are linked by verified Twitch email (twitchId set; roles unchanged)",
+        "Twitch-only users have password null — password login / change-password will fail until a password is set",
+        "Email is required from api.twitch.tv/helix/users; login fails if Twitch does not return an email (scope user:read:email)"
+      ]
+    },
+    "userModel": {
+      "title": "User model",
+      "description": "Postgres entity / interface fields used by Twitch login:",
+      "items": [
+        "twitchId — unique nullable Twitch user id (id from Helix /users)",
+        "password — nullable for OAuth-only accounts",
+        "isActive — set true for new Twitch users",
+        "roles — from TWITCH_OAUTH_DEFAULT_ROLES env (default [])"
+      ]
+    },
+    "related": {
+      "title": "Related",
+      "social": "Social Authentication hub",
+      "google": "Google OAuth2 guide",
+      "twitter": "X / Twitter OAuth2 guide",
+      "github": "GitHub OAuth2 guide",
+      "figma": "Figma OAuth2 guide",
+      "linkedin": "LinkedIn OpenID Connect guide",
+      "slack": "Slack OpenID Connect guide",
+      "atlassian": "Atlassian OAuth 2.0 (3LO) guide",
+      "gitlab": "GitLab OAuth2 guide",
+      "bitbucket": "Bitbucket OAuth2 guide",
+      "discord": "Discord OAuth2 guide",
+      "steam": "Steam OpenID 2.0 guide",
+      "reddit": "Reddit OAuth2 guide",
+      "auth": "Auth & JWT",
+      "facebook": "Facebook OAuth2 guide"
+    },
+    "samples": {
+      "fullPageRedirect": "// Full-page redirect to Nest → Twitch → back to SPA",
+      "spaCallback": "// /auth/callback on the SPA",
+      "persistTokens": "// persist tokens as your app requires",
+      "tokenFields": "// data.accessToken, data.refreshToken, data.user"
+    }
+  }
+}

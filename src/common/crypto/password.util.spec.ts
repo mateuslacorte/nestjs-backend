@@ -39,6 +39,17 @@ describe('password.util', () => {
       });
     });
 
+    it('falls back when env values are empty, zero, or non-numeric', () => {
+      process.env.ARGON2_MEMORY_COST = '';
+      process.env.ARGON2_TIME_COST = '0';
+      process.env.ARGON2_PARALLELISM = 'abc';
+      expect(resolveArgon2Options()).toEqual({
+        memoryCost: 19456,
+        timeCost: 2,
+        parallelism: 1,
+      });
+    });
+
     it('prefers explicit overrides over env', () => {
       process.env.ARGON2_MEMORY_COST = '65536';
       expect(

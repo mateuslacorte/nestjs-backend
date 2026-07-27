@@ -1,0 +1,24 @@
+{
+  "authActiveDirectoryLdaps": {
+    "badge": "LDAPS",
+    "hero": {
+      "titlePrefix": "Active Directory",
+      "titleHighlight": "LDAPS",
+      "subtitle": "Configure LDAP com TLS (porta 636) para autenticação AD em produção."
+    },
+    "overview": {
+      "title": "Visão geral",
+      "description": "LDAPS encapsula LDAP em TLS. Instale certificado válido no DC ou importe a cadeia CA no host da API. Use <code class=\"px-1 py-0.5 bg-gray-100 rounded\">AD_LDAP_TLS_REJECT_UNAUTHORIZED=false</code> apenas em dev/certificado autoassinado."
+    },
+    "config": {
+      "title": "Ambiente",
+      "description": "Use <code class=\"px-1 py-0.5 bg-gray-100 rounded\">ldaps://dc.example.com:636</code> em <code class=\"px-1 py-0.5 bg-gray-100 rounded\">AD_LDAP_URL</code>. Abra a porta 636 da API até o DC.",
+      "codeHeader": { "label": "Ambiente", "context": "Exemplo LDAPS" }
+    },
+    "related": {
+      "title": "Guias relacionados",
+      "hub": "Hub Active Directory",
+      "ldap": "Guia LDAP →"
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "authSocialSpotify": {
+    "badge": "Developer guide",
+    "hero": {
+      "titlePrefix": "Spotify",
+      "titleHighlight": "OAuth2",
+      "subtitle": "Plug Spotify login into your app with one shared Code Exchange flow for web and mobile."
+    },
+    "overview": {
+      "title": "Overview",
+      "description": "Spotify uses the standard OAuth2 Authorization Code flow. After consent, the API creates a short-lived single-use exchange code in Redis and then your client exchanges it for the same JWTs you get from password login."
+    },
+    "console": {
+      "title": "Spotify Developer Console",
+      "description": "Create a Spotify application and set the callback URL to this API, then list the allowed post-login redirect URLs in your app.",
+      "codeHeader": { "label": "Environment", "context": "Variables used by the API" }
+    },
+    "api": {
+      "title": "API contract",
+      "description": "The API exposes a start URL and a callback that issues the exchange code.",
+      "start": {
+        "codeHeader": { "label": "Start", "context": "Redirect the user to Spotify consent" }
+      },
+      "callback": {
+        "codeHeader": { "label": "Callback", "context": "Spotify redirects back to the API" }
+      },
+      "exchange": {
+        "codeHeader": { "label": "Exchange", "context": "Client exchanges code for JWTs" }
+      }
+    },
+    "userModel": {
+      "title": "User model",
+      "description": "Spotify's unique user identifier is stored as `spotifyId` on the user record. Email comes from Spotify (scope `user-read-email`)."
+    },
+    "related": {
+      "title": "Related guides",
+      "social": "Social Authentication hub",
+      "apple": "Apple Sign In setup guide",
+      "reddit": "Reddit OAuth2 setup guide"
+    }
+  }
+}
+

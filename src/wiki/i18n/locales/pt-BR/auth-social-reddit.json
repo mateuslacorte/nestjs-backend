@@ -1,0 +1,177 @@
+{
+  "authSocialReddit": {
+    "meta": {
+      "title": "Reddit OAuth2 - Backend NestJS"
+    },
+    "badge": "Reddit",
+    "hero": {
+      "titlePrefix": "Reddit",
+      "titleHighlight": "OAuth2",
+      "subtitle": "Authorization Code Exchange para web e mobile — setup em reddit.com/prefs/apps, scope identity, sem e-mail do Reddit, referência da API e exemplos de frontend."
+    },
+    "overview": {
+      "title": "Visão geral",
+      "description": "O login Reddit é opcional e controlado por <code class=\"px-1 py-0.5 bg-amber-100 rounded\">REDDIT_AUTH_ENABLED</code>. Quando desligado, os endpoints Reddit respondem <strong>503 Service Unavailable</strong>. O OAuth2 do Reddit usa o scope <code class=\"px-1 py-0.5 bg-gray-100 rounded\">identity</code> e <strong>não expõe endereço de e-mail</strong>. A API atribui um e-mail sintético estável <code class=\"px-1 py-0.5 bg-gray-100 rounded\">{redditId}@users.noreply.reddit.com</code> para o upsert da conta. A troca de token usa HTTP Basic; a busca de perfil usa Bearer + User-Agent obrigatório. JWTs nunca vão na URL de redirect; a API emite um <code class=\"px-1 py-0.5 bg-gray-100 rounded\">exchangeCode</code> de uso único (Redis, 60 segundos). O mesmo <code class=\"px-1 py-0.5 bg-gray-100 rounded\">POST /auth/exchange</code> é compartilhado com os demais provedores sociais.",
+      "items": [
+        "Ativado por feature flag no ambiente",
+        "Strategy passport-oauth2 customizada + RedditAuthGuard",
+        "Perfil obtido via GET https://oauth.reddit.com/api/v1/me (Authorization: Bearer + User-Agent)",
+        "Scope identity — apenas username e id do Reddit; sem e-mail",
+        "Troca de token em https://www.reddit.com/api/v1/access_token usa HTTP Basic auth",
+        "Sintético {redditId}@users.noreply.reddit.com — não entregável",
+        "Allowlist de redirect evita open redirects",
+        "Mesmo formato de tokens do POST /auth/login"
+      ]
+    },
+    "console": {
+      "title": "Preferências de app Reddit",
+      "description": "Crie um web app em <strong><a href=\"https://www.reddit.com/prefs/apps\" class=\"text-indigo-600 hover:underline\">reddit.com/prefs/apps</a></strong>. Defina o redirect uri igual a <code class=\"px-1 py-0.5 bg-gray-100 rounded\">REDDIT_CALLBACK_URL</code> e solicite o scope <code class=\"px-1 py-0.5 bg-gray-100 rounded\">identity</code> durante a autorização.",
+      "steps": [
+        "Abra https://www.reddit.com/prefs/apps",
+        "Role até \"developed applications\" e clique em create another app... (ou create app)",
+        "Escolha o tipo web app",
+        "Informe um nome e defina redirect uri para o callback da API Nest (ex.: http://localhost:3000/api/v1/auth/reddit/callback)",
+        "Copie o client id (abaixo do nome do app) e o client secret",
+        "Garanta que REDDIT_CALLBACK_URL corresponda ao redirect uri registrado no Reddit",
+        "A API solicita scope identity — o Reddit não devolve e-mail com esse scope"
+      ]
+    },
+    "env": {
+      "title": "Variáveis de ambiente",
+      "description": "Carregadas do <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> via <code class=\"px-1 py-0.5 bg-gray-100 rounded\">src/config/reddit-oauth.config.ts</code> (namespace <code class=\"px-1 py-0.5 bg-gray-100 rounded\">redditOAuth</code> no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">ConfigService</code>). Veja <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env.example</code>.",
+      "codeHeader": {
+        "label": "Environment",
+        "context": ".env"
+      }
+    },
+    "roles": {
+      "title": "Roles padrão para novos usuários Reddit",
+      "description": "Novos usuários Reddit recebem <code class=\"px-1 py-0.5 bg-gray-100 rounded\">roles: []</code> por padrão (igual ao register). Defina <code class=\"px-1 py-0.5 bg-amber-100 rounded\">REDDIT_OAUTH_DEFAULT_ROLES</code> no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> como lista separada por vírgula (ex.: <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user</code> ou <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user,manager</code>). Usuários existentes vinculados por redditId mantêm as roles atuais."
+    },
+    "flow": {
+      "title": "Sequência",
+      "items": [
+        "Cliente abre GET /api/v1/auth/reddit?redirect=<URL na allowlist>",
+        "Usuário autoriza no Reddit; browser chama GET /api/v1/auth/reddit/callback",
+        "API troca o code via HTTP Basic em access_token, chama GET https://oauth.reddit.com/api/v1/me, faz upsert, grava exchangeCode no Redis e redireciona para redirect?code=...",
+        "Cliente faz POST { code } em /api/v1/auth/exchange e recebe JWTs"
+      ]
+    },
+    "api": {
+      "title": "Referência da API",
+      "start": {
+        "title": "1. Iniciar OAuth",
+        "description": "Abre o consentimento Reddit em <code class=\"px-1 py-0.5 bg-gray-100 rounded\">https://www.reddit.com/api/v1/authorize</code>. O query <code class=\"px-1 py-0.5 bg-gray-100 rounded\">redirect</code> deve bater com um prefixo de <code class=\"px-1 py-0.5 bg-gray-100 rounded\">REDDIT_REDIRECT_ALLOWLIST</code> (ou omita para usar a primeira entrada). Scope: <code class=\"px-1 py-0.5 bg-gray-100 rounded\">identity</code>. Duração: temporary.",
+        "codeHeader": {
+          "label": "HTTP",
+          "context": "GET /api/v1/auth/reddit"
+        },
+        "errors": "400 redirect inválido · 503 feature desligada"
+      },
+      "callback": {
+        "title": "2. Callback",
+        "description": "Tratado pela API. A troca de token usa <code class=\"px-1 py-0.5 bg-gray-100 rounded\">https://www.reddit.com/api/v1/access_token</code> com HTTP Basic auth (client id + secret). O perfil vem de <code class=\"px-1 py-0.5 bg-gray-100 rounded\">https://oauth.reddit.com/api/v1/me</code>. Redireciona para seu app com <code class=\"px-1 py-0.5 bg-gray-100 rounded\">?code=</code> (exchange code, não o authorization code do Reddit).",
+        "codeHeader": {
+          "label": "HTTP",
+          "context": "GET /api/v1/auth/reddit/callback"
+        }
+      },
+      "exchange": {
+        "title": "3. Trocar code",
+        "description": "Endpoint público compartilhado com outros provedores sociais. Consome o code (uso único) e retorna o mesmo formato do login.",
+        "requestHeader": {
+          "label": "HTTP Request",
+          "context": "POST /api/v1/auth/exchange"
+        },
+        "responseHeader": {
+          "label": "HTTP Response",
+          "context": "200 OK"
+        },
+        "errors": "401 code inválido/expirado/usado · 503 social auth desligado"
+      }
+    },
+    "web": {
+      "title": "Frontend — Web (SPA)",
+      "description": "Mesmo padrão dos demais provedores OAuth: iniciar login no browser; sua rota de callback lê <code class=\"px-1 py-0.5 bg-gray-100 rounded\">code</code> da query e chama exchange. O objeto user inclui <code class=\"px-1 py-0.5 bg-gray-100 rounded\">redditId</code> e e-mail sintético — não use para envio de e-mail.",
+      "startHeader": {
+        "label": "JavaScript",
+        "context": "Iniciar login Reddit"
+      },
+      "callbackHeader": {
+        "label": "JavaScript",
+        "context": "Página de callback /auth/callback"
+      },
+      "notes": [
+        "Adicione a URL de callback do frontend em REDDIT_REDIRECT_ALLOWLIST (ex.: http://localhost:5173/auth/callback)",
+        "REDDIT_CALLBACK_URL deve apontar para a API Nest, não para o SPA",
+        "Reddit nunca devolve e-mail real — user.email é sintético e não entregável",
+        "Armazene accessToken / refreshToken com segurança (memória + httpOnly cookie conforme sua preferência)"
+      ]
+    },
+    "mobile": {
+      "title": "Frontend — Mobile (deep link)",
+      "description": "Use um custom scheme (ou universal link) na allowlist. Após OAuth Reddit, a API redireciona para <code class=\"px-1 py-0.5 bg-gray-100 rounded\">myapp://success?code=...</code>. O app abre, parseia o code e chama exchange.",
+      "openHeader": {
+        "label": "React Native",
+        "context": "Abrir OAuth no browser"
+      },
+      "handleHeader": {
+        "label": "React Native",
+        "context": "Tratar deep link + exchange"
+      },
+      "notes": [
+        "Registre o scheme no SO / Expo app.json",
+        "Prefira Linking.addEventListener('url', ...) e getInitialURL()",
+        "Exchange via HTTPS contra a URL base da API",
+        "Identifique usuários por redditId — não pelo e-mail sintético"
+      ]
+    },
+    "security": {
+      "title": "Notas de segurança",
+      "items": [
+        "URLs de redirect devem bater com prefixos de REDDIT_REDIRECT_ALLOWLIST",
+        "Exchange codes são de uso único e expiram em 60 segundos (Redis)",
+        "Reddit nunca fornece e-mail — endereço sintético é só para upsert interno, não para notificações",
+        "Contas existentes são vinculadas por redditId; linking por e-mail não se aplica a usuários só-Reddit",
+        "A API Reddit exige User-Agent descritivo nas requisições de perfil",
+        "Usuários só-Reddit têm password null — login por senha / change-password falham até definir senha"
+      ]
+    },
+    "userModel": {
+      "title": "Modelo de usuário",
+      "description": "Campos da entidade Postgres / interface usados pelo login Reddit:",
+      "items": [
+        "redditId — id Reddit único e nullable (id de /api/v1/me)",
+        "email — sintético {redditId}@users.noreply.reddit.com (Reddit não expõe e-mail)",
+        "password — nullable para contas só OAuth",
+        "isActive — true para novos usuários Reddit",
+        "roles — de REDDIT_OAUTH_DEFAULT_ROLES no env (padrão [])"
+      ]
+    },
+    "related": {
+      "title": "Relacionado",
+      "social": "Hub Social Authentication",
+      "google": "Guia Google OAuth2",
+      "twitter": "Guia X / Twitter OAuth2",
+      "github": "Guia GitHub OAuth2",
+      "figma": "Guia Figma OAuth2",
+      "linkedin": "Guia LinkedIn OpenID Connect",
+      "slack": "Guia Slack OpenID Connect",
+      "atlassian": "Guia Atlassian OAuth 2.0 (3LO)",
+      "gitlab": "Guia GitLab OAuth2",
+      "bitbucket": "Guia Bitbucket OAuth2",
+      "discord": "Guia Discord OAuth2",
+      "twitch": "Guia Twitch OAuth2",
+      "steam": "Guia Steam OpenID 2.0",
+      "auth": "Auth & JWT",
+      "facebook": "Guia Facebook OAuth2"
+    },
+    "samples": {
+      "fullPageRedirect": "// Redirect full-page para Nest → Reddit → volta ao SPA",
+      "spaCallback": "// /auth/callback no SPA",
+      "persistTokens": "// persista tokens conforme sua aplicação exige",
+      "tokenFields": "// data.accessToken, data.refreshToken, data.user",
+      "logRedditId": "// Reddit não tem e-mail real — use redditId como identificador estável"
+    }
+  }
+}
