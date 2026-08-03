@@ -79,6 +79,6 @@ export class OauthExchangeService {
                 // keep raw value when malformed
             }
         }
-        return value.split('#')[0]?.trim() ?? '';
+        return value.split('#')[0].trim();
     }
 }

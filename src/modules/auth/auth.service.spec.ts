@@ -1298,6 +1298,49 @@ describe('AuthService', () => {
       );
     });
 
+    it('falls back for relative redirect without query or hash', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'googleOAuth.redirectAllowlist') return ['/oauth/cb'];
+        return defaultConfig[key];
+      });
+      usersService.findByGoogleId.mockResolvedValue(createUser());
+      const relativeState = encodeOAuthState('/oauth/cb');
+
+      const result = await service.completeGoogleOAuth(profile, relativeState);
+
+      expect(result.redirectUrl).toBe('/oauth/cb?code=exchange-code-123');
+    });
+
+    it('falls back for relative redirect that already has query params', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'googleOAuth.redirectAllowlist') return ['/oauth/cb'];
+        return defaultConfig[key];
+      });
+      usersService.findByGoogleId.mockResolvedValue(createUser());
+      const relativeState = encodeOAuthState('/oauth/cb?foo=bar');
+
+      const result = await service.completeGoogleOAuth(profile, relativeState);
+
+      expect(result.redirectUrl).toBe(
+        '/oauth/cb?foo=bar&code=exchange-code-123',
+      );
+    });
+
+    it('falls back for relative redirect with a hash fragment', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'googleOAuth.redirectAllowlist') return ['/oauth/cb'];
+        return defaultConfig[key];
+      });
+      usersService.findByGoogleId.mockResolvedValue(createUser());
+      const relativeState = encodeOAuthState('/oauth/cb#/home');
+
+      const result = await service.completeGoogleOAuth(profile, relativeState);
+
+      expect(result.redirectUrl).toBe(
+        '/oauth/cb?code=exchange-code-123#/home',
+      );
+    });
+
     it('retries username on collision when creating new user', async () => {
       usersService.findByGoogleId.mockResolvedValue(null);
       usersService.findByEmail.mockResolvedValue(null);

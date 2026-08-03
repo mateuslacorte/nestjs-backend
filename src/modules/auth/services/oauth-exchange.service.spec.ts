@@ -731,6 +731,17 @@ describe('OauthExchangeService', () => {
       );
     });
 
+    it('keeps raw value when percent-encoding is malformed', async () => {
+      cacheService.get.mockResolvedValue({ userId });
+
+      const result = await service.consumeExchangeCode('abc%E0%A4');
+
+      expect(result).toBe(userId);
+      expect(cacheService.get).toHaveBeenCalledWith(
+        'auth:oauth:exchange:abc%E0%A4',
+      );
+    });
+
     it('throws UnauthorizedException when code is missing from cache', async () => {
       cacheService.get.mockResolvedValue(null);
 

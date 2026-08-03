@@ -19,7 +19,7 @@ export class ExchangeCodeDto {
                 // keep raw value when malformed
             }
         }
-        return code.split('#')[0]?.trim() ?? '';
+        return code.split('#')[0].trim();
     })
     @IsString()
     @IsNotEmpty()

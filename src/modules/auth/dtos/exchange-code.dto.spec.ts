@@ -43,4 +43,25 @@ describe('ExchangeCodeDto', () => {
       expect.arrayContaining([expect.stringMatching(/must be a string/i)]),
     );
   });
+
+  it('decodes percent-encoded exchange codes', async () => {
+    const dto = plainToInstance(ExchangeCodeDto, {
+      code: 'abc%2Dcode%23',
+    });
+    expect(dto.code).toBe('abc-code');
+    expect(await validate(dto)).toHaveLength(0);
+  });
+
+  it('keeps raw value when percent-encoding is malformed', async () => {
+    const dto = plainToInstance(ExchangeCodeDto, {
+      code: 'abc%E0%A4',
+    });
+    expect(dto.code).toBe('abc%E0%A4');
+    expect(await validate(dto)).toHaveLength(0);
+  });
+
+  it('strips a trailing hash fragment from the code', async () => {
+    const dto = plainToInstance(ExchangeCodeDto, { code: 'abc-code#' });
+    expect(dto.code).toBe('abc-code');
+  });
 });
