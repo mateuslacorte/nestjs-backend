@@ -458,10 +458,8 @@ export class AuthService {
         );
         const user = await this.findOrCreateGoogleUser(profile);
         const code = await this.oauthExchangeService.createExchangeCode(user.id!);
-        const separator = redirectBase.includes('?') ? '&' : '?';
-
         return {
-            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+            redirectUrl: this.buildOAuthRedirectUrl(redirectBase, code),
         };
     }
 
@@ -480,10 +478,8 @@ export class AuthService {
         );
         const user = await this.findOrCreateFacebookUser(profile);
         const code = await this.oauthExchangeService.createExchangeCode(user.id!);
-        const separator = redirectBase.includes('?') ? '&' : '?';
-
         return {
-            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+            redirectUrl: this.buildOAuthRedirectUrl(redirectBase, code),
         };
     }
 
@@ -502,10 +498,8 @@ export class AuthService {
         );
         const user = await this.findOrCreateTwitterUser(profile);
         const code = await this.oauthExchangeService.createExchangeCode(user.id!);
-        const separator = redirectBase.includes('?') ? '&' : '?';
-
         return {
-            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+            redirectUrl: this.buildOAuthRedirectUrl(redirectBase, code),
         };
     }
 
@@ -524,10 +518,8 @@ export class AuthService {
         );
         const user = await this.findOrCreateGithubUser(profile);
         const code = await this.oauthExchangeService.createExchangeCode(user.id!);
-        const separator = redirectBase.includes('?') ? '&' : '?';
-
         return {
-            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+            redirectUrl: this.buildOAuthRedirectUrl(redirectBase, code),
         };
     }
 
@@ -546,10 +538,8 @@ export class AuthService {
         );
         const user = await this.findOrCreateFigmaUser(profile);
         const code = await this.oauthExchangeService.createExchangeCode(user.id!);
-        const separator = redirectBase.includes('?') ? '&' : '?';
-
         return {
-            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+            redirectUrl: this.buildOAuthRedirectUrl(redirectBase, code),
         };
     }
 
@@ -568,10 +558,8 @@ export class AuthService {
         );
         const user = await this.findOrCreateLinkedinUser(profile);
         const code = await this.oauthExchangeService.createExchangeCode(user.id!);
-        const separator = redirectBase.includes('?') ? '&' : '?';
-
         return {
-            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+            redirectUrl: this.buildOAuthRedirectUrl(redirectBase, code),
         };
     }
 
@@ -590,10 +578,8 @@ export class AuthService {
         );
         const user = await this.findOrCreateSlackUser(profile);
         const code = await this.oauthExchangeService.createExchangeCode(user.id!);
-        const separator = redirectBase.includes('?') ? '&' : '?';
-
         return {
-            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+            redirectUrl: this.buildOAuthRedirectUrl(redirectBase, code),
         };
     }
 
@@ -612,10 +598,8 @@ export class AuthService {
         );
         const user = await this.findOrCreateAtlassianUser(profile);
         const code = await this.oauthExchangeService.createExchangeCode(user.id!);
-        const separator = redirectBase.includes('?') ? '&' : '?';
-
         return {
-            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+            redirectUrl: this.buildOAuthRedirectUrl(redirectBase, code),
         };
     }
 
@@ -634,10 +618,8 @@ export class AuthService {
         );
         const user = await this.findOrCreateGitlabUser(profile);
         const code = await this.oauthExchangeService.createExchangeCode(user.id!);
-        const separator = redirectBase.includes('?') ? '&' : '?';
-
         return {
-            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+            redirectUrl: this.buildOAuthRedirectUrl(redirectBase, code),
         };
     }
 
@@ -656,10 +638,8 @@ export class AuthService {
         );
         const user = await this.findOrCreateBitbucketUser(profile);
         const code = await this.oauthExchangeService.createExchangeCode(user.id!);
-        const separator = redirectBase.includes('?') ? '&' : '?';
-
         return {
-            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+            redirectUrl: this.buildOAuthRedirectUrl(redirectBase, code),
         };
     }
 
@@ -678,10 +658,8 @@ export class AuthService {
         );
         const user = await this.findOrCreateDiscordUser(profile);
         const code = await this.oauthExchangeService.createExchangeCode(user.id!);
-        const separator = redirectBase.includes('?') ? '&' : '?';
-
         return {
-            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+            redirectUrl: this.buildOAuthRedirectUrl(redirectBase, code),
         };
     }
 
@@ -700,10 +678,8 @@ export class AuthService {
         );
         const user = await this.findOrCreateTwitchUser(profile);
         const code = await this.oauthExchangeService.createExchangeCode(user.id!);
-        const separator = redirectBase.includes('?') ? '&' : '?';
-
         return {
-            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+            redirectUrl: this.buildOAuthRedirectUrl(redirectBase, code),
         };
     }
 
@@ -722,10 +698,8 @@ export class AuthService {
         );
         const user = await this.findOrCreateSteamUser(profile);
         const code = await this.oauthExchangeService.createExchangeCode(user.id!);
-        const separator = redirectBase.includes('?') ? '&' : '?';
-
         return {
-            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+            redirectUrl: this.buildOAuthRedirectUrl(redirectBase, code),
         };
     }
 
@@ -744,10 +718,8 @@ export class AuthService {
         );
         const user = await this.findOrCreateRedditUser(profile);
         const code = await this.oauthExchangeService.createExchangeCode(user.id!);
-        const separator = redirectBase.includes('?') ? '&' : '?';
-
         return {
-            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+            redirectUrl: this.buildOAuthRedirectUrl(redirectBase, code),
         };
     }
 
@@ -766,10 +738,8 @@ export class AuthService {
         );
         const user = await this.findOrCreateSpotifyUser(profile);
         const code = await this.oauthExchangeService.createExchangeCode(user.id!);
-        const separator = redirectBase.includes('?') ? '&' : '?';
-
         return {
-            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+            redirectUrl: this.buildOAuthRedirectUrl(redirectBase, code),
         };
     }
 
@@ -788,10 +758,8 @@ export class AuthService {
         );
         const user = await this.findOrCreateAmazonUser(profile);
         const code = await this.oauthExchangeService.createExchangeCode(user.id!);
-        const separator = redirectBase.includes('?') ? '&' : '?';
-
         return {
-            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+            redirectUrl: this.buildOAuthRedirectUrl(redirectBase, code),
         };
     }
 
@@ -810,10 +778,8 @@ export class AuthService {
         );
         const user = await this.findOrCreateMicrosoftUser(profile);
         const code = await this.oauthExchangeService.createExchangeCode(user.id!);
-        const separator = redirectBase.includes('?') ? '&' : '?';
-
         return {
-            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+            redirectUrl: this.buildOAuthRedirectUrl(redirectBase, code),
         };
     }
 
@@ -832,10 +798,8 @@ export class AuthService {
         );
         const user = await this.findOrCreatePatreonUser(profile);
         const code = await this.oauthExchangeService.createExchangeCode(user.id!);
-        const separator = redirectBase.includes('?') ? '&' : '?';
-
         return {
-            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+            redirectUrl: this.buildOAuthRedirectUrl(redirectBase, code),
         };
     }
 
@@ -854,10 +818,8 @@ export class AuthService {
         );
         const user = await this.findOrCreateDropboxUser(profile);
         const code = await this.oauthExchangeService.createExchangeCode(user.id!);
-        const separator = redirectBase.includes('?') ? '&' : '?';
-
         return {
-            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+            redirectUrl: this.buildOAuthRedirectUrl(redirectBase, code),
         };
     }
 
@@ -876,10 +838,8 @@ export class AuthService {
         );
         const user = await this.findOrCreateCoinbaseUser(profile);
         const code = await this.oauthExchangeService.createExchangeCode(user.id!);
-        const separator = redirectBase.includes('?') ? '&' : '?';
-
         return {
-            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+            redirectUrl: this.buildOAuthRedirectUrl(redirectBase, code),
         };
     }
 
@@ -1067,10 +1027,8 @@ export class AuthService {
         );
         const user = await this.findOrCreateAppleUser(profile);
         const code = await this.oauthExchangeService.createExchangeCode(user.id!);
-        const separator = redirectBase.includes('?') ? '&' : '?';
-
         return {
-            redirectUrl: `${redirectBase}${separator}code=${encodeURIComponent(code)}`,
+            redirectUrl: this.buildOAuthRedirectUrl(redirectBase, code),
         };
     }
 
@@ -1134,6 +1092,25 @@ export class AuthService {
             !coinbase
         ) {
             throw new ServiceUnavailableException('Social authentication is disabled');
+        }
+    }
+
+    /**
+     * Appends the one-time exchange code as a query param, placing it before any
+     * hash fragment so hash-router bases keep a clean `?code=` outside `#...`.
+     */
+    private buildOAuthRedirectUrl(redirectBase: string, code: string): string {
+        try {
+            const url = new URL(redirectBase);
+            url.searchParams.set('code', code);
+            return url.href;
+        } catch {
+            const hashIndex = redirectBase.indexOf('#');
+            const beforeHash =
+                hashIndex >= 0 ? redirectBase.slice(0, hashIndex) : redirectBase;
+            const hash = hashIndex >= 0 ? redirectBase.slice(hashIndex) : '';
+            const separator = beforeHash.includes('?') ? '&' : '?';
+            return `${beforeHash}${separator}code=${encodeURIComponent(code)}${hash}`;
         }
     }
 

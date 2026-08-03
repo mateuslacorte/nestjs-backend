@@ -28,7 +28,7 @@
     },
     "catchall": {
       "title": "Catch-all (rotas inválidas)",
-      "description": "O CatchAllController só é registrado quando <code class=\"px-1 py-0.5 bg-gray-100 rounded\">NODE_ENV</code> é <code class=\"px-1 py-0.5 bg-gray-100 rounded\">production</code> ou <code class=\"px-1 py-0.5 bg-gray-100 rounded\">staging</code>. Trata rotas não mapeadas com <code class=\"px-1 py-0.5 bg-gray-100 rounded\">@All('*path')</code> e é <code class=\"px-1 py-0.5 bg-gray-100 rounded\">@Public()</code>.",
+      "description": "O CatchAllController só é registrado quando <code class=\"px-1 py-0.5 bg-gray-100 rounded\">NODE_ENV</code> é <code class=\"px-1 py-0.5 bg-gray-100 rounded\">production</code> ou <code class=\"px-1 py-0.5 bg-gray-100 rounded\">staging</code>. Trata rotas não mapeadas com <code class=\"px-1 py-0.5 bg-gray-100 rounded\">@All('*')</code> e é <code class=\"px-1 py-0.5 bg-gray-100 rounded\">@Public()</code>.",
       "flow": {
         "title": "Fluxo",
         "items": [
@@ -42,7 +42,7 @@
         "title": "Não conta como suspeito",
         "items": [
           "404 HTML da wiki (Accept: text/html no browser)",
-          "Path GraphQL (GRAPHQL_PATH ou /graphql) — next()",
+          "Path GraphQL (GRAPHQL_PATH ou /graphql) — rota Apollo Fastify",
           "/favicon.ico (e demais assets de favicon), /robots.txt e /health"
         ]
       }

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { Strategy as PassportStrategyBase } from 'passport-strategy';
-import { Request } from 'express';
+import { AppRequest, requestPath } from '@common/http/app-http';
 import axios from 'axios';
 
 export interface SteamProfilePayload {
@@ -53,13 +53,14 @@ export class SteamOpenIdPassportStrategy extends PassportStrategyBase {
         this.verify = verify;
     }
 
-    authenticate(req: Request, options?: { state?: string }): void {
-        const mode = typeof req.query['openid.mode'] === 'string'
-            ? req.query['openid.mode']
+    authenticate(req: any, options?: { state?: string }): void {
+        const appReq = req as AppRequest;
+        const mode = typeof appReq.query?.['openid.mode'] === 'string'
+            ? appReq.query['openid.mode']
             : undefined;
 
-        if (mode === 'id_res' || req.path.includes('/steam/callback')) {
-            void this.handleCallback(req);
+        if (mode === 'id_res' || requestPath(appReq).includes('/steam/callback')) {
+            void this.handleCallback(appReq);
             return;
         }
 
@@ -83,7 +84,7 @@ export class SteamOpenIdPassportStrategy extends PassportStrategyBase {
         this.redirect(`${STEAM_OPENID_ENDPOINT}?${params.toString()}`);
     }
 
-    private async handleCallback(req: Request): Promise<void> {
+    private async handleCallback(req: AppRequest): Promise<void> {
         try {
             const profile = await this.verifyAndBuildProfile(req);
             this.verify(profile, (err, user) => {
@@ -92,7 +93,7 @@ export class SteamOpenIdPassportStrategy extends PassportStrategyBase {
                     return;
                 }
                 if (!user) {
-                    this.fail();
+                    this.fail(401);
                     return;
                 }
                 this.success(user);
@@ -103,7 +104,7 @@ export class SteamOpenIdPassportStrategy extends PassportStrategyBase {
     }
 
     private async verifyAndBuildProfile(
-        req: Request,
+        req: AppRequest,
     ): Promise<SteamProfilePayload> {
         const q = req.query;
         const mode = String(q['openid.mode'] || '');

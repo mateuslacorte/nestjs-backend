@@ -57,7 +57,7 @@ export class SecurityController {
     @ApiResponse({ status: 404, description: 'IP not found' })
     async unblockIp(@Param('ip') ip: string) {
         const result = await this.securityService.unblockIp(ip);
-        return { message: `IP ${ip} desbloqueado com sucesso`, data: result };
+        return { message: `IP ${ip} unblocked successfully`, data: result };
     }
 
     @Post('reset/:ip')
@@ -70,7 +70,7 @@ export class SecurityController {
     @ApiResponse({ status: 404, description: 'IP not found' })
     async resetAttempts(@Param('ip') ip: string) {
         const result = await this.securityService.resetAttempts(ip);
-        return { message: `Tentativas do IP ${ip} resetadas`, data: result };
+        return { message: `Attempts for IP ${ip} were reset`, data: result };
     }
 
     @Delete(':ip')
@@ -82,6 +82,6 @@ export class SecurityController {
     @ApiResponse({ status: 404, description: 'IP not found' })
     async removeIp(@Param('ip') ip: string) {
         await this.securityService.removeIp(ip);
-        return { message: `IP ${ip} removido da lista com sucesso` };
+        return { message: `IP ${ip} removed from the list successfully` };
     }
 }

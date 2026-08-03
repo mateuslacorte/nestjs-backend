@@ -154,7 +154,7 @@ describe('UserPostgresRepository', () => {
         isActive: true,
         roles: [],
       });
-      expect(cacheService.delPattern).toHaveBeenCalledWith('users:*');
+      expect(cacheService.delPattern).toHaveBeenCalledWith('typeorm:users:user:*');
       expect(result).not.toHaveProperty('password');
       expect(result.email).toBe('jane@example.com');
     });
@@ -1371,7 +1371,7 @@ describe('UserPostgresRepository', () => {
       });
 
       expect(hashPasswordMock).toHaveBeenCalledWith('Str0ng!P@ssw0rd');
-      expect(cacheService.delPattern).toHaveBeenCalledWith('users:*');
+      expect(cacheService.delPattern).toHaveBeenCalledWith('typeorm:users:user:*');
       expect(result).not.toHaveProperty('password');
     });
 
@@ -1477,7 +1477,7 @@ describe('UserPostgresRepository', () => {
       const result = await repository.remove('user-1');
 
       expect(typeOrmRepo.remove).toHaveBeenCalledWith(entity);
-      expect(cacheService.delPattern).toHaveBeenCalledWith('users:*');
+      expect(cacheService.delPattern).toHaveBeenCalledWith('typeorm:users:user:*');
       expect(result).not.toHaveProperty('password');
       expect(result.id).toBe('user-1');
     });
@@ -1501,7 +1501,7 @@ describe('UserPostgresRepository', () => {
       });
 
       expect(existing.firstName).toBe('Janet');
-      expect(cacheService.delPattern).toHaveBeenCalledWith('users:*');
+      expect(cacheService.delPattern).toHaveBeenCalledWith('typeorm:users:user:*');
       expect(result).not.toHaveProperty('password');
     });
 
@@ -1590,7 +1590,7 @@ describe('UserPostgresRepository', () => {
         ...userData,
         password: null,
       });
-      expect(cacheService.delPattern).toHaveBeenCalledWith('users:*');
+      expect(cacheService.delPattern).toHaveBeenCalledWith('typeorm:users:user:*');
       expect(result).not.toHaveProperty('password');
     });
 

@@ -7,12 +7,13 @@ import {
     unwrapResolverError,
 } from '@apollo/server/errors';
 import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
-import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
-import { expressMiddleware } from '@as-integrations/express5';
+import {
+    fastifyApolloDrainPlugin,
+    fastifyApolloHandler,
+} from '@as-integrations/fastify';
 import { GraphQLFormattedError, GraphQLSchema } from 'graphql';
-import cors from 'cors';
-import { ApolloExpressDriverConfig } from './apollo-express-driver.config';
+import { ApolloFastifyDriverConfig } from './apollo-fastify-driver.config';
 
 const APOLLO_HTTP_EXCEPTION_CODES: Record<number, string> = {
     [HttpStatus.BAD_REQUEST]: ApolloServerErrorCode.BAD_REQUEST,
@@ -52,54 +53,50 @@ const NEST_ONLY_OPTION_KEYS = new Set([
 ]);
 
 @Injectable()
-export class ApolloExpressDriver extends AbstractGraphQLDriver<ApolloExpressDriverConfig> {
+export class ApolloFastifyDriver extends AbstractGraphQLDriver<ApolloFastifyDriverConfig> {
     private apolloServer?: ApolloServer;
 
     get instance(): ApolloServer | undefined {
         return this.apolloServer;
     }
 
-    async start(options: ApolloExpressDriverConfig): Promise<void> {
+    async start(options: ApolloFastifyDriverConfig): Promise<void> {
         const httpAdapter = this.httpAdapterHost.httpAdapter;
-        if (httpAdapter.getType() !== 'express') {
+        if (httpAdapter.getType() !== 'fastify') {
             throw new Error(
-                `ApolloExpressDriver only supports Express (got: ${httpAdapter.getType()})`,
+                `ApolloFastifyDriver only supports Fastify (got: ${httpAdapter.getType()})`,
             );
         }
 
         const { path, schema } = options;
         if (!schema) {
-            throw new Error('ApolloExpressDriver requires a GraphQL schema');
+            throw new Error('ApolloFastifyDriver requires a GraphQL schema');
+        }
+        if (!path) {
+            throw new Error('ApolloFastifyDriver requires a GraphQL path');
         }
 
-        httpAdapter.use(path, (req: { body?: unknown }, _res: unknown, next: () => void) => {
-            req.body = req.body ?? {};
-            next();
-        });
-
-        const drainHttpServerPlugin = ApolloServerPluginDrainHttpServer({
-            httpServer: httpAdapter.getHttpServer(),
-        });
+        const fastify = httpAdapter.getInstance();
+        const drainPlugin = fastifyApolloDrainPlugin(fastify);
 
         const apolloOptions = this.omitNestKeys(options);
         const server = new ApolloServer({
             schema: schema as GraphQLSchema,
             ...apolloOptions,
-            plugins: [...(options.plugins ?? []), drainHttpServerPlugin],
+            plugins: [...(options.plugins ?? []), drainPlugin],
         });
 
         await server.start();
 
-        const app = httpAdapter.getInstance();
-        if (options.cors) {
-            app.use(path, cors(options.cors));
-        }
-        app.use(
-            path,
-            expressMiddleware(server, {
-                context: options.context as any,
-            }),
-        );
+        // Explicit Fastify route so /graphql matches before Nest catch-all wildcards.
+        const handler = fastifyApolloHandler(server, {
+            context: options.context as any,
+        });
+        fastify.route({
+            method: ['GET', 'POST', 'OPTIONS'],
+            url: path,
+            handler,
+        });
 
         this.apolloServer = server;
     }
@@ -109,8 +106,8 @@ export class ApolloExpressDriver extends AbstractGraphQLDriver<ApolloExpressDriv
     }
 
     async mergeDefaultOptions(
-        options: ApolloExpressDriverConfig,
-    ): Promise<ApolloExpressDriverConfig> {
+        options: ApolloFastifyDriverConfig,
+    ): Promise<ApolloFastifyDriverConfig> {
         const enableSandbox =
             options.playground === true ||
             (options.playground === undefined && process.env.NODE_ENV !== 'production');
@@ -140,7 +137,7 @@ export class ApolloExpressDriver extends AbstractGraphQLDriver<ApolloExpressDriv
     }
 
     private omitNestKeys(
-        options: ApolloExpressDriverConfig,
+        options: ApolloFastifyDriverConfig,
     ): Record<string, unknown> {
         const result: Record<string, unknown> = {};
         for (const [key, value] of Object.entries(options)) {
@@ -175,7 +172,7 @@ export class ApolloExpressDriver extends AbstractGraphQLDriver<ApolloExpressDriv
         };
     }
 
-    private wrapFormatErrorFn(options: ApolloExpressDriverConfig): void {
+    private wrapFormatErrorFn(options: ApolloFastifyDriverConfig): void {
         if (options.autoTransformHttpErrors === false) {
             return;
         }
@@ -232,8 +229,8 @@ export class ApolloExpressDriver extends AbstractGraphQLDriver<ApolloExpressDriv
     }
 
     private wrapContextResolver(
-        targetOptions: ApolloExpressDriverConfig,
-        originalOptions: ApolloExpressDriverConfig = { ...targetOptions },
+        targetOptions: ApolloFastifyDriverConfig,
+        originalOptions: ApolloFastifyDriverConfig = { ...targetOptions },
     ): void {
         if (!targetOptions.context) {
             targetOptions.context = async (contextOrRequest: { req?: unknown }) => ({

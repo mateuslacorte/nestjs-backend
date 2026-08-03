@@ -4,8 +4,7 @@ import {
 } from '@nestjs/common/constants';
 import { RequestMethod } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Request, Response } from 'express';
-import * as path from 'path';
+import { AppRequest, AppReply } from '@common/http/app-http';
 import { IS_PUBLIC_KEY } from '@modules/auth/decorators/public.decorator';
 import { NO_LOG_KEY } from '@common/graylog/decorators/no-log.decorator';
 import { WikiController } from './wiki.controller';
@@ -18,8 +17,8 @@ describe('WikiController', () => {
     renderServerError: jest.Mock;
   };
   let controller: WikiController;
-  let req: Request;
-  let res: Response & { sendFile: jest.Mock };
+  let req: AppRequest;
+  let reply: AppReply;
 
   beforeEach(() => {
     wikiRender = {
@@ -30,10 +29,8 @@ describe('WikiController', () => {
     controller = new WikiController(
       wikiRender as unknown as WikiRenderService,
     );
-    req = { path: '/' } as Request;
-    res = { sendFile: jest.fn() } as unknown as Response & {
-      sendFile: jest.Mock;
-    };
+    req = { path: '/' } as AppRequest;
+    reply = {} as AppReply;
   });
 
   describe('class metadata', () => {
@@ -329,14 +326,14 @@ describe('WikiController', () => {
         ).toBe(route);
 
         (controller[method] as (
-          req: Request,
-          res: Response,
+          req: AppRequest,
+          reply: AppReply,
           lang?: string,
-        ) => void)(req, res, 'pt-BR');
+        ) => void)(req, reply, 'pt-BR');
 
         expect(wikiRender.renderPage).toHaveBeenCalledWith(
           req,
-          res,
+          reply,
           'pt-BR',
           view,
           namespace,
@@ -348,31 +345,13 @@ describe('WikiController', () => {
 
   describe('error previews', () => {
     it('getNotFoundPreview delegates to renderNotFound', () => {
-      controller.getNotFoundPreview(req, res);
-      expect(wikiRender.renderNotFound).toHaveBeenCalledWith(req, res);
+      controller.getNotFoundPreview(req, reply);
+      expect(wikiRender.renderNotFound).toHaveBeenCalledWith(req, reply);
     });
 
     it('getServerErrorPreview delegates to renderServerError', () => {
-      controller.getServerErrorPreview(req, res);
-      expect(wikiRender.renderServerError).toHaveBeenCalledWith(req, res);
-    });
-  });
-
-  describe('serveStatic', () => {
-    it('sends a file from the wiki public directory', () => {
-      controller.serveStatic('favicon.ico', res);
-
-      expect(res.sendFile).toHaveBeenCalledWith(
-        path.join(__dirname, 'public', 'favicon.ico'),
-      );
-    });
-
-    it('supports nested static paths', () => {
-      controller.serveStatic('og/default.jpg', res);
-
-      expect(res.sendFile).toHaveBeenCalledWith(
-        path.join(__dirname, 'public', 'og/default.jpg'),
-      );
+      controller.getServerErrorPreview(req, reply);
+      expect(wikiRender.renderServerError).toHaveBeenCalledWith(req, reply);
     });
   });
 });

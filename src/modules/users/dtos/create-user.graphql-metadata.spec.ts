@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { TypeMetadataStorage } from '@nestjs/graphql';
-import { LazyMetadataStorage } from '@nestjs/graphql/dist/schema-builder/storages/lazy-metadata.storage';
+import { LazyMetadataStorage } from '@nestjs/graphql/dist/schema-builder/storages/lazy-metadata.storage.js';
 import { Role } from '@modules/auth/enums/role.enum';
 import { CreateUserDto } from './create-user.dto';
 

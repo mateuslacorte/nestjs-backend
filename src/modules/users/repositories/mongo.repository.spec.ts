@@ -164,7 +164,7 @@ describe('UserMongoRepository', () => {
         activeDirectoryId: null,
       });
       expect(doc.save).toHaveBeenCalled();
-      expect(cacheService.delPattern).toHaveBeenCalledWith('users:*');
+      expect(cacheService.delPattern).toHaveBeenCalledWith('mongoose:users:user:*');
       expect(result).not.toHaveProperty('password');
     });
 
@@ -415,7 +415,7 @@ describe('UserMongoRepository', () => {
         }),
         { new: true },
       );
-      expect(cacheService.delPattern).toHaveBeenCalledWith('users:*');
+      expect(cacheService.delPattern).toHaveBeenCalledWith('mongoose:users:user:*');
       expect(result).not.toHaveProperty('password');
     });
 
@@ -529,7 +529,7 @@ describe('UserMongoRepository', () => {
       const result = await repository.remove('fixed-uuid');
 
       expect(model.findByIdAndDelete).toHaveBeenCalledWith('fixed-uuid');
-      expect(cacheService.delPattern).toHaveBeenCalledWith('users:*');
+      expect(cacheService.delPattern).toHaveBeenCalledWith('mongoose:users:user:*');
       expect(result).not.toHaveProperty('password');
     });
   });

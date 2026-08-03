@@ -1,6 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Request, Response } from 'express';
+import {
+    AppRequest,
+    AppReply,
+    requestHost,
+    requestOriginalUrl,
+    requestPath,
+    requestProtocol,
+} from '@common/http/app-http';
 import { WikiI18nService } from './i18n/wiki-i18n.service';
 import {
     buildWikiLocaleCookie,
@@ -21,8 +28,11 @@ export class WikiRenderService {
         private readonly configService: ConfigService,
     ) {}
 
-    prefersHtml(req: Request): boolean {
-        const accept = (req.headers.accept || '').toLowerCase();
+    prefersHtml(req: AppRequest): boolean {
+        const acceptRaw = req.headers.accept;
+        const accept = (
+            Array.isArray(acceptRaw) ? acceptRaw.join(',') : acceptRaw || ''
+        ).toLowerCase();
         if (accept.includes('application/json') && !accept.includes('text/html')) {
             return false;
         }
@@ -32,7 +42,7 @@ export class WikiRenderService {
         return false;
     }
 
-    /** API, health, GraphQL (e Swagger) — sempre JSON / tratativa própria. */
+    /** API, health, GraphQL, and Swagger — always JSON / their own handlers. */
     isInfrastructurePath(urlPath: string): boolean {
         const pathOnly = urlPath.split('?')[0];
         const graphqlPath =
@@ -48,19 +58,19 @@ export class WikiRenderService {
         );
     }
 
-    shouldRenderWikiNotFound(req: Request, urlPath: string): boolean {
+    shouldRenderWikiNotFound(req: AppRequest, urlPath: string): boolean {
         return (
             !this.isInfrastructurePath(urlPath) && this.prefersHtml(req)
         );
     }
 
-    shouldRenderWikiServerError(req: Request, urlPath: string): boolean {
+    shouldRenderWikiServerError(req: AppRequest, urlPath: string): boolean {
         return (
             !this.isInfrastructurePath(urlPath) && this.prefersHtml(req)
         );
     }
 
-    resolveLocale(req: Request): WikiLocale {
+    resolveLocale(req: AppRequest): WikiLocale {
         const cookies = parseCookieHeader(req.headers.cookie);
         return resolveWikiLocale(
             req.headers['accept-language'],
@@ -68,19 +78,15 @@ export class WikiRenderService {
         );
     }
 
-    private resolvePublicOrigin(req: Request): string {
+    private resolvePublicOrigin(req: AppRequest): string {
         const configured = this.configService.get<string>('app.publicUrl');
         if (configured) {
             return configured;
         }
 
-        const protoHeader = req.headers['x-forwarded-proto'];
-        const proto = Array.isArray(protoHeader)
-            ? protoHeader[0]
-            : protoHeader?.split(',')[0]?.trim();
-        const host = req.get('host');
+        const host = requestHost(req);
         if (host) {
-            return `${proto || req.protocol || 'http'}://${host}`;
+            return `${requestProtocol(req)}://${host}`;
         }
 
         const hostCfg = this.configService.get<string>('app.host') || 'localhost';
@@ -91,8 +97,13 @@ export class WikiRenderService {
         return `http://${hostCfg}:${port}`;
     }
 
+    private setHtmlCacheHeaders(reply: AppReply): void {
+        reply.header('Cache-Control', 'private, no-cache');
+        reply.header('Vary', 'Cookie, Accept-Language');
+    }
+
     private buildSeo(
-        req: Request,
+        req: AppRequest,
         locale: WikiLocale,
         options: {
             title: string;
@@ -101,7 +112,7 @@ export class WikiRenderService {
         },
     ) {
         const origin = this.resolvePublicOrigin(req);
-        const pathOnly = (options.requestPath || req.path || '/')
+        const pathOnly = (options.requestPath || requestPath(req) || '/')
             .split('?')[0]
             .replace(/\/$/, '') || '/';
         const canonicalUrl = pathOnly === '/' ? `${origin}/` : `${origin}${pathOnly}`;
@@ -168,7 +179,7 @@ export class WikiRenderService {
     }
 
     buildLocals(
-        req: Request,
+        req: AppRequest,
         locale: WikiLocale,
         options: {
             titleKey: string;
@@ -217,55 +228,60 @@ export class WikiRenderService {
 
     /**
      * Render a wiki page (supports ?lang= redirect). Used by WikiController
-     * and by Express routes that must stay outside the API global prefix.
+     * and by Fastify routes that must stay outside the API global prefix.
      */
-    renderPage(
-        req: Request,
-        res: Response,
+    async renderPage(
+        req: AppRequest,
+        reply: AppReply,
         lang: string | undefined,
         view: string,
         metaNamespace: string,
         currentPage: string,
-    ): void {
+    ): Promise<void> {
         if (isWikiLocale(lang)) {
-            res.setHeader('Set-Cookie', buildWikiLocaleCookie(lang));
-            res.redirect(302, req.path);
+            reply.header('Set-Cookie', buildWikiLocaleCookie(lang));
+            await reply.redirect(requestPath(req), 302);
             return;
         }
 
         const locale = this.resolveLocale(req);
-        res.render(
+        this.setHtmlCacheHeaders(reply);
+        await reply.view(
             view,
             this.buildLocals(req, locale, {
                 titleKey: `${metaNamespace}.meta.title`,
                 currentPage,
-                requestPath: req.path,
+                requestPath: requestPath(req),
             }),
         );
     }
 
-    renderNotFound(req: Request, res: Response): void {
+    async renderNotFound(req: AppRequest, reply: AppReply): Promise<void> {
         const locale = this.resolveLocale(req);
-        res.status(404).render(
+        this.setHtmlCacheHeaders(reply);
+        reply.status(404);
+        await reply.view(
             'pages/error-404',
             this.buildLocals(req, locale, {
                 titleKey: 'errors.notFound.meta.title',
                 currentPage: 'error-404',
                 statusCode: 404,
-                requestPath: req.originalUrl || req.url,
+                requestPath: requestOriginalUrl(req),
             }),
         );
     }
 
-    renderServerError(req: Request, res: Response): void {
+    async renderServerError(req: AppRequest, reply: AppReply): Promise<void> {
         const locale = this.resolveLocale(req);
-        res.status(500).render(
+        this.setHtmlCacheHeaders(reply);
+        reply.status(500);
+        await reply.view(
             'pages/error-500',
             this.buildLocals(req, locale, {
                 titleKey: 'errors.serverError.meta.title',
                 currentPage: 'error-500',
                 statusCode: 500,
-                requestPath: req.originalUrl || req.url,
+                requestPath: requestOriginalUrl(req),
             }),
         );
     }

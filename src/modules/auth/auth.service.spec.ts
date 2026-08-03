@@ -1287,6 +1287,17 @@ describe('AuthService', () => {
       );
     });
 
+    it('places code before hash when redirect URL has a fragment', async () => {
+      const hashState = encodeOAuthState('https://app.example/cb#/home');
+      usersService.findByGoogleId.mockResolvedValue(createUser());
+
+      const result = await service.completeGoogleOAuth(profile, hashState);
+
+      expect(result.redirectUrl).toBe(
+        'https://app.example/cb?code=exchange-code-123#/home',
+      );
+    });
+
     it('retries username on collision when creating new user', async () => {
       usersService.findByGoogleId.mockResolvedValue(null);
       usersService.findByEmail.mockResolvedValue(null);

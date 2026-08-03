@@ -537,7 +537,7 @@ describe('EnableCache', () => {
       new UserPostgresRepository().create(explodingArg),
     ).resolves.toBe(explodingArg);
     expect(errorSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Erro ao invalidar cache'),
+      expect.stringContaining('Failed to invalidate cache'),
       expect.any(Error),
     );
   });

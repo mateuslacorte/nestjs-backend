@@ -1,5 +1,8 @@
 import { NestFactory } from '@nestjs/core';
-import { NestExpressApplication } from '@nestjs/platform-express';
+import {
+    FastifyAdapter,
+    NestFastifyApplication,
+} from '@nestjs/platform-fastify';
 import { AppModule } from './app.module';
 import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -7,26 +10,36 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { GraylogLoggerService } from '@common/graylog/graylog-logger.service';
 import { WikiRenderService } from './wiki/wiki-render.service';
 import { CorsIoAdapter } from '@common/websocket/cors-io.adapter';
-import { createCorsOriginDelegate } from '@config/cors-origins.util';
+import { isOriginAllowed } from '@config/cors-origins.util';
 import * as crypto from 'crypto';
 import { join } from 'path';
 import { existsSync } from 'fs';
-import session from 'express-session';
-import passport from 'passport';
+import fastifyCookie from '@fastify/cookie';
+import fastifySession from '@fastify/session';
+import fastifyPassport from '@fastify/passport';
+import pug from 'pug';
 
 // Polyfill for crypto.randomUUID() in Node.js 18 (required by @nestjs/schedule)
 if (!globalThis.crypto) {
     globalThis.crypto = crypto as any;
 }
 
+const STATIC_CACHE_CONTROL =
+    'public, max-age=86400, stale-while-revalidate=604800';
+
 async function bootstrap() {
-    const app = await NestFactory.create<NestExpressApplication>(AppModule);
+    const app = await NestFactory.create<NestFastifyApplication>(
+        AppModule,
+        new FastifyAdapter({ trustProxy: true }),
+    );
     const configService = app.get(ConfigService);
     const apiPrefix = configService.get<string>('app.apiPrefix') || 'api/v1';
+    const graphqlPath =
+        configService.get<string>('graphql.path') || '/graphql';
 
     // Wiki at /; API controllers under /api/{API_VERSION}
     // Note: do NOT exclude GET "users" — that would strip the prefix from
-    // UsersController.findAll. Wiki /users is mounted via Express below.
+    // UsersController.findAll. Wiki /users is mounted via Fastify below.
     app.setGlobalPrefix(apiPrefix, {
         exclude: [
             { path: '/', method: RequestMethod.GET },
@@ -68,7 +81,6 @@ async function bootstrap() {
             { path: 'tests', method: RequestMethod.GET },
             { path: '404', method: RequestMethod.GET },
             { path: '500', method: RequestMethod.GET },
-            { path: 'static/(.*)', method: RequestMethod.GET },
             { path: 'favicon.ico', method: RequestMethod.GET },
             { path: 'favicon.svg', method: RequestMethod.GET },
             { path: 'favicon-96x96.png', method: RequestMethod.GET },
@@ -81,7 +93,7 @@ async function bootstrap() {
             { path: 'health', method: RequestMethod.GET },
             { path: 'swagger', method: RequestMethod.ALL },
             { path: 'swagger-json', method: RequestMethod.ALL },
-            { path: 'swagger/(.*)', method: RequestMethod.ALL },
+            { path: 'swagger/*path', method: RequestMethod.ALL },
         ],
     });
 
@@ -94,36 +106,92 @@ async function bootstrap() {
     const viewsPath = existsSync(distViewsPath) ? distViewsPath : srcViewsPath;
     const publicPath = existsSync(distPublicPath) ? distPublicPath : srcPublicPath;
 
-    app.setBaseViewsDir(viewsPath);
-    app.setViewEngine('pug');
-    // Wiki assets under /static; favicon/robots/manifest also at site root
-    app.useStaticAssets(publicPath, { prefix: '/static' });
-    app.useStaticAssets(publicPath);
+    app.setViewEngine({
+        engine: { pug },
+        templates: viewsPath,
+        viewExt: 'pug',
+    });
 
-    // Session required for X/Twitter OAuth 2.0 PKCE (code_verifier)
+    const staticHeaders = (
+        res: { setHeader: (name: string, value: string) => void },
+    ) => {
+        res.setHeader('Cache-Control', STATIC_CACHE_CONTROL);
+    };
+
+    // Wiki assets under /static; favicon/robots/manifest also at site root.
+    // Only the first @fastify/static registration may decorate reply.sendFile.
+    app.useStaticAssets({
+        root: publicPath,
+        prefix: '/static/',
+        setHeaders: staticHeaders,
+    });
+    app.useStaticAssets({
+        root: publicPath,
+        decorateReply: false,
+        setHeaders: staticHeaders,
+    });
+
+    // Session required for X/Twitter OAuth 2.0 PKCE (code_verifier).
+    // SameSite=Lax is required so the cookie is sent on the top-level return
+    // from twitter.com (Strict would break PKCE).
     const isProduction =
         configService.get<string>('app.environment') === 'production';
-    const sessionSecret =
+    let sessionSecret =
         configService.get<string>('SESSION_SECRET') ||
         process.env.SESSION_SECRET ||
         configService.get<string>('jwt.secret') ||
         process.env.JWT_SECRET ||
         'dev-session-secret-change-me';
-    app.use(
-        session({
-            secret: sessionSecret,
-            resave: false,
-            saveUninitialized: false,
-            cookie: {
-                secure: isProduction,
-                httpOnly: true,
-                sameSite: 'lax',
-                maxAge: 10 * 60 * 1000,
-            },
-        }),
+    // @fastify/session requires secret length >= 32
+    if (sessionSecret.length < 32) {
+        sessionSecret = `${sessionSecret}`.padEnd(32, '0');
+    }
+
+    await app.register(fastifyCookie as any);
+    await app.register(fastifySession as any, {
+        secret: sessionSecret,
+        cookie: {
+            // Docker/local HTTP must not require Secure cookies
+            secure: isProduction && process.env.COOKIE_SECURE !== 'false',
+            httpOnly: true,
+            sameSite: 'lax',
+            maxAge: 10 * 60 * 1000,
+        },
+        saveUninitialized: false,
+    });
+    // Express passport.session() breaks Fastify — use @fastify/passport instead
+    await app.register(fastifyPassport.initialize() as any);
+    await app.register(fastifyPassport.secureSession() as any);
+
+    const fastify = app.getHttpAdapter().getInstance();
+
+    fastify.decorateReply(
+        'setHeader',
+        function (this: { header: (name: string, value: unknown) => unknown }, name: string, value: unknown) {
+            return this.header(name, value);
+        },
     );
-    app.use(passport.initialize());
-    app.use(passport.session());
+    fastify.decorateReply('end', function (this: { send: (payload: string) => unknown }) {
+        return this.send('');
+    });
+    fastify.addHook('onRequest', async (request, reply) => {
+        (request as { res?: unknown }).res = reply;
+    });
+
+    const apiPrefixPath = `/${apiPrefix}`;
+    fastify.addHook('onSend', async (request, reply, payload) => {
+        const urlPath = (request.url || '').split('?')[0];
+        if (
+            urlPath.startsWith(apiPrefixPath) ||
+            urlPath === graphqlPath ||
+            urlPath.startsWith(`${graphqlPath}/`) ||
+            urlPath === '/health' ||
+            urlPath.startsWith('/swagger')
+        ) {
+            reply.header('Cache-Control', 'no-store');
+        }
+        return payload;
+    });
 
     const graylogLogger = app.get(GraylogLoggerService);
     app.useLogger(graylogLogger);
@@ -140,16 +208,16 @@ async function bootstrap() {
         .setTitle('Backend NestJS API')
         .setDescription(
             `
-## Documentação da API
+## API Documentation
 
-### Autenticação
-Todas as rotas (exceto login) requerem autenticação JWT. Use o header \`Authorization: Bearer {token}\`.
+### Authentication
+All routes (except login) require JWT authentication. Use the \`Authorization: Bearer {token}\` header.
 
 ### Wiki
-Acesse a documentação completa com fluxos e exemplos em [/](/).
+See the full documentation with flows and examples at [/](/).
 
-### Prefixo da API
-Rotas REST: \`/${apiPrefix}/...\`
+### API Prefix
+REST routes: \`/${apiPrefix}/...\`
         `,
         )
         .setVersion('1.0.0')
@@ -158,11 +226,11 @@ Rotas REST: \`/${apiPrefix}/...\`
             'https://www.lacorte.dev',
             'https://www.lacorte.dev/contact',
         )
-        .addTag('Auth', 'Autenticação e autorização')
-        .addTag('Users', 'Gestão de usuários')
-        .addTag('Email', 'Envio de e-mails')
-        .addTag('Whatsapp', 'Integração WhatsApp')
-        .addTag('Security', 'Bloqueio de IPs e rotas inválidas')
+        .addTag('Auth', 'Authentication and authorization')
+        .addTag('Users', 'User management')
+        .addTag('Email', 'Email delivery')
+        .addTag('Whatsapp', 'WhatsApp integration')
+        .addTag('Security', 'IP blocking and invalid routes')
         .addServer('/')
         .addBearerAuth(
             {
@@ -170,7 +238,7 @@ Rotas REST: \`/${apiPrefix}/...\`
                 scheme: 'bearer',
                 bearerFormat: 'JWT',
                 name: 'Authorization',
-                description: 'Token JWT obtido no login',
+                description: 'JWT token obtained at login',
                 in: 'header',
             },
             'access-token',
@@ -185,10 +253,16 @@ Rotas REST: \`/${apiPrefix}/...\`
     const wikiRender = app.get(WikiRenderService);
     const httpAdapter = app.getHttpAdapter();
     httpAdapter.get('/users', (req: any, res: any) => {
-        wikiRender.renderPage(
+        const lang =
+            typeof req.query?.lang === 'string'
+                ? req.query.lang
+                : Array.isArray(req.query?.lang)
+                  ? req.query.lang[0]
+                  : undefined;
+        void wikiRender.renderPage(
             req,
             res,
-            typeof req.query?.lang === 'string' ? req.query.lang : undefined,
+            lang,
             'pages/users',
             'users',
             'users',
@@ -200,7 +274,9 @@ Rotas REST: \`/${apiPrefix}/...\`
         configService.get<boolean>('cors.credentials') !== false;
 
     app.enableCors({
-        origin: createCorsOriginDelegate(corsOrigins),
+        origin: ((origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+            callback(null, isOriginAllowed(origin, corsOrigins));
+        }) as any,
         credentials: corsCredentials,
     });
 
@@ -215,8 +291,12 @@ Rotas REST: \`/${apiPrefix}/...\`
             ? 'https'
             : 'http';
 
-    await app.listen(port);
-    graylogLogger.log(`Application is running on: ${protocol}://${host}:${port}`);
+    // Bind on all interfaces so Docker port publishing can reach the process
+    await app.listen(port, '0.0.0.0');
+    const publicUrl = /^https?:\/\//i.test(host)
+        ? host.replace(/\/$/, '')
+        : `${protocol}://${host}:${port}`;
+    graylogLogger.log(`Application is running on: ${publicUrl}`);
     graylogLogger.log(
         `CORS origins: ${corsOrigins.length ? corsOrigins.join(', ') : '(self only — none resolved)'}`,
     );

@@ -4,7 +4,7 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Request } from 'express';
+import { AppRequest } from '@common/http/app-http';
 import { TwitterAuthGuard } from './twitter-auth.guard';
 
 function createConfigService(
@@ -15,10 +15,10 @@ function createConfigService(
   } as unknown as ConfigService;
 }
 
-function createHttpContext(req: Partial<Request>): ExecutionContext {
+function createHttpContext(req: Partial<AppRequest>): ExecutionContext {
   return {
     switchToHttp: () => ({
-      getRequest: () => req as Request,
+      getRequest: () => req as AppRequest,
     }),
     getHandler: jest.fn(),
     getClass: jest.fn(),
@@ -84,7 +84,7 @@ describe('TwitterAuthGuard', () => {
       expect(guard.getAuthenticateOptions(context)).toEqual({});
     });
 
-    it('encodes allowlisted redirect from query in state', () => {
+    it('passes allowlisted redirect from query as PKCE state object', () => {
       const redirect = 'https://app.example.com/dashboard/settings';
       const context = createHttpContext({
         path: '/api/v1/auth/twitter',
@@ -92,11 +92,8 @@ describe('TwitterAuthGuard', () => {
       });
 
       const options = guard.getAuthenticateOptions(context);
-      const state = JSON.parse(
-        Buffer.from(options.state as string, 'base64url').toString('utf8'),
-      );
 
-      expect(state).toEqual({ r: redirect });
+      expect(options.state).toEqual({ r: redirect });
     });
 
     it('allows redirect that exactly matches an allowlist entry', () => {
@@ -107,11 +104,8 @@ describe('TwitterAuthGuard', () => {
       });
 
       const options = guard.getAuthenticateOptions(context);
-      const state = JSON.parse(
-        Buffer.from(options.state as string, 'base64url').toString('utf8'),
-      );
 
-      expect(state.r).toBe(redirect);
+      expect(options.state).toEqual({ r: redirect });
     });
 
     it('throws BadRequestException when redirect is not in allowlist', () => {
@@ -135,11 +129,8 @@ describe('TwitterAuthGuard', () => {
       });
 
       const options = guard.getAuthenticateOptions(context);
-      const state = JSON.parse(
-        Buffer.from(options.state as string, 'base64url').toString('utf8'),
-      );
 
-      expect(state.r).toBe('https://app.example.com');
+      expect(options.state).toEqual({ r: 'https://app.example.com' });
     });
 
     it('throws BadRequestException when allowlist is empty and redirect is missing', () => {
@@ -169,11 +160,44 @@ describe('TwitterAuthGuard', () => {
       });
 
       const options = guard.getAuthenticateOptions(context);
-      const state = JSON.parse(
-        Buffer.from(options.state as string, 'base64url').toString('utf8'),
+
+      expect(options.state).toEqual({ r: 'https://app.example.com' });
+    });
+  });
+
+  describe('handleRequest', () => {
+    it('stores object info.state as base64url oauthState on the request', () => {
+      const req = { path: '/api/v1/auth/twitter/callback', query: {} } as AppRequest;
+      const context = createHttpContext(req);
+      const user = { twitterId: '1' };
+
+      const result = guard.handleRequest(
+        null,
+        user,
+        { state: { r: 'https://app.example.com' } },
+        context,
       );
 
-      expect(state.r).toBe('https://app.example.com');
+      expect(result).toEqual(user);
+      expect(req.oauthState).toBe(
+        Buffer.from(
+          JSON.stringify({ r: 'https://app.example.com' }),
+          'utf8',
+        ).toString('base64url'),
+      );
+    });
+
+    it('stores string info.state as oauthState on the request', () => {
+      const req = { path: '/api/v1/auth/twitter/callback', query: {} } as AppRequest;
+      const context = createHttpContext(req);
+      const encoded = Buffer.from(
+        JSON.stringify({ r: 'https://app.example.com' }),
+        'utf8',
+      ).toString('base64url');
+
+      guard.handleRequest(null, { twitterId: '1' }, { state: encoded }, context);
+
+      expect(req.oauthState).toBe(encoded);
     });
   });
 });

@@ -128,7 +128,7 @@ describe('GithubStrategy', () => {
           { value: 'secondary@example.com', primary: false },
           { value: 'primary@example.com', primary: true },
         ],
-      } as Partial<Profile>);
+      } as unknown as Partial<Profile>);
 
       strategy.validate('access', 'refresh', profile, done);
 

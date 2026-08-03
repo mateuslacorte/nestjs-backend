@@ -288,7 +288,7 @@ export class UserPostgresRepository {
         });
 
         const savedUser = await this.userRepository.save(newUser);
-        this.cacheService?.delPattern("users:*");
+        this.cacheService?.delPattern("typeorm:users:user:*");
 
         return includePassword ? savedUser : this.omitPassword(savedUser);
     }
@@ -700,7 +700,7 @@ export class UserPostgresRepository {
 
         Object.assign(user, updateUserDto);
         const updatedUser = await this.userRepository.save(user);
-        this.cacheService?.delPattern("users:*");
+        this.cacheService?.delPattern("typeorm:users:user:*");
 
         return shouldOmitPassword ? this.omitPassword(updatedUser) : updatedUser;
     }
@@ -718,7 +718,7 @@ export class UserPostgresRepository {
         }
 
         await this.userRepository.remove(user);
-        this.cacheService?.delPattern("users:*");
+        this.cacheService?.delPattern("typeorm:users:user:*");
 
         return this.omitPassword(user);
     }
@@ -747,7 +747,7 @@ export class UserPostgresRepository {
 
             Object.assign(user, dataToUpdate);
             const userSaved = await this.userRepository.save(user);
-            this.cacheService?.delPattern("users:*");
+            this.cacheService?.delPattern("typeorm:users:user:*");
             return this.omitPassword(userSaved);
         } else {
             const newUser = this.userRepository.create({
@@ -755,7 +755,7 @@ export class UserPostgresRepository {
                 password: userData.password ?? null,
             });
             const newUserSaved = await this.userRepository.save(newUser);
-            this.cacheService?.delPattern("users:*");
+            this.cacheService?.delPattern("typeorm:users:user:*");
             return this.omitPassword(newUserSaved);
         }
     }

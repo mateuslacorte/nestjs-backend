@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
-import { Request } from 'express';
+import { AppRequest, requestPath } from '@common/http/app-http';
 
 @Injectable()
 export class TwitterAuthGuard extends AuthGuard('twitter') {
@@ -19,18 +19,44 @@ export class TwitterAuthGuard extends AuthGuard('twitter') {
         return super.canActivate(context);
     }
 
+    /**
+     * Recover the client redirect payload that PKCESessionStore nests under
+     * the OAuth `state` handle, and expose it as base64url on the request for
+     * AuthService (same shape as other providers' query `state`).
+     */
+    handleRequest<TUser>(
+        err: Error | null | undefined,
+        user: TUser,
+        info: { state?: string | { r?: string } } | undefined,
+        context: ExecutionContext,
+        status?: number,
+    ): TUser {
+        if (info?.state != null) {
+            const req = context.switchToHttp().getRequest<AppRequest>();
+            const raw = info.state;
+            req.oauthState =
+                typeof raw === 'string'
+                    ? raw
+                    : Buffer.from(JSON.stringify(raw), 'utf8').toString(
+                          'base64url',
+                      );
+        }
+        return super.handleRequest(err, user, info, context, status);
+    }
+
     getAuthenticateOptions(context: ExecutionContext) {
-        const req = context.switchToHttp().getRequest<Request>();
-        const isCallback = req.path.includes('/twitter/callback');
+        const req = context.switchToHttp().getRequest<AppRequest>();
+        const isCallback = requestPath(req).includes('/twitter/callback');
         if (isCallback) {
             return {};
         }
 
         const redirect = this.resolveRedirect(req);
+        // Must be an object (not a string). passport-oauth2 skips PKCE
+        // code_verifier session storage when `state` is a string, which
+        // breaks X/Twitter OAuth 2.0 on callback (401 Unauthorized).
         return {
-            state: Buffer.from(JSON.stringify({ r: redirect }), 'utf8').toString(
-                'base64url',
-            ),
+            state: { r: redirect },
         };
     }
 
@@ -41,7 +67,7 @@ export class TwitterAuthGuard extends AuthGuard('twitter') {
         }
     }
 
-    private resolveRedirect(req: Request): string {
+    private resolveRedirect(req: AppRequest): string {
         const allowlist =
             this.configService.get<string[]>('twitterOAuth.redirectAllowlist') || [];
         const fromQuery =

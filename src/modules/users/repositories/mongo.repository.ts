@@ -70,7 +70,7 @@ export class UserMongoRepository {
         });
 
         await newUser.save();
-        this.cacheService?.delPattern("users:*");
+        this.cacheService?.delPattern("mongoose:users:user:*");
         return includePassword ? newUser.toObject() : this.omitPassword(newUser);
     }
 
@@ -132,7 +132,7 @@ export class UserMongoRepository {
             throw new NotFoundException(`User with ID ${id} not found`);
         }
 
-        this.cacheService?.delPattern("users:*");
+        this.cacheService?.delPattern("mongoose:users:user:*");
         return shouldOmitPassword ? this.omitPassword(updatedUser) : updatedUser.toObject() as IUser;
     }
 
@@ -147,7 +147,7 @@ export class UserMongoRepository {
         if (!deletedUser) {
             throw new NotFoundException(`User with ID ${id} not found`);
         }
-        this.cacheService?.delPattern("users:*");
+        this.cacheService?.delPattern("mongoose:users:user:*");
         return this.omitPassword(deletedUser);
     }
 

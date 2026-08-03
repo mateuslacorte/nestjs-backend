@@ -32,20 +32,8 @@
         "items": [
           "JWT (Passport)",
           "Argon2id",
-          "Google",
-          "Facebook",
-          "X / Twitter",
-          "GitHub",
-          "Figma",
-          "LinkedIn",
-          "Slack",
-          "Atlassian",
-          "GitLab",
-          "Bitbucket",
-          "Discord",
-          "Twitch",
-          "Steam",
-          "Reddit"
+          "Social login",
+          "Active Directory"
         ]
       },
       "services": {

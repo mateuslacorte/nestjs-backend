@@ -18,7 +18,7 @@ export class CacheService {
     }
 
     /**
-     * Verifica a conectividade com o Redis
+     * Checks Redis connectivity
      */
     async ping(): Promise<boolean> {
         const result = await this.redis.ping();
@@ -26,7 +26,7 @@ export class CacheService {
     }
 
     /**
-     * Obtém um valor do cache
+     * Gets a value from the cache
      */
     async get<T>(key: string): Promise<T | null> {
         try {
@@ -36,13 +36,13 @@ export class CacheService {
             }
             return null;
         } catch (error) {
-            this.logger.error(`Erro ao buscar cache para chave ${key}:`, error);
+            this.logger.error(`Failed to get cache for key ${key}:`, error);
             return null;
         }
     }
 
     /**
-     * Define um valor no cache
+     * Sets a value in the cache
      */
     async set(key: string, value: any, ttl?: number): Promise<void> {
         try {
@@ -51,30 +51,30 @@ export class CacheService {
             await this.redis.setex(key, ttlToUse, serialized);
             this.logger.debug(`Cache SET: ${key} (TTL: ${ttlToUse}s, Size: ${serialized.length} bytes)`);
         } catch (error) {
-            this.logger.error(`Erro ao definir cache para chave ${key}:`, error);
+            this.logger.error(`Failed to set cache for key ${key}:`, error);
         }
     }
 
     /**
-     * Remove uma chave do cache
+     * Deletes a cache key
      */
     async del(key: string): Promise<void> {
         try {
             await this.redis.del(key);
         } catch (error) {
-            this.logger.error(`Erro ao deletar cache para chave ${key}:`, error);
+            this.logger.error(`Failed to delete cache for key ${key}:`, error);
         }
     }
 
     /**
-     * Remove todas as chaves que correspondem a um padrão
-     * Usa SCAN para ser mais seguro em produção (não bloqueia o Redis)
+     * Deletes all keys matching a pattern
+     * Uses SCAN for production safety (does not block Redis)
      */
     async delPattern(pattern: string): Promise<void> {
         try {
-            this.logger.debug(`[Cache] Buscando chaves com padrão: ${pattern}`);
+            this.logger.debug(`[Cache] Scanning keys with pattern: ${pattern}`);
             
-            // Converte padrão glob para regex
+            // Convert glob pattern to regex
             const regexPattern = pattern
                 .replace(/\*/g, '.*')
                 .replace(/\?/g, '.');
@@ -83,13 +83,13 @@ export class CacheService {
             const keys: string[] = [];
             let cursor = '0';
             
-            // Usa SCAN para iterar sobre as chaves (mais seguro que KEYS)
+            // Use SCAN to iterate keys (safer than KEYS)
             do {
                 const result = await this.redis.scan(cursor, 'MATCH', pattern, 'COUNT', 100);
                 cursor = result[0];
                 const foundKeys = result[1];
                 
-                // Filtra as chaves que realmente correspondem ao padrão
+                // Keep keys that actually match the pattern
                 for (const key of foundKeys) {
                     if (regex.test(key)) {
                         keys.push(key);
@@ -97,27 +97,27 @@ export class CacheService {
                 }
             } while (cursor !== '0');
             
-            this.logger.debug(`[Cache] Encontradas ${keys.length} chaves com padrão ${pattern}`);
+            this.logger.debug(`[Cache] Found ${keys.length} keys for pattern ${pattern}`);
             
             if (keys.length > 0) {
-                // Se houver muitas chaves, deleta em lotes para evitar problemas
+                // Delete in batches when there are many keys
                 const batchSize = 100;
                 for (let i = 0; i < keys.length; i += batchSize) {
                     const batch = keys.slice(i, i + batchSize);
                     await this.redis.del(...batch);
                 }
-                this.logger.log(`[Cache] ✅ Invalidados ${keys.length} caches com padrão ${pattern}`);
+                this.logger.log(`[Cache] ✅ Invalidated ${keys.length} caches for pattern ${pattern}`);
                 if (keys.length <= 10) {
-                    this.logger.debug(`[Cache] Chaves invalidadas: ${keys.join(', ')}`);
+                    this.logger.debug(`[Cache] Invalidated keys: ${keys.join(', ')}`);
                 }
             } else {
-                this.logger.debug(`[Cache] Nenhuma chave encontrada com padrão ${pattern}`);
+                this.logger.debug(`[Cache] No keys found for pattern ${pattern}`);
             }
         } catch (error) {
-            this.logger.error(`[Cache] ❌ Erro ao deletar cache com padrão ${pattern}:`, error);
-            // Tenta usar KEYS como fallback se SCAN falhar
+            this.logger.error(`[Cache] ❌ Failed to delete cache for pattern ${pattern}:`, error);
+            // Fall back to KEYS if SCAN fails
             try {
-                this.logger.warn(`[Cache] Tentando usar KEYS como fallback para padrão ${pattern}`);
+                this.logger.warn(`[Cache] Falling back to KEYS for pattern ${pattern}`);
                 const keys = await this.redis.keys(pattern);
                 if (keys.length > 0) {
                     const batchSize = 100;
@@ -125,17 +125,17 @@ export class CacheService {
                         const batch = keys.slice(i, i + batchSize);
                         await this.redis.del(...batch);
                     }
-                    this.logger.log(`[Cache] ✅ Invalidados ${keys.length} caches (fallback) com padrão ${pattern}`);
+                    this.logger.log(`[Cache] ✅ Invalidated ${keys.length} caches (fallback) for pattern ${pattern}`);
                 }
             } catch (fallbackError) {
-                this.logger.error(`[Cache] ❌ Erro no fallback também:`, fallbackError);
-                throw error; // Re-throw o erro original
+                this.logger.error(`[Cache] ❌ Fallback also failed:`, fallbackError);
+                throw error; // Re-throw the original error
             }
         }
     }
 
     /**
-     * Gera uma chave de cache baseada em parâmetros
+     * Builds a cache key from a prefix and parameters
      */
     generateKey(prefix: string, ...params: any[]): string {
         const paramsStr = params

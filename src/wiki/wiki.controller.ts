@@ -1,14 +1,15 @@
 import {
     Controller,
     Get,
-    Param,
     Res,
     Req,
     Query,
 } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
-import { Request, Response } from 'express';
-import * as path from 'path';
+import {
+    AppRequest,
+    AppReply,
+} from '@common/http/app-http';
 import { Public } from '../modules/auth/decorators/public.decorator';
 import { NoLog } from '@common/graylog/decorators/no-log.decorator';
 import { WikiRenderService } from './wiki-render.service';
@@ -22,13 +23,13 @@ export class WikiController {
 
     @Get()
     getHome(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/home',
             'home',
@@ -38,13 +39,13 @@ export class WikiController {
 
     @Get('architecture')
     getArchitecture(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/architecture',
             'architecture',
@@ -54,13 +55,13 @@ export class WikiController {
 
     @Get('backend')
     getBackend(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/backend',
             'backend',
@@ -70,13 +71,13 @@ export class WikiController {
 
     @Get('backend/install')
     getBackendInstall(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/backend-install',
             'backendInstall',
@@ -86,13 +87,13 @@ export class WikiController {
 
     @Get('auth')
     getAuth(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/auth',
             'auth',
@@ -102,13 +103,13 @@ export class WikiController {
 
     @Get('auth/active-directory')
     getAuthActiveDirectory(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/auth-active-directory',
             'authActiveDirectory',
@@ -118,13 +119,13 @@ export class WikiController {
 
     @Get('auth/active-directory/ldap')
     getAuthActiveDirectoryLdap(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/auth-active-directory-ldap',
             'authActiveDirectoryLdap',
@@ -134,13 +135,13 @@ export class WikiController {
 
     @Get('auth/active-directory/ldaps')
     getAuthActiveDirectoryLdaps(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/auth-active-directory-ldaps',
             'authActiveDirectoryLdaps',
@@ -150,13 +151,13 @@ export class WikiController {
 
     @Get('auth/social')
     getAuthSocial(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/auth-social',
             'authSocial',
@@ -166,13 +167,13 @@ export class WikiController {
 
     @Get('auth/social/google')
     getAuthSocialGoogle(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/auth-social-google',
             'authSocialGoogle',
@@ -182,13 +183,13 @@ export class WikiController {
 
     @Get('auth/social/facebook')
     getAuthSocialFacebook(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/auth-social-facebook',
             'authSocialFacebook',
@@ -198,13 +199,13 @@ export class WikiController {
 
     @Get('auth/social/twitter')
     getAuthSocialTwitter(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/auth-social-twitter',
             'authSocialTwitter',
@@ -214,13 +215,13 @@ export class WikiController {
 
     @Get('auth/social/github')
     getAuthSocialGithub(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/auth-social-github',
             'authSocialGithub',
@@ -230,13 +231,13 @@ export class WikiController {
 
     @Get('auth/social/figma')
     getAuthSocialFigma(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/auth-social-figma',
             'authSocialFigma',
@@ -246,13 +247,13 @@ export class WikiController {
 
     @Get('auth/social/linkedin')
     getAuthSocialLinkedin(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/auth-social-linkedin',
             'authSocialLinkedin',
@@ -262,13 +263,13 @@ export class WikiController {
 
     @Get('auth/social/slack')
     getAuthSocialSlack(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/auth-social-slack',
             'authSocialSlack',
@@ -278,13 +279,13 @@ export class WikiController {
 
     @Get('auth/social/atlassian')
     getAuthSocialAtlassian(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/auth-social-atlassian',
             'authSocialAtlassian',
@@ -294,13 +295,13 @@ export class WikiController {
 
     @Get('auth/social/gitlab')
     getAuthSocialGitlab(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/auth-social-gitlab',
             'authSocialGitlab',
@@ -310,13 +311,13 @@ export class WikiController {
 
     @Get('auth/social/bitbucket')
     getAuthSocialBitbucket(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/auth-social-bitbucket',
             'authSocialBitbucket',
@@ -326,13 +327,13 @@ export class WikiController {
 
     @Get('auth/social/discord')
     getAuthSocialDiscord(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/auth-social-discord',
             'authSocialDiscord',
@@ -342,13 +343,13 @@ export class WikiController {
 
     @Get('auth/social/twitch')
     getAuthSocialTwitch(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/auth-social-twitch',
             'authSocialTwitch',
@@ -358,13 +359,13 @@ export class WikiController {
 
     @Get('auth/social/spotify')
     getAuthSocialSpotify(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/auth-social-spotify',
             'authSocialSpotify',
@@ -374,13 +375,13 @@ export class WikiController {
 
     @Get('auth/social/amazon')
     getAuthSocialAmazon(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/auth-social-amazon',
             'authSocialAmazon',
@@ -390,13 +391,13 @@ export class WikiController {
 
     @Get('auth/social/microsoft')
     getAuthSocialMicrosoft(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/auth-social-microsoft',
             'authSocialMicrosoft',
@@ -406,13 +407,13 @@ export class WikiController {
 
     @Get('auth/social/patreon')
     getAuthSocialPatreon(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/auth-social-patreon',
             'authSocialPatreon',
@@ -422,13 +423,13 @@ export class WikiController {
 
     @Get('auth/social/dropbox')
     getAuthSocialDropbox(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/auth-social-dropbox',
             'authSocialDropbox',
@@ -438,13 +439,13 @@ export class WikiController {
 
     @Get('auth/social/coinbase')
     getAuthSocialCoinbase(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/auth-social-coinbase',
             'authSocialCoinbase',
@@ -454,13 +455,13 @@ export class WikiController {
 
     @Get('auth/social/metamask')
     getAuthSocialMetamask(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/auth-social-metamask',
             'authSocialMetamask',
@@ -470,13 +471,13 @@ export class WikiController {
 
     @Get('auth/social/steam')
     getAuthSocialSteam(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/auth-social-steam',
             'authSocialSteam',
@@ -486,13 +487,13 @@ export class WikiController {
 
     @Get('auth/social/reddit')
     getAuthSocialReddit(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/auth-social-reddit',
             'authSocialReddit',
@@ -502,13 +503,13 @@ export class WikiController {
 
     @Get('auth/social/apple')
     getAuthSocialApple(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/auth-social-apple',
             'authSocialApple',
@@ -516,18 +517,15 @@ export class WikiController {
         );
     }
 
-    // GET /users is registered in main.ts (Express) so it does not collide with
-    // UsersController GET /api/{version}/users via setGlobalPrefix exclude.
-
     @Get('email')
     getEmail(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/email',
             'email',
@@ -537,13 +535,13 @@ export class WikiController {
 
     @Get('whatsapp')
     getWhatsapp(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/whatsapp',
             'whatsapp',
@@ -553,13 +551,13 @@ export class WikiController {
 
     @Get('websocket')
     getWebsocket(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/websocket',
             'websocket',
@@ -569,13 +567,13 @@ export class WikiController {
 
     @Get('wsui')
     getWsui(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/wsui',
             'wsui',
@@ -585,13 +583,13 @@ export class WikiController {
 
     @Get('security')
     getSecurity(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/security',
             'security',
@@ -601,13 +599,13 @@ export class WikiController {
 
     @Get('tests')
     getTests(
-        @Req() req: Request,
-        @Res() res: Response,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
         @Query('lang') lang?: string,
     ) {
         return this.wikiRender.renderPage(
             req,
-            res,
+            reply,
             lang,
             'pages/tests',
             'tests',
@@ -616,18 +614,16 @@ export class WikiController {
     }
 
     @Get('404')
-    getNotFoundPreview(@Req() req: Request, @Res() res: Response) {
-        return this.wikiRender.renderNotFound(req, res);
+    getNotFoundPreview(@Req() req: AppRequest, @Res() reply: AppReply) {
+        return this.wikiRender.renderNotFound(req, reply);
     }
 
     @Get('500')
-    getServerErrorPreview(@Req() req: Request, @Res() res: Response) {
-        return this.wikiRender.renderServerError(req, res);
+    getServerErrorPreview(@Req() req: AppRequest, @Res() reply: AppReply) {
+        return this.wikiRender.renderServerError(req, reply);
     }
 
-    @Get('static/*')
-    serveStatic(@Param('0') filePath: string, @Res() res: Response) {
-        const fullPath = path.join(__dirname, 'public', filePath);
-        return res.sendFile(fullPath);
-    }
+    // Static assets are served by @fastify/static via useStaticAssets in main.ts
+    // (prefix /static/). Do not also register @Get('static/*') — Fastify rejects
+    // duplicate GET /static/* routes.
 }

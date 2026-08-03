@@ -706,6 +706,31 @@ describe('OauthExchangeService', () => {
       );
     });
 
+    it('strips trailing hash fragment from the exchange code', async () => {
+      cacheService.get.mockResolvedValue({ userId });
+
+      const result = await service.consumeExchangeCode('abc-code#');
+
+      expect(result).toBe(userId);
+      expect(cacheService.get).toHaveBeenCalledWith(
+        'auth:oauth:exchange:abc-code',
+      );
+      expect(cacheService.del).toHaveBeenCalledWith(
+        'auth:oauth:exchange:abc-code',
+      );
+    });
+
+    it('strips encoded %23 hash from the exchange code', async () => {
+      cacheService.get.mockResolvedValue({ userId });
+
+      const result = await service.consumeExchangeCode('abc-code%23');
+
+      expect(result).toBe(userId);
+      expect(cacheService.get).toHaveBeenCalledWith(
+        'auth:oauth:exchange:abc-code',
+      );
+    });
+
     it('throws UnauthorizedException when code is missing from cache', async () => {
       cacheService.get.mockResolvedValue(null);
 

@@ -14,36 +14,36 @@ export const CACHE_INVALIDATE = 'cache:invalidate';
 export const ENABLE_CACHE = 'cache:enable';
 
 /**
- * Define uma chave de cache personalizada para o método
+ * Sets a custom cache key for the method
  */
 export const CacheKey = (key: string) => SetMetadata(CACHE_KEY, key);
 
 /**
- * Define o TTL (Time To Live) do cache em segundos
+ * Sets the cache TTL (Time To Live) in seconds
  */
 export const CacheTTL = (ttl: number) => SetMetadata(CACHE_TTL, ttl);
 
 /**
- * Desabilita o cache para este método
+ * Disables cache for this method
  */
 export const NoCache = () => SetMetadata(NO_CACHE, true);
 
 /**
- * Define padrões de chaves para invalidar após a execução
+ * Sets key patterns to invalidate after execution
  */
 export const CacheInvalidate = (...patterns: string[]) => 
     SetMetadata(CACHE_INVALIDATE, patterns);
 
 /**
- * Habilita o cache no método (para uso seletivo)
- * Este decorator modifica o método para aplicar cache diretamente
+ * Enables cache on the method (selective use)
+ * This decorator wraps the method to apply caching directly
  */
 export function EnableCache() {
     return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
-        // Marca o método com metadata
+        // Mark the method with metadata
         SetMetadata(ENABLE_CACHE, true)(target, propertyName, descriptor);
         
-        // Também define diretamente no target para garantir que seja encontrado
+        // Also set on the target so metadata lookup succeeds
         Reflect.defineMetadata(ENABLE_CACHE, true, target, propertyName);
         Reflect.defineMetadata(ENABLE_CACHE, true, target.constructor.prototype, propertyName);
 
@@ -58,7 +58,7 @@ export function EnableCache() {
         ];
 
         descriptor.value = async function (...args: any[]) {
-            // Extrai informações para gerar chave (precisamos do moduleName e entityName para invalidação)
+            // Extract info for the cache key (moduleName and entityName needed for invalidation)
             const filePath = getFilePathFromStack();
             let moduleName = extractModuleName(filePath);
             if (moduleName === 'unknown') {
@@ -66,20 +66,20 @@ export function EnableCache() {
             }
             const entityName = extractEntityName(className);
             
-            // Log para debug
-            console.log(`[Cache] Método ${className}.${propertyName} - moduleName: ${moduleName}, entityName: ${entityName}`);
-            // Obtém CacheService via injeção de dependência
-            // O CacheService deve ser injetado no construtor do repositório
+            // Debug log
+            console.log(`[Cache] Method ${className}.${propertyName} - moduleName: ${moduleName}, entityName: ${entityName}`);
+            // Resolve CacheService via dependency injection
+            // CacheService should be injected in the repository constructor
             const cacheService: CacheService | undefined = (this as any).cacheService;
 
             if (!cacheService) {
-                // Se não há CacheService disponível, apenas executa o método original
-                console.warn(`[Cache] CacheService não disponível para ${className}.${propertyName} - executando sem cache`);
-                console.warn(`[Cache] Verifique se CacheService está sendo injetado no construtor de ${className}`);
+                // If CacheService is unavailable, run the original method
+                console.warn(`[Cache] CacheService unavailable for ${className}.${propertyName} - running without cache`);
+                console.warn(`[Cache] Ensure CacheService is injected in the ${className} constructor`);
                 return originalMethod.apply(this, args);
             }
 
-            // Obtém metadados - tenta múltiplas formas de acessar
+            // Read metadata — try multiple lookup locations
             const noCache = Reflect.getMetadata(NO_CACHE, target, propertyName) ||
                 Reflect.getMetadata(NO_CACHE, target.constructor.prototype, propertyName) ||
                 Reflect.getMetadata(NO_CACHE, this, propertyName) ||
@@ -100,15 +100,15 @@ export function EnableCache() {
                 Reflect.getMetadata(CACHE_INVALIDATE, this, propertyName) ||
                 Reflect.getMetadata(CACHE_INVALIDATE, this.constructor.prototype, propertyName);
 
-            // Se cache está desabilitado, apenas executa
+            // If cache is disabled, just run the method
             if (noCache) {
-                console.log(`[Cache] Cache desabilitado via @NoCache para ${className}.${propertyName}`);
+                console.log(`[Cache] Cache disabled via @NoCache for ${className}.${propertyName}`);
                 return originalMethod.apply(this, args);
             }
 
-            // Se há padrões de invalidação, executa e invalida
+            // If invalidation patterns exist, run then invalidate
             if (invalidatePatterns && invalidatePatterns.length > 0) {
-                console.log(`[Cache] Método de invalidação detectado para ${className}.${propertyName}`);
+                console.log(`[Cache] Invalidation method detected for ${className}.${propertyName}`);
                 const result = await originalMethod.apply(this, args);
                 for (const pattern of invalidatePatterns) {
                     await cacheService.delPattern(pattern);
@@ -116,15 +116,15 @@ export function EnableCache() {
                 return result;
             }
 
-            // Detecta se é método de escrita
+            // Detect write methods
             const isWriteMethod = writeMethods.some(method => 
                 propertyName.toLowerCase().includes(method.toLowerCase())
             );
 
             if (isWriteMethod) {
-                console.log(`[Cache] ✅ Método de escrita detectado para ${className}.${propertyName}`);
+                console.log(`[Cache] ✅ Write method detected for ${className}.${propertyName}`);
                 const result = await originalMethod.apply(this, args);
-                console.log(`[Cache] Executando invalidação de cache para ${className}.${propertyName}...`);
+                console.log(`[Cache] Running cache invalidation for ${className}.${propertyName}...`);
                 try {
                     await invalidateRelatedCache(
                         cacheService,
@@ -134,44 +134,44 @@ export function EnableCache() {
                         moduleName,
                         entityName,
                     );
-                    console.log(`[Cache] ✅ Invalidação de cache concluída para ${className}.${propertyName}`);
+                    console.log(`[Cache] ✅ Cache invalidation completed for ${className}.${propertyName}`);
                 } catch (error) {
-                    console.error(`[Cache] ❌ Erro ao invalidar cache para ${className}.${propertyName}:`, error);
-                    // Não falha a operação se a invalidação falhar
+                    console.error(`[Cache] ❌ Failed to invalidate cache for ${className}.${propertyName}:`, error);
+                    // Do not fail the operation if invalidation fails
                 }
                 return result;
             }
 
-            // Se chegou aqui, o cache está habilitado (o decorator @EnableCache está presente)
-            console.log(`[Cache] Prosseguindo com cache para ${className}.${propertyName}`);
+            // Reaching here means cache is enabled (@EnableCache is present)
+            console.log(`[Cache] Proceeding with cache for ${className}.${propertyName}`);
 
-            // Reutiliza as variáveis já extraídas acima
+            // Reuse variables extracted above
 
-            // Gera chave de cache
+            // Build cache key
             const dbType = className.includes('Mongo') ? 'mongoose' : 'typeorm';
             const key = cacheKey
                 ? cacheService.generateKey(`${dbType}:${moduleName}`, cacheKey, ...args)
                 : buildCacheKey(dbType, moduleName, entityName, propertyName, args);
 
-            console.log(`[Cache] Verificando cache para: ${key}`);
-            console.log(`[Cache] Contexto: className=${className}, propertyName=${propertyName}, moduleName=${moduleName}, entityName=${entityName}`);
+            console.log(`[Cache] Checking cache for: ${key}`);
+            console.log(`[Cache] Context: className=${className}, propertyName=${propertyName}, moduleName=${moduleName}, entityName=${entityName}`);
 
-            // Tenta obter do cache
+            // Try cache lookup
             const cached = await cacheService.get(key);
             if (cached !== null) {
                 console.log(`[Cache] HIT - ${key}`);
                 return cached;
             }
 
-            // Executa e armazena no cache
+            // Execute and store in cache
             const result = await originalMethod.apply(this, args);
             
-            // Verifica se o resultado é válido antes de armazenar
+            // Only store valid results
             if (result !== null && result !== undefined) {
                 await cacheService.set(key, result, cacheTtl);
                 console.log(`[Cache] SET - ${key} - TTL: ${cacheTtl || 'default'}`);
             } else {
-                console.log(`[Cache] SKIP SET - ${key} - resultado é null/undefined`);
+                console.log(`[Cache] SKIP SET - ${key} - result is null/undefined`);
             }
             return result;
         };
@@ -181,7 +181,7 @@ export function EnableCache() {
 }
 
 /**
- * Invalida cache relacionado após operações de escrita
+ * Invalidates related cache after write operations
  */
 export async function invalidateRelatedCache(
     cacheService: CacheService,
@@ -197,7 +197,7 @@ export async function invalidateRelatedCache(
         if (typeof firstArg === 'string') {
             id = firstArg;
         } else if (typeof firstArg === 'object' && firstArg !== null) {
-            // Tenta obter o ID de várias formas
+            // Try several ways to read the ID
             if ('id' in firstArg) {
                 id = firstArg.id;
             } else if ('_id' in firstArg) {
@@ -206,11 +206,11 @@ export async function invalidateRelatedCache(
         }
     }
 
-    // Se não foi passado, extrai do className
+    // If not provided, extract from className
     const entityName = entityNameParam || extractEntityName(className);
     const dbType = className.includes('Mongo') ? 'mongoose' : 'typeorm';
     
-    // Se moduleName não foi passado, tenta inferir
+    // If moduleName was not provided, try to infer it
     let finalModuleName = moduleName;
     if (!finalModuleName || finalModuleName === 'unknown') {
         const filePath = getFilePathFromStack();
@@ -220,12 +220,12 @@ export async function invalidateRelatedCache(
         }
     }
     
-    // Padrões de invalidação mais específicos
+    // More specific invalidation patterns
     const patterns = [
-        `${dbType}:${finalModuleName}:${entityName}:*`, // Todas as chaves desta entidade neste módulo
+        `${dbType}:${finalModuleName}:${entityName}:*`, // All keys for this entity in this module
     ];
 
-    // Invalida também métodos específicos que podem retornar listas
+    // Also invalidate list-style method keys
     patterns.push(`${dbType}:${finalModuleName}:${entityName}:findAll*`);
     patterns.push(`${dbType}:${finalModuleName}:${entityName}:findBy*`);
     patterns.push(`${dbType}:${finalModuleName}:${entityName}:count*`);
@@ -235,28 +235,28 @@ export async function invalidateRelatedCache(
         patterns.push(`${dbType}:${finalModuleName}:${entityName}:findById:${id}`);
     }
 
-    console.log(`[Cache] 🔄 Invalidando cache com ${patterns.length} padrões: ${patterns.join(', ')}`);
-    console.log(`[Cache] Contexto: moduleName=${finalModuleName}, entityName=${entityName}, dbType=${dbType}, id=${id || 'N/A'}`);
+    console.log(`[Cache] 🔄 Invalidating cache with ${patterns.length} patterns: ${patterns.join(', ')}`);
+    console.log(`[Cache] Context: moduleName=${finalModuleName}, entityName=${entityName}, dbType=${dbType}, id=${id || 'N/A'}`);
     
     for (const pattern of patterns) {
         try {
             await cacheService.delPattern(pattern);
         } catch (error) {
-            console.error(`[Cache] ❌ Erro ao invalidar padrão ${pattern}:`, error);
+            console.error(`[Cache] ❌ Failed to invalidate pattern ${pattern}:`, error);
         }
     }
     
-    console.log(`[Cache] ✅ Invalidação de cache concluída`);
+    console.log(`[Cache] ✅ Cache invalidation completed`);
 }
 
 /**
- * Infere o nome do módulo a partir do nome da classe
+ * Infers the module name from the class name
  */
 function inferModuleNameFromClassName(className: string): string {
     const classNameLower = className.toLowerCase();
     
-    // Mapeamento de palavras-chave para nomes de módulos
-    // IMPORTANTE: Ordem importa! Palavras-chave mais específicas devem vir primeiro
+    // Keyword-to-module-name mapping
+    // IMPORTANT: Order matters — more specific keywords first
     const moduleMap: { [key: string]: string } = {
         'facility_reservation': 'facility_reservations',
         'facilityreservation': 'facility_reservations',
@@ -317,7 +317,7 @@ function inferModuleNameFromClassName(className: string): string {
         'employee': 'employees',
     };
     
-    // Procura por palavras-chave no nome da classe (ordem importa - mais específico primeiro)
+    // Match keywords in the class name (order matters — more specific first)
     const sortedKeys = Object.keys(moduleMap).sort((a, b) => b.length - a.length);
     for (const keyword of sortedKeys) {
         if (classNameLower.includes(keyword)) {
@@ -325,26 +325,26 @@ function inferModuleNameFromClassName(className: string): string {
         }
     }
     
-    // Se não encontrou, tenta extrair do padrão do nome da classe
+    // If no match, derive from the class name pattern
     // Ex: FacilityReservationPostgresRepository -> facility_reservations
     let inferred = className
         .replace(/PostgresRepository$/, '')
         .replace(/MongoRepository$/, '')
         .replace(/Repository$/, '');
     
-    // Converte PascalCase para snake_case
+    // Convert PascalCase to snake_case
     inferred = inferred.replace(/([A-Z])/g, '_$1').toLowerCase();
     inferred = inferred.replace(/^_/, '');
     
-    // Normaliza (pluraliza se necessário)
+    // Normalize (pluralize if needed)
     return normalizeModuleName(inferred);
 }
 
 /**
- * Normaliza o nome do módulo (pluraliza se necessário)
+ * Normalizes the module name (pluralizes if needed)
  */
 function normalizeModuleName(moduleName: string): string {
-    // Lista de módulos que devem estar no plural
+    // Modules that should be plural
     const pluralModules = [
         'notifications', 'users', 'condominiums', 'votings', 'accountants',
         'visitors', 'units', 'services', 'residents', 'customers', 'managers',
@@ -357,12 +357,12 @@ function normalizeModuleName(moduleName: string): string {
         'finance_reports', 'notification_preferences', 'visitor_entries', 'service_invoices'
     ];
     
-    // Se já está no plural, retorna como está
+    // If already plural, return as-is
     if (pluralModules.includes(moduleName)) {
         return moduleName;
     }
     
-    // Tenta pluralizar
+    // Try to pluralize
     if (moduleName.endsWith('y')) {
         return moduleName.slice(0, -1) + 'ies';
     } else if (moduleName.endsWith('s') || moduleName.endsWith('x') || moduleName.endsWith('ch') || moduleName.endsWith('sh')) {
@@ -373,7 +373,7 @@ function normalizeModuleName(moduleName: string): string {
 }
 
 /**
- * Obtém o caminho do arquivo do stack trace
+ * Resolves a file path from the stack trace
  */
 function getFilePathFromStack(): string {
     const stack = new Error().stack;

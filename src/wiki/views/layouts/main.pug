@@ -77,6 +77,41 @@ html(lang=htmlLang)
         border-left-color: #6366f1;
         color: #6366f1;
       }
+
+      .sidebar-collapsible {
+        border-radius: 0.375rem;
+      }
+
+      .sidebar-collapsible > summary {
+        list-style: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        user-select: none;
+      }
+
+      .sidebar-collapsible > summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .sidebar-collapsible > summary .sidebar-chevron {
+        flex-shrink: 0;
+        width: 1rem;
+        height: 1rem;
+        color: #94a3b8;
+        transition: transform 0.15s ease;
+      }
+
+      .sidebar-collapsible[open] > summary .sidebar-chevron {
+        transform: rotate(90deg);
+        color: #6366f1;
+      }
+
+      .sidebar-collapsible > summary .sidebar-link {
+        flex: 1;
+        min-width: 0;
+      }
       
       .code-block {
         background: #1e293b;
@@ -248,6 +283,11 @@ html(lang=htmlLang)
                 span= loc.short
         
         nav(class="p-4")
+          -
+            const isBackendNav = currentPage === 'backend' || currentPage === 'backend-install'
+            const isAdNav = currentPage === 'auth-active-directory' || currentPage === 'auth-active-directory-ldap' || currentPage === 'auth-active-directory-ldaps'
+            const isSocialNav = currentPage === 'auth-social' || (typeof currentPage === 'string' && currentPage.indexOf('auth-social-') === 0)
+
           .mb-6
             p(class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2")= t('nav.homeGroup')
             a(href=wikiPath('') class=`sidebar-link block px-3 py-2 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'home' ? 'active' : ''}`)
@@ -257,67 +297,93 @@ html(lang=htmlLang)
 
           .mb-6
             p(class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2")= t('nav.backendGroup')
-            a(href=wikiPath('/backend') class=`sidebar-link block px-3 py-2 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'backend' ? 'active' : ''}`)
-              span= t('nav.backendOverview')
-            a(href=wikiPath('/backend/install') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'backend-install' ? 'active' : ''}`)
-              span= t('nav.backendInstall')
+            details.sidebar-collapsible(open=isBackendNav)
+              summary
+                a(
+                  href=wikiPath('/backend')
+                  class=`sidebar-link block px-3 py-2 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'backend' ? 'active' : ''}`
+                  onclick='event.stopPropagation()'
+                )
+                  span= t('nav.backendOverview')
+                svg(class="sidebar-chevron mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true")
+                  path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7")
+              a(href=wikiPath('/backend/install') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'backend-install' ? 'active' : ''}`)
+                span= t('nav.backendInstall')
           
           .mb-6
             p(class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2")= t('nav.authGroup')
             a(href=wikiPath('/auth') class=`sidebar-link block px-3 py-2 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth' ? 'active' : ''}`)
               span= t('nav.authJwt')
-            a(href=wikiPath('/auth/active-directory') class=`sidebar-link block px-3 py-2 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-active-directory' ? 'active' : ''}`)
-              span= t('nav.authActiveDirectory')
-            a(href=wikiPath('/auth/active-directory/ldap') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-active-directory-ldap' ? 'active' : ''}`)
-              span= t('nav.authActiveDirectoryLdap')
-            a(href=wikiPath('/auth/active-directory/ldaps') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-active-directory-ldaps' ? 'active' : ''}`)
-              span= t('nav.authActiveDirectoryLdaps')
-            a(href=wikiPath('/auth/social') class=`sidebar-link block px-3 py-2 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social' ? 'active' : ''}`)
-              span= t('nav.authSocial')
-            a(href=wikiPath('/auth/social/google') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-google' ? 'active' : ''}`)
-              span= t('nav.authSocialGoogle')
-            a(href=wikiPath('/auth/social/facebook') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-facebook' ? 'active' : ''}`)
-              span= t('nav.authSocialFacebook')
-            a(href=wikiPath('/auth/social/twitter') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-twitter' ? 'active' : ''}`)
-              span= t('nav.authSocialTwitter')
-            a(href=wikiPath('/auth/social/github') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-github' ? 'active' : ''}`)
-              span= t('nav.authSocialGithub')
-            a(href=wikiPath('/auth/social/figma') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-figma' ? 'active' : ''}`)
-              span= t('nav.authSocialFigma')
-            a(href=wikiPath('/auth/social/linkedin') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-linkedin' ? 'active' : ''}`)
-              span= t('nav.authSocialLinkedin')
-            a(href=wikiPath('/auth/social/slack') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-slack' ? 'active' : ''}`)
-              span= t('nav.authSocialSlack')
-            a(href=wikiPath('/auth/social/atlassian') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-atlassian' ? 'active' : ''}`)
-              span= t('nav.authSocialAtlassian')
-            a(href=wikiPath('/auth/social/gitlab') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-gitlab' ? 'active' : ''}`)
-              span= t('nav.authSocialGitlab')
-            a(href=wikiPath('/auth/social/bitbucket') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-bitbucket' ? 'active' : ''}`)
-              span= t('nav.authSocialBitbucket')
-            a(href=wikiPath('/auth/social/discord') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-discord' ? 'active' : ''}`)
-              span= t('nav.authSocialDiscord')
-            a(href=wikiPath('/auth/social/twitch') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-twitch' ? 'active' : ''}`)
-              span= t('nav.authSocialTwitch')
-            a(href=wikiPath('/auth/social/steam') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-steam' ? 'active' : ''}`)
-              span= t('nav.authSocialSteam')
-            a(href=wikiPath('/auth/social/spotify') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-spotify' ? 'active' : ''}`)
-              span= t('nav.authSocialSpotify')
-            a(href=wikiPath('/auth/social/amazon') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-amazon' ? 'active' : ''}`)
-              span= t('nav.authSocialAmazon')
-            a(href=wikiPath('/auth/social/microsoft') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-microsoft' ? 'active' : ''}`)
-              span= t('nav.authSocialMicrosoft')
-            a(href=wikiPath('/auth/social/patreon') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-patreon' ? 'active' : ''}`)
-              span= t('nav.authSocialPatreon')
-            a(href=wikiPath('/auth/social/dropbox') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-dropbox' ? 'active' : ''}`)
-              span= t('nav.authSocialDropbox')
-            a(href=wikiPath('/auth/social/coinbase') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-coinbase' ? 'active' : ''}`)
-              span= t('nav.authSocialCoinbase')
-            a(href=wikiPath('/auth/social/metamask') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-metamask' ? 'active' : ''}`)
-              span= t('nav.authSocialMetamask')
-            a(href=wikiPath('/auth/social/apple') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-apple' ? 'active' : ''}`)
-              span= t('nav.authSocialApple')
-            a(href=wikiPath('/auth/social/reddit') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-reddit' ? 'active' : ''}`)
-              span= t('nav.authSocialReddit')
+
+            details.sidebar-collapsible(open=isAdNav)
+              summary
+                a(
+                  href=wikiPath('/auth/active-directory')
+                  class=`sidebar-link block px-3 py-2 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-active-directory' ? 'active' : ''}`
+                  onclick='event.stopPropagation()'
+                )
+                  span= t('nav.authActiveDirectory')
+                svg(class="sidebar-chevron mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true")
+                  path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7")
+              a(href=wikiPath('/auth/active-directory/ldap') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-active-directory-ldap' ? 'active' : ''}`)
+                span= t('nav.authActiveDirectoryLdap')
+              a(href=wikiPath('/auth/active-directory/ldaps') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-active-directory-ldaps' ? 'active' : ''}`)
+                span= t('nav.authActiveDirectoryLdaps')
+
+            details.sidebar-collapsible(open=isSocialNav)
+              summary
+                a(
+                  href=wikiPath('/auth/social')
+                  class=`sidebar-link block px-3 py-2 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social' ? 'active' : ''}`
+                  onclick='event.stopPropagation()'
+                )
+                  span= t('nav.authSocial')
+                svg(class="sidebar-chevron mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true")
+                  path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7")
+              a(href=wikiPath('/auth/social/google') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-google' ? 'active' : ''}`)
+                span= t('nav.authSocialGoogle')
+              a(href=wikiPath('/auth/social/facebook') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-facebook' ? 'active' : ''}`)
+                span= t('nav.authSocialFacebook')
+              a(href=wikiPath('/auth/social/twitter') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-twitter' ? 'active' : ''}`)
+                span= t('nav.authSocialTwitter')
+              a(href=wikiPath('/auth/social/github') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-github' ? 'active' : ''}`)
+                span= t('nav.authSocialGithub')
+              a(href=wikiPath('/auth/social/figma') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-figma' ? 'active' : ''}`)
+                span= t('nav.authSocialFigma')
+              a(href=wikiPath('/auth/social/linkedin') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-linkedin' ? 'active' : ''}`)
+                span= t('nav.authSocialLinkedin')
+              a(href=wikiPath('/auth/social/slack') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-slack' ? 'active' : ''}`)
+                span= t('nav.authSocialSlack')
+              a(href=wikiPath('/auth/social/atlassian') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-atlassian' ? 'active' : ''}`)
+                span= t('nav.authSocialAtlassian')
+              a(href=wikiPath('/auth/social/gitlab') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-gitlab' ? 'active' : ''}`)
+                span= t('nav.authSocialGitlab')
+              a(href=wikiPath('/auth/social/bitbucket') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-bitbucket' ? 'active' : ''}`)
+                span= t('nav.authSocialBitbucket')
+              a(href=wikiPath('/auth/social/discord') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-discord' ? 'active' : ''}`)
+                span= t('nav.authSocialDiscord')
+              a(href=wikiPath('/auth/social/twitch') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-twitch' ? 'active' : ''}`)
+                span= t('nav.authSocialTwitch')
+              a(href=wikiPath('/auth/social/steam') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-steam' ? 'active' : ''}`)
+                span= t('nav.authSocialSteam')
+              a(href=wikiPath('/auth/social/spotify') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-spotify' ? 'active' : ''}`)
+                span= t('nav.authSocialSpotify')
+              a(href=wikiPath('/auth/social/amazon') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-amazon' ? 'active' : ''}`)
+                span= t('nav.authSocialAmazon')
+              a(href=wikiPath('/auth/social/microsoft') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-microsoft' ? 'active' : ''}`)
+                span= t('nav.authSocialMicrosoft')
+              a(href=wikiPath('/auth/social/patreon') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-patreon' ? 'active' : ''}`)
+                span= t('nav.authSocialPatreon')
+              a(href=wikiPath('/auth/social/dropbox') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-dropbox' ? 'active' : ''}`)
+                span= t('nav.authSocialDropbox')
+              a(href=wikiPath('/auth/social/coinbase') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-coinbase' ? 'active' : ''}`)
+                span= t('nav.authSocialCoinbase')
+              a(href=wikiPath('/auth/social/metamask') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-metamask' ? 'active' : ''}`)
+                span= t('nav.authSocialMetamask')
+              a(href=wikiPath('/auth/social/apple') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-apple' ? 'active' : ''}`)
+                span= t('nav.authSocialApple')
+              a(href=wikiPath('/auth/social/reddit') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'auth-social-reddit' ? 'active' : ''}`)
+                span= t('nav.authSocialReddit')
 
           .mb-6
             p(class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2")= t('nav.modulesGroup')

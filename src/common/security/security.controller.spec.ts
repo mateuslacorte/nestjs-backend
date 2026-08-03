@@ -70,7 +70,7 @@ describe('SecurityController', () => {
       securityService.unblockIp.mockResolvedValue(record);
 
       await expect(controller.unblockIp('1.2.3.4')).resolves.toEqual({
-        message: 'IP 1.2.3.4 desbloqueado com sucesso',
+        message: 'IP 1.2.3.4 unblocked successfully',
         data: record,
       });
       expect(securityService.unblockIp).toHaveBeenCalledWith('1.2.3.4');
@@ -83,7 +83,7 @@ describe('SecurityController', () => {
       securityService.resetAttempts.mockResolvedValue(record);
 
       await expect(controller.resetAttempts('8.8.8.8')).resolves.toEqual({
-        message: 'Tentativas do IP 8.8.8.8 resetadas',
+        message: 'Attempts for IP 8.8.8.8 were reset',
         data: record,
       });
       expect(securityService.resetAttempts).toHaveBeenCalledWith('8.8.8.8');
@@ -95,7 +95,7 @@ describe('SecurityController', () => {
       securityService.removeIp.mockResolvedValue(undefined);
 
       await expect(controller.removeIp('9.9.9.9')).resolves.toEqual({
-        message: 'IP 9.9.9.9 removido da lista com sucesso',
+        message: 'IP 9.9.9.9 removed from the list successfully',
       });
       expect(securityService.removeIp).toHaveBeenCalledWith('9.9.9.9');
     });

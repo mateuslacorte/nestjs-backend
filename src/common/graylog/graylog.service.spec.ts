@@ -358,7 +358,7 @@ describe('GraylogService', () => {
       await flushPromises();
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        '[Graylog] Falha ao enviar log: network down',
+        '[Graylog] Failed to send log: network down',
       );
     });
 
@@ -369,7 +369,7 @@ describe('GraylogService', () => {
       await flushPromises();
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        '[Graylog] Falha ao enviar log: timeout',
+        '[Graylog] Failed to send log: timeout',
       );
     });
   });

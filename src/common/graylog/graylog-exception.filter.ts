@@ -1,5 +1,9 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
-import { Request, Response } from 'express';
+import {
+    AppRequest,
+    AppReply,
+    requestOriginalUrl,
+} from '@common/http/app-http';
 import { GraylogService } from './graylog.service';
 import { WikiRenderService } from '../../wiki/wiki-render.service';
 
@@ -11,10 +15,10 @@ export class GraylogExceptionFilter implements ExceptionFilter {
         private readonly wikiRender: WikiRenderService,
     ) {}
 
-    catch(exception: unknown, host: ArgumentsHost): void {
+    async catch(exception: unknown, host: ArgumentsHost): Promise<void> {
         const context = host.switchToHttp();
-        const response = context.getResponse<Response>();
-        const request = context.getRequest<Request>();
+        const response = context.getResponse<AppReply>();
+        const request = context.getRequest<AppRequest>();
         const status = exception instanceof HttpException
             ? exception.getStatus()
             : HttpStatus.INTERNAL_SERVER_ERROR;
@@ -33,14 +37,14 @@ export class GraylogExceptionFilter implements ExceptionFilter {
             },
         );
 
-        const path = request.originalUrl || request.url;
+        const path = requestOriginalUrl(request);
 
         // Wiki HTML errors only; API / health / GraphQL keep JSON responses.
         if (
             status === HttpStatus.NOT_FOUND &&
             this.wikiRender.shouldRenderWikiNotFound(request, path)
         ) {
-            this.wikiRender.renderNotFound(request, response);
+            await this.wikiRender.renderNotFound(request, response);
             return;
         }
 
@@ -48,11 +52,11 @@ export class GraylogExceptionFilter implements ExceptionFilter {
             status >= HttpStatus.INTERNAL_SERVER_ERROR &&
             this.wikiRender.shouldRenderWikiServerError(request, path)
         ) {
-            this.wikiRender.renderServerError(request, response);
+            await this.wikiRender.renderServerError(request, response);
             return;
         }
 
-        response.status(status).json({
+        response.status(status).send({
             statusCode: status,
             timestamp: new Date().toISOString(),
             path: request.url,
@@ -60,7 +64,7 @@ export class GraylogExceptionFilter implements ExceptionFilter {
         });
     }
 
-    private extractSafeHeaders(headers: Request['headers']): Record<string, string> {
+    private extractSafeHeaders(headers: AppRequest['headers']): Record<string, string> {
         const safeHeaderNames = [
             'user-agent',
             'host',

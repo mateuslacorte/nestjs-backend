@@ -54,9 +54,12 @@ export class OauthExchangeService {
 
     /**
      * Validates and immediately deletes the one-time exchange code.
+     * Normalizes codes that clients send with a trailing `#` / `%23` (AuthSession,
+     * hash routers, or copying from the address bar).
      */
     async consumeExchangeCode(code: string): Promise<string> {
-        const key = `${this.keyPrefix}${code}`;
+        const normalized = this.normalizeExchangeCode(code);
+        const key = `${this.keyPrefix}${normalized}`;
         const payload = await this.cacheService.get<ExchangeCodePayload>(key);
 
         if (!payload?.userId) {
@@ -65,5 +68,17 @@ export class OauthExchangeService {
 
         await this.cacheService.del(key);
         return payload.userId;
+    }
+
+    private normalizeExchangeCode(code: string): string {
+        let value = code.trim();
+        if (/%23/i.test(value) || /%[0-9A-Fa-f]{2}/.test(value)) {
+            try {
+                value = decodeURIComponent(value);
+            } catch {
+                // keep raw value when malformed
+            }
+        }
+        return value.split('#')[0]?.trim() ?? '';
     }
 }

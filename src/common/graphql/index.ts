@@ -1,2 +1,2 @@
-export { ApolloExpressDriver } from './apollo-express.driver';
-export type { ApolloExpressDriverConfig } from './apollo-express-driver.config';
+export { ApolloFastifyDriver } from './apollo-fastify.driver';
+export type { ApolloFastifyDriverConfig } from './apollo-fastify-driver.config';

@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { Request, Response } from 'express';
+import { AppRequest, AppReply } from '@common/http/app-http';
 import { WikiRenderService } from './wiki-render.service';
 import { WikiI18nService } from './i18n/wiki-i18n.service';
 import {
@@ -13,17 +13,16 @@ describe('WikiRenderService', () => {
   let configService: { get: jest.Mock };
   let service: WikiRenderService;
 
-  function createReq(overrides: Partial<Request> = {}): Request {
+  function createReq(overrides: Partial<AppRequest> = {}): AppRequest {
     const headers: Record<string, string | string[] | undefined> = {
       accept: 'text/html',
       ...(overrides.headers as Record<string, string | string[] | undefined>),
     };
     return {
-      headers,
-      path: '/',
       protocol: 'http',
       originalUrl: '/',
       url: '/',
+      path: '/',
       get: jest.fn((name: string) => {
         if (name.toLowerCase() === 'host') {
           return 'docs.example.com';
@@ -33,29 +32,30 @@ describe('WikiRenderService', () => {
       ...overrides,
       headers: {
         ...headers,
-        ...(overrides.headers as object),
+        ...(overrides.headers as Record<string, string | string[] | undefined>),
       },
-    } as unknown as Request;
+    } as unknown as AppRequest;
   }
 
-  function createRes(): Response & {
-    render: jest.Mock;
+  function createReply(): AppReply & {
+    view: jest.Mock;
     redirect: jest.Mock;
     status: jest.Mock;
-    setHeader: jest.Mock;
+    header: jest.Mock;
   } {
-    const res = {
-      render: jest.fn(),
-      redirect: jest.fn(),
-      setHeader: jest.fn(),
+    const reply = {
+      view: jest.fn().mockResolvedValue(undefined),
+      redirect: jest.fn().mockResolvedValue(undefined),
+      header: jest.fn(),
       status: jest.fn(),
     };
-    res.status.mockReturnValue(res);
-    return res as unknown as Response & {
-      render: jest.Mock;
+    reply.status.mockReturnValue(reply);
+    reply.header.mockReturnValue(reply);
+    return reply as unknown as AppReply & {
+      view: jest.Mock;
       redirect: jest.Mock;
       status: jest.Mock;
-      setHeader: jest.Mock;
+      header: jest.Mock;
     };
   }
 
@@ -104,6 +104,27 @@ describe('WikiRenderService', () => {
           createReq({ headers: { accept: 'application/json' } }),
         ),
       ).toBe(false);
+    });
+
+    it('joins array Accept headers before evaluating prefersHtml', () => {
+      expect(
+        service.prefersHtml(
+          createReq({
+            headers: {
+              accept: ['application/json', 'text/plain'],
+            } as unknown as AppRequest['headers'],
+          }),
+        ),
+      ).toBe(false);
+      expect(
+        service.prefersHtml(
+          createReq({
+            headers: {
+              accept: ['text/html', 'application/xhtml+xml'],
+            } as unknown as AppRequest['headers'],
+          }),
+        ),
+      ).toBe(true);
     });
 
     it('returns true when accept includes both json and html', () => {
@@ -335,7 +356,7 @@ describe('WikiRenderService', () => {
         path: '/p',
         protocol: undefined,
         headers: { 'x-forwarded-proto': undefined },
-      } as Partial<Request>);
+      } as Partial<AppRequest>);
       expect(
         service.buildLocals(withoutProtocol, 'en-US', {
           titleKey: 'x',
@@ -359,7 +380,7 @@ describe('WikiRenderService', () => {
       const req = createReq({
         path: '/x',
         get: jest.fn().mockReturnValue(undefined),
-      } as Partial<Request>);
+      } as Partial<AppRequest>);
       const locals = service.buildLocals(req, 'en-US', {
         titleKey: 'x',
         currentPage: 'home',
@@ -378,7 +399,7 @@ describe('WikiRenderService', () => {
       const req = createReq({
         path: '/x',
         get: jest.fn().mockReturnValue(undefined),
-      } as Partial<Request>);
+      } as Partial<AppRequest>);
       const locals = service.buildLocals(req, 'en-US', {
         titleKey: 'x',
         currentPage: 'home',
@@ -400,7 +421,7 @@ describe('WikiRenderService', () => {
       });
       const req = createReq({
         get: jest.fn().mockReturnValue(undefined),
-      } as Partial<Request>);
+      } as Partial<AppRequest>);
       const locals = service.buildLocals(req, 'en-US', {
         titleKey: 'x',
         currentPage: 'home',
@@ -422,7 +443,7 @@ describe('WikiRenderService', () => {
       });
       const req = createReq({
         get: jest.fn().mockReturnValue(undefined),
-      } as Partial<Request>);
+      } as Partial<AppRequest>);
       const locals = service.buildLocals(req, 'en-US', {
         titleKey: 'x',
         currentPage: 'home',
@@ -456,7 +477,7 @@ describe('WikiRenderService', () => {
 
     it('canonicalizes empty path via req.path fallback to /', () => {
       const locals = service.buildLocals(
-        createReq({ path: undefined } as Partial<Request>),
+        createReq({ path: undefined } as Partial<AppRequest>),
         'en-US',
         { titleKey: 'home.meta.title', currentPage: 'home' },
       );
@@ -474,28 +495,30 @@ describe('WikiRenderService', () => {
   });
 
   describe('renderPage', () => {
-    it('sets locale cookie and redirects when lang query is valid', () => {
+    it('sets locale cookie and redirects when lang query is valid', async () => {
       const req = createReq({ path: '/auth' });
-      const res = createRes();
+      const reply = createReply();
 
-      service.renderPage(req, res, 'pt-BR', 'pages/auth', 'auth', 'auth');
+      await service.renderPage(req, reply, 'pt-BR', 'pages/auth', 'auth', 'auth');
 
-      expect(res.setHeader).toHaveBeenCalledWith(
+      expect(reply.header).toHaveBeenCalledWith(
         'Set-Cookie',
         buildWikiLocaleCookie('pt-BR'),
       );
-      expect(res.redirect).toHaveBeenCalledWith(302, '/auth');
-      expect(res.render).not.toHaveBeenCalled();
+      expect(reply.redirect).toHaveBeenCalledWith('/auth', 302);
+      expect(reply.view).not.toHaveBeenCalled();
     });
 
-    it('renders the view with locals when lang is absent/invalid', () => {
+    it('renders the view with locals when lang is absent/invalid', async () => {
       const req = createReq({ path: '/auth' });
-      const res = createRes();
+      const reply = createReply();
 
-      service.renderPage(req, res, 'fr-FR', 'pages/auth', 'auth', 'auth');
+      await service.renderPage(req, reply, 'fr-FR', 'pages/auth', 'auth', 'auth');
 
-      expect(res.redirect).not.toHaveBeenCalled();
-      expect(res.render).toHaveBeenCalledWith(
+      expect(reply.redirect).not.toHaveBeenCalled();
+      expect(reply.header).toHaveBeenCalledWith('Cache-Control', 'private, no-cache');
+      expect(reply.header).toHaveBeenCalledWith('Vary', 'Cookie, Accept-Language');
+      expect(reply.view).toHaveBeenCalledWith(
         'pages/auth',
         expect.objectContaining({
           currentPage: 'auth',
@@ -506,14 +529,16 @@ describe('WikiRenderService', () => {
   });
 
   describe('renderNotFound', () => {
-    it('renders 404 page with status and request path', () => {
+    it('renders 404 page with status and request path', async () => {
       const req = createReq({ originalUrl: '/missing?x=1', url: '/missing' });
-      const res = createRes();
+      const reply = createReply();
 
-      service.renderNotFound(req, res);
+      await service.renderNotFound(req, reply);
 
-      expect(res.status).toHaveBeenCalledWith(404);
-      expect(res.render).toHaveBeenCalledWith(
+      expect(reply.status).toHaveBeenCalledWith(404);
+      expect(reply.header).toHaveBeenCalledWith('Cache-Control', 'private, no-cache');
+      expect(reply.header).toHaveBeenCalledWith('Vary', 'Cookie, Accept-Language');
+      expect(reply.view).toHaveBeenCalledWith(
         'pages/error-404',
         expect.objectContaining({
           currentPage: 'error-404',
@@ -523,16 +548,16 @@ describe('WikiRenderService', () => {
       );
     });
 
-    it('falls back to req.url when originalUrl is missing', () => {
+    it('falls back to req.url when originalUrl is missing', async () => {
       const req = createReq({
         originalUrl: undefined,
         url: '/gone',
-      } as Partial<Request>);
-      const res = createRes();
+      } as Partial<AppRequest>);
+      const reply = createReply();
 
-      service.renderNotFound(req, res);
+      await service.renderNotFound(req, reply);
 
-      expect(res.render).toHaveBeenCalledWith(
+      expect(reply.view).toHaveBeenCalledWith(
         'pages/error-404',
         expect.objectContaining({ requestPath: '/gone' }),
       );
@@ -540,14 +565,16 @@ describe('WikiRenderService', () => {
   });
 
   describe('renderServerError', () => {
-    it('renders 500 page with status and request path', () => {
+    it('renders 500 page with status and request path', async () => {
       const req = createReq({ originalUrl: '/boom', url: '/boom' });
-      const res = createRes();
+      const reply = createReply();
 
-      service.renderServerError(req, res);
+      await service.renderServerError(req, reply);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.render).toHaveBeenCalledWith(
+      expect(reply.status).toHaveBeenCalledWith(500);
+      expect(reply.header).toHaveBeenCalledWith('Cache-Control', 'private, no-cache');
+      expect(reply.header).toHaveBeenCalledWith('Vary', 'Cookie, Accept-Language');
+      expect(reply.view).toHaveBeenCalledWith(
         'pages/error-500',
         expect.objectContaining({
           currentPage: 'error-500',
@@ -557,16 +584,16 @@ describe('WikiRenderService', () => {
       );
     });
 
-    it('falls back to req.url when originalUrl is missing', () => {
+    it('falls back to req.url when originalUrl is missing', async () => {
       const req = createReq({
         originalUrl: undefined,
         url: '/explode',
-      } as Partial<Request>);
-      const res = createRes();
+      } as Partial<AppRequest>);
+      const reply = createReply();
 
-      service.renderServerError(req, res);
+      await service.renderServerError(req, reply);
 
-      expect(res.render).toHaveBeenCalledWith(
+      expect(reply.view).toHaveBeenCalledWith(
         'pages/error-500',
         expect.objectContaining({ requestPath: '/explode' }),
       );

@@ -17,7 +17,7 @@
         "items": [
           "TypeORM entity (PostgreSQL) — active store used by UsersService",
           "Mongoose schema (MongoDB) — dual-ready; repository registered but not injected into the service",
-          "Cache invalidation with the users:* pattern on writes"
+          "Cache invalidation with the typeorm:users:user:* / mongoose:users:user:* patterns on writes"
         ]
       },
       "surfaces": {

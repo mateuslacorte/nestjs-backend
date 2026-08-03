@@ -52,7 +52,7 @@ describe('SessionSerializer', () => {
       const done = jest.fn();
       const user = createUser({ id: 'serialize-id-99' });
 
-      serializer.serializeUser(user, done);
+      serializer.serializeUser(user as any, done);
 
       expect(done).toHaveBeenCalledWith(null, 'serialize-id-99');
     });
@@ -62,7 +62,7 @@ describe('SessionSerializer', () => {
     it('calls done with user when found', async () => {
       const done = jest.fn();
       const user = createUser();
-      usersService.findById.mockResolvedValue(user);
+      usersService.findById.mockResolvedValue(user as any);
 
       await serializer.deserializeUser('user-serializer-1', done);
 

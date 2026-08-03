@@ -4,7 +4,7 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Request } from 'express';
+import { AppRequest } from '@common/http/app-http';
 import { SteamAuthGuard } from './steam-auth.guard';
 
 function createConfigService(
@@ -15,10 +15,10 @@ function createConfigService(
   } as unknown as ConfigService;
 }
 
-function createHttpContext(req: Partial<Request>): ExecutionContext {
+function createHttpContext(req: Partial<AppRequest>): ExecutionContext {
   return {
     switchToHttp: () => ({
-      getRequest: () => req as Request,
+      getRequest: () => req as AppRequest,
     }),
     getHandler: jest.fn(),
     getClass: jest.fn(),

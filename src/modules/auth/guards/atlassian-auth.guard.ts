@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
-import { Request } from 'express';
+import { AppRequest, requestPath } from '@common/http/app-http';
 
 @Injectable()
 export class AtlassianAuthGuard extends AuthGuard('atlassian') {
@@ -20,8 +20,8 @@ export class AtlassianAuthGuard extends AuthGuard('atlassian') {
     }
 
     getAuthenticateOptions(context: ExecutionContext) {
-        const req = context.switchToHttp().getRequest<Request>();
-        const isCallback = req.path.includes('/atlassian/callback');
+        const req = context.switchToHttp().getRequest<AppRequest>();
+        const isCallback = requestPath(req).includes('/atlassian/callback');
         if (isCallback) {
             return {};
         }
@@ -43,7 +43,7 @@ export class AtlassianAuthGuard extends AuthGuard('atlassian') {
         }
     }
 
-    private resolveRedirect(req: Request): string {
+    private resolveRedirect(req: AppRequest): string {
         const allowlist =
             this.configService.get<string[]>('atlassianOAuth.redirectAllowlist') ||
             [];

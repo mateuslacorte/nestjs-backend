@@ -25,7 +25,7 @@ module.exports = {
     'src/common/graphql/**/*.ts',
     '!src/common/graphql/**/*.spec.ts',
     // Apollo driver plumbing — Nest/Apollo option-merge branches are framework emit noise
-    '!src/common/graphql/apollo-express.driver.ts',
+    '!src/common/graphql/apollo-fastify.driver.ts',
     'src/common/cache/**/*.ts',
     '!src/common/cache/**/*.spec.ts',
     // Decorator/instrumentation-heavy; behavior covered via cache service + repository specs

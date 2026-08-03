@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import Strategy from 'passport-apple';
-import { Request } from 'express';
+import { AppRequest } from '@common/http/app-http';
 import * as jwt from 'jsonwebtoken';
 
 export interface AppleProfilePayload {
@@ -47,7 +47,7 @@ export class AppleStrategy extends PassportStrategy(Strategy, 'apple') {
     }
 
     async validate(
-        req: Request,
+        req: AppRequest,
         _accessToken: string,
         _refreshToken: string,
         idToken: string,
@@ -72,10 +72,13 @@ export class AppleStrategy extends PassportStrategy(Strategy, 'apple') {
             let firstName = 'Apple';
             let lastName = '';
 
+            const body = req.body as
+                | { user?: string | AppleUserBody }
+                | undefined;
             const rawUser =
-                typeof req.body?.user === 'string'
-                    ? (JSON.parse(req.body.user) as AppleUserBody)
-                    : (req.body?.user as AppleUserBody | undefined);
+                typeof body?.user === 'string'
+                    ? (JSON.parse(body.user) as AppleUserBody)
+                    : (body?.user as AppleUserBody | undefined);
 
             if (rawUser?.name?.firstName) {
                 firstName = rawUser.name.firstName.trim() || 'Apple';

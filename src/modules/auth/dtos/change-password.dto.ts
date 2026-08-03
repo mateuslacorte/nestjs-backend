@@ -4,29 +4,29 @@ import { ApiProperty } from '@nestjs/swagger';
 export class ChangePasswordDto {
     @ApiProperty({
         example: 'CurrentP@ssw0rd',
-        description: 'Senha atual do usuário'
+        description: "User's current password"
     })
     @IsString()
-    @IsNotEmpty({ message: 'A senha atual é obrigatória' })
+    @IsNotEmpty({ message: 'Current password is required' })
     currentPassword!: string;
 
     @ApiProperty({
         example: 'NewStr0ng!P@ssword',
-        description: 'Nova senha (mínimo 8 caracteres, com letra maiúscula, minúscula, número e caractere especial)'
+        description: 'New password (minimum 8 characters, with uppercase, lowercase, number, and special character)'
     })
     @IsString()
-    @MinLength(8, { message: 'A nova senha deve ter no mínimo 8 caracteres' })
+    @MinLength(8, { message: 'New password must be at least 8 characters long' })
     @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, {
-        message: 'A senha deve conter pelo menos 1 letra maiúscula, 1 letra minúscula, 1 número e 1 caractere especial'
+        message: 'Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character'
     })
     newPassword!: string;
 
     @ApiProperty({
         example: 'NewStr0ng!P@ssword',
-        description: 'Confirmação da nova senha'
+        description: 'New password confirmation'
     })
     @IsString()
-    @IsNotEmpty({ message: 'A confirmação da senha é obrigatória' })
+    @IsNotEmpty({ message: 'Password confirmation is required' })
     confirmNewPassword!: string;
 }
 

@@ -114,7 +114,7 @@ describe('SecurityService', () => {
       expect(existing.paths).toEqual(['/a', '/b']);
       expect(postgresRepo.save).toHaveBeenCalledWith(existing);
       expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('[SECURITY] IP 1.2.3.4 bloqueado'),
+        expect.stringContaining('[SECURITY] IP 1.2.3.4 blocked'),
       );
     });
 

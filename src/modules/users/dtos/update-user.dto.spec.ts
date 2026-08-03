@@ -245,7 +245,7 @@ describe('UpdateUserDto', () => {
     const { TypeMetadataStorage } = require('@nestjs/graphql');
     const {
       LazyMetadataStorage,
-    } = require('@nestjs/graphql/dist/schema-builder/storages/lazy-metadata.storage');
+    } = require('@nestjs/graphql/dist/schema-builder/storages/lazy-metadata.storage.js');
     LazyMetadataStorage.load([UpdateUserDto]);
     TypeMetadataStorage.compile();
     const meta = TypeMetadataStorage.getInputTypeMetadataByTarget(UpdateUserDto);

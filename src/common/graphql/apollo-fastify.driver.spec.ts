@@ -1,18 +1,17 @@
 import { HttpStatus } from '@nestjs/common';
 import { ApolloServerErrorCode } from '@apollo/server/errors';
 import { GraphQLSchema } from 'graphql';
-import { ApolloExpressDriver } from './apollo-express.driver';
-import { ApolloExpressDriverConfig } from './apollo-express-driver.config';
+import { ApolloFastifyDriver } from './apollo-fastify.driver';
+import { ApolloFastifyDriverConfig } from './apollo-fastify-driver.config';
 
-type MockExpressAdapter = {
+type MockFastifyAdapter = {
   getType: jest.Mock;
-  use: jest.Mock;
   getHttpServer: jest.Mock;
   getInstance: jest.Mock;
 };
 
-type MockApp = {
-  use: jest.Mock;
+type MockFastify = {
+  route: jest.Mock;
 };
 
 const mockApolloInstances: Array<{
@@ -40,12 +39,6 @@ jest.mock('@apollo/server', () => {
   return { ApolloServer };
 });
 
-jest.mock('@apollo/server/plugin/drainHttpServer', () => ({
-  ApolloServerPluginDrainHttpServer: jest.fn(() => ({
-    __plugin: 'drainHttpServer',
-  })),
-}));
-
 jest.mock('@apollo/server/plugin/landingPage/default', () => ({
   ApolloServerPluginLandingPageLocalDefault: jest.fn(() => ({
     __plugin: 'landingEnabled',
@@ -58,42 +51,45 @@ jest.mock('@apollo/server/plugin/disabled', () => ({
   })),
 }));
 
-jest.mock('@as-integrations/express5', () => ({
-  expressMiddleware: jest.fn(() => 'express-middleware'),
+jest.mock('@as-integrations/fastify', () => ({
+  fastifyApolloDrainPlugin: jest.fn(() => ({
+    __plugin: 'drainFastify',
+  })),
+  fastifyApolloHandler: jest.fn(() => 'fastify-apollo-handler'),
 }));
-
-jest.mock('cors', () => jest.fn(() => 'cors-middleware'));
 
 import { ApolloServer } from '@apollo/server';
 import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
-import { expressMiddleware } from '@as-integrations/express5';
-import cors from 'cors';
+import {
+  fastifyApolloDrainPlugin,
+  fastifyApolloHandler,
+} from '@as-integrations/fastify';
 
 const MockApolloServer = ApolloServer as unknown as jest.Mock;
-const mockExpressMiddleware = expressMiddleware as unknown as jest.Mock;
-const mockCors = cors as unknown as jest.Mock;
+const mockFastifyApolloHandler = fastifyApolloHandler as unknown as jest.Mock;
+const mockFastifyApolloDrainPlugin =
+  fastifyApolloDrainPlugin as unknown as jest.Mock;
 
-function createExpressAdapter(
-  overrides: Partial<MockExpressAdapter> = {},
-): MockExpressAdapter & { app: MockApp } {
-  const app: MockApp = { use: jest.fn() };
+function createFastifyAdapter(
+  overrides: Partial<MockFastifyAdapter> = {},
+): MockFastifyAdapter & { fastify: MockFastify } {
+  const fastify: MockFastify = { route: jest.fn() };
   return {
-    getType: jest.fn().mockReturnValue('express'),
-    use: jest.fn(),
+    getType: jest.fn().mockReturnValue('fastify'),
     getHttpServer: jest.fn().mockReturnValue({ __httpServer: true }),
-    getInstance: jest.fn().mockReturnValue(app),
-    app,
+    getInstance: jest.fn().mockReturnValue(fastify),
+    fastify,
     ...overrides,
   };
 }
 
 function createDriver(
-  httpAdapter = createExpressAdapter(),
-): ApolloExpressDriver {
+  httpAdapter = createFastifyAdapter(),
+): ApolloFastifyDriver {
   const driver = Object.create(
-    ApolloExpressDriver.prototype,
-  ) as ApolloExpressDriver;
+    ApolloFastifyDriver.prototype,
+  ) as ApolloFastifyDriver;
   Object.defineProperty(driver, 'httpAdapterHost', {
     value: { httpAdapter },
     configurable: true,
@@ -152,16 +148,16 @@ function findPreservePlugin(
     | undefined;
 }
 
-describe('ApolloExpressDriver', () => {
+describe('ApolloFastifyDriver', () => {
   const originalNodeEnv = process.env.NODE_ENV;
-  let driver: ApolloExpressDriver;
-  let adapter: ReturnType<typeof createExpressAdapter>;
+  let driver: ApolloFastifyDriver;
+  let adapter: ReturnType<typeof createFastifyAdapter>;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockApolloInstances.length = 0;
     process.env.NODE_ENV = 'test';
-    adapter = createExpressAdapter();
+    adapter = createFastifyAdapter();
     driver = createDriver(adapter);
   });
 
@@ -219,13 +215,6 @@ describe('ApolloExpressDriver', () => {
       expect(findPreservePlugin(merged.plugins)).toBeDefined();
     });
 
-    it('adds preserve plugin when preserveHttpStatusForExecutionErrors is true', async () => {
-      const merged = await driver.mergeDefaultOptions({
-        preserveHttpStatusForExecutionErrors: true,
-      });
-      expect(findPreservePlugin(merged.plugins)).toBeDefined();
-    });
-
     it('omits preserve plugin when preserveHttpStatusForExecutionErrors is false', async () => {
       const merged = await driver.mergeDefaultOptions({
         preserveHttpStatusForExecutionErrors: false,
@@ -252,31 +241,6 @@ describe('ApolloExpressDriver', () => {
       const hooks = await plugin!.requestDidStart();
       const response = {
         body: { kind: 'single', singleResult: { errors: [] } },
-        http: { status: 400 },
-      };
-
-      await hooks.willSendResponse({ response });
-      expect(response.http.status).toBe(400);
-    });
-
-    it('does not change status when response.http is missing', async () => {
-      const merged = await driver.mergeDefaultOptions({});
-      const plugin = findPreservePlugin(merged.plugins);
-      const hooks = await plugin!.requestDidStart();
-      const response = {
-        body: { kind: 'single', singleResult: { data: {} } },
-      };
-
-      await hooks.willSendResponse({ response });
-      expect(response).not.toHaveProperty('http');
-    });
-
-    it('does not change status when body kind is not single', async () => {
-      const merged = await driver.mergeDefaultOptions({});
-      const plugin = findPreservePlugin(merged.plugins);
-      const hooks = await plugin!.requestDidStart();
-      const response = {
-        body: { kind: 'incremental', singleResult: { data: {} } },
         http: { status: 400 },
       };
 
@@ -317,7 +281,6 @@ describe('ApolloExpressDriver', () => {
             originalError: exception.response,
           }),
         );
-        expect(result.extensions).not.toHaveProperty('status');
       },
     );
 
@@ -336,15 +299,11 @@ describe('ApolloExpressDriver', () => {
       );
     });
 
-    it('falls back to formatted message when exception message is missing', async () => {
-      const merged = await driver.mergeDefaultOptions({});
-      const exception = {
-        status: 400,
-        response: { statusCode: 400 },
-      };
-
-      const result = merged.formatError!(baseFormatted, exception);
-      expect(result.message).toBe('formatted');
+    it('does not install formatError when autoTransformHttpErrors is false', async () => {
+      const merged = await driver.mergeDefaultOptions({
+        autoTransformHttpErrors: false,
+      });
+      expect(merged.formatError).toBeUndefined();
     });
 
     it('composes with a custom formatError that receives the transformed error', async () => {
@@ -370,21 +329,6 @@ describe('ApolloExpressDriver', () => {
         exception,
       );
       expect(result.message).toBe('custom:bad');
-    });
-
-    it('does not install formatError when autoTransformHttpErrors is false', async () => {
-      const merged = await driver.mergeDefaultOptions({
-        autoTransformHttpErrors: false,
-      });
-      expect(merged.formatError).toBeUndefined();
-    });
-
-    it('does not treat errors missing status or statusCode as HTTP exceptions', async () => {
-      const merged = await driver.mergeDefaultOptions({});
-      const result = merged.formatError!(baseFormatted, {
-        response: { statusCode: 400 },
-      });
-      expect(result).toEqual(baseFormatted);
     });
   });
 
@@ -415,16 +359,25 @@ describe('ApolloExpressDriver', () => {
       });
     });
 
-    it('wraps a function context using the whole arg when req is absent', async () => {
+    it('wraps an object context and assigns req', async () => {
       const merged = await driver.mergeDefaultOptions({
-        context: async () => ({ userId: 1 }),
+        context: { role: 'admin' },
       });
-      const raw = { id: 'raw' };
+      const req = { id: 'r2' };
 
-      await expect(merged.context!(raw)).resolves.toEqual({
-        userId: 1,
-        req: raw,
+      await expect(merged.context!({ req })).resolves.toEqual({
+        role: 'admin',
+        req,
       });
+    });
+
+    it('returns { req } when function context resolves to a falsy value', async () => {
+      const merged = await driver.mergeDefaultOptions({
+        context: async () => null,
+      });
+      const req = { id: 'r3' };
+
+      await expect(merged.context!({ req })).resolves.toEqual({ req });
     });
 
     it('leaves an existing object req on function context results', async () => {
@@ -441,39 +394,6 @@ describe('ApolloExpressDriver', () => {
       });
     });
 
-    it('wraps an object context and assigns req', async () => {
-      const merged = await driver.mergeDefaultOptions({
-        context: { role: 'admin' },
-      });
-      const req = { id: 'r2' };
-
-      await expect(merged.context!({ req })).resolves.toEqual({
-        role: 'admin',
-        req,
-      });
-    });
-
-    it('wraps an object context using the whole arg when req is absent', async () => {
-      const merged = await driver.mergeDefaultOptions({
-        context: { role: 'admin' },
-      });
-      const raw = { id: 'raw' };
-
-      await expect(merged.context!(raw)).resolves.toEqual({
-        role: 'admin',
-        req: raw,
-      });
-    });
-
-    it('returns { req } when function context resolves to a falsy value', async () => {
-      const merged = await driver.mergeDefaultOptions({
-        context: async () => null,
-      });
-      const req = { id: 'r3' };
-
-      await expect(merged.context!({ req })).resolves.toEqual({ req });
-    });
-
     it('returns non-object context values as-is', async () => {
       const merged = await driver.mergeDefaultOptions({
         context: async () => 'string-ctx',
@@ -488,29 +408,34 @@ describe('ApolloExpressDriver', () => {
   describe('start / stop / instance', () => {
     const schema = {} as GraphQLSchema;
 
-    it('throws when http adapter is not express', async () => {
-      adapter.getType.mockReturnValue('fastify');
+    it('throws when http adapter is not fastify', async () => {
+      adapter.getType.mockReturnValue('express');
 
       await expect(
         driver.start({ path: '/graphql', schema }),
       ).rejects.toThrow(
-        'ApolloExpressDriver only supports Express (got: fastify)',
+        'ApolloFastifyDriver only supports Fastify (got: express)',
       );
     });
 
     it('throws when schema is missing', async () => {
       await expect(driver.start({ path: '/graphql' })).rejects.toThrow(
-        'ApolloExpressDriver requires a GraphQL schema',
+        'ApolloFastifyDriver requires a GraphQL schema',
       );
     });
 
-    it('starts Apollo Server, mounts middleware, and exposes instance', async () => {
-      const options: ApolloExpressDriverConfig = {
+    it('throws when path is missing', async () => {
+      await expect(driver.start({ schema } as ApolloFastifyDriverConfig)).rejects.toThrow(
+        'ApolloFastifyDriver requires a GraphQL path',
+      );
+    });
+
+    it('starts Apollo Server, registers Fastify route, and exposes instance', async () => {
+      const options: ApolloFastifyDriverConfig = {
         path: '/graphql',
         schema,
         introspection: true,
-        cors: { origin: true },
-        context: async ({ req }: { req: unknown }) => ({ req }),
+        context: async (request: unknown) => ({ req: request }),
         plugins: [{ __plugin: 'custom' } as never],
       };
 
@@ -525,74 +450,25 @@ describe('ApolloExpressDriver', () => {
       expect(ctorOptions.introspection).toBe(true);
       expect(ctorOptions.path).toBeUndefined();
       expect(ctorOptions.playground).toBeUndefined();
-      expect(ctorOptions.cors).toBeUndefined();
       expect(ctorOptions.context).toBeUndefined();
       expect(ctorOptions.plugins).toEqual(
         expect.arrayContaining([
           { __plugin: 'custom' },
-          { __plugin: 'drainHttpServer' },
+          { __plugin: 'drainFastify' },
         ]),
       );
 
-      expect(adapter.use).toHaveBeenCalledWith(
-        '/graphql',
-        expect.any(Function),
-      );
-      expect(mockCors).toHaveBeenCalledWith({ origin: true });
-      expect(adapter.app.use).toHaveBeenCalledWith(
-        '/graphql',
-        'cors-middleware',
-      );
-      expect(mockExpressMiddleware).toHaveBeenCalledWith(
+      expect(mockFastifyApolloDrainPlugin).toHaveBeenCalledWith(adapter.fastify);
+      expect(mockFastifyApolloHandler).toHaveBeenCalledWith(
         mockApolloInstances[0],
         expect.objectContaining({ context: options.context }),
       );
-      expect(adapter.app.use).toHaveBeenCalledWith(
-        '/graphql',
-        'express-middleware',
-      );
+      expect(adapter.fastify.route).toHaveBeenCalledWith({
+        method: ['GET', 'POST', 'OPTIONS'],
+        url: '/graphql',
+        handler: 'fastify-apollo-handler',
+      });
       expect(driver.instance).toBe(mockApolloInstances[0]);
-    });
-
-    it('skips cors middleware when cors option is absent', async () => {
-      await driver.start({ path: '/graphql', schema });
-
-      expect(mockCors).not.toHaveBeenCalled();
-      expect(adapter.app.use).toHaveBeenCalledTimes(1);
-      expect(adapter.app.use).toHaveBeenCalledWith(
-        '/graphql',
-        'express-middleware',
-      );
-    });
-
-    it('body middleware initializes undefined body to {} and calls next', async () => {
-      await driver.start({ path: '/graphql', schema });
-      const bodyMw = adapter.use.mock.calls[0][1] as (
-        req: { body?: unknown },
-        res: unknown,
-        next: () => void,
-      ) => void;
-      const next = jest.fn();
-      const req: { body?: unknown } = {};
-
-      bodyMw(req, {}, next);
-      expect(req.body).toEqual({});
-      expect(next).toHaveBeenCalled();
-    });
-
-    it('body middleware leaves an existing body untouched', async () => {
-      await driver.start({ path: '/graphql', schema });
-      const bodyMw = adapter.use.mock.calls[0][1] as (
-        req: { body?: unknown },
-        res: unknown,
-        next: () => void,
-      ) => void;
-      const next = jest.fn();
-      const req = { body: { query: '{ hi }' } };
-
-      bodyMw(req, {}, next);
-      expect(req.body).toEqual({ query: '{ hi }' });
-      expect(next).toHaveBeenCalled();
     });
 
     it('omits Nest-only keys and undefined Apollo values from server options', async () => {

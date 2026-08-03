@@ -33,7 +33,7 @@ export class SecurityService {
                 existing.blocked = true;
                 existing.blockedAt = new Date();
                 console.warn(
-                    `[SECURITY] IP ${ip} bloqueado após ${existing.attempts} tentativas`,
+                    `[SECURITY] IP ${ip} blocked after ${existing.attempts} attempts`,
                 );
             }
 
@@ -56,7 +56,7 @@ export class SecurityService {
     }
 
     /**
-     * Verifica se um IP está bloqueado
+     * Checks whether an IP is blocked
      */
     async isIpBlocked(ip: string): Promise<boolean> {
         const record = await this.postgresRepo.findBlockedByIp(ip);
@@ -64,21 +64,21 @@ export class SecurityService {
     }
 
     /**
-     * Lista todos os IPs bloqueados
+     * Lists all blocked IPs
      */
     async getBlockedIps(): Promise<IBlockedIp[]> {
         return this.postgresRepo.findBlocked();
     }
 
     /**
-     * Lista todos os IPs suspeitos (com tentativas mas não bloqueados)
+     * Lists all suspicious IPs (with attempts but not blocked)
      */
     async getSuspiciousIps(): Promise<IBlockedIp[]> {
         return this.postgresRepo.findSuspicious();
     }
 
     /**
-     * Desbloqueia um IP
+     * Unblocks an IP
      */
     async unblockIp(ip: string): Promise<IBlockedIp> {
         const record = await this.postgresRepo.findByIp(ip);
@@ -94,7 +94,7 @@ export class SecurityService {
     }
 
     /**
-     * Remove um IP da lista
+     * Removes an IP from the list
      */
     async removeIp(ip: string): Promise<void> {
         const record = await this.postgresRepo.findByIp(ip);
@@ -106,7 +106,7 @@ export class SecurityService {
     }
 
     /**
-     * Reseta as tentativas de um IP (sem remover)
+     * Resets attempts for an IP (without removing it)
      */
     async resetAttempts(ip: string): Promise<IBlockedIp> {
         const record = await this.postgresRepo.findByIp(ip);

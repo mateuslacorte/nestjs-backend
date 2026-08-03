@@ -5,7 +5,7 @@ export interface IBlockedIp {
     blocked: boolean;
     blockedAt?: Date;
     lastAttemptAt: Date;
-    paths: string[];           // Últimas rotas tentadas
+    paths: string[];           // Most recent attempted routes
     userAgent?: string;
     createdAt?: Date;
     updatedAt?: Date;

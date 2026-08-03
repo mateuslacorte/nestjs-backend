@@ -1,16 +1,16 @@
 import {
-  ApolloExpressDriver,
-  ApolloExpressDriverConfig,
+  ApolloFastifyDriver,
+  ApolloFastifyDriverConfig,
 } from './index';
 
 describe('common/graphql barrel', () => {
-  it('re-exports ApolloExpressDriver', () => {
-    expect(ApolloExpressDriver).toBeDefined();
-    expect(typeof ApolloExpressDriver).toBe('function');
+  it('re-exports ApolloFastifyDriver', () => {
+    expect(ApolloFastifyDriver).toBeDefined();
+    expect(typeof ApolloFastifyDriver).toBe('function');
   });
 
-  it('exposes ApolloExpressDriverConfig as a usable type', () => {
-    const config: ApolloExpressDriverConfig = {
+  it('exposes ApolloFastifyDriverConfig as a usable type', () => {
+    const config: ApolloFastifyDriverConfig = {
       path: '/graphql',
       playground: false,
     };

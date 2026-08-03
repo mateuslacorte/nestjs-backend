@@ -102,7 +102,7 @@ export class GraylogService implements OnModuleInit, OnModuleDestroy {
 
         void this.client.post('', payload).catch((error: unknown) => {
             const reason = error instanceof Error ? error.message : String(error);
-            this.originalConsole.error(`[Graylog] Falha ao enviar log: ${reason}`);
+            this.originalConsole.error(`[Graylog] Failed to send log: ${reason}`);
         });
     }
 

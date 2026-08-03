@@ -1,5 +1,5 @@
 import { HttpStatus } from '@nestjs/common';
-import { NextFunction, Request, Response } from 'express';
+import { AppRequest, AppReply } from '@common/http/app-http';
 import { CatchAllController } from './catchall.controller';
 import { SecurityService } from './security.service';
 import { WikiRenderService } from '../../wiki/wiki-render.service';
@@ -8,19 +8,19 @@ jest.mock('uuid', () => ({
   v4: () => 'fixed-uuid',
 }));
 
-type MockRes = {
+type MockReply = {
   status: jest.Mock;
-  json: jest.Mock;
+  send: jest.Mock;
 };
 
-function createRes(): MockRes {
-  const res: MockRes = {
+function createReply(): MockReply {
+  const reply: MockReply = {
     status: jest.fn(),
-    json: jest.fn(),
+    send: jest.fn(),
   };
-  res.status.mockReturnValue(res);
-  res.json.mockReturnValue(res);
-  return res;
+  reply.status.mockReturnValue(reply);
+  reply.send.mockReturnValue(reply);
+  return reply;
 }
 
 function createReq(
@@ -31,14 +31,14 @@ function createReq(
     headers: Record<string, string | string[] | undefined>;
     socket: { remoteAddress?: string };
   }> = {},
-): Request {
+): AppRequest {
   return {
     originalUrl: overrides.originalUrl ?? '/unknown',
     url: overrides.url ?? '/unknown',
     ip: overrides.ip,
     headers: overrides.headers ?? {},
     socket: overrides.socket ?? {},
-  } as unknown as Request;
+  } as unknown as AppRequest;
 }
 
 describe('CatchAllController', () => {
@@ -60,7 +60,7 @@ describe('CatchAllController', () => {
     };
     wikiRender = {
       shouldRenderWikiNotFound: jest.fn().mockReturnValue(false),
-      renderNotFound: jest.fn(),
+      renderNotFound: jest.fn().mockResolvedValue(undefined),
     };
     controller = new CatchAllController(
       securityService as unknown as SecurityService,
@@ -80,39 +80,15 @@ describe('CatchAllController', () => {
   });
 
   describe('handleNotFound', () => {
-    it('delegates GraphQL path to next()', async () => {
-      const req = createReq({ originalUrl: '/graphql?query=1' });
-      const res = createRes();
-      const next = jest.fn() as NextFunction;
-
-      await controller.handleNotFound(req, res as unknown as Response, next);
-
-      expect(next).toHaveBeenCalled();
-      expect(securityService.registerInvalidRouteAttempt).not.toHaveBeenCalled();
-    });
-
-    it('respects custom GRAPHQL_PATH', async () => {
-      process.env.GRAPHQL_PATH = '/api/gql';
-      const req = createReq({ originalUrl: '/api/gql' });
-      const res = createRes();
-      const next = jest.fn() as NextFunction;
-
-      await controller.handleNotFound(req, res as unknown as Response, next);
-
-      expect(next).toHaveBeenCalled();
-    });
-
     it('renders wiki 404 without registering an attempt', async () => {
       wikiRender.shouldRenderWikiNotFound.mockReturnValue(true);
       const req = createReq({ originalUrl: '/wiki/missing' });
-      const res = createRes();
-      const next = jest.fn() as NextFunction;
+      const reply = createReply();
 
-      await controller.handleNotFound(req, res as unknown as Response, next);
+      await controller.handleNotFound(req, reply as unknown as AppReply);
 
-      expect(wikiRender.renderNotFound).toHaveBeenCalledWith(req, res);
+      expect(wikiRender.renderNotFound).toHaveBeenCalledWith(req, reply);
       expect(securityService.registerInvalidRouteAttempt).not.toHaveBeenCalled();
-      expect(next).not.toHaveBeenCalled();
     });
 
     it.each([
@@ -129,17 +105,16 @@ describe('CatchAllController', () => {
       '/robots.txt?x=1',
     ])('returns 404 without registering for ignored path %s', async (path) => {
       const req = createReq({ originalUrl: path });
-      const res = createRes();
-      const next = jest.fn() as NextFunction;
+      const reply = createReply();
 
-      await controller.handleNotFound(req, res as unknown as Response, next);
+      await controller.handleNotFound(req, reply as unknown as AppReply);
 
       expect(securityService.registerInvalidRouteAttempt).not.toHaveBeenCalled();
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.NOT_FOUND);
-      expect(res.json).toHaveBeenCalledWith(
+      expect(reply.status).toHaveBeenCalledWith(HttpStatus.NOT_FOUND);
+      expect(reply.send).toHaveBeenCalledWith(
         expect.objectContaining({
           statusCode: HttpStatus.NOT_FOUND,
-          message: 'Rota não encontrada',
+          message: 'Route not found',
           path,
           timestamp: expect.any(String),
         }),
@@ -152,17 +127,16 @@ describe('CatchAllController', () => {
         headers: { 'user-agent': 'curl/8.0' },
         ip: '10.0.0.5',
       });
-      const res = createRes();
-      const next = jest.fn() as NextFunction;
+      const reply = createReply();
 
-      await controller.handleNotFound(req, res as unknown as Response, next);
+      await controller.handleNotFound(req, reply as unknown as AppReply);
 
       expect(securityService.registerInvalidRouteAttempt).toHaveBeenCalledWith(
         '10.0.0.5',
         '/admin/secret',
         'curl/8.0',
       );
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.NOT_FOUND);
+      expect(reply.status).toHaveBeenCalledWith(HttpStatus.NOT_FOUND);
       expect(warnSpy).not.toHaveBeenCalled();
     });
 
@@ -175,22 +149,21 @@ describe('CatchAllController', () => {
         originalUrl: '/hack',
         ip: '1.2.3.4',
       });
-      const res = createRes();
-      const next = jest.fn() as NextFunction;
+      const reply = createReply();
 
-      await controller.handleNotFound(req, res as unknown as Response, next);
+      await controller.handleNotFound(req, reply as unknown as AppReply);
 
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.FORBIDDEN);
-      expect(res.json).toHaveBeenCalledWith(
+      expect(reply.status).toHaveBeenCalledWith(HttpStatus.FORBIDDEN);
+      expect(reply.send).toHaveBeenCalledWith(
         expect.objectContaining({
           statusCode: HttpStatus.FORBIDDEN,
           message:
-            'Acesso bloqueado. Seu IP foi registrado por comportamento suspeito.',
+            'Access blocked. Your IP was flagged for suspicious behavior.',
           timestamp: expect.any(String),
         }),
       );
       expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('[SECURITY] Acesso bloqueado para IP 1.2.3.4'),
+        expect.stringContaining('[SECURITY] Access blocked for IP 1.2.3.4'),
       );
     });
 
@@ -202,10 +175,9 @@ describe('CatchAllController', () => {
       });
       // Force originalUrl falsy
       (req as { originalUrl?: string }).originalUrl = '';
-      const res = createRes();
-      const next = jest.fn() as NextFunction;
+      const reply = createReply();
 
-      await controller.handleNotFound(req, res as unknown as Response, next);
+      await controller.handleNotFound(req, reply as unknown as AppReply);
 
       expect(securityService.registerInvalidRouteAttempt).toHaveBeenCalledWith(
         '127.0.0.1',
@@ -221,13 +193,9 @@ describe('CatchAllController', () => {
         originalUrl: '/probe',
         headers: { 'x-forwarded-for': ' 9.9.9.9, 8.8.8.8 ' },
       });
-      const res = createRes();
+      const reply = createReply();
 
-      await controller.handleNotFound(
-        req,
-        res as unknown as Response,
-        jest.fn() as NextFunction,
-      );
+      await controller.handleNotFound(req, reply as unknown as AppReply);
 
       expect(securityService.registerInvalidRouteAttempt).toHaveBeenCalledWith(
         '9.9.9.9',
@@ -241,13 +209,9 @@ describe('CatchAllController', () => {
         originalUrl: '/probe',
         headers: { 'x-forwarded-for': ['2.2.2.2', '3.3.3.3'] },
       });
-      const res = createRes();
+      const reply = createReply();
 
-      await controller.handleNotFound(
-        req,
-        res as unknown as Response,
-        jest.fn() as NextFunction,
-      );
+      await controller.handleNotFound(req, reply as unknown as AppReply);
 
       expect(securityService.registerInvalidRouteAttempt).toHaveBeenCalledWith(
         '2.2.2.2',
@@ -261,13 +225,9 @@ describe('CatchAllController', () => {
         originalUrl: '/probe',
         headers: { 'x-real-ip': '4.4.4.4' },
       });
-      const res = createRes();
+      const reply = createReply();
 
-      await controller.handleNotFound(
-        req,
-        res as unknown as Response,
-        jest.fn() as NextFunction,
-      );
+      await controller.handleNotFound(req, reply as unknown as AppReply);
 
       expect(securityService.registerInvalidRouteAttempt).toHaveBeenCalledWith(
         '4.4.4.4',
@@ -281,13 +241,9 @@ describe('CatchAllController', () => {
         originalUrl: '/probe',
         headers: { 'x-real-ip': ['5.5.5.5', '6.6.6.6'] },
       });
-      const res = createRes();
+      const reply = createReply();
 
-      await controller.handleNotFound(
-        req,
-        res as unknown as Response,
-        jest.fn() as NextFunction,
-      );
+      await controller.handleNotFound(req, reply as unknown as AppReply);
 
       expect(securityService.registerInvalidRouteAttempt).toHaveBeenCalledWith(
         '5.5.5.5',
@@ -301,13 +257,9 @@ describe('CatchAllController', () => {
         originalUrl: '/probe',
         ip: '7.7.7.7',
       });
-      const res = createRes();
+      const reply = createReply();
 
-      await controller.handleNotFound(
-        req,
-        res as unknown as Response,
-        jest.fn() as NextFunction,
-      );
+      await controller.handleNotFound(req, reply as unknown as AppReply);
 
       expect(securityService.registerInvalidRouteAttempt).toHaveBeenCalledWith(
         '7.7.7.7',
@@ -322,13 +274,9 @@ describe('CatchAllController', () => {
         ip: undefined,
         socket: { remoteAddress: '::1' },
       });
-      const res = createRes();
+      const reply = createReply();
 
-      await controller.handleNotFound(
-        req,
-        res as unknown as Response,
-        jest.fn() as NextFunction,
-      );
+      await controller.handleNotFound(req, reply as unknown as AppReply);
 
       expect(securityService.registerInvalidRouteAttempt).toHaveBeenCalledWith(
         '::1',
@@ -343,13 +291,9 @@ describe('CatchAllController', () => {
         ip: undefined,
         socket: {},
       });
-      const res = createRes();
+      const reply = createReply();
 
-      await controller.handleNotFound(
-        req,
-        res as unknown as Response,
-        jest.fn() as NextFunction,
-      );
+      await controller.handleNotFound(req, reply as unknown as AppReply);
 
       expect(securityService.registerInvalidRouteAttempt).toHaveBeenCalledWith(
         'unknown',

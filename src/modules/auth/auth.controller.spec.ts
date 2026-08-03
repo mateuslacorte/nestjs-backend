@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common/constants';
 import { RequestMethod } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Request, Response } from 'express';
+import { AppRequest, AppReply } from '@common/http/app-http';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { IS_PUBLIC_KEY } from './decorators/public.decorator';
@@ -737,21 +737,27 @@ describe('AuthController', () => {
       const req = {
         user: profile,
         query: { state },
-      } as unknown as Request;
-      const res = { redirect: jest.fn() } as unknown as Response;
+      } as unknown as AppRequest;
 
       authService.completeGoogleOAuth.mockResolvedValue({
         redirectUrl: 'https://app.example/cb?code=abc',
       });
 
-      await controller.googleAuthCallback(req, res);
+      const reply = {
+        status: jest.fn().mockReturnThis(),
+        header: jest.fn().mockReturnThis(),
+        send: jest.fn().mockReturnThis(),
+      } as unknown as AppReply;
+
+      await controller.googleAuthCallback(req, reply);
 
       expect(authService.completeGoogleOAuth).toHaveBeenCalledWith(
         profile,
         state,
       );
-      expect(res.redirect).toHaveBeenCalledWith(
-        'https://app.example/cb?code=abc',
+      expect(reply.status).toHaveBeenCalledWith(200);
+      expect(reply.send).toHaveBeenCalledWith(
+        expect.stringContaining("window.location.replace(\"https://app.example/cb?code=abc\")"),
       );
     });
 
@@ -765,14 +771,19 @@ describe('AuthController', () => {
       const req = {
         user: profile,
         query: { state: ['a', 'b'] },
-      } as unknown as Request;
-      const res = { redirect: jest.fn() } as unknown as Response;
+      } as unknown as AppRequest;
 
       authService.completeGoogleOAuth.mockResolvedValue({
         redirectUrl: 'https://app.example/cb?code=abc',
       });
 
-      await controller.googleAuthCallback(req, res);
+      const reply = {
+        status: jest.fn().mockReturnThis(),
+        header: jest.fn().mockReturnThis(),
+        send: jest.fn().mockReturnThis(),
+      } as unknown as AppReply;
+
+      await controller.googleAuthCallback(req, reply);
 
       expect(authService.completeGoogleOAuth).toHaveBeenCalledWith(
         profile,
@@ -1017,19 +1028,25 @@ describe('AuthController', () => {
           user: profile,
           query: stateSource === 'query' ? { state: ['a', 'b'] } : {},
           body: stateSource === 'body' ? { state: ['a', 'b'] } : {},
-        } as unknown as Request;
-        const res = { redirect: jest.fn() } as unknown as Response;
-
+        } as unknown as AppRequest;
         (authService[serviceMethod] as jest.Mock).mockResolvedValue({
           redirectUrl: 'https://app.example/cb?code=x',
         });
 
+        const reply = {
+          status: jest.fn().mockReturnThis(),
+          header: jest.fn().mockReturnThis(),
+          send: jest.fn().mockReturnThis(),
+        } as unknown as AppReply;
+
         await (
           controller[method] as (
-            req: Request,
-            res: Response,
+            req: AppRequest,
+            reply: AppReply,
           ) => Promise<unknown>
-        )(req, res);
+        )(req, reply);
+
+        expect(reply.status).toHaveBeenCalledWith(200);
 
         expect(authService[serviceMethod]).toHaveBeenCalledWith(
           profile,
@@ -1051,21 +1068,27 @@ describe('AuthController', () => {
       const req = {
         user: profile,
         query: { state },
-      } as unknown as Request;
-      const res = { redirect: jest.fn() } as unknown as Response;
+      } as unknown as AppRequest;
 
       authService.completeFacebookOAuth.mockResolvedValue({
         redirectUrl: 'https://app.example/cb?code=xyz',
       });
 
-      await controller.facebookAuthCallback(req, res);
+      const reply = {
+        status: jest.fn().mockReturnThis(),
+        header: jest.fn().mockReturnThis(),
+        send: jest.fn().mockReturnThis(),
+      } as unknown as AppReply;
+
+      await controller.facebookAuthCallback(req, reply);
 
       expect(authService.completeFacebookOAuth).toHaveBeenCalledWith(
         profile,
         state,
       );
-      expect(res.redirect).toHaveBeenCalledWith(
-        'https://app.example/cb?code=xyz',
+      expect(reply.status).toHaveBeenCalledWith(200);
+      expect(reply.send).toHaveBeenCalledWith(
+        expect.stringContaining("window.location.replace(\"https://app.example/cb?code=xyz\")"),
       );
     });
   });
@@ -1082,21 +1105,59 @@ describe('AuthController', () => {
       const req = {
         user: profile,
         query: { state },
-      } as unknown as Request;
-      const res = { redirect: jest.fn() } as unknown as Response;
+      } as unknown as AppRequest;
 
       authService.completeTwitterOAuth.mockResolvedValue({
         redirectUrl: 'https://app.example/cb?code=tw',
       });
 
-      await controller.twitterAuthCallback(req, res);
+      const reply = {
+        status: jest.fn().mockReturnThis(),
+        header: jest.fn().mockReturnThis(),
+        send: jest.fn().mockReturnThis(),
+      } as unknown as AppReply;
+
+      await controller.twitterAuthCallback(req, reply);
 
       expect(authService.completeTwitterOAuth).toHaveBeenCalledWith(
         profile,
         state,
       );
-      expect(res.redirect).toHaveBeenCalledWith(
-        'https://app.example/cb?code=tw',
+      expect(reply.status).toHaveBeenCalledWith(200);
+      expect(reply.send).toHaveBeenCalledWith(
+        expect.stringContaining("window.location.replace(\"https://app.example/cb?code=tw\")"),
+      );
+    });
+
+    it('prefers oauthState recovered from PKCE session over query.state', async () => {
+      const profile: TwitterProfilePayload = {
+        twitterId: 'tw-1',
+        email: 'tw@example.com',
+        firstName: 'Twit',
+        lastName: 'Ter',
+      };
+      const oauthState = encodeOAuthState('https://app.example/cb');
+      const req = {
+        user: profile,
+        oauthState,
+        query: { state: 'random-pkce-handle' },
+      } as unknown as AppRequest;
+
+      authService.completeTwitterOAuth.mockResolvedValue({
+        redirectUrl: 'https://app.example/cb?code=tw',
+      });
+
+      const reply = {
+        status: jest.fn().mockReturnThis(),
+        header: jest.fn().mockReturnThis(),
+        send: jest.fn().mockReturnThis(),
+      } as unknown as AppReply;
+
+      await controller.twitterAuthCallback(req, reply);
+
+      expect(authService.completeTwitterOAuth).toHaveBeenCalledWith(
+        profile,
+        oauthState,
       );
     });
   });
@@ -1113,21 +1174,27 @@ describe('AuthController', () => {
       const req = {
         user: profile,
         query: { state },
-      } as unknown as Request;
-      const res = { redirect: jest.fn() } as unknown as Response;
+      } as unknown as AppRequest;
 
       authService.completeGithubOAuth.mockResolvedValue({
         redirectUrl: 'https://app.example/cb?code=gh',
       });
 
-      await controller.githubAuthCallback(req, res);
+      const reply = {
+        status: jest.fn().mockReturnThis(),
+        header: jest.fn().mockReturnThis(),
+        send: jest.fn().mockReturnThis(),
+      } as unknown as AppReply;
+
+      await controller.githubAuthCallback(req, reply);
 
       expect(authService.completeGithubOAuth).toHaveBeenCalledWith(
         profile,
         state,
       );
-      expect(res.redirect).toHaveBeenCalledWith(
-        'https://app.example/cb?code=gh',
+      expect(reply.status).toHaveBeenCalledWith(200);
+      expect(reply.send).toHaveBeenCalledWith(
+        expect.stringContaining("window.location.replace(\"https://app.example/cb?code=gh\")"),
       );
     });
   });
@@ -1144,21 +1211,27 @@ describe('AuthController', () => {
       const req = {
         user: profile,
         query: { state },
-      } as unknown as Request;
-      const res = { redirect: jest.fn() } as unknown as Response;
+      } as unknown as AppRequest;
 
       authService.completeFigmaOAuth.mockResolvedValue({
         redirectUrl: 'https://app.example/cb?code=fig',
       });
 
-      await controller.figmaAuthCallback(req, res);
+      const reply = {
+        status: jest.fn().mockReturnThis(),
+        header: jest.fn().mockReturnThis(),
+        send: jest.fn().mockReturnThis(),
+      } as unknown as AppReply;
+
+      await controller.figmaAuthCallback(req, reply);
 
       expect(authService.completeFigmaOAuth).toHaveBeenCalledWith(
         profile,
         state,
       );
-      expect(res.redirect).toHaveBeenCalledWith(
-        'https://app.example/cb?code=fig',
+      expect(reply.status).toHaveBeenCalledWith(200);
+      expect(reply.send).toHaveBeenCalledWith(
+        expect.stringContaining("window.location.replace(\"https://app.example/cb?code=fig\")"),
       );
     });
   });
@@ -1175,21 +1248,27 @@ describe('AuthController', () => {
       const req = {
         user: profile,
         query: { state },
-      } as unknown as Request;
-      const res = { redirect: jest.fn() } as unknown as Response;
+      } as unknown as AppRequest;
 
       authService.completeLinkedinOAuth.mockResolvedValue({
         redirectUrl: 'https://app.example/cb?code=li',
       });
 
-      await controller.linkedinAuthCallback(req, res);
+      const reply = {
+        status: jest.fn().mockReturnThis(),
+        header: jest.fn().mockReturnThis(),
+        send: jest.fn().mockReturnThis(),
+      } as unknown as AppReply;
+
+      await controller.linkedinAuthCallback(req, reply);
 
       expect(authService.completeLinkedinOAuth).toHaveBeenCalledWith(
         profile,
         state,
       );
-      expect(res.redirect).toHaveBeenCalledWith(
-        'https://app.example/cb?code=li',
+      expect(reply.status).toHaveBeenCalledWith(200);
+      expect(reply.send).toHaveBeenCalledWith(
+        expect.stringContaining("window.location.replace(\"https://app.example/cb?code=li\")"),
       );
     });
   });
@@ -1206,21 +1285,27 @@ describe('AuthController', () => {
       const req = {
         user: profile,
         query: { state },
-      } as unknown as Request;
-      const res = { redirect: jest.fn() } as unknown as Response;
+      } as unknown as AppRequest;
 
       authService.completeSlackOAuth.mockResolvedValue({
         redirectUrl: 'https://app.example/cb?code=slack',
       });
 
-      await controller.slackAuthCallback(req, res);
+      const reply = {
+        status: jest.fn().mockReturnThis(),
+        header: jest.fn().mockReturnThis(),
+        send: jest.fn().mockReturnThis(),
+      } as unknown as AppReply;
+
+      await controller.slackAuthCallback(req, reply);
 
       expect(authService.completeSlackOAuth).toHaveBeenCalledWith(
         profile,
         state,
       );
-      expect(res.redirect).toHaveBeenCalledWith(
-        'https://app.example/cb?code=slack',
+      expect(reply.status).toHaveBeenCalledWith(200);
+      expect(reply.send).toHaveBeenCalledWith(
+        expect.stringContaining("window.location.replace(\"https://app.example/cb?code=slack\")"),
       );
     });
   });
@@ -1237,21 +1322,27 @@ describe('AuthController', () => {
       const req = {
         user: profile,
         query: { state },
-      } as unknown as Request;
-      const res = { redirect: jest.fn() } as unknown as Response;
+      } as unknown as AppRequest;
 
       authService.completeAtlassianOAuth.mockResolvedValue({
         redirectUrl: 'https://app.example/cb?code=atlassian',
       });
 
-      await controller.atlassianAuthCallback(req, res);
+      const reply = {
+        status: jest.fn().mockReturnThis(),
+        header: jest.fn().mockReturnThis(),
+        send: jest.fn().mockReturnThis(),
+      } as unknown as AppReply;
+
+      await controller.atlassianAuthCallback(req, reply);
 
       expect(authService.completeAtlassianOAuth).toHaveBeenCalledWith(
         profile,
         state,
       );
-      expect(res.redirect).toHaveBeenCalledWith(
-        'https://app.example/cb?code=atlassian',
+      expect(reply.status).toHaveBeenCalledWith(200);
+      expect(reply.send).toHaveBeenCalledWith(
+        expect.stringContaining("window.location.replace(\"https://app.example/cb?code=atlassian\")"),
       );
     });
   });
@@ -1268,21 +1359,27 @@ describe('AuthController', () => {
       const req = {
         user: profile,
         query: { state },
-      } as unknown as Request;
-      const res = { redirect: jest.fn() } as unknown as Response;
+      } as unknown as AppRequest;
 
       authService.completeGitlabOAuth.mockResolvedValue({
         redirectUrl: 'https://app.example/cb?code=gitlab',
       });
 
-      await controller.gitlabAuthCallback(req, res);
+      const reply = {
+        status: jest.fn().mockReturnThis(),
+        header: jest.fn().mockReturnThis(),
+        send: jest.fn().mockReturnThis(),
+      } as unknown as AppReply;
+
+      await controller.gitlabAuthCallback(req, reply);
 
       expect(authService.completeGitlabOAuth).toHaveBeenCalledWith(
         profile,
         state,
       );
-      expect(res.redirect).toHaveBeenCalledWith(
-        'https://app.example/cb?code=gitlab',
+      expect(reply.status).toHaveBeenCalledWith(200);
+      expect(reply.send).toHaveBeenCalledWith(
+        expect.stringContaining("window.location.replace(\"https://app.example/cb?code=gitlab\")"),
       );
     });
   });
@@ -1299,21 +1396,27 @@ describe('AuthController', () => {
       const req = {
         user: profile,
         query: { state },
-      } as unknown as Request;
-      const res = { redirect: jest.fn() } as unknown as Response;
+      } as unknown as AppRequest;
 
       authService.completeBitbucketOAuth.mockResolvedValue({
         redirectUrl: 'https://app.example/cb?code=bitbucket',
       });
 
-      await controller.bitbucketAuthCallback(req, res);
+      const reply = {
+        status: jest.fn().mockReturnThis(),
+        header: jest.fn().mockReturnThis(),
+        send: jest.fn().mockReturnThis(),
+      } as unknown as AppReply;
+
+      await controller.bitbucketAuthCallback(req, reply);
 
       expect(authService.completeBitbucketOAuth).toHaveBeenCalledWith(
         profile,
         state,
       );
-      expect(res.redirect).toHaveBeenCalledWith(
-        'https://app.example/cb?code=bitbucket',
+      expect(reply.status).toHaveBeenCalledWith(200);
+      expect(reply.send).toHaveBeenCalledWith(
+        expect.stringContaining("window.location.replace(\"https://app.example/cb?code=bitbucket\")"),
       );
     });
   });
@@ -1330,21 +1433,27 @@ describe('AuthController', () => {
       const req = {
         user: profile,
         query: { state },
-      } as unknown as Request;
-      const res = { redirect: jest.fn() } as unknown as Response;
+      } as unknown as AppRequest;
 
       authService.completeDiscordOAuth.mockResolvedValue({
         redirectUrl: 'https://app.example/cb?code=discord',
       });
 
-      await controller.discordAuthCallback(req, res);
+      const reply = {
+        status: jest.fn().mockReturnThis(),
+        header: jest.fn().mockReturnThis(),
+        send: jest.fn().mockReturnThis(),
+      } as unknown as AppReply;
+
+      await controller.discordAuthCallback(req, reply);
 
       expect(authService.completeDiscordOAuth).toHaveBeenCalledWith(
         profile,
         state,
       );
-      expect(res.redirect).toHaveBeenCalledWith(
-        'https://app.example/cb?code=discord',
+      expect(reply.status).toHaveBeenCalledWith(200);
+      expect(reply.send).toHaveBeenCalledWith(
+        expect.stringContaining("window.location.replace(\"https://app.example/cb?code=discord\")"),
       );
     });
   });
@@ -1361,21 +1470,27 @@ describe('AuthController', () => {
       const req = {
         user: profile,
         query: { state },
-      } as unknown as Request;
-      const res = { redirect: jest.fn() } as unknown as Response;
+      } as unknown as AppRequest;
 
       authService.completeTwitchOAuth.mockResolvedValue({
         redirectUrl: 'https://app.example/cb?code=twitch',
       });
 
-      await controller.twitchAuthCallback(req, res);
+      const reply = {
+        status: jest.fn().mockReturnThis(),
+        header: jest.fn().mockReturnThis(),
+        send: jest.fn().mockReturnThis(),
+      } as unknown as AppReply;
+
+      await controller.twitchAuthCallback(req, reply);
 
       expect(authService.completeTwitchOAuth).toHaveBeenCalledWith(
         profile,
         state,
       );
-      expect(res.redirect).toHaveBeenCalledWith(
-        'https://app.example/cb?code=twitch',
+      expect(reply.status).toHaveBeenCalledWith(200);
+      expect(reply.send).toHaveBeenCalledWith(
+        expect.stringContaining("window.location.replace(\"https://app.example/cb?code=twitch\")"),
       );
     });
   });
@@ -1392,21 +1507,27 @@ describe('AuthController', () => {
       const req = {
         user: profile,
         query: { state },
-      } as unknown as Request;
-      const res = { redirect: jest.fn() } as unknown as Response;
+      } as unknown as AppRequest;
 
       authService.completeSpotifyOAuth.mockResolvedValue({
         redirectUrl: 'https://app.example/cb?code=spotify',
       });
 
-      await controller.spotifyAuthCallback(req, res);
+      const reply = {
+        status: jest.fn().mockReturnThis(),
+        header: jest.fn().mockReturnThis(),
+        send: jest.fn().mockReturnThis(),
+      } as unknown as AppReply;
+
+      await controller.spotifyAuthCallback(req, reply);
 
       expect(authService.completeSpotifyOAuth).toHaveBeenCalledWith(
         profile,
         state,
       );
-      expect(res.redirect).toHaveBeenCalledWith(
-        'https://app.example/cb?code=spotify',
+      expect(reply.status).toHaveBeenCalledWith(200);
+      expect(reply.send).toHaveBeenCalledWith(
+        expect.stringContaining("window.location.replace(\"https://app.example/cb?code=spotify\")"),
       );
     });
   });
@@ -1423,21 +1544,27 @@ describe('AuthController', () => {
       const req = {
         user: profile,
         query: { state },
-      } as unknown as Request;
-      const res = { redirect: jest.fn() } as unknown as Response;
+      } as unknown as AppRequest;
 
       authService.completeAmazonOAuth.mockResolvedValue({
         redirectUrl: 'https://app.example/cb?code=amazon',
       });
 
-      await controller.amazonAuthCallback(req, res);
+      const reply = {
+        status: jest.fn().mockReturnThis(),
+        header: jest.fn().mockReturnThis(),
+        send: jest.fn().mockReturnThis(),
+      } as unknown as AppReply;
+
+      await controller.amazonAuthCallback(req, reply);
 
       expect(authService.completeAmazonOAuth).toHaveBeenCalledWith(
         profile,
         state,
       );
-      expect(res.redirect).toHaveBeenCalledWith(
-        'https://app.example/cb?code=amazon',
+      expect(reply.status).toHaveBeenCalledWith(200);
+      expect(reply.send).toHaveBeenCalledWith(
+        expect.stringContaining("window.location.replace(\"https://app.example/cb?code=amazon\")"),
       );
     });
   });
@@ -1454,21 +1581,27 @@ describe('AuthController', () => {
       const req = {
         user: profile,
         query: { state },
-      } as unknown as Request;
-      const res = { redirect: jest.fn() } as unknown as Response;
+      } as unknown as AppRequest;
 
       authService.completeMicrosoftOAuth.mockResolvedValue({
         redirectUrl: 'https://app.example/cb?code=microsoft',
       });
 
-      await controller.microsoftAuthCallback(req, res);
+      const reply = {
+        status: jest.fn().mockReturnThis(),
+        header: jest.fn().mockReturnThis(),
+        send: jest.fn().mockReturnThis(),
+      } as unknown as AppReply;
+
+      await controller.microsoftAuthCallback(req, reply);
 
       expect(authService.completeMicrosoftOAuth).toHaveBeenCalledWith(
         profile,
         state,
       );
-      expect(res.redirect).toHaveBeenCalledWith(
-        'https://app.example/cb?code=microsoft',
+      expect(reply.status).toHaveBeenCalledWith(200);
+      expect(reply.send).toHaveBeenCalledWith(
+        expect.stringContaining("window.location.replace(\"https://app.example/cb?code=microsoft\")"),
       );
     });
   });
@@ -1485,21 +1618,27 @@ describe('AuthController', () => {
       const req = {
         user: profile,
         query: { state },
-      } as unknown as Request;
-      const res = { redirect: jest.fn() } as unknown as Response;
+      } as unknown as AppRequest;
 
       authService.completePatreonOAuth.mockResolvedValue({
         redirectUrl: 'https://app.example/cb?code=patreon',
       });
 
-      await controller.patreonAuthCallback(req, res);
+      const reply = {
+        status: jest.fn().mockReturnThis(),
+        header: jest.fn().mockReturnThis(),
+        send: jest.fn().mockReturnThis(),
+      } as unknown as AppReply;
+
+      await controller.patreonAuthCallback(req, reply);
 
       expect(authService.completePatreonOAuth).toHaveBeenCalledWith(
         profile,
         state,
       );
-      expect(res.redirect).toHaveBeenCalledWith(
-        'https://app.example/cb?code=patreon',
+      expect(reply.status).toHaveBeenCalledWith(200);
+      expect(reply.send).toHaveBeenCalledWith(
+        expect.stringContaining("window.location.replace(\"https://app.example/cb?code=patreon\")"),
       );
     });
   });
@@ -1516,21 +1655,27 @@ describe('AuthController', () => {
       const req = {
         user: profile,
         query: { state },
-      } as unknown as Request;
-      const res = { redirect: jest.fn() } as unknown as Response;
+      } as unknown as AppRequest;
 
       authService.completeDropboxOAuth.mockResolvedValue({
         redirectUrl: 'https://app.example/cb?code=dropbox',
       });
 
-      await controller.dropboxAuthCallback(req, res);
+      const reply = {
+        status: jest.fn().mockReturnThis(),
+        header: jest.fn().mockReturnThis(),
+        send: jest.fn().mockReturnThis(),
+      } as unknown as AppReply;
+
+      await controller.dropboxAuthCallback(req, reply);
 
       expect(authService.completeDropboxOAuth).toHaveBeenCalledWith(
         profile,
         state,
       );
-      expect(res.redirect).toHaveBeenCalledWith(
-        'https://app.example/cb?code=dropbox',
+      expect(reply.status).toHaveBeenCalledWith(200);
+      expect(reply.send).toHaveBeenCalledWith(
+        expect.stringContaining("window.location.replace(\"https://app.example/cb?code=dropbox\")"),
       );
     });
   });
@@ -1547,21 +1692,27 @@ describe('AuthController', () => {
       const req = {
         user: profile,
         query: { state },
-      } as unknown as Request;
-      const res = { redirect: jest.fn() } as unknown as Response;
+      } as unknown as AppRequest;
 
       authService.completeCoinbaseOAuth.mockResolvedValue({
         redirectUrl: 'https://app.example/cb?code=coinbase',
       });
 
-      await controller.coinbaseAuthCallback(req, res);
+      const reply = {
+        status: jest.fn().mockReturnThis(),
+        header: jest.fn().mockReturnThis(),
+        send: jest.fn().mockReturnThis(),
+      } as unknown as AppReply;
+
+      await controller.coinbaseAuthCallback(req, reply);
 
       expect(authService.completeCoinbaseOAuth).toHaveBeenCalledWith(
         profile,
         state,
       );
-      expect(res.redirect).toHaveBeenCalledWith(
-        'https://app.example/cb?code=coinbase',
+      expect(reply.status).toHaveBeenCalledWith(200);
+      expect(reply.send).toHaveBeenCalledWith(
+        expect.stringContaining("window.location.replace(\"https://app.example/cb?code=coinbase\")"),
       );
     });
   });
@@ -1578,21 +1729,27 @@ describe('AuthController', () => {
       const req = {
         user: profile,
         query: { state },
-      } as unknown as Request;
-      const res = { redirect: jest.fn() } as unknown as Response;
+      } as unknown as AppRequest;
 
       authService.completeSteamOAuth.mockResolvedValue({
         redirectUrl: 'https://app.example/cb?code=steam',
       });
 
-      await controller.steamAuthCallback(req, res);
+      const reply = {
+        status: jest.fn().mockReturnThis(),
+        header: jest.fn().mockReturnThis(),
+        send: jest.fn().mockReturnThis(),
+      } as unknown as AppReply;
+
+      await controller.steamAuthCallback(req, reply);
 
       expect(authService.completeSteamOAuth).toHaveBeenCalledWith(
         profile,
         state,
       );
-      expect(res.redirect).toHaveBeenCalledWith(
-        'https://app.example/cb?code=steam',
+      expect(reply.status).toHaveBeenCalledWith(200);
+      expect(reply.send).toHaveBeenCalledWith(
+        expect.stringContaining("window.location.replace(\"https://app.example/cb?code=steam\")"),
       );
     });
   });
@@ -1609,21 +1766,27 @@ describe('AuthController', () => {
       const req = {
         user: profile,
         query: { state },
-      } as unknown as Request;
-      const res = { redirect: jest.fn() } as unknown as Response;
+      } as unknown as AppRequest;
 
       authService.completeRedditOAuth.mockResolvedValue({
         redirectUrl: 'https://app.example/cb?code=reddit',
       });
 
-      await controller.redditAuthCallback(req, res);
+      const reply = {
+        status: jest.fn().mockReturnThis(),
+        header: jest.fn().mockReturnThis(),
+        send: jest.fn().mockReturnThis(),
+      } as unknown as AppReply;
+
+      await controller.redditAuthCallback(req, reply);
 
       expect(authService.completeRedditOAuth).toHaveBeenCalledWith(
         profile,
         state,
       );
-      expect(res.redirect).toHaveBeenCalledWith(
-        'https://app.example/cb?code=reddit',
+      expect(reply.status).toHaveBeenCalledWith(200);
+      expect(reply.send).toHaveBeenCalledWith(
+        expect.stringContaining("window.location.replace(\"https://app.example/cb?code=reddit\")"),
       );
     });
   });
@@ -1644,21 +1807,27 @@ describe('AuthController', () => {
         user: profile,
         body: { state },
         query: {},
-      } as unknown as Request;
-      const res = { redirect: jest.fn() } as unknown as Response;
+      } as unknown as AppRequest;
 
       authService.completeAppleOAuth.mockResolvedValue({
         redirectUrl: 'https://app.example/cb?code=apple',
       });
 
-      await controller.appleAuthCallback(req, res);
+      const reply = {
+        status: jest.fn().mockReturnThis(),
+        header: jest.fn().mockReturnThis(),
+        send: jest.fn().mockReturnThis(),
+      } as unknown as AppReply;
+
+      await controller.appleAuthCallback(req, reply);
 
       expect(authService.completeAppleOAuth).toHaveBeenCalledWith(
         profile,
         state,
       );
-      expect(res.redirect).toHaveBeenCalledWith(
-        'https://app.example/cb?code=apple',
+      expect(reply.status).toHaveBeenCalledWith(200);
+      expect(reply.send).toHaveBeenCalledWith(
+        expect.stringContaining("window.location.replace(\"https://app.example/cb?code=apple\")"),
       );
     });
   });
@@ -1682,7 +1851,7 @@ describe('AuthController', () => {
     it('returns valid token message with user payload', () => {
       const req = {
         user: { id: 'user-1', email: 'jane@example.com', roles: [Role.USER] },
-      } as unknown as Request;
+      } as unknown as AppRequest;
 
       expect(controller.verifyToken(req)).toEqual({
         message: 'Token is valid',
@@ -1744,7 +1913,7 @@ describe('AuthController', () => {
         newPassword: 'NewP@ssw0rd1',
         confirmNewPassword: 'NewP@ssw0rd1',
       };
-      const req = { user: { id: 'user-1' } } as unknown as Request;
+      const req = { user: { id: 'user-1' } } as unknown as AppRequest;
       const response = { message: 'Password changed successfully' };
       authService.changePassword.mockResolvedValue(response);
 

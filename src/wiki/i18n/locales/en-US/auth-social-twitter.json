@@ -11,11 +11,11 @@
     },
     "overview": {
       "title": "Overview",
-      "description": "X / Twitter login is optional and controlled by <code class=\"px-1 py-0.5 bg-amber-100 rounded\">TWITTER_AUTH_ENABLED</code>. When disabled, Twitter endpoints return <strong>503 Service Unavailable</strong>. JWTs are never placed in the redirect URL; the API issues a one-time <code class=\"px-1 py-0.5 bg-gray-100 rounded\">exchangeCode</code> (Redis, 60 seconds). The same <code class=\"px-1 py-0.5 bg-gray-100 rounded\">POST /auth/exchange</code> endpoint is shared with Google and Facebook. X requires <strong>PKCE</strong>, so the API uses Express session middleware.",
+      "description": "X / Twitter login is optional and controlled by <code class=\"px-1 py-0.5 bg-amber-100 rounded\">TWITTER_AUTH_ENABLED</code>. When disabled, Twitter endpoints return <strong>503 Service Unavailable</strong>. JWTs are never placed in the redirect URL; the API issues a one-time <code class=\"px-1 py-0.5 bg-gray-100 rounded\">exchangeCode</code> (Redis, 60 seconds). The same <code class=\"px-1 py-0.5 bg-gray-100 rounded\">POST /auth/exchange</code> endpoint is shared with Google and Facebook. X requires <strong>PKCE</strong>, so the API uses Fastify session middleware (<code class=\"px-1 py-0.5 bg-gray-100 rounded\">@fastify/session</code>) with a <strong>SameSite=Lax</strong> cookie (required for the PKCE round-trip).",
       "items": [
         "Feature-flagged via environment",
         "Passport Twitter OAuth2 strategy (@superfaceai) + TwitterAuthGuard",
-        "PKCE with express-session",
+        "PKCE with Fastify session",
         "Redirect allowlist prevents open redirects",
         "Same token response shape as POST /auth/login"
       ]
@@ -125,7 +125,7 @@
       "items": [
         "Redirect URLs must match TWITTER_REDIRECT_ALLOWLIST prefixes",
         "Exchange codes are single-use and expire in 60 seconds (Redis)",
-        "PKCE code_verifier is stored in the Express session cookie",
+        "PKCE code_verifier is stored in the Fastify session cookie (SameSite=Lax)",
         "Existing local users are linked by verified Twitter email (twitterId set; roles unchanged)",
         "Twitter-only users have password null — password login / change-password will fail until a password is set",
         "users.email + confirmed_email are required; login fails if X does not return an email"

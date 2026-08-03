@@ -18,9 +18,8 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      # Bootstrap local: cria o schema automaticamente. Em produção real,
-      # desligue (POSTGRES_SYNCHRONIZE=false) e use migrations.
-      POSTGRES_SYNCHRONIZE: "true"
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      POSTGRES_SYNCHRONIZE: ${POSTGRES_SYNCHRONIZE:-true}
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
       POSTGRES_USER: ${POSTGRES_USER:-postgres}

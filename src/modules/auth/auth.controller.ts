@@ -1,4 +1,4 @@
-import {Controller, Post, Body, Req, UseGuards, Get, Query, HttpCode, HttpStatus, Res} from '@nestjs/common';
+import {Controller, Post, Body, Req, Res, UseGuards, Get, Query, HttpCode, HttpStatus} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
@@ -24,7 +24,8 @@ import { MicrosoftAuthGuard } from './guards/microsoft-auth.guard';
 import { PatreonAuthGuard } from './guards/patreon-auth.guard';
 import { DropboxAuthGuard } from './guards/dropbox-auth.guard';
 import { CoinbaseAuthGuard } from './guards/coinbase-auth.guard';
-import { Request, Response } from 'express';
+import { AppRequest, AppReply } from '@common/http/app-http';
+import { sendOAuthClientRedirect } from './utils/oauth-client-redirect';
 import {ApiTags, ApiResponse, ApiBody, ApiBearerAuth, ApiOperation, ApiQuery} from '@nestjs/swagger';
 import { Public } from './decorators/public.decorator';
 import {ForgotPasswordDto} from "./dtos/forgot-password.dto";
@@ -234,16 +235,16 @@ export class AuthController {
         description:
             'Processes the Google profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
     })
-    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 200, description: 'HTML redirect (location.replace) to client with exchange code — http(s) or deep link.' })
     @ApiResponse({ status: 503, description: 'Google authentication is disabled.' })
-    async googleAuthCallback(@Req() req: Request, @Res() res: Response) {
+    async googleAuthCallback(@Req() req: AppRequest, @Res() reply: AppReply) {
         const profile = req.user as GoogleProfilePayload;
         const state = typeof req.query.state === 'string' ? req.query.state : undefined;
         const { redirectUrl } = await this.authService.completeGoogleOAuth(
             profile,
             state,
         );
-        return res.redirect(redirectUrl);
+        return sendOAuthClientRedirect(reply, redirectUrl);
     }
 
     /**
@@ -281,16 +282,16 @@ export class AuthController {
         description:
             'Processes the Facebook profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
     })
-    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 200, description: 'HTML redirect (location.replace) to client with exchange code — http(s) or deep link.' })
     @ApiResponse({ status: 503, description: 'Facebook authentication is disabled.' })
-    async facebookAuthCallback(@Req() req: Request, @Res() res: Response) {
+    async facebookAuthCallback(@Req() req: AppRequest, @Res() reply: AppReply) {
         const profile = req.user as FacebookProfilePayload;
         const state = typeof req.query.state === 'string' ? req.query.state : undefined;
         const { redirectUrl } = await this.authService.completeFacebookOAuth(
             profile,
             state,
         );
-        return res.redirect(redirectUrl);
+        return sendOAuthClientRedirect(reply, redirectUrl);
     }
 
     /**
@@ -302,7 +303,7 @@ export class AuthController {
     @ApiOperation({
         summary: 'Start X / Twitter OAuth2 login',
         description:
-            'Redirects the browser to X (Twitter). Pass redirect (allowlisted) for the post-login deep link or web URL. Disabled when TWITTER_AUTH_ENABLED=false (503). Requires express session for PKCE.',
+            'Redirects the browser to X (Twitter). Pass redirect (allowlisted) for the post-login deep link or web URL. Disabled when TWITTER_AUTH_ENABLED=false (503). Requires a session cookie (SameSite=Lax) for PKCE.',
     })
     @ApiQuery({
         name: 'redirect',
@@ -328,16 +329,20 @@ export class AuthController {
         description:
             'Processes the Twitter profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
     })
-    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 200, description: 'HTML redirect (location.replace) to client with exchange code — http(s) or deep link.' })
     @ApiResponse({ status: 503, description: 'Twitter authentication is disabled.' })
-    async twitterAuthCallback(@Req() req: Request, @Res() res: Response) {
+    async twitterAuthCallback(@Req() req: AppRequest, @Res() reply: AppReply) {
         const profile = req.user as TwitterProfilePayload;
-        const state = typeof req.query.state === 'string' ? req.query.state : undefined;
+        // PKCE stores a random handle in query.state; the client redirect lives
+        // on req.oauthState (set by TwitterAuthGuard.handleRequest).
+        const state =
+            req.oauthState ??
+            (typeof req.query.state === 'string' ? req.query.state : undefined);
         const { redirectUrl } = await this.authService.completeTwitterOAuth(
             profile,
             state,
         );
-        return res.redirect(redirectUrl);
+        return sendOAuthClientRedirect(reply, redirectUrl);
     }
 
     /**
@@ -375,16 +380,16 @@ export class AuthController {
         description:
             'Processes the GitHub profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
     })
-    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 200, description: 'HTML redirect (location.replace) to client with exchange code — http(s) or deep link.' })
     @ApiResponse({ status: 503, description: 'GitHub authentication is disabled.' })
-    async githubAuthCallback(@Req() req: Request, @Res() res: Response) {
+    async githubAuthCallback(@Req() req: AppRequest, @Res() reply: AppReply) {
         const profile = req.user as GithubProfilePayload;
         const state = typeof req.query.state === 'string' ? req.query.state : undefined;
         const { redirectUrl } = await this.authService.completeGithubOAuth(
             profile,
             state,
         );
-        return res.redirect(redirectUrl);
+        return sendOAuthClientRedirect(reply, redirectUrl);
     }
 
     /**
@@ -422,16 +427,16 @@ export class AuthController {
         description:
             'Processes the Figma profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
     })
-    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 200, description: 'HTML redirect (location.replace) to client with exchange code — http(s) or deep link.' })
     @ApiResponse({ status: 503, description: 'Figma authentication is disabled.' })
-    async figmaAuthCallback(@Req() req: Request, @Res() res: Response) {
+    async figmaAuthCallback(@Req() req: AppRequest, @Res() reply: AppReply) {
         const profile = req.user as FigmaProfilePayload;
         const state = typeof req.query.state === 'string' ? req.query.state : undefined;
         const { redirectUrl } = await this.authService.completeFigmaOAuth(
             profile,
             state,
         );
-        return res.redirect(redirectUrl);
+        return sendOAuthClientRedirect(reply, redirectUrl);
     }
 
     /**
@@ -469,16 +474,16 @@ export class AuthController {
         description:
             'Processes the LinkedIn profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
     })
-    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 200, description: 'HTML redirect (location.replace) to client with exchange code — http(s) or deep link.' })
     @ApiResponse({ status: 503, description: 'LinkedIn authentication is disabled.' })
-    async linkedinAuthCallback(@Req() req: Request, @Res() res: Response) {
+    async linkedinAuthCallback(@Req() req: AppRequest, @Res() reply: AppReply) {
         const profile = req.user as LinkedinProfilePayload;
         const state = typeof req.query.state === 'string' ? req.query.state : undefined;
         const { redirectUrl } = await this.authService.completeLinkedinOAuth(
             profile,
             state,
         );
-        return res.redirect(redirectUrl);
+        return sendOAuthClientRedirect(reply, redirectUrl);
     }
 
     /**
@@ -516,16 +521,16 @@ export class AuthController {
         description:
             'Processes the Slack profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
     })
-    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 200, description: 'HTML redirect (location.replace) to client with exchange code — http(s) or deep link.' })
     @ApiResponse({ status: 503, description: 'Slack authentication is disabled.' })
-    async slackAuthCallback(@Req() req: Request, @Res() res: Response) {
+    async slackAuthCallback(@Req() req: AppRequest, @Res() reply: AppReply) {
         const profile = req.user as SlackProfilePayload;
         const state = typeof req.query.state === 'string' ? req.query.state : undefined;
         const { redirectUrl } = await this.authService.completeSlackOAuth(
             profile,
             state,
         );
-        return res.redirect(redirectUrl);
+        return sendOAuthClientRedirect(reply, redirectUrl);
     }
 
     /**
@@ -563,16 +568,16 @@ export class AuthController {
         description:
             'Processes the Atlassian profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
     })
-    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 200, description: 'HTML redirect (location.replace) to client with exchange code — http(s) or deep link.' })
     @ApiResponse({ status: 503, description: 'Atlassian authentication is disabled.' })
-    async atlassianAuthCallback(@Req() req: Request, @Res() res: Response) {
+    async atlassianAuthCallback(@Req() req: AppRequest, @Res() reply: AppReply) {
         const profile = req.user as AtlassianProfilePayload;
         const state = typeof req.query.state === 'string' ? req.query.state : undefined;
         const { redirectUrl } = await this.authService.completeAtlassianOAuth(
             profile,
             state,
         );
-        return res.redirect(redirectUrl);
+        return sendOAuthClientRedirect(reply, redirectUrl);
     }
 
     /**
@@ -610,16 +615,16 @@ export class AuthController {
         description:
             'Processes the GitLab profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
     })
-    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 200, description: 'HTML redirect (location.replace) to client with exchange code — http(s) or deep link.' })
     @ApiResponse({ status: 503, description: 'GitLab authentication is disabled.' })
-    async gitlabAuthCallback(@Req() req: Request, @Res() res: Response) {
+    async gitlabAuthCallback(@Req() req: AppRequest, @Res() reply: AppReply) {
         const profile = req.user as GitlabProfilePayload;
         const state = typeof req.query.state === 'string' ? req.query.state : undefined;
         const { redirectUrl } = await this.authService.completeGitlabOAuth(
             profile,
             state,
         );
-        return res.redirect(redirectUrl);
+        return sendOAuthClientRedirect(reply, redirectUrl);
     }
 
     /**
@@ -657,16 +662,16 @@ export class AuthController {
         description:
             'Processes the Bitbucket profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
     })
-    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 200, description: 'HTML redirect (location.replace) to client with exchange code — http(s) or deep link.' })
     @ApiResponse({ status: 503, description: 'Bitbucket authentication is disabled.' })
-    async bitbucketAuthCallback(@Req() req: Request, @Res() res: Response) {
+    async bitbucketAuthCallback(@Req() req: AppRequest, @Res() reply: AppReply) {
         const profile = req.user as BitbucketProfilePayload;
         const state = typeof req.query.state === 'string' ? req.query.state : undefined;
         const { redirectUrl } = await this.authService.completeBitbucketOAuth(
             profile,
             state,
         );
-        return res.redirect(redirectUrl);
+        return sendOAuthClientRedirect(reply, redirectUrl);
     }
 
     /**
@@ -704,16 +709,16 @@ export class AuthController {
         description:
             'Processes the Discord profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
     })
-    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 200, description: 'HTML redirect (location.replace) to client with exchange code — http(s) or deep link.' })
     @ApiResponse({ status: 503, description: 'Discord authentication is disabled.' })
-    async discordAuthCallback(@Req() req: Request, @Res() res: Response) {
+    async discordAuthCallback(@Req() req: AppRequest, @Res() reply: AppReply) {
         const profile = req.user as DiscordProfilePayload;
         const state = typeof req.query.state === 'string' ? req.query.state : undefined;
         const { redirectUrl } = await this.authService.completeDiscordOAuth(
             profile,
             state,
         );
-        return res.redirect(redirectUrl);
+        return sendOAuthClientRedirect(reply, redirectUrl);
     }
 
     /**
@@ -751,16 +756,16 @@ export class AuthController {
         description:
             'Processes the Twitch profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
     })
-    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 200, description: 'HTML redirect (location.replace) to client with exchange code — http(s) or deep link.' })
     @ApiResponse({ status: 503, description: 'Twitch authentication is disabled.' })
-    async twitchAuthCallback(@Req() req: Request, @Res() res: Response) {
+    async twitchAuthCallback(@Req() req: AppRequest, @Res() reply: AppReply) {
         const profile = req.user as TwitchProfilePayload;
         const state = typeof req.query.state === 'string' ? req.query.state : undefined;
         const { redirectUrl } = await this.authService.completeTwitchOAuth(
             profile,
             state,
         );
-        return res.redirect(redirectUrl);
+        return sendOAuthClientRedirect(reply, redirectUrl);
     }
 
     /**
@@ -798,16 +803,16 @@ export class AuthController {
         description:
             'Processes the Spotify profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
     })
-    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 200, description: 'HTML redirect (location.replace) to client with exchange code — http(s) or deep link.' })
     @ApiResponse({ status: 503, description: 'Spotify authentication is disabled.' })
-    async spotifyAuthCallback(@Req() req: Request, @Res() res: Response) {
+    async spotifyAuthCallback(@Req() req: AppRequest, @Res() reply: AppReply) {
         const profile = req.user as SpotifyProfilePayload;
         const state = typeof req.query.state === 'string' ? req.query.state : undefined;
         const { redirectUrl } = await this.authService.completeSpotifyOAuth(
             profile,
             state,
         );
-        return res.redirect(redirectUrl);
+        return sendOAuthClientRedirect(reply, redirectUrl);
     }
 
     /**
@@ -845,16 +850,16 @@ export class AuthController {
         description:
             'Processes the Amazon profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
     })
-    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 200, description: 'HTML redirect (location.replace) to client with exchange code — http(s) or deep link.' })
     @ApiResponse({ status: 503, description: 'Amazon authentication is disabled.' })
-    async amazonAuthCallback(@Req() req: Request, @Res() res: Response) {
+    async amazonAuthCallback(@Req() req: AppRequest, @Res() reply: AppReply) {
         const profile = req.user as AmazonProfilePayload;
         const state = typeof req.query.state === 'string' ? req.query.state : undefined;
         const { redirectUrl } = await this.authService.completeAmazonOAuth(
             profile,
             state,
         );
-        return res.redirect(redirectUrl);
+        return sendOAuthClientRedirect(reply, redirectUrl);
     }
 
     /**
@@ -892,16 +897,16 @@ export class AuthController {
         description:
             'Processes the Microsoft profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
     })
-    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 200, description: 'HTML redirect (location.replace) to client with exchange code — http(s) or deep link.' })
     @ApiResponse({ status: 503, description: 'Microsoft authentication is disabled.' })
-    async microsoftAuthCallback(@Req() req: Request, @Res() res: Response) {
+    async microsoftAuthCallback(@Req() req: AppRequest, @Res() reply: AppReply) {
         const profile = req.user as MicrosoftProfilePayload;
         const state = typeof req.query.state === 'string' ? req.query.state : undefined;
         const { redirectUrl } = await this.authService.completeMicrosoftOAuth(
             profile,
             state,
         );
-        return res.redirect(redirectUrl);
+        return sendOAuthClientRedirect(reply, redirectUrl);
     }
 
     /**
@@ -939,16 +944,16 @@ export class AuthController {
         description:
             'Processes the Patreon profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
     })
-    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 200, description: 'HTML redirect (location.replace) to client with exchange code — http(s) or deep link.' })
     @ApiResponse({ status: 503, description: 'Patreon authentication is disabled.' })
-    async patreonAuthCallback(@Req() req: Request, @Res() res: Response) {
+    async patreonAuthCallback(@Req() req: AppRequest, @Res() reply: AppReply) {
         const profile = req.user as PatreonProfilePayload;
         const state = typeof req.query.state === 'string' ? req.query.state : undefined;
         const { redirectUrl } = await this.authService.completePatreonOAuth(
             profile,
             state,
         );
-        return res.redirect(redirectUrl);
+        return sendOAuthClientRedirect(reply, redirectUrl);
     }
 
     /**
@@ -986,16 +991,16 @@ export class AuthController {
         description:
             'Processes the Dropbox profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
     })
-    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 200, description: 'HTML redirect (location.replace) to client with exchange code — http(s) or deep link.' })
     @ApiResponse({ status: 503, description: 'Dropbox authentication is disabled.' })
-    async dropboxAuthCallback(@Req() req: Request, @Res() res: Response) {
+    async dropboxAuthCallback(@Req() req: AppRequest, @Res() reply: AppReply) {
         const profile = req.user as DropboxProfilePayload;
         const state = typeof req.query.state === 'string' ? req.query.state : undefined;
         const { redirectUrl } = await this.authService.completeDropboxOAuth(
             profile,
             state,
         );
-        return res.redirect(redirectUrl);
+        return sendOAuthClientRedirect(reply, redirectUrl);
     }
 
     /**
@@ -1033,16 +1038,16 @@ export class AuthController {
         description:
             'Processes the Coinbase profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
     })
-    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 200, description: 'HTML redirect (location.replace) to client with exchange code — http(s) or deep link.' })
     @ApiResponse({ status: 503, description: 'Coinbase authentication is disabled.' })
-    async coinbaseAuthCallback(@Req() req: Request, @Res() res: Response) {
+    async coinbaseAuthCallback(@Req() req: AppRequest, @Res() reply: AppReply) {
         const profile = req.user as CoinbaseProfilePayload;
         const state = typeof req.query.state === 'string' ? req.query.state : undefined;
         const { redirectUrl } = await this.authService.completeCoinbaseOAuth(
             profile,
             state,
         );
-        return res.redirect(redirectUrl);
+        return sendOAuthClientRedirect(reply, redirectUrl);
     }
 
     /**
@@ -1080,16 +1085,16 @@ export class AuthController {
         description:
             'Verifies the Steam OpenID assertion, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
     })
-    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 200, description: 'HTML redirect (location.replace) to client with exchange code — http(s) or deep link.' })
     @ApiResponse({ status: 503, description: 'Steam authentication is disabled.' })
-    async steamAuthCallback(@Req() req: Request, @Res() res: Response) {
+    async steamAuthCallback(@Req() req: AppRequest, @Res() reply: AppReply) {
         const profile = req.user as SteamProfilePayload;
         const state = typeof req.query.state === 'string' ? req.query.state : undefined;
         const { redirectUrl } = await this.authService.completeSteamOAuth(
             profile,
             state,
         );
-        return res.redirect(redirectUrl);
+        return sendOAuthClientRedirect(reply, redirectUrl);
     }
 
     /**
@@ -1127,16 +1132,16 @@ export class AuthController {
         description:
             'Processes the Reddit profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
     })
-    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 200, description: 'HTML redirect (location.replace) to client with exchange code — http(s) or deep link.' })
     @ApiResponse({ status: 503, description: 'Reddit authentication is disabled.' })
-    async redditAuthCallback(@Req() req: Request, @Res() res: Response) {
+    async redditAuthCallback(@Req() req: AppRequest, @Res() reply: AppReply) {
         const profile = req.user as RedditProfilePayload;
         const state = typeof req.query.state === 'string' ? req.query.state : undefined;
         const { redirectUrl } = await this.authService.completeRedditOAuth(
             profile,
             state,
         );
-        return res.redirect(redirectUrl);
+        return sendOAuthClientRedirect(reply, redirectUrl);
     }
 
     /**
@@ -1179,16 +1184,17 @@ export class AuthController {
         description:
             'Apple POSTs to this endpoint after consent. Decodes id_token, upserts user, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
     })
-    @ApiResponse({ status: 302, description: 'Redirect to client with exchange code.' })
+    @ApiResponse({ status: 200, description: 'HTML redirect (location.replace) to client with exchange code — http(s) or deep link.' })
     @ApiResponse({ status: 503, description: 'Apple authentication is disabled.' })
-    async appleAuthCallback(@Req() req: Request, @Res() res: Response) {
+    async appleAuthCallback(@Req() req: AppRequest, @Res() reply: AppReply) {
         const profile = req.user as AppleProfilePayload;
-        const state = typeof req.body?.state === 'string' ? req.body.state : undefined;
+        const body = req.body as { state?: string } | undefined;
+        const state = typeof body?.state === 'string' ? body.state : undefined;
         const { redirectUrl } = await this.authService.completeAppleOAuth(
             profile,
             state,
         );
-        return res.redirect(redirectUrl);
+        return sendOAuthClientRedirect(reply, redirectUrl);
     }
 
     /**
@@ -1236,7 +1242,7 @@ export class AuthController {
     })
     @ApiResponse({ status: 200, description: 'Token is valid.' })
     @ApiResponse({ status: 401, description: 'Unauthorized - invalid or expired token.' })
-    verifyToken(@Req() req: Request) {
+    verifyToken(@Req() req: AppRequest) {
         return { message: 'Token is valid', user: req.user };
     }
 
@@ -1370,7 +1376,7 @@ export class AuthController {
             }
         }
     })
-    async changePassword(@Req() req: Request, @Body() changePasswordDto: ChangePasswordDto) {
+    async changePassword(@Req() req: AppRequest, @Body() changePasswordDto: ChangePasswordDto) {
         const user = req.user as any;
         return await this.authService.changePassword(user.id, changePasswordDto);
     }

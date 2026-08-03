@@ -9,8 +9,8 @@ import {
 const CACHE_METADATA = 'cache:method';
 
 /**
- * Aplica cache diretamente no método usando um wrapper
- * Este decorator funciona em conjunto com o EnableCache
+ * Applies cache to a method via a wrapper
+ * Works together with EnableCache
  */
 export function applyCacheToMethod(
     target: any,
@@ -27,19 +27,19 @@ export function applyCacheToMethod(
     );
 
     descriptor.value = async function (...args: any[]) {
-        // Obtém metadados
+        // Read metadata
         const enableCache = Reflect.getMetadata('cache:enable', target, propertyName);
         const noCache = Reflect.getMetadata('cache:no-cache', target, propertyName);
         const cacheKey = Reflect.getMetadata('cache:key', target, propertyName);
         const cacheTtl = Reflect.getMetadata('cache:ttl', target, propertyName);
         const invalidatePatterns = Reflect.getMetadata('cache:invalidate', target, propertyName);
 
-        // Se cache está desabilitado, apenas executa
+        // If cache is disabled, just run the method
         if (noCache) {
             return originalMethod.apply(this, args);
         }
 
-        // Se há padrões de invalidação, executa e invalida
+        // If invalidation patterns exist, run then invalidate
         if (invalidatePatterns && invalidatePatterns.length > 0) {
             const result = await originalMethod.apply(this, args);
             for (const pattern of invalidatePatterns) {
@@ -48,7 +48,7 @@ export function applyCacheToMethod(
             return result;
         }
 
-        // Se é método de escrita, executa e invalida cache relacionado
+        // If write method, run then invalidate related cache
         if (isWriteMethod) {
             const result = await originalMethod.apply(this, args);
             await invalidateRelatedCache(
@@ -60,29 +60,29 @@ export function applyCacheToMethod(
             return result;
         }
 
-        // Se cache não está habilitado, apenas executa
+        // If cache is not enabled, just run the method
         if (!enableCache) {
             return originalMethod.apply(this, args);
         }
 
-        // Extrai informações para gerar chave
+        // Extract info needed to build the key
         const filePath = getFilePathFromStack();
         const moduleName = extractModuleName(filePath);
         const entityName = extractEntityName(className);
 
-        // Gera chave de cache
+        // Build cache key
         const dbType = className.includes('Mongo') ? 'mongoose' : 'typeorm';
         const key = cacheKey
             ? cacheService.generateKey(`${dbType}:${moduleName}`, cacheKey, ...args)
             : buildCacheKey(dbType, moduleName, entityName, propertyName, args);
 
-        // Tenta obter do cache
+        // Try cache lookup
         const cached = await cacheService.get(key);
         if (cached) {
             return cached;
         }
 
-        // Executa e armazena no cache
+        // Execute and store in cache
         const result = await originalMethod.apply(this, args);
         await cacheService.set(key, result, cacheTtl);
         return result;
@@ -92,7 +92,7 @@ export function applyCacheToMethod(
 }
 
 /**
- * Invalida cache relacionado após operações de escrita
+ * Invalidates related cache after write operations
  */
 async function invalidateRelatedCache(
     cacheService: CacheService,
@@ -127,7 +127,7 @@ async function invalidateRelatedCache(
 }
 
 /**
- * Obtém o caminho do arquivo do stack trace
+ * Resolves a file path from the stack trace
  */
 function getFilePathFromStack(): string {
     const stack = new Error().stack;

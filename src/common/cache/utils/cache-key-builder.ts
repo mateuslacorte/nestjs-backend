@@ -1,8 +1,8 @@
 import * as crypto from 'crypto';
 
 /**
- * Extrai o nome do módulo do caminho do arquivo
- * Exemplo: src/modules/users/repositories/postgres.repository.ts -> users
+ * Extracts the module name from the file path
+ * Example: src/modules/users/repositories/postgres.repository.ts -> users
  */
 export function extractModuleName(filePath: string): string {
     const modulesMatch = filePath.match(/modules\/([^\/]+)/);
@@ -13,36 +13,36 @@ export function extractModuleName(filePath: string): string {
 }
 
 /**
- * Normaliza o nome do módulo
- * - Converte para lowercase
- * - Substitui hífens por underscores
+ * Normalizes the module name
+ * - Converts to lowercase
+ * - Replaces hyphens with underscores
  */
 export function normalizeModuleName(moduleName: string): string {
     return moduleName.toLowerCase().replace(/-/g, '_');
 }
 
 /**
- * Extrai o nome da entidade do nome da classe do repositório
- * Exemplo: UserPostgresRepository -> user
- * Exemplo: CondominiumInvoiceMongoRepository -> condominium_invoice
+ * Extracts the entity name from the repository class name
+ * Example: UserPostgresRepository -> user
+ * Example: CondominiumInvoiceMongoRepository -> condominium_invoice
  */
 export function extractEntityName(className: string): string {
     let entityName = className;
     
-    // Remove sufixos comuns
+    // Remove common suffixes
     entityName = entityName.replace(/PostgresRepository$/, '');
     entityName = entityName.replace(/MongoRepository$/, '');
     entityName = entityName.replace(/Repository$/, '');
     
-    // Converte PascalCase para snake_case
+    // Convert PascalCase to snake_case
     entityName = entityName.replace(/([A-Z])/g, '_$1').toLowerCase();
-    entityName = entityName.replace(/^_/, ''); // Remove underscore inicial
+    entityName = entityName.replace(/^_/, ''); // Remove leading underscore
     
     return entityName;
 }
 
 /**
- * Normaliza parâmetros para uso em chaves de cache
+ * Normalizes parameters for use in cache keys
  */
 export function normalizeParams(...params: any[]): string {
     return params
@@ -54,7 +54,7 @@ export function normalizeParams(...params: any[]): string {
                 return String(p);
             }
             if (typeof p === 'object') {
-                // Ordena chaves do objeto para garantir consistência
+                // Sort object keys for consistency
                 const sorted = Object.keys(p)
                     .sort()
                     .reduce((acc, key) => {
@@ -69,14 +69,14 @@ export function normalizeParams(...params: any[]): string {
 }
 
 /**
- * Gera hash para parâmetros muito longos
+ * Hashes very long parameter strings
  */
 export function hashParams(params: string): string {
     return crypto.createHash('md5').update(params).digest('hex').substring(0, 16);
 }
 
 /**
- * Constrói uma chave de cache completa com namespacing
+ * Builds a fully namespaced cache key
  */
 export function buildCacheKey(
     dbType: 'typeorm' | 'mongoose',

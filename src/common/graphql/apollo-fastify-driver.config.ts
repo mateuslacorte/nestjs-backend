@@ -1,12 +1,12 @@
 import { ApolloServerOptionsWithSchema } from '@apollo/server';
 import { GqlModuleOptions } from '@nestjs/graphql';
-import { CorsOptions } from 'cors';
 
 /**
- * Nest GraphQL options for the in-house Apollo Server 5 + Express driver.
+ * Nest GraphQL options for the in-house Apollo Server 5 + Fastify driver.
  * Uses Apollo Sandbox (landing page) instead of the deprecated GraphQL Playground.
+ * CORS is handled by Nest `enableCors` on the Fastify adapter (not per-path middleware).
  */
-export type ApolloExpressDriverConfig = GqlModuleOptions &
+export type ApolloFastifyDriverConfig = GqlModuleOptions &
     Omit<
         ApolloServerOptionsWithSchema<any>,
         'typeDefs' | 'schema' | 'resolvers' | 'gateway'
@@ -15,6 +15,4 @@ export type ApolloExpressDriverConfig = GqlModuleOptions &
         playground?: boolean;
         autoTransformHttpErrors?: boolean;
         preserveHttpStatusForExecutionErrors?: boolean;
-        /** Same allowlist as HTTP/WebSocket (self + CORS_ORIGINS). */
-        cors?: CorsOptions;
     };

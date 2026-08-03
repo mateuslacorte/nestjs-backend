@@ -181,7 +181,7 @@ describe('JwtAuthGuard', () => {
                 auth: { token: 'ws-auth-token' },
                 headers: {},
               },
-            }) as AuthenticatedSocket,
+            }) as unknown as AuthenticatedSocket,
         }),
       } as unknown as ExecutionContext;
 
@@ -258,7 +258,7 @@ describe('JwtAuthGuard', () => {
                 auth: { token: 'preferred-token' },
                 headers: { authorization: 'Bearer other-token' },
               },
-            }) as AuthenticatedSocket,
+            }) as unknown as AuthenticatedSocket,
         }),
       } as unknown as ExecutionContext;
 

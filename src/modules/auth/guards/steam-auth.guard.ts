@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
-import { Request } from 'express';
+import { AppRequest, requestPath } from '@common/http/app-http';
 
 @Injectable()
 export class SteamAuthGuard extends AuthGuard('steam') {
@@ -20,9 +20,9 @@ export class SteamAuthGuard extends AuthGuard('steam') {
     }
 
     getAuthenticateOptions(context: ExecutionContext) {
-        const req = context.switchToHttp().getRequest<Request>();
+        const req = context.switchToHttp().getRequest<AppRequest>();
         const isCallback =
-            req.path.includes('/steam/callback') ||
+            requestPath(req).includes('/steam/callback') ||
             typeof req.query['openid.mode'] === 'string';
         if (isCallback) {
             return {};
@@ -43,7 +43,7 @@ export class SteamAuthGuard extends AuthGuard('steam') {
         }
     }
 
-    private resolveRedirect(req: Request): string {
+    private resolveRedirect(req: AppRequest): string {
         const allowlist =
             this.configService.get<string[]>('steamOpenId.redirectAllowlist') || [];
         const fromQuery =

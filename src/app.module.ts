@@ -4,8 +4,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GraphQLModule } from '@nestjs/graphql';
 import {
-    ApolloExpressDriver,
-    ApolloExpressDriverConfig,
+    ApolloFastifyDriver,
+    ApolloFastifyDriverConfig,
 } from '@common/graphql';
 import { UsersModule } from '@modules/users/users.module';
 import { AuthModule } from '@modules/auth/auth.module';
@@ -54,7 +54,6 @@ import coinbaseOAuthConfig from './config/coinbase-oauth.config';
 import metamaskAuthConfig from './config/metamask-auth.config';
 import adLdapConfig from './config/ad-ldap.config';
 import corsConfig from './config/cors.config';
-import { createCorsOriginDelegate } from './config/cors-origins.util';
 import { WikiModule } from "./wiki/wiki.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { SecurityModule} from "@common/security/security.module";
@@ -137,25 +136,17 @@ import { HealthModule } from '@modules/health/health.module';
             inject: [ConfigService],
         }),
 
-        // GraphQL via Apollo Server 5 + Express (no @nestjs/apollo)
-        GraphQLModule.forRootAsync<ApolloExpressDriverConfig>({
-            driver: ApolloExpressDriver,
+        GraphQLModule.forRootAsync<ApolloFastifyDriverConfig>({
+            driver: ApolloFastifyDriver,
             useFactory: (configService: ConfigService) => {
-                const corsOrigins =
-                    configService.get<string[]>('cors.origins') || [];
-                const corsCredentials =
-                    configService.get<boolean>('cors.credentials') !== false;
                 return {
                     autoSchemaFile: configService.get('graphql.autoSchemaFile'),
                     playground: configService.get('graphql.playground'),
                     introspection: configService.get('graphql.introspection'),
                     sortSchema: configService.get('graphql.sortSchema'),
                     path: configService.get('graphql.path'),
-                    context: ({ req }: { req: unknown }) => ({ req }),
-                    cors: {
-                        origin: createCorsOriginDelegate(corsOrigins),
-                        credentials: corsCredentials,
-                    },
+                    // Fastify Apollo passes (request, reply); normalize to { req }.
+                    context: (request: unknown) => ({ req: request }),
                 };
             },
             inject: [ConfigService],

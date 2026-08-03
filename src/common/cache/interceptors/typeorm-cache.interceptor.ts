@@ -35,7 +35,7 @@ export class TypeOrmCacheInterceptor implements NestInterceptor {
         const className = context.getClass().name;
         const methodName = handler.name;
 
-        // Verifica se o cache está desabilitado
+        // Check whether cache is disabled
         const noCache = this.reflector.getAllAndOverride<boolean>(NO_CACHE, [
             handler,
             context.getClass(),
@@ -45,7 +45,7 @@ export class TypeOrmCacheInterceptor implements NestInterceptor {
             return next.handle();
         }
 
-        // Obtém metadados de cache
+        // Read cache metadata
         const cacheKey = this.reflector.getAllAndOverride<string>(CACHE_KEY, [
             handler,
             context.getClass(),
@@ -63,7 +63,7 @@ export class TypeOrmCacheInterceptor implements NestInterceptor {
             context.getClass(),
         ]);
 
-        // Se há padrões de invalidação, executa e invalida
+        // If invalidation patterns exist, run then invalidate
         if (invalidatePatterns && invalidatePatterns.length > 0) {
             return next.handle().pipe(
                 tap(async () => {
@@ -74,7 +74,7 @@ export class TypeOrmCacheInterceptor implements NestInterceptor {
             );
         }
 
-        // Detecta se é método de escrita e invalida cache automaticamente
+        // Detect write methods and invalidate cache automatically
         const isWriteMethod = this.writeMethods.some(method => 
             methodName.toLowerCase().includes(method.toLowerCase())
         );
@@ -87,30 +87,30 @@ export class TypeOrmCacheInterceptor implements NestInterceptor {
             );
         }
 
-        // Se cache não está habilitado, apenas executa
+        // If cache is not enabled, just run the handler
         if (!enableCache) {
             return next.handle();
         }
 
-        // Extrai informações para gerar chave
+        // Extract info needed to build the key
         const filePath = this.getFilePath(context);
         const moduleName = extractModuleName(filePath);
         const entityName = extractEntityName(className);
         const args = context.getArgs();
 
-        // Gera chave de cache
+        // Build cache key
         const key = cacheKey
             ? this.cacheService.generateKey(`typeorm:${moduleName}`, cacheKey, ...args)
             : buildCacheKey('typeorm', moduleName, entityName, methodName, args);
 
-        // Tenta obter do cache
+        // Try cache lookup
         return new Observable((observer) => {
             this.cacheService.get(key).then((cached) => {
                 if (cached) {
                     observer.next(cached);
                     observer.complete();
                 } else {
-                    // Se não está em cache, executa e armazena
+                    // On miss, execute and store
                     next.handle().subscribe({
                         next: async (data) => {
                             await this.cacheService.set(key, data, cacheTtl);
@@ -125,14 +125,14 @@ export class TypeOrmCacheInterceptor implements NestInterceptor {
     }
 
     /**
-     * Invalida cache relacionado após operações de escrita
+     * Invalidates related cache after write operations
      */
     private async invalidateRelatedCache(
         className: string,
         methodName: string,
         args: any[],
     ): Promise<void> {
-        // Tenta extrair ID dos argumentos
+        // Try to extract an ID from the arguments
         let id: string | undefined;
         if (args.length > 0) {
             const firstArg = args[0];
@@ -143,12 +143,12 @@ export class TypeOrmCacheInterceptor implements NestInterceptor {
             }
         }
 
-        // Extrai informações do contexto (precisa do filePath)
-        // Por enquanto, vamos usar o nome da classe para inferir
+        // Extract context info (needs filePath)
+        // For now, infer from the class name
         const entityName = extractEntityName(className);
         
-        // Padrões de invalidação baseados no nome da entidade
-        // Como não temos acesso direto ao filePath aqui, vamos usar padrões mais genéricos
+        // Invalidation patterns based on entity name
+        // Without direct filePath access here, use broader patterns
         const patterns = [
             `typeorm:*:${entityName}:*`,
         ];
@@ -163,10 +163,10 @@ export class TypeOrmCacheInterceptor implements NestInterceptor {
     }
 
     /**
-     * Obtém o caminho do arquivo do contexto
+     * Resolves a file path from the execution context
      */
     private getFilePath(context: ExecutionContext): string {
-        // Tenta obter do stack trace
+        // Try to resolve from the stack trace
         const stack = new Error().stack;
         if (stack) {
             const lines = stack.split('\n');
@@ -174,7 +174,7 @@ export class TypeOrmCacheInterceptor implements NestInterceptor {
                 if (line.includes('modules/') && line.includes('.repository.ts')) {
                     const match = line.match(/([^\/]+\.repository\.ts)/);
                     if (match) {
-                        // Tenta encontrar o caminho completo
+                        // Try to build the full path
                         const moduleMatch = line.match(/modules\/([^\/]+)/);
                         if (moduleMatch) {
                             return `src/modules/${moduleMatch[1]}/repositories/${match[1]}`;

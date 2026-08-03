@@ -34,14 +34,14 @@ describe('ChangePasswordDto', () => {
     const { currentPassword: _currentPassword, ...withoutCurrent } = validBase;
     const errors = await validateDto(withoutCurrent);
     expect(messages(errors, 'currentPassword')).toEqual(
-      expect.arrayContaining(['A senha atual é obrigatória']),
+      expect.arrayContaining(['Current password is required']),
     );
   });
 
   it('rejects empty currentPassword', async () => {
     const errors = await validateDto({ ...validBase, currentPassword: '' });
     expect(messages(errors, 'currentPassword')).toEqual(
-      expect.arrayContaining(['A senha atual é obrigatória']),
+      expect.arrayContaining(['Current password is required']),
     );
   });
 
@@ -52,7 +52,7 @@ describe('ChangePasswordDto', () => {
       confirmNewPassword: 'Ab1@',
     });
     expect(messages(errors, 'newPassword')).toEqual(
-      expect.arrayContaining(['A nova senha deve ter no mínimo 8 caracteres']),
+      expect.arrayContaining(['New password must be at least 8 characters long']),
     );
   });
 
@@ -64,7 +64,7 @@ describe('ChangePasswordDto', () => {
     });
     expect(messages(errors, 'newPassword')).toEqual(
       expect.arrayContaining([
-        'A senha deve conter pelo menos 1 letra maiúscula, 1 letra minúscula, 1 número e 1 caractere especial',
+        'Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character',
       ]),
     );
   });
@@ -77,7 +77,7 @@ describe('ChangePasswordDto', () => {
     });
     expect(messages(errors, 'newPassword')).toEqual(
       expect.arrayContaining([
-        'A senha deve conter pelo menos 1 letra maiúscula, 1 letra minúscula, 1 número e 1 caractere especial',
+        'Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character',
       ]),
     );
   });
@@ -96,7 +96,7 @@ describe('ChangePasswordDto', () => {
       validBase;
     const errors = await validateDto(withoutConfirm);
     expect(messages(errors, 'confirmNewPassword')).toEqual(
-      expect.arrayContaining(['A confirmação da senha é obrigatória']),
+      expect.arrayContaining(['Password confirmation is required']),
     );
   });
 
@@ -106,7 +106,7 @@ describe('ChangePasswordDto', () => {
       confirmNewPassword: '',
     });
     expect(messages(errors, 'confirmNewPassword')).toEqual(
-      expect.arrayContaining(['A confirmação da senha é obrigatória']),
+      expect.arrayContaining(['Password confirmation is required']),
     );
   });
 

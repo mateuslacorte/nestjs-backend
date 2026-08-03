@@ -3,18 +3,21 @@ import {
     All,
     Req,
     Res,
-    Next,
     HttpStatus,
 } from '@nestjs/common';
-import { NextFunction, Request, Response } from 'express';
 import { ApiExcludeController } from '@nestjs/swagger';
+import {
+    AppRequest,
+    AppReply,
+    requestOriginalUrl,
+} from '@common/http/app-http';
 import { SecurityService } from './security.service';
 import { Public } from '@modules/auth/decorators/public.decorator';
 import { NoLog } from '@common/graylog/decorators/no-log.decorator';
 import { WikiRenderService } from '../../wiki/wiki-render.service';
 
 @ApiExcludeController()
-@NoLog() // Não logar requisições para rotas inexistentes
+@NoLog() // Do not log requests for nonexistent routes
 @Controller()
 export class CatchAllController {
     constructor(
@@ -23,33 +26,25 @@ export class CatchAllController {
     ) {}
 
     /**
-     * Captura todas as rotas que não existem
-     * Registra tentativa e bloqueia IPs suspeitos (exceto superfície da wiki)
+     * Catches all nonexistent routes
+     * Records the attempt and blocks suspicious IPs (except the wiki surface)
      */
-    @All('*path')
+    @All('*')
     @Public()
     async handleNotFound(
-        @Req() req: Request,
-        @Res() res: Response,
-        @Next() next: NextFunction,
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
     ) {
         const ip = this.getClientIp(req);
-        const path = req.originalUrl || req.url;
+        const path = requestOriginalUrl(req);
         const userAgent = req.headers['user-agent'];
 
-        // O middleware do GraphQL (Apollo) é registrado depois das rotas dos
-        // controllers, então o catch-all precisa deixar a requisição passar
-        const graphqlPath = process.env.GRAPHQL_PATH || '/graphql';
-        if (path.split('?')[0] === graphqlPath) {
-            return next();
-        }
-
-        // Wiki: 404 HTML sem registrar como tentativa suspeita
+        // Wiki: HTML 404 without recording a suspicious attempt
         if (this.wikiRender.shouldRenderWikiNotFound(req, path)) {
-            return this.wikiRender.renderNotFound(req, res);
+            return this.wikiRender.renderNotFound(req, reply);
         }
 
-        // Ignorar rotas exatas conhecidas (favicon, robots, /health)
+        // Ignore known exact routes (favicon, robots, /health)
         const pathOnly = path.split('?')[0].toLowerCase();
         const ignoredPaths = [
             '/favicon.ico',
@@ -63,42 +58,42 @@ export class CatchAllController {
             '/health',
         ];
         if (ignoredPaths.includes(pathOnly)) {
-            return this.sendNotFound(req, res, path);
+            return this.sendNotFound(req, reply, path);
         }
 
-        // Registrar tentativa
+        // Register the attempt
         const result = await this.securityService.registerInvalidRouteAttempt(
             ip,
             path,
-            userAgent,
+            typeof userAgent === 'string' ? userAgent : undefined,
         );
 
-        // Se já estava bloqueado ou acabou de ser bloqueado
+        // Already blocked or just became blocked
         if (result.blocked) {
-            console.warn(`[SECURITY] Acesso bloqueado para IP ${ip} em ${path}`);
-            return res.status(HttpStatus.FORBIDDEN).json({
+            console.warn(`[SECURITY] Access blocked for IP ${ip} at ${path}`);
+            return reply.status(HttpStatus.FORBIDDEN).send({
                 statusCode: HttpStatus.FORBIDDEN,
-                message: 'Acesso bloqueado. Seu IP foi registrado por comportamento suspeito.',
+                message: 'Access blocked. Your IP was flagged for suspicious behavior.',
                 timestamp: new Date().toISOString(),
             });
         }
 
-        return this.sendNotFound(req, res, path);
+        return this.sendNotFound(req, reply, path);
     }
 
-    private sendNotFound(req: Request, res: Response, path: string) {
-        return res.status(HttpStatus.NOT_FOUND).json({
+    private sendNotFound(_req: AppRequest, reply: AppReply, path: string) {
+        return reply.status(HttpStatus.NOT_FOUND).send({
             statusCode: HttpStatus.NOT_FOUND,
-            message: 'Rota não encontrada',
+            message: 'Route not found',
             path,
             timestamp: new Date().toISOString(),
         });
     }
 
     /**
-     * Extrai o IP real do cliente considerando proxies
+     * Extracts the real client IP, considering proxies
      */
-    private getClientIp(req: Request): string {
+    private getClientIp(req: AppRequest): string {
         const forwarded = req.headers['x-forwarded-for'];
         if (forwarded) {
             const ips = Array.isArray(forwarded) ? forwarded[0] : forwarded.split(',')[0];

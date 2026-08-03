@@ -4,29 +4,29 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ArgumentsHost } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { AppRequest, AppReply } from '@common/http/app-http';
 import { WikiRenderService } from '../../wiki/wiki-render.service';
 import { GraylogExceptionFilter } from './graylog-exception.filter';
 import { GraylogService } from './graylog.service';
 
 type MockResponse = {
   status: jest.Mock;
-  json: jest.Mock;
+  send: jest.Mock;
 };
 
 function createHost(
-  requestOverrides: Partial<Request> = {},
+  requestOverrides: Partial<AppRequest> = {},
   responseOverrides: Partial<MockResponse> = {},
 ): {
   host: ArgumentsHost;
-  request: Request;
+  request: AppRequest;
   response: MockResponse;
 } {
-  const json = jest.fn();
-  const status = jest.fn().mockReturnValue({ json });
+  const send = jest.fn();
+  const status = jest.fn().mockReturnValue({ send });
   const response = {
     status,
-    json,
+    send,
     ...responseOverrides,
   };
 
@@ -45,12 +45,12 @@ function createHost(
       'x-custom': 'drop-me',
     },
     ...requestOverrides,
-  } as unknown as Request;
+  } as unknown as AppRequest;
 
   const host = {
     switchToHttp: () => ({
       getRequest: () => request,
-      getResponse: () => response as unknown as Response,
+      getResponse: () => response as unknown as AppReply,
     }),
   } as unknown as ArgumentsHost;
 
@@ -72,8 +72,8 @@ describe('GraylogExceptionFilter', () => {
     wikiRender = {
       shouldRenderWikiNotFound: jest.fn().mockReturnValue(false),
       shouldRenderWikiServerError: jest.fn().mockReturnValue(false),
-      renderNotFound: jest.fn(),
-      renderServerError: jest.fn(),
+      renderNotFound: jest.fn().mockResolvedValue(undefined),
+      renderServerError: jest.fn().mockResolvedValue(undefined),
     };
     filter = new GraylogExceptionFilter(
       graylogService as unknown as GraylogService,
@@ -82,31 +82,31 @@ describe('GraylogExceptionFilter', () => {
   });
 
   describe('status and message resolution', () => {
-    it('uses HttpException status and message', () => {
+    it('uses HttpException status and message', async () => {
       const { host, response } = createHost();
-      filter.catch(new BadRequestException('bad input'), host);
+      await filter.catch(new BadRequestException('bad input'), host);
 
       expect(response.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
-      expect(response.json).toHaveBeenCalledWith(
+      expect(response.send).toHaveBeenCalledWith(
         expect.objectContaining({
           statusCode: HttpStatus.BAD_REQUEST,
           path: '/api/users',
           message: 'bad input',
         }),
       );
-      expect(typeof (response.json.mock.calls[0][0] as { timestamp: string }).timestamp).toBe(
+      expect(typeof (response.send.mock.calls[0][0] as { timestamp: string }).timestamp).toBe(
         'string',
       );
     });
 
-    it('defaults plain Error to 500 with Error.message', () => {
+    it('defaults plain Error to 500 with Error.message', async () => {
       const { host, response } = createHost();
-      filter.catch(new Error('unexpected'), host);
+      await filter.catch(new Error('unexpected'), host);
 
       expect(response.status).toHaveBeenCalledWith(
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
-      expect(response.json).toHaveBeenCalledWith(
+      expect(response.send).toHaveBeenCalledWith(
         expect.objectContaining({
           statusCode: 500,
           message: 'unexpected',
@@ -114,11 +114,11 @@ describe('GraylogExceptionFilter', () => {
       );
     });
 
-    it('defaults non-Error exceptions to Internal server error', () => {
+    it('defaults non-Error exceptions to Internal server error', async () => {
       const { host, response } = createHost();
-      filter.catch('string-failure', host);
+      await filter.catch('string-failure', host);
 
-      expect(response.json).toHaveBeenCalledWith(
+      expect(response.send).toHaveBeenCalledWith(
         expect.objectContaining({
           message: 'Internal server error',
         }),
@@ -127,10 +127,10 @@ describe('GraylogExceptionFilter', () => {
   });
 
   describe('graylog logging', () => {
-    it('always logs via graylogService.error with request context and safe headers', () => {
+    it('always logs via graylogService.error with request context and safe headers', async () => {
       const { host } = createHost();
       const err = new NotFoundException('missing');
-      filter.catch(err, host);
+      await filter.catch(err, host);
 
       expect(graylogService.error).toHaveBeenCalledWith(err, {
         path: '/api/users',
@@ -147,9 +147,9 @@ describe('GraylogExceptionFilter', () => {
       });
     });
 
-    it('passes string message to error when exception is not an Error', () => {
+    it('passes string message to error when exception is not an Error', async () => {
       const { host } = createHost();
-      filter.catch(42, host);
+      await filter.catch(42, host);
 
       expect(graylogService.error).toHaveBeenCalledWith(
         'Internal server error',
@@ -157,7 +157,7 @@ describe('GraylogExceptionFilter', () => {
       );
     });
 
-    it('omits non-whitelisted headers and marks authorization as present', () => {
+    it('omits non-whitelisted headers and marks authorization as present', async () => {
       const { host } = createHost({
         headers: {
           authorization: 'Bearer x',
@@ -166,9 +166,9 @@ describe('GraylogExceptionFilter', () => {
           'x-request-id': 'req-1',
           'x-custom': 'nope',
         },
-      } as Partial<Request>);
+      } as Partial<AppRequest>);
 
-      filter.catch(new Error('x'), host);
+      await filter.catch(new Error('x'), host);
 
       const [, ctx] = graylogService.error.mock.calls[0] as [
         unknown,
@@ -183,15 +183,15 @@ describe('GraylogExceptionFilter', () => {
       expect(ctx.headers['x-custom']).toBeUndefined();
     });
 
-    it('omits authorization key when header is absent', () => {
+    it('omits authorization key when header is absent', async () => {
       const { host } = createHost({
         headers: {
           host: 'localhost',
           'user-agent': 'jest',
         },
-      } as Partial<Request>);
+      } as Partial<AppRequest>);
 
-      filter.catch(new Error('x'), host);
+      await filter.catch(new Error('x'), host);
 
       const [, ctx] = graylogService.error.mock.calls[0] as [
         unknown,
@@ -206,57 +206,57 @@ describe('GraylogExceptionFilter', () => {
   });
 
   describe('wiki vs JSON responses', () => {
-    it('renders wiki not-found and skips JSON when wiki says so', () => {
+    it('renders wiki not-found and skips JSON when wiki says so', async () => {
       wikiRender.shouldRenderWikiNotFound.mockReturnValue(true);
       const { host, request, response } = createHost({
         originalUrl: '/docs/missing',
-      } as Partial<Request>);
+      } as Partial<AppRequest>);
 
-      filter.catch(new NotFoundException(), host);
+      await filter.catch(new NotFoundException(), host);
 
       expect(wikiRender.renderNotFound).toHaveBeenCalledWith(
         request,
         response,
       );
       expect(response.status).not.toHaveBeenCalled();
-      expect(response.json).not.toHaveBeenCalled();
+      expect(response.send).not.toHaveBeenCalled();
       expect(wikiRender.renderServerError).not.toHaveBeenCalled();
     });
 
-    it('renders wiki server-error and skips JSON when wiki says so', () => {
+    it('renders wiki server-error and skips JSON when wiki says so', async () => {
       wikiRender.shouldRenderWikiServerError.mockReturnValue(true);
       const { host, request, response } = createHost({
         originalUrl: '/docs',
-      } as Partial<Request>);
+      } as Partial<AppRequest>);
 
-      filter.catch(new Error('crash'), host);
+      await filter.catch(new Error('crash'), host);
 
       expect(wikiRender.renderServerError).toHaveBeenCalledWith(
         request,
         response,
       );
       expect(response.status).not.toHaveBeenCalled();
-      expect(response.json).not.toHaveBeenCalled();
+      expect(response.send).not.toHaveBeenCalled();
     });
 
-    it('falls back to JSON when wiki flags are false', () => {
+    it('falls back to JSON when wiki flags are false', async () => {
       const { host, response } = createHost();
-      filter.catch(new NotFoundException('gone'), host);
+      await filter.catch(new NotFoundException('gone'), host);
 
       expect(wikiRender.renderNotFound).not.toHaveBeenCalled();
       expect(wikiRender.renderServerError).not.toHaveBeenCalled();
       expect(response.status).toHaveBeenCalledWith(HttpStatus.NOT_FOUND);
-      expect(response.json).toHaveBeenCalled();
+      expect(response.send).toHaveBeenCalled();
     });
 
-    it('uses request.url when originalUrl is missing for wiki path checks', () => {
+    it('uses request.url when originalUrl is missing for wiki path checks', async () => {
       wikiRender.shouldRenderWikiNotFound.mockReturnValue(true);
       const { host, request } = createHost({
         url: '/wiki-page',
         originalUrl: undefined,
-      } as Partial<Request>);
+      } as Partial<AppRequest>);
 
-      filter.catch(new NotFoundException(), host);
+      await filter.catch(new NotFoundException(), host);
 
       expect(wikiRender.shouldRenderWikiNotFound).toHaveBeenCalledWith(
         request,

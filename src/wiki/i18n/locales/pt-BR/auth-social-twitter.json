@@ -11,11 +11,11 @@
     },
     "overview": {
       "title": "Visão geral",
-      "description": "O login X / Twitter é opcional e controlado por <code class=\"px-1 py-0.5 bg-amber-100 rounded\">TWITTER_AUTH_ENABLED</code>. Quando desligado, os endpoints Twitter respondem <strong>503 Service Unavailable</strong>. JWTs nunca vão na URL de redirect; a API emite um <code class=\"px-1 py-0.5 bg-gray-100 rounded\">exchangeCode</code> de uso único (Redis, 60 segundos). O mesmo <code class=\"px-1 py-0.5 bg-gray-100 rounded\">POST /auth/exchange</code> é compartilhado com Google e Facebook. O X exige <strong>PKCE</strong>, por isso a API usa session Express.",
+      "description": "O login X / Twitter é opcional e controlado por <code class=\"px-1 py-0.5 bg-amber-100 rounded\">TWITTER_AUTH_ENABLED</code>. Quando desligado, os endpoints Twitter respondem <strong>503 Service Unavailable</strong>. JWTs nunca vão na URL de redirect; a API emite um <code class=\"px-1 py-0.5 bg-gray-100 rounded\">exchangeCode</code> de uso único (Redis, 60 segundos). O mesmo <code class=\"px-1 py-0.5 bg-gray-100 rounded\">POST /auth/exchange</code> é compartilhado com Google e Facebook. O X exige <strong>PKCE</strong>, por isso a API usa session Fastify (<code class=\"px-1 py-0.5 bg-amber-100 rounded\">@fastify/session</code>) com cookie <strong>SameSite=Lax</strong> (necessário para o round-trip do PKCE).",
       "items": [
         "Ativado por feature flag no ambiente",
         "Passport Twitter OAuth2 (@superfaceai) + TwitterAuthGuard",
-        "PKCE com express-session",
+        "PKCE com session Fastify",
         "Allowlist de redirect evita open redirects",
         "Mesmo formato de tokens do POST /auth/login"
       ]
@@ -125,7 +125,7 @@
       "items": [
         "URLs de redirect devem bater com prefixos de TWITTER_REDIRECT_ALLOWLIST",
         "Códigos de exchange são de uso único e expiram em 60 segundos (Redis)",
-        "O code_verifier do PKCE fica na cookie de session Express",
+        "O code_verifier do PKCE fica na cookie de session Fastify (SameSite=Lax)",
         "Usuários locais existentes são vinculados pelo e-mail verificado do Twitter (twitterId; roles inalteradas)",
         "Usuários só-Twitter têm password null — login/change-password com senha falham até haver senha",
         "users.email + confirmed_email são obrigatórios; o login falha se o X não devolver e-mail"

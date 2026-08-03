@@ -29,7 +29,7 @@ function runValidate(
   body: Record<string, unknown> = {},
 ): Promise<AppleProfilePayload> {
   return new Promise((resolve, reject) => {
-    const req = { body } as unknown as import('express').Request;
+    const req = { body } as unknown as import('@common/http/app-http').AppRequest;
     strategy.validate(req, 'access', 'refresh', idToken, undefined, (err, user) => {
       if (err) reject(err);
       else resolve(user as AppleProfilePayload);
