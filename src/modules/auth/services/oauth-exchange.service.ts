@@ -35,7 +35,6 @@ export class OauthExchangeService {
             this.configService.get<number>('steamOpenId.exchangeCodeTtlSeconds') ??
             this.configService.get<number>('redditOAuth.exchangeCodeTtlSeconds') ??
             this.configService.get<number>('appleOAuth.exchangeCodeTtlSeconds') ??
-            this.configService.get<number>('spotifyOAuth.exchangeCodeTtlSeconds') ??
             this.configService.get<number>('amazonOAuth.exchangeCodeTtlSeconds') ??
             this.configService.get<number>('microsoftOAuth.exchangeCodeTtlSeconds') ??
             this.configService.get<number>('patreonOAuth.exchangeCodeTtlSeconds') ??

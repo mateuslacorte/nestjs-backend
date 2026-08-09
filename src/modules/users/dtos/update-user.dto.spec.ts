@@ -48,7 +48,6 @@ describe('UpdateUserDto', () => {
       twitchId: '141981764',
       steamId: '76561198000000000',
       redditId: 'abc123',
-      spotifyId: 'spotify-sub-001',
       amazonId: 'amzn1.account.abc123',
       microsoftId: 'ms-object-id-001',
       patreonId: 'patreon-user-001',
@@ -199,11 +198,6 @@ describe('UpdateUserDto', () => {
   it('rejects non-string redditId', async () => {
     const errors = await validateDto({ redditId: false });
     expect(errors.some((e) => e.property === 'redditId')).toBe(true);
-  });
-
-  it('rejects non-string spotifyId', async () => {
-    const errors = await validateDto({ spotifyId: false });
-    expect(errors.some((e) => e.property === 'spotifyId')).toBe(true);
   });
 
   it('rejects non-string amazonId', async () => {

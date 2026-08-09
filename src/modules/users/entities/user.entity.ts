@@ -74,9 +74,6 @@ export class UserEntity implements IUser {
     appleId?: string | null;
 
     @Column({ type: 'varchar', unique: true, nullable: true })
-    spotifyId?: string | null;
-
-    @Column({ type: 'varchar', unique: true, nullable: true })
     amazonId?: string | null;
 
     @Column({ type: 'varchar', unique: true, nullable: true })

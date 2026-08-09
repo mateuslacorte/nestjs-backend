@@ -40,13 +40,11 @@ import { RedditStrategy } from './strategies/reddit.strategy';
 import { RedditAuthGuard } from './guards/reddit-auth.guard';
 import { AppleStrategy } from './strategies/apple.strategy';
 import { AppleAuthGuard } from './guards/apple-auth.guard';
-import { SpotifyStrategy } from './strategies/spotify.strategy';
 import { AmazonStrategy } from './strategies/amazon.strategy';
 import { MicrosoftStrategy } from './strategies/microsoft.strategy';
 import { PatreonStrategy } from './strategies/patreon.strategy';
 import { DropboxStrategy } from './strategies/dropbox.strategy';
 import { CoinbaseStrategy } from './strategies/coinbase.strategy';
-import { SpotifyAuthGuard } from './guards/spotify-auth.guard';
 import { AmazonAuthGuard } from './guards/amazon-auth.guard';
 import { MicrosoftAuthGuard } from './guards/microsoft-auth.guard';
 import { PatreonAuthGuard } from './guards/patreon-auth.guard';
@@ -144,8 +142,6 @@ describe('AuthModule', () => {
         RedditAuthGuard,
         AppleStrategy,
         AppleAuthGuard,
-        SpotifyStrategy,
-        SpotifyAuthGuard,
         AmazonStrategy,
         AmazonAuthGuard,
         MicrosoftStrategy,

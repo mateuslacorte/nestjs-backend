@@ -78,9 +78,6 @@ export class User extends Document<string> {
   appleId?: string | null;
 
   @Prop({ type: String, unique: true, sparse: true, default: null })
-  spotifyId?: string | null;
-
-  @Prop({ type: String, unique: true, sparse: true, default: null })
   amazonId?: string | null;
 
   @Prop({ type: String, unique: true, sparse: true, default: null })

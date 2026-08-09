@@ -170,14 +170,6 @@ export class UpdateUserDto {
   redditId?: string | null;
 
   @ApiPropertyOptional({
-    example: 'spotify.sub.001',
-    description: 'Spotify user ID for OAuth users',
-  })
-  @IsString()
-  @IsOptional()
-  spotifyId?: string | null;
-
-  @ApiPropertyOptional({
     example: 'amzn1.account.abc123',
     description: 'Amazon user ID for OAuth users',
   })

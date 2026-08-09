@@ -173,14 +173,6 @@ export class UsersService {
   }
 
   /**
-   * Find a user by Spotify user ID
-   */
-  @NoCache()
-  async findBySpotifyId(spotifyId: string, includePassword = false): Promise<IUser | null> {
-    return this.postgresRepo.findBySpotifyId(spotifyId, includePassword);
-  }
-
-  /**
    * Find a user by Amazon user ID
    */
   @NoCache()

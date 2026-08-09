@@ -45,7 +45,6 @@ import twitchOAuthConfig from './config/twitch-oauth.config';
 import steamOpenIdConfig from './config/steam-openid.config';
 import redditOAuthConfig from './config/reddit-oauth.config';
 import appleOAuthConfig from './config/apple-oauth.config';
-import spotifyOAuthConfig from './config/spotify-oauth.config';
 import amazonOAuthConfig from './config/amazon-oauth.config';
 import microsoftOAuthConfig from './config/microsoft-oauth.config';
 import patreonOAuthConfig from './config/patreon-oauth.config';
@@ -92,7 +91,6 @@ import { HealthModule } from '@modules/health/health.module';
                 steamOpenIdConfig,
                 redditOAuthConfig,
                 appleOAuthConfig,
-                spotifyOAuthConfig,
                 amazonOAuthConfig,
                 microsoftOAuthConfig,
                 patreonOAuthConfig,

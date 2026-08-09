@@ -7,7 +7,7 @@
     "hero": {
       "titlePrefix": "Social",
       "titleHighlight": "Authentication",
-      "subtitle": "How to plug Google, Facebook, X / Twitter, GitHub, Figma, LinkedIn, Slack, Atlassian, GitLab, Bitbucket, Discord, Twitch, Spotify, Amazon, Microsoft, Patreon, Dropbox, Coinbase, MetaMask, or Steam login into your app — OAuth Code Exchange for most providers; SIWE for MetaMask."
+      "subtitle": "How to plug Google, Facebook, X / Twitter, GitHub, Figma, LinkedIn, Slack, Atlassian, GitLab, Bitbucket, Discord, Twitch, Amazon, Microsoft, Patreon, Dropbox, Coinbase, MetaMask, or Steam login into your app — OAuth Code Exchange for most providers; SIWE for MetaMask."
     },
     "howItWorks": {
       "title": "How it works",
@@ -18,7 +18,10 @@
         "API redirects to your redirect URL with ?code=<exchangeCode> (Redis, ~60s, single use)",
         "Your app calls POST /api/v1/auth/exchange with { code } and stores accessToken / refreshToken"
       ],
-      "codeHeader": { "label": "Contract", "context": "API" }
+      "codeHeader": {
+        "label": "Contract",
+        "context": "API"
+      }
     },
     "enable": {
       "title": "Enable a provider",
@@ -110,11 +113,6 @@
         "description": "Steam OpenID 2.0 login (not OAuth2), optional Web API key, env vars, endpoints, and web/mobile samples. Steam never returns email.",
         "cta": "Steam setup guide →"
       },
-      "spotify": {
-        "title": "Spotify",
-        "description": "Spotify OAuth2 Authorization Code login, env vars, endpoints, and web/mobile samples.",
-        "cta": "Spotify setup guide →"
-      },
       "amazon": {
         "title": "Amazon",
         "description": "Login with Amazon OAuth2 Authorization Code login, env vars, endpoints, and web/mobile samples.",
@@ -181,7 +179,6 @@
       "discord": "Discord OAuth2 setup guide",
       "twitch": "Twitch OAuth2 setup guide",
       "steam": "Steam OpenID 2.0 setup guide",
-      "spotify": "Spotify OAuth2 setup guide",
       "amazon": "Amazon Login with Amazon setup guide",
       "microsoft": "Microsoft Entra ID setup guide",
       "patreon": "Patreon OAuth2 setup guide",

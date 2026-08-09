@@ -4,10 +4,10 @@ block content
   .mb-12
     .inline-flex.items-center.gap-2.px-3.py-1.bg-indigo-50.rounded-full.text-indigo-700.text-sm.font-medium.mb-4
       svg(class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24")
-        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z")
       span= t('authSocialMicrosoft.badge')
     h1(class="text-4xl font-bold text-gray-900 mb-4")
-      | #{t('authSocialMicrosoft.hero.titlePrefix')}
+      | #{t('authSocialMicrosoft.hero.titlePrefix')} 
       span.gradient-text= t('authSocialMicrosoft.hero.titleHighlight')
     p(class="text-xl text-gray-600 max-w-3xl")
       = t('authSocialMicrosoft.hero.subtitle')
@@ -15,18 +15,30 @@ block content
   section.mb-12
     h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMicrosoft.overview.title')
     .bg-white.rounded-xl.border.border-gray-200.p-8
-      p(class="text-gray-700 mb-0")
+      p(class="text-gray-700 mb-6")
         != t('authSocialMicrosoft.overview.description')
+      ul.space-y-2.text-gray-700
+        each item in tm('authSocialMicrosoft.overview.items')
+          li • #{item}
 
   section.mb-12
     h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMicrosoft.console.title')
     .bg-white.rounded-xl.border.border-gray-200.p-8
-      p(class="text-gray-700 mb-6")
+      p(class="text-gray-700 mb-4")
         != t('authSocialMicrosoft.console.description')
+      ol(class="list-decimal list-inside space-y-2 text-gray-700")
+        each item in tm('authSocialMicrosoft.console.steps')
+          li= item
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMicrosoft.env.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")
+        != t('authSocialMicrosoft.env.description')
       .code-block
         .code-header
-          span= t('authSocialMicrosoft.console.codeHeader.label')
-          span= t('authSocialMicrosoft.console.codeHeader.context')
+          span= t('authSocialMicrosoft.env.codeHeader.label')
+          span= t('authSocialMicrosoft.env.codeHeader.context')
         .code-content
           pre.
             MICROSOFT_AUTH_ENABLED=true
@@ -38,47 +50,240 @@ block content
             MICROSOFT_OAUTH_DEFAULT_ROLES=
 
   section.mb-12
-    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMicrosoft.api.title')
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMicrosoft.roles.title')
     .bg-white.rounded-xl.border.border-gray-200.p-8
-      p(class="text-gray-700 mb-6")= t('authSocialMicrosoft.api.description')
-      .code-block.mb-2
-        .code-header
-          span= t('authSocialMicrosoft.api.start.codeHeader.label')
-          span= t('authSocialMicrosoft.api.start.codeHeader.context')
-        .code-content
-          pre.
-            GET #{apiBasePath}/auth/microsoft?redirect=http%3A%2F%2Flocalhost%3A5173%2Fauth%2Fcallback
-      .code-block.mb-2
-        .code-header
-          span= t('authSocialMicrosoft.api.callback.codeHeader.label')
-          span= t('authSocialMicrosoft.api.callback.codeHeader.context')
-        .code-content
-          pre.
-            GET #{apiBasePath}/auth/microsoft/callback?code=MICROSOFT_AUTH_CODE&state=...
-            → 302 Location: http://localhost:5173/auth/callback?code=EXCHANGE_CODE
-      .code-block.mb-0
-        .code-header
-          span= t('authSocialMicrosoft.api.exchange.codeHeader.label')
-          span= t('authSocialMicrosoft.api.exchange.codeHeader.context')
-        .code-content
-          pre.
-            POST #{apiBasePath}/auth/exchange
-            Content-Type: application/json
+      p(class="text-gray-700")
+        != t('authSocialMicrosoft.roles.description')
 
-            { "code": "EXCHANGE_CODE" }
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMicrosoft.flow.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      ol(class="list-decimal list-inside space-y-2 text-gray-700")
+        each item in tm('authSocialMicrosoft.flow.items')
+          li= item
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMicrosoft.api.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8.space-y-8
+      div
+        h3(class="font-semibold text-gray-900 mb-2")= t('authSocialMicrosoft.api.start.title')
+        p(class="text-gray-700 mb-3")
+          != t('authSocialMicrosoft.api.start.description')
+        .code-block.mb-2
+          .code-header
+            span= t('authSocialMicrosoft.api.start.codeHeader.label')
+            span= t('authSocialMicrosoft.api.start.codeHeader.context')
+          .code-content
+            pre.
+              GET #{apiBasePath}/auth/microsoft?redirect=http%3A%2F%2Flocalhost%3A5173%2Fauth%2Fcallback
+        p(class="text-sm text-gray-500")= t('authSocialMicrosoft.api.start.errors')
+
+      div
+        h3(class="font-semibold text-gray-900 mb-2")= t('authSocialMicrosoft.api.callback.title')
+        p(class="text-gray-700 mb-3")
+          != t('authSocialMicrosoft.api.callback.description')
+        .code-block
+          .code-header
+            span= t('authSocialMicrosoft.api.callback.codeHeader.label')
+            span= t('authSocialMicrosoft.api.callback.codeHeader.context')
+          .code-content
+            pre.
+              GET #{apiBasePath}/auth/microsoft/callback?code=MICROSOFT_AUTH_CODE&state=...
+              → 302 Location: http://localhost:5173/auth/callback?code=EXCHANGE_CODE
+
+      div
+        h3(class="font-semibold text-gray-900 mb-2")= t('authSocialMicrosoft.api.exchange.title')
+        p(class="text-gray-700 mb-3")
+          != t('authSocialMicrosoft.api.exchange.description')
+        .code-block.mb-4
+          .code-header
+            span= t('authSocialMicrosoft.api.exchange.requestHeader.label')
+            span= t('authSocialMicrosoft.api.exchange.requestHeader.context')
+          .code-content
+            pre.
+              POST #{apiBasePath}/auth/exchange
+              Content-Type: application/json
+
+              {
+                "code": "EXCHANGE_CODE"
+              }
+        .code-block.mb-2
+          .code-header
+            span= t('authSocialMicrosoft.api.exchange.responseHeader.label')
+            span= t('authSocialMicrosoft.api.exchange.responseHeader.context')
+          .code-content
+            pre.
+              {
+                "user": {
+                  "id": "...",
+                  "email": "user@example.com",
+                  "firstName": "Jane",
+                  "lastName": "Doe",
+                  "roles": [],
+                  "microsoftId": "00000000-0000-0000-0000-000000000000",
+                  "isActive": true
+                },
+                "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+                "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
+              }
+        p(class="text-sm text-gray-500")= t('authSocialMicrosoft.api.exchange.errors')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMicrosoft.web.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")
+        != t('authSocialMicrosoft.web.description')
+      .code-block.mb-6
+        .code-header
+          span= t('authSocialMicrosoft.web.startHeader.label')
+          span= t('authSocialMicrosoft.web.startHeader.context')
+        .code-content
+          pre.
+            const API = 'http://localhost:3000/api/v1';
+            const redirect = encodeURIComponent(
+              'http://localhost:5173/auth/callback'
+            );
+
+            #{t('authSocialMicrosoft.samples.fullPageRedirect')}
+            window.location.href = `${API}/auth/microsoft?redirect=${redirect}`;
+      .code-block.mb-6
+        .code-header
+          span= t('authSocialMicrosoft.web.callbackHeader.label')
+          span= t('authSocialMicrosoft.web.callbackHeader.context')
+        .code-content
+          pre.
+            #{t('authSocialMicrosoft.samples.spaCallback')}
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get('code');
+            if (!code) throw new Error('Missing exchange code');
+
+            const res = await fetch('http://localhost:3000/api/v1/auth/exchange', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ code }),
+            });
+            if (!res.ok) throw new Error(await res.text());
+
+            const { user, accessToken, refreshToken } = await res.json();
+            #{t('authSocialMicrosoft.samples.persistTokens')}
+            sessionStorage.setItem('accessToken', accessToken);
+            console.log('signed in', user.email);
+      ul.space-y-2.text-gray-700
+        each item in tm('authSocialMicrosoft.web.notes')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMicrosoft.mobile.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")
+        != t('authSocialMicrosoft.mobile.description')
+      .code-block.mb-6
+        .code-header
+          span= t('authSocialMicrosoft.mobile.openHeader.label')
+          span= t('authSocialMicrosoft.mobile.openHeader.context')
+        .code-content
+          pre.
+            import * as Linking from 'expo-linking';
+            import * as WebBrowser from 'expo-web-browser';
+
+            const API = 'https://api.example.com/api/v1';
+            const redirect = encodeURIComponent('myapp://success');
+
+            async function signInWithMicrosoft() {
+              const url = `${API}/auth/microsoft?redirect=${redirect}`;
+              await WebBrowser.openAuthSessionAsync(url, 'myapp://success');
+            }
+      .code-block.mb-6
+        .code-header
+          span= t('authSocialMicrosoft.mobile.handleHeader.label')
+          span= t('authSocialMicrosoft.mobile.handleHeader.context')
+        .code-content
+          pre.
+            import * as Linking from 'expo-linking';
+
+            async function exchangeFromUrl(url) {
+              const { queryParams } = Linking.parse(url);
+              const code = queryParams?.code;
+              if (!code) return;
+
+              const res = await fetch(`${API}/auth/exchange`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code }),
+              });
+              const data = await res.json();
+              #{t('authSocialMicrosoft.samples.tokenFields')}
+              return data;
+            }
+
+            Linking.addEventListener('url', ({ url }) => {
+              exchangeFromUrl(url);
+            });
+      ul.space-y-2.text-gray-700
+        each item in tm('authSocialMicrosoft.mobile.notes')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMicrosoft.security.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      ul.space-y-2.text-gray-700
+        each item in tm('authSocialMicrosoft.security.items')
+          li • #{item}
 
   section.mb-12
     h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMicrosoft.userModel.title')
     .bg-white.rounded-xl.border.border-gray-200.p-8
-      p(class="text-gray-700 mb-0")= t('authSocialMicrosoft.userModel.description')
+      p(class="text-gray-700 mb-4")= t('authSocialMicrosoft.userModel.description')
+      ul.space-y-2.text-gray-700
+        each item in tm('authSocialMicrosoft.userModel.items')
+          li • #{item}
 
   section.mb-12
     h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMicrosoft.related.title')
     .bg-white.rounded-xl.border.border-gray-200.p-8
-      ul.space-y-2
+      ul.space-y-3
         li
           a(href=wikiPath('/auth/social') class="text-indigo-600 hover:underline font-medium")= t('authSocialMicrosoft.related.social')
         li
+          a(href=wikiPath('/auth/social/google') class="text-indigo-600 hover:underline font-medium")= t('authSocialMicrosoft.related.google')
+        li
+          a(href=wikiPath('/auth/social/facebook') class="text-indigo-600 hover:underline font-medium")= t('authSocialMicrosoft.related.facebook')
+        li
+          a(href=wikiPath('/auth/social/twitter') class="text-indigo-600 hover:underline font-medium")= t('authSocialMicrosoft.related.twitter')
+        li
+          a(href=wikiPath('/auth/social/github') class="text-indigo-600 hover:underline font-medium")= t('authSocialMicrosoft.related.github')
+        li
+          a(href=wikiPath('/auth/social/figma') class="text-indigo-600 hover:underline font-medium")= t('authSocialMicrosoft.related.figma')
+        li
+          a(href=wikiPath('/auth/social/linkedin') class="text-indigo-600 hover:underline font-medium")= t('authSocialMicrosoft.related.linkedin')
+        li
+          a(href=wikiPath('/auth/social/slack') class="text-indigo-600 hover:underline font-medium")= t('authSocialMicrosoft.related.slack')
+        li
+          a(href=wikiPath('/auth/social/atlassian') class="text-indigo-600 hover:underline font-medium")= t('authSocialMicrosoft.related.atlassian')
+        li
+          a(href=wikiPath('/auth/social/gitlab') class="text-indigo-600 hover:underline font-medium")= t('authSocialMicrosoft.related.gitlab')
+        li
+          a(href=wikiPath('/auth/social/bitbucket') class="text-indigo-600 hover:underline font-medium")= t('authSocialMicrosoft.related.bitbucket')
+        li
+          a(href=wikiPath('/auth/social/discord') class="text-indigo-600 hover:underline font-medium")= t('authSocialMicrosoft.related.discord')
+        li
+          a(href=wikiPath('/auth/social/twitch') class="text-indigo-600 hover:underline font-medium")= t('authSocialMicrosoft.related.twitch')
+        li
+          a(href=wikiPath('/auth/social/steam') class="text-indigo-600 hover:underline font-medium")= t('authSocialMicrosoft.related.steam')
+        li
+        li
           a(href=wikiPath('/auth/social/amazon') class="text-indigo-600 hover:underline font-medium")= t('authSocialMicrosoft.related.amazon')
         li
+          a(href=wikiPath('/auth/social/patreon') class="text-indigo-600 hover:underline font-medium")= t('authSocialMicrosoft.related.patreon')
+        li
+          a(href=wikiPath('/auth/social/dropbox') class="text-indigo-600 hover:underline font-medium")= t('authSocialMicrosoft.related.dropbox')
+        li
+          a(href=wikiPath('/auth/social/coinbase') class="text-indigo-600 hover:underline font-medium")= t('authSocialMicrosoft.related.coinbase')
+        li
+          a(href=wikiPath('/auth/social/metamask') class="text-indigo-600 hover:underline font-medium")= t('authSocialMicrosoft.related.metamask')
+        li
           a(href=wikiPath('/auth/social/apple') class="text-indigo-600 hover:underline font-medium")= t('authSocialMicrosoft.related.apple')
+        li
+          a(href=wikiPath('/auth/social/reddit') class="text-indigo-600 hover:underline font-medium")= t('authSocialMicrosoft.related.reddit')
+        li
+          a(href=wikiPath('/auth') class="text-indigo-600 hover:underline font-medium")= t('authSocialMicrosoft.related.auth')

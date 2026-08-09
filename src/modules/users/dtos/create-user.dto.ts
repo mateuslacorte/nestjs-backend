@@ -32,10 +32,10 @@ export class CreateUserDto {
 
   @ApiPropertyOptional({
     example: 'Str0ng!P@ssword',
-    description: 'Password (required unless googleId, facebookId, twitterId, githubId, figmaId, linkedinId, slackId, atlassianId, gitlabId, bitbucketId, discordId, twitchId, steamId, redditId, spotifyId, amazonId, microsoftId, patreonId, dropboxId, coinbaseId, metamaskId, activeDirectoryId, or appleId is set)',
+    description: 'Password (required unless googleId, facebookId, twitterId, githubId, figmaId, linkedinId, slackId, atlassianId, gitlabId, bitbucketId, discordId, twitchId, steamId, redditId, amazonId, microsoftId, patreonId, dropboxId, coinbaseId, metamaskId, activeDirectoryId, or appleId is set)',
   })
   @Field(() => String, { nullable: true })
-  @ValidateIf((o: CreateUserDto) => !o.googleId && !o.facebookId && !o.twitterId && !o.githubId && !o.figmaId && !o.linkedinId && !o.slackId && !o.atlassianId && !o.gitlabId && !o.bitbucketId && !o.discordId && !o.twitchId && !o.steamId && !o.redditId && !o.spotifyId && !o.amazonId && !o.microsoftId && !o.patreonId && !o.dropboxId && !o.coinbaseId && !o.metamaskId && !o.activeDirectoryId && !o.appleId)
+  @ValidateIf((o: CreateUserDto) => !o.googleId && !o.facebookId && !o.twitterId && !o.githubId && !o.figmaId && !o.linkedinId && !o.slackId && !o.atlassianId && !o.gitlabId && !o.bitbucketId && !o.discordId && !o.twitchId && !o.steamId && !o.redditId && !o.amazonId && !o.microsoftId && !o.patreonId && !o.dropboxId && !o.coinbaseId && !o.metamaskId && !o.activeDirectoryId && !o.appleId)
   @StrongPassword({message: 'Invalid password format'})
   @IsNotEmpty({message: 'Password is required'})
   password?: string;
@@ -165,15 +165,6 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   redditId?: string;
-
-  @ApiPropertyOptional({
-    example: 'spotify.sub.001',
-    description: 'Spotify user ID for OAuth users',
-  })
-  @Field(() => String, { nullable: true })
-  @IsString()
-  @IsOptional()
-  spotifyId?: string;
 
   @ApiPropertyOptional({
     example: 'amzn1.account.abc123',

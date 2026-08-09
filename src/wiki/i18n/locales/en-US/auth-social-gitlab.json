@@ -23,14 +23,15 @@
     },
     "console": {
       "title": "GitLab Applications",
-      "description": "Create an OAuth application under <strong>GitLab → Preferences → Applications</strong> (also listed as <strong>User Settings → Applications</strong>). Set the Redirect URI to match <code class=\"px-1 py-0.5 bg-gray-100 rounded\">GITLAB_CALLBACK_URL</code>. Enable the <code class=\"px-1 py-0.5 bg-gray-100 rounded\">read_user</code> scope.",
+      "description": "Register a <strong>user-owned</strong> OAuth application in your GitLab profile. The Redirect URI must match <code class=\"px-1 py-0.5 bg-gray-100 rounded\">GITLAB_CALLBACK_URL</code> exactly. Enable the <code class=\"px-1 py-0.5 bg-gray-100 rounded\">read_user</code> scope so the API can load the signed-in profile and email.",
       "steps": [
-        "Open GitLab → Preferences → Applications (User Settings → Applications)",
-        "Click Add new application",
-        "Set the Redirect URI (e.g. http://localhost:3000/api/v1/auth/gitlab/callback)",
-        "Enable the read_user scope",
-        "Copy Application ID and Secret into your .env",
-        "Ensure GITLAB_CALLBACK_URL matches the Redirect URI registered in GitLab"
+        "Click your avatar (top-right) → Edit profile",
+        "In the left sidebar, open Access → Applications",
+        "Choose Add new application",
+        "Give it a Name and set the Redirect URI to your API callback (e.g. http://localhost:3000/api/v1/auth/gitlab/callback)",
+        "Under OAuth 2 scopes, enable read_user",
+        "Save the application, then copy Application ID and Secret into GITLAB_CLIENT_ID / GITLAB_CLIENT_SECRET",
+        "Keep GITLAB_CALLBACK_URL identical to the Redirect URI you registered (use Renew secret in GitLab if you need to rotate the secret later)"
       ]
     },
     "env": {

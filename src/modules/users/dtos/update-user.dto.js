@@ -112,9 +112,6 @@ var UpdateUserDto = function () {
     var _redditId_decorators;
     var _redditId_initializers = [];
     var _redditId_extraInitializers = [];
-    var _spotifyId_decorators;
-    var _spotifyId_initializers = [];
-    var _spotifyId_extraInitializers = [];
     var _amazonId_decorators;
     var _amazonId_initializers = [];
     var _amazonId_extraInitializers = [];
@@ -168,8 +165,7 @@ var UpdateUserDto = function () {
             this.twitchId = (__runInitializers(this, _discordId_extraInitializers), __runInitializers(this, _twitchId_initializers, void 0));
             this.steamId = (__runInitializers(this, _twitchId_extraInitializers), __runInitializers(this, _steamId_initializers, void 0));
             this.redditId = (__runInitializers(this, _steamId_extraInitializers), __runInitializers(this, _redditId_initializers, void 0));
-            this.spotifyId = (__runInitializers(this, _redditId_extraInitializers), __runInitializers(this, _spotifyId_initializers, void 0));
-            this.amazonId = (__runInitializers(this, _spotifyId_extraInitializers), __runInitializers(this, _amazonId_initializers, void 0));
+            this.amazonId = (__runInitializers(this, _redditId_extraInitializers), __runInitializers(this, _amazonId_initializers, void 0));
             this.microsoftId = (__runInitializers(this, _amazonId_extraInitializers), __runInitializers(this, _microsoftId_initializers, void 0));
             this.patreonId = (__runInitializers(this, _microsoftId_extraInitializers), __runInitializers(this, _patreonId_initializers, void 0));
             this.dropboxId = (__runInitializers(this, _patreonId_extraInitializers), __runInitializers(this, _dropboxId_initializers, void 0));
@@ -257,10 +253,6 @@ var UpdateUserDto = function () {
                 example: 'abc123',
                 description: 'Reddit user ID for OAuth users',
             }), (0, class_validator_1.IsString)(), (0, class_validator_1.IsOptional)()];
-        _spotifyId_decorators = [(0, swagger_1.ApiPropertyOptional)({
-                example: 'spotify.sub.001',
-                description: 'Spotify user ID for OAuth users',
-            }), (0, class_validator_1.IsString)(), (0, class_validator_1.IsOptional)()];
         _amazonId_decorators = [(0, swagger_1.ApiPropertyOptional)({
                 example: 'amzn1.account.abc123',
                 description: 'Amazon user ID for OAuth users',
@@ -322,7 +314,6 @@ var UpdateUserDto = function () {
         __esDecorate(null, null, _twitchId_decorators, { kind: "field", name: "twitchId", static: false, private: false, access: { has: function (obj) { return "twitchId" in obj; }, get: function (obj) { return obj.twitchId; }, set: function (obj, value) { obj.twitchId = value; } }, metadata: _metadata }, _twitchId_initializers, _twitchId_extraInitializers);
         __esDecorate(null, null, _steamId_decorators, { kind: "field", name: "steamId", static: false, private: false, access: { has: function (obj) { return "steamId" in obj; }, get: function (obj) { return obj.steamId; }, set: function (obj, value) { obj.steamId = value; } }, metadata: _metadata }, _steamId_initializers, _steamId_extraInitializers);
         __esDecorate(null, null, _redditId_decorators, { kind: "field", name: "redditId", static: false, private: false, access: { has: function (obj) { return "redditId" in obj; }, get: function (obj) { return obj.redditId; }, set: function (obj, value) { obj.redditId = value; } }, metadata: _metadata }, _redditId_initializers, _redditId_extraInitializers);
-        __esDecorate(null, null, _spotifyId_decorators, { kind: "field", name: "spotifyId", static: false, private: false, access: { has: function (obj) { return "spotifyId" in obj; }, get: function (obj) { return obj.spotifyId; }, set: function (obj, value) { obj.spotifyId = value; } }, metadata: _metadata }, _spotifyId_initializers, _spotifyId_extraInitializers);
         __esDecorate(null, null, _amazonId_decorators, { kind: "field", name: "amazonId", static: false, private: false, access: { has: function (obj) { return "amazonId" in obj; }, get: function (obj) { return obj.amazonId; }, set: function (obj, value) { obj.amazonId = value; } }, metadata: _metadata }, _amazonId_initializers, _amazonId_extraInitializers);
         __esDecorate(null, null, _microsoftId_decorators, { kind: "field", name: "microsoftId", static: false, private: false, access: { has: function (obj) { return "microsoftId" in obj; }, get: function (obj) { return obj.microsoftId; }, set: function (obj, value) { obj.microsoftId = value; } }, metadata: _metadata }, _microsoftId_initializers, _microsoftId_extraInitializers);
         __esDecorate(null, null, _patreonId_decorators, { kind: "field", name: "patreonId", static: false, private: false, access: { has: function (obj) { return "patreonId" in obj; }, get: function (obj) { return obj.patreonId; }, set: function (obj, value) { obj.patreonId = value; } }, metadata: _metadata }, _patreonId_initializers, _patreonId_extraInitializers);

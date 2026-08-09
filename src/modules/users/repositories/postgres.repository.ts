@@ -25,7 +25,7 @@ export class UserPostgresRepository {
      */
     @EnableCache()
     async create(createUserDto: CreateUserDto, includePassword = false): Promise<IUser> {
-        const { username, email, password, googleId, facebookId, twitterId, githubId, figmaId, linkedinId, slackId, atlassianId, gitlabId, bitbucketId, discordId, twitchId, steamId, redditId, appleId, spotifyId, amazonId, microsoftId, patreonId, dropboxId, coinbaseId, metamaskId, activeDirectoryId } = createUserDto;
+        const { username, email, password, googleId, facebookId, twitterId, githubId, figmaId, linkedinId, slackId, atlassianId, gitlabId, bitbucketId, discordId, twitchId, steamId, redditId, appleId, amazonId, microsoftId, patreonId, dropboxId, coinbaseId, metamaskId, activeDirectoryId } = createUserDto;
 
         const existingUser = await this.userRepository.findOne({
             where: [{ email }, { username }],
@@ -169,15 +169,6 @@ export class UserPostgresRepository {
             }
         }
 
-        if (spotifyId) {
-            const existingSpotify = await this.userRepository.findOne({
-                where: { spotifyId },
-            });
-            if (existingSpotify) {
-                throw new ConflictException('User with this Spotify account already exists');
-            }
-        }
-
         if (amazonId) {
             const existingAmazon = await this.userRepository.findOne({
                 where: { amazonId },
@@ -275,7 +266,6 @@ export class UserPostgresRepository {
             steamId: steamId ?? null,
             redditId: redditId ?? null,
             appleId: appleId ?? null,
-            spotifyId: spotifyId ?? null,
             amazonId: amazonId ?? null,
             microsoftId: microsoftId ?? null,
             patreonId: patreonId ?? null,
@@ -501,21 +491,6 @@ export class UserPostgresRepository {
     @NoCache()
     async findByRedditId(redditId: string, includePassword = false): Promise<IUser | null> {
         const user = await this.userRepository.findOne({ where: { redditId } });
-        if (!user) {
-            return null;
-        }
-        return includePassword ? user : this.omitPassword(user);
-    }
-
-    /**
-     * Find a user by Spotify user ID
-     */
-    @NoCache()
-    async findBySpotifyId(
-        spotifyId: string,
-        includePassword = false,
-    ): Promise<IUser | null> {
-        const user = await this.userRepository.findOne({ where: { spotifyId } });
         if (!user) {
             return null;
         }

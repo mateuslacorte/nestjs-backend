@@ -168,15 +168,6 @@ describe('CreateUserDto', () => {
     expect(errors).toHaveLength(0);
   });
 
-  it('accepts OAuth user with spotifyId and no password', async () => {
-    const { password: _password, ...withoutPassword } = validBase;
-    const errors = await validateDto({
-      ...withoutPassword,
-      spotifyId: 'spotify-sub-001',
-    });
-    expect(errors).toHaveLength(0);
-  });
-
   it('accepts OAuth user with amazonId and no password', async () => {
     const { password: _password, ...withoutPassword } = validBase;
     const errors = await validateDto({
@@ -240,7 +231,7 @@ describe('CreateUserDto', () => {
     expect(errors).toHaveLength(0);
   });
 
-  it('requires password when neither googleId, facebookId, twitterId, githubId, figmaId, linkedinId, slackId, atlassianId, gitlabId, bitbucketId, discordId, twitchId, steamId, redditId, spotifyId, amazonId, microsoftId, patreonId, dropboxId, coinbaseId, metamaskId, activeDirectoryId, nor appleId is set', async () => {
+  it('requires password when neither googleId, facebookId, twitterId, githubId, figmaId, linkedinId, slackId, atlassianId, gitlabId, bitbucketId, discordId, twitchId, steamId, redditId, amazonId, microsoftId, patreonId, dropboxId, coinbaseId, metamaskId, activeDirectoryId, nor appleId is set', async () => {
     const { password: _password, ...withoutPassword } = validBase;
     const errors = await validateDto(withoutPassword);
     expect(messages(errors, 'password')).toEqual(

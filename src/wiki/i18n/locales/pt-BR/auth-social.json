@@ -7,7 +7,7 @@
     "hero": {
       "titlePrefix": "Autenticação",
       "titleHighlight": "Social",
-      "subtitle": "Como conectar login Google, Facebook, X / Twitter, GitHub, Figma, LinkedIn, Slack, Atlassian, GitLab, Bitbucket, Discord, Twitch, Spotify, Amazon, Microsoft, Patreon, Dropbox, Coinbase, MetaMask ou Steam no seu app — Code Exchange OAuth na maioria; SIWE no MetaMask."
+      "subtitle": "Como conectar login Google, Facebook, X / Twitter, GitHub, Figma, LinkedIn, Slack, Atlassian, GitLab, Bitbucket, Discord, Twitch, Amazon, Microsoft, Patreon, Dropbox, Coinbase, MetaMask ou Steam no seu app — Code Exchange OAuth na maioria; SIWE no MetaMask."
     },
     "howItWorks": {
       "title": "Como funciona",
@@ -18,7 +18,10 @@
         "A API redireciona para a sua URL com ?code=<exchangeCode> (Redis, ~60s, uso único)",
         "O app chama POST /api/v1/auth/exchange com { code } e guarda accessToken / refreshToken"
       ],
-      "codeHeader": { "label": "Contrato", "context": "API" }
+      "codeHeader": {
+        "label": "Contrato",
+        "context": "API"
+      }
     },
     "enable": {
       "title": "Ativar um provedor",
@@ -110,11 +113,6 @@
         "description": "Login Steam OpenID 2.0 (não OAuth2), Web API key opcional, env vars, endpoints e amostras web/mobile. Steam nunca devolve e-mail.",
         "cta": "Guia Steam →"
       },
-      "spotify": {
-        "title": "Spotify",
-        "description": "Login Spotify via OAuth2 Authorization Code, env vars, endpoints e amostras web/mobile.",
-        "cta": "Guia Spotify →"
-      },
       "amazon": {
         "title": "Amazon",
         "description": "Login with Amazon via OAuth2 Authorization Code, env vars, endpoints e amostras web/mobile.",
@@ -181,7 +179,6 @@
       "discord": "Guia de setup Discord OAuth2",
       "twitch": "Guia de setup Twitch OAuth2",
       "steam": "Guia de setup Steam OpenID 2.0",
-      "spotify": "Guia de setup Spotify OAuth2",
       "amazon": "Guia de setup Login with Amazon",
       "microsoft": "Guia de setup Microsoft Entra ID",
       "patreon": "Guia de setup Patreon OAuth2",

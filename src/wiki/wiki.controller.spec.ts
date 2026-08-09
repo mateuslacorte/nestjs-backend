@@ -202,13 +202,6 @@ describe('WikiController', () => {
         page: 'auth-social-twitch',
       },
       {
-        method: 'getAuthSocialSpotify',
-        route: 'auth/social/spotify',
-        view: 'pages/auth-social-spotify',
-        namespace: 'authSocialSpotify',
-        page: 'auth-social-spotify',
-      },
-      {
         method: 'getAuthSocialAmazon',
         route: 'auth/social/amazon',
         view: 'pages/auth-social-amazon',

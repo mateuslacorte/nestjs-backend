@@ -25,7 +25,6 @@ import { TwitchAuthGuard } from './guards/twitch-auth.guard';
 import { SteamAuthGuard } from './guards/steam-auth.guard';
 import { RedditAuthGuard } from './guards/reddit-auth.guard';
 import { AppleAuthGuard } from './guards/apple-auth.guard';
-import { SpotifyAuthGuard } from './guards/spotify-auth.guard';
 import { AmazonAuthGuard } from './guards/amazon-auth.guard';
 import { MicrosoftAuthGuard } from './guards/microsoft-auth.guard';
 import { PatreonAuthGuard } from './guards/patreon-auth.guard';
@@ -53,7 +52,6 @@ import { TwitchProfilePayload } from './strategies/twitch.strategy';
 import { SteamProfilePayload } from './strategies/steam.strategy';
 import { RedditProfilePayload } from './strategies/reddit.strategy';
 import { AppleProfilePayload } from './strategies/apple.strategy';
-import { SpotifyProfilePayload } from './strategies/spotify.strategy';
 import { AmazonProfilePayload } from './strategies/amazon.strategy';
 import { MicrosoftProfilePayload } from './strategies/microsoft.strategy';
 import { PatreonProfilePayload } from './strategies/patreon.strategy';
@@ -88,7 +86,6 @@ describe('AuthController', () => {
     completeTwitchOAuth: jest.Mock;
     completeSteamOAuth: jest.Mock;
     completeRedditOAuth: jest.Mock;
-    completeSpotifyOAuth: jest.Mock;
     completeAmazonOAuth: jest.Mock;
     completeMicrosoftOAuth: jest.Mock;
     completePatreonOAuth: jest.Mock;
@@ -129,7 +126,6 @@ describe('AuthController', () => {
       completeTwitchOAuth: jest.fn(),
       completeSteamOAuth: jest.fn(),
       completeRedditOAuth: jest.fn(),
-      completeSpotifyOAuth: jest.fn(),
       completeAmazonOAuth: jest.fn(),
       completeMicrosoftOAuth: jest.fn(),
       completePatreonOAuth: jest.fn(),
@@ -185,8 +181,6 @@ describe('AuthController', () => {
       ['discordAuthCallback', RequestMethod.GET, 'discord/callback'],
       ['twitchAuth', RequestMethod.GET, 'twitch'],
       ['twitchAuthCallback', RequestMethod.GET, 'twitch/callback'],
-      ['spotifyAuth', RequestMethod.GET, 'spotify'],
-      ['spotifyAuthCallback', RequestMethod.GET, 'spotify/callback'],
       ['amazonAuth', RequestMethod.GET, 'amazon'],
       ['amazonAuthCallback', RequestMethod.GET, 'amazon/callback'],
       ['microsoftAuth', RequestMethod.GET, 'microsoft'],
@@ -258,8 +252,6 @@ describe('AuthController', () => {
       'discordAuthCallback',
       'twitchAuth',
       'twitchAuthCallback',
-      'spotifyAuth',
-      'spotifyAuthCallback',
       'amazonAuth',
       'amazonAuthCallback',
       'microsoftAuth',
@@ -428,24 +420,6 @@ describe('AuthController', () => {
       ) as unknown[];
 
       expect(guards).toEqual(expect.arrayContaining([TwitchAuthGuard]));
-    });
-
-    it('spotifyAuth uses SpotifyAuthGuard', () => {
-      const guards = Reflect.getMetadata(
-        GUARDS_METADATA,
-        AuthController.prototype.spotifyAuth,
-      ) as unknown[];
-
-      expect(guards).toEqual(expect.arrayContaining([SpotifyAuthGuard]));
-    });
-
-    it('spotifyAuthCallback uses SpotifyAuthGuard', () => {
-      const guards = Reflect.getMetadata(
-        GUARDS_METADATA,
-        AuthController.prototype.spotifyAuthCallback,
-      ) as unknown[];
-
-      expect(guards).toEqual(expect.arrayContaining([SpotifyAuthGuard]));
     });
 
     it('amazonAuth uses AmazonAuthGuard', () => {
@@ -700,10 +674,6 @@ describe('AuthController', () => {
       expect(controller.appleAuth()).toBeUndefined();
     });
 
-    it('spotifyAuth is a no-op (guard handles redirect)', () => {
-      expect(controller.spotifyAuth()).toBeUndefined();
-    });
-
     it('amazonAuth is a no-op (guard handles redirect)', () => {
       expect(controller.amazonAuth()).toBeUndefined();
     });
@@ -917,17 +887,6 @@ describe('AuthController', () => {
           email: 'twitch@example.com',
           firstName: 'Tw',
           lastName: 'Itch',
-        },
-        stateSource: 'query',
-      },
-      {
-        method: 'spotifyAuthCallback',
-        serviceMethod: 'completeSpotifyOAuth',
-        profile: {
-          spotifyId: 'sp-1',
-          email: 'sp@example.com',
-          firstName: 'S',
-          lastName: 'P',
         },
         stateSource: 'query',
       },
@@ -1491,43 +1450,6 @@ describe('AuthController', () => {
       expect(reply.status).toHaveBeenCalledWith(200);
       expect(reply.send).toHaveBeenCalledWith(
         expect.stringContaining("window.location.replace(\"https://app.example/cb?code=twitch\")"),
-      );
-    });
-  });
-
-  describe('spotifyAuthCallback', () => {
-    it('redirects using AuthService.completeSpotifyOAuth result', async () => {
-      const profile: SpotifyProfilePayload = {
-        spotifyId: 'spotify-001',
-        email: 'spotify@example.com',
-        firstName: 'Spotify',
-        lastName: 'User',
-      };
-      const state = encodeOAuthState('https://app.example/cb');
-      const req = {
-        user: profile,
-        query: { state },
-      } as unknown as AppRequest;
-
-      authService.completeSpotifyOAuth.mockResolvedValue({
-        redirectUrl: 'https://app.example/cb?code=spotify',
-      });
-
-      const reply = {
-        status: jest.fn().mockReturnThis(),
-        header: jest.fn().mockReturnThis(),
-        send: jest.fn().mockReturnThis(),
-      } as unknown as AppReply;
-
-      await controller.spotifyAuthCallback(req, reply);
-
-      expect(authService.completeSpotifyOAuth).toHaveBeenCalledWith(
-        profile,
-        state,
-      );
-      expect(reply.status).toHaveBeenCalledWith(200);
-      expect(reply.send).toHaveBeenCalledWith(
-        expect.stringContaining("window.location.replace(\"https://app.example/cb?code=spotify\")"),
       );
     });
   });

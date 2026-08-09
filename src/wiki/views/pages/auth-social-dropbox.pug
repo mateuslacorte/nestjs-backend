@@ -4,10 +4,10 @@ block content
   .mb-12
     .inline-flex.items-center.gap-2.px-3.py-1.bg-indigo-50.rounded-full.text-indigo-700.text-sm.font-medium.mb-4
       svg(class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24")
-        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z")
+        path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12")
       span= t('authSocialDropbox.badge')
     h1(class="text-4xl font-bold text-gray-900 mb-4")
-      | #{t('authSocialDropbox.hero.titlePrefix')}
+      | #{t('authSocialDropbox.hero.titlePrefix')} 
       span.gradient-text= t('authSocialDropbox.hero.titleHighlight')
     p(class="text-xl text-gray-600 max-w-3xl")
       = t('authSocialDropbox.hero.subtitle')
@@ -15,18 +15,30 @@ block content
   section.mb-12
     h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialDropbox.overview.title')
     .bg-white.rounded-xl.border.border-gray-200.p-8
-      p(class="text-gray-700 mb-0")
+      p(class="text-gray-700 mb-6")
         != t('authSocialDropbox.overview.description')
+      ul.space-y-2.text-gray-700
+        each item in tm('authSocialDropbox.overview.items')
+          li • #{item}
 
   section.mb-12
     h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialDropbox.console.title')
     .bg-white.rounded-xl.border.border-gray-200.p-8
-      p(class="text-gray-700 mb-6")
+      p(class="text-gray-700 mb-4")
         != t('authSocialDropbox.console.description')
+      ol(class="list-decimal list-inside space-y-2 text-gray-700")
+        each item in tm('authSocialDropbox.console.steps')
+          li= item
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialDropbox.env.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")
+        != t('authSocialDropbox.env.description')
       .code-block
         .code-header
-          span= t('authSocialDropbox.console.codeHeader.label')
-          span= t('authSocialDropbox.console.codeHeader.context')
+          span= t('authSocialDropbox.env.codeHeader.label')
+          span= t('authSocialDropbox.env.codeHeader.context')
         .code-content
           pre.
             DROPBOX_AUTH_ENABLED=true
@@ -37,47 +49,240 @@ block content
             DROPBOX_OAUTH_DEFAULT_ROLES=
 
   section.mb-12
-    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialDropbox.api.title')
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialDropbox.roles.title')
     .bg-white.rounded-xl.border.border-gray-200.p-8
-      p(class="text-gray-700 mb-6")= t('authSocialDropbox.api.description')
-      .code-block.mb-2
-        .code-header
-          span= t('authSocialDropbox.api.start.codeHeader.label')
-          span= t('authSocialDropbox.api.start.codeHeader.context')
-        .code-content
-          pre.
-            GET #{apiBasePath}/auth/dropbox?redirect=http%3A%2F%2Flocalhost%3A5173%2Fauth%2Fcallback
-      .code-block.mb-2
-        .code-header
-          span= t('authSocialDropbox.api.callback.codeHeader.label')
-          span= t('authSocialDropbox.api.callback.codeHeader.context')
-        .code-content
-          pre.
-            GET #{apiBasePath}/auth/dropbox/callback?code=DROPBOX_AUTH_CODE&state=...
-            → 302 Location: http://localhost:5173/auth/callback?code=EXCHANGE_CODE
-      .code-block.mb-0
-        .code-header
-          span= t('authSocialDropbox.api.exchange.codeHeader.label')
-          span= t('authSocialDropbox.api.exchange.codeHeader.context')
-        .code-content
-          pre.
-            POST #{apiBasePath}/auth/exchange
-            Content-Type: application/json
+      p(class="text-gray-700")
+        != t('authSocialDropbox.roles.description')
 
-            { "code": "EXCHANGE_CODE" }
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialDropbox.flow.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      ol(class="list-decimal list-inside space-y-2 text-gray-700")
+        each item in tm('authSocialDropbox.flow.items')
+          li= item
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialDropbox.api.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8.space-y-8
+      div
+        h3(class="font-semibold text-gray-900 mb-2")= t('authSocialDropbox.api.start.title')
+        p(class="text-gray-700 mb-3")
+          != t('authSocialDropbox.api.start.description')
+        .code-block.mb-2
+          .code-header
+            span= t('authSocialDropbox.api.start.codeHeader.label')
+            span= t('authSocialDropbox.api.start.codeHeader.context')
+          .code-content
+            pre.
+              GET #{apiBasePath}/auth/dropbox?redirect=http%3A%2F%2Flocalhost%3A5173%2Fauth%2Fcallback
+        p(class="text-sm text-gray-500")= t('authSocialDropbox.api.start.errors')
+
+      div
+        h3(class="font-semibold text-gray-900 mb-2")= t('authSocialDropbox.api.callback.title')
+        p(class="text-gray-700 mb-3")
+          != t('authSocialDropbox.api.callback.description')
+        .code-block
+          .code-header
+            span= t('authSocialDropbox.api.callback.codeHeader.label')
+            span= t('authSocialDropbox.api.callback.codeHeader.context')
+          .code-content
+            pre.
+              GET #{apiBasePath}/auth/dropbox/callback?code=DROPBOX_AUTH_CODE&state=...
+              → 302 Location: http://localhost:5173/auth/callback?code=EXCHANGE_CODE
+
+      div
+        h3(class="font-semibold text-gray-900 mb-2")= t('authSocialDropbox.api.exchange.title')
+        p(class="text-gray-700 mb-3")
+          != t('authSocialDropbox.api.exchange.description')
+        .code-block.mb-4
+          .code-header
+            span= t('authSocialDropbox.api.exchange.requestHeader.label')
+            span= t('authSocialDropbox.api.exchange.requestHeader.context')
+          .code-content
+            pre.
+              POST #{apiBasePath}/auth/exchange
+              Content-Type: application/json
+
+              {
+                "code": "EXCHANGE_CODE"
+              }
+        .code-block.mb-2
+          .code-header
+            span= t('authSocialDropbox.api.exchange.responseHeader.label')
+            span= t('authSocialDropbox.api.exchange.responseHeader.context')
+          .code-content
+            pre.
+              {
+                "user": {
+                  "id": "...",
+                  "email": "user@example.com",
+                  "firstName": "Jane",
+                  "lastName": "Doe",
+                  "roles": [],
+                  "dropboxId": "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc",
+                  "isActive": true
+                },
+                "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+                "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
+              }
+        p(class="text-sm text-gray-500")= t('authSocialDropbox.api.exchange.errors')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialDropbox.web.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")
+        != t('authSocialDropbox.web.description')
+      .code-block.mb-6
+        .code-header
+          span= t('authSocialDropbox.web.startHeader.label')
+          span= t('authSocialDropbox.web.startHeader.context')
+        .code-content
+          pre.
+            const API = 'http://localhost:3000/api/v1';
+            const redirect = encodeURIComponent(
+              'http://localhost:5173/auth/callback'
+            );
+
+            #{t('authSocialDropbox.samples.fullPageRedirect')}
+            window.location.href = `${API}/auth/dropbox?redirect=${redirect}`;
+      .code-block.mb-6
+        .code-header
+          span= t('authSocialDropbox.web.callbackHeader.label')
+          span= t('authSocialDropbox.web.callbackHeader.context')
+        .code-content
+          pre.
+            #{t('authSocialDropbox.samples.spaCallback')}
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get('code');
+            if (!code) throw new Error('Missing exchange code');
+
+            const res = await fetch('http://localhost:3000/api/v1/auth/exchange', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ code }),
+            });
+            if (!res.ok) throw new Error(await res.text());
+
+            const { user, accessToken, refreshToken } = await res.json();
+            #{t('authSocialDropbox.samples.persistTokens')}
+            sessionStorage.setItem('accessToken', accessToken);
+            console.log('signed in', user.email);
+      ul.space-y-2.text-gray-700
+        each item in tm('authSocialDropbox.web.notes')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialDropbox.mobile.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")
+        != t('authSocialDropbox.mobile.description')
+      .code-block.mb-6
+        .code-header
+          span= t('authSocialDropbox.mobile.openHeader.label')
+          span= t('authSocialDropbox.mobile.openHeader.context')
+        .code-content
+          pre.
+            import * as Linking from 'expo-linking';
+            import * as WebBrowser from 'expo-web-browser';
+
+            const API = 'https://api.example.com/api/v1';
+            const redirect = encodeURIComponent('myapp://success');
+
+            async function signInWithDropbox() {
+              const url = `${API}/auth/dropbox?redirect=${redirect}`;
+              await WebBrowser.openAuthSessionAsync(url, 'myapp://success');
+            }
+      .code-block.mb-6
+        .code-header
+          span= t('authSocialDropbox.mobile.handleHeader.label')
+          span= t('authSocialDropbox.mobile.handleHeader.context')
+        .code-content
+          pre.
+            import * as Linking from 'expo-linking';
+
+            async function exchangeFromUrl(url) {
+              const { queryParams } = Linking.parse(url);
+              const code = queryParams?.code;
+              if (!code) return;
+
+              const res = await fetch(`${API}/auth/exchange`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code }),
+              });
+              const data = await res.json();
+              #{t('authSocialDropbox.samples.tokenFields')}
+              return data;
+            }
+
+            Linking.addEventListener('url', ({ url }) => {
+              exchangeFromUrl(url);
+            });
+      ul.space-y-2.text-gray-700
+        each item in tm('authSocialDropbox.mobile.notes')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialDropbox.security.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      ul.space-y-2.text-gray-700
+        each item in tm('authSocialDropbox.security.items')
+          li • #{item}
 
   section.mb-12
     h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialDropbox.userModel.title')
     .bg-white.rounded-xl.border.border-gray-200.p-8
-      p(class="text-gray-700 mb-0")= t('authSocialDropbox.userModel.description')
+      p(class="text-gray-700 mb-4")= t('authSocialDropbox.userModel.description')
+      ul.space-y-2.text-gray-700
+        each item in tm('authSocialDropbox.userModel.items')
+          li • #{item}
 
   section.mb-12
     h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialDropbox.related.title')
     .bg-white.rounded-xl.border.border-gray-200.p-8
-      ul.space-y-2
+      ul.space-y-3
         li
           a(href=wikiPath('/auth/social') class="text-indigo-600 hover:underline font-medium")= t('authSocialDropbox.related.social')
         li
-          a(href=wikiPath('/auth/social/patreon') class="text-indigo-600 hover:underline font-medium")= t('authSocialDropbox.related.patreon')
+          a(href=wikiPath('/auth/social/google') class="text-indigo-600 hover:underline font-medium")= t('authSocialDropbox.related.google')
+        li
+          a(href=wikiPath('/auth/social/facebook') class="text-indigo-600 hover:underline font-medium")= t('authSocialDropbox.related.facebook')
+        li
+          a(href=wikiPath('/auth/social/twitter') class="text-indigo-600 hover:underline font-medium")= t('authSocialDropbox.related.twitter')
+        li
+          a(href=wikiPath('/auth/social/github') class="text-indigo-600 hover:underline font-medium")= t('authSocialDropbox.related.github')
+        li
+          a(href=wikiPath('/auth/social/figma') class="text-indigo-600 hover:underline font-medium")= t('authSocialDropbox.related.figma')
+        li
+          a(href=wikiPath('/auth/social/linkedin') class="text-indigo-600 hover:underline font-medium")= t('authSocialDropbox.related.linkedin')
+        li
+          a(href=wikiPath('/auth/social/slack') class="text-indigo-600 hover:underline font-medium")= t('authSocialDropbox.related.slack')
+        li
+          a(href=wikiPath('/auth/social/atlassian') class="text-indigo-600 hover:underline font-medium")= t('authSocialDropbox.related.atlassian')
+        li
+          a(href=wikiPath('/auth/social/gitlab') class="text-indigo-600 hover:underline font-medium")= t('authSocialDropbox.related.gitlab')
+        li
+          a(href=wikiPath('/auth/social/bitbucket') class="text-indigo-600 hover:underline font-medium")= t('authSocialDropbox.related.bitbucket')
+        li
+          a(href=wikiPath('/auth/social/discord') class="text-indigo-600 hover:underline font-medium")= t('authSocialDropbox.related.discord')
+        li
+          a(href=wikiPath('/auth/social/twitch') class="text-indigo-600 hover:underline font-medium")= t('authSocialDropbox.related.twitch')
+        li
+          a(href=wikiPath('/auth/social/steam') class="text-indigo-600 hover:underline font-medium")= t('authSocialDropbox.related.steam')
+        li
+        li
+          a(href=wikiPath('/auth/social/amazon') class="text-indigo-600 hover:underline font-medium")= t('authSocialDropbox.related.amazon')
         li
           a(href=wikiPath('/auth/social/microsoft') class="text-indigo-600 hover:underline font-medium")= t('authSocialDropbox.related.microsoft')
+        li
+          a(href=wikiPath('/auth/social/patreon') class="text-indigo-600 hover:underline font-medium")= t('authSocialDropbox.related.patreon')
+        li
+          a(href=wikiPath('/auth/social/coinbase') class="text-indigo-600 hover:underline font-medium")= t('authSocialDropbox.related.coinbase')
+        li
+          a(href=wikiPath('/auth/social/metamask') class="text-indigo-600 hover:underline font-medium")= t('authSocialDropbox.related.metamask')
+        li
+          a(href=wikiPath('/auth/social/apple') class="text-indigo-600 hover:underline font-medium")= t('authSocialDropbox.related.apple')
+        li
+          a(href=wikiPath('/auth/social/reddit') class="text-indigo-600 hover:underline font-medium")= t('authSocialDropbox.related.reddit')
+        li
+          a(href=wikiPath('/auth') class="text-indigo-600 hover:underline font-medium")= t('authSocialDropbox.related.auth')

@@ -27,7 +27,6 @@ import { TwitchProfilePayload } from './strategies/twitch.strategy';
 import { SteamProfilePayload } from './strategies/steam.strategy';
 import { RedditProfilePayload } from './strategies/reddit.strategy';
 import { AppleProfilePayload } from './strategies/apple.strategy';
-import { SpotifyProfilePayload } from './strategies/spotify.strategy';
 import { AmazonProfilePayload } from './strategies/amazon.strategy';
 import { MicrosoftProfilePayload } from './strategies/microsoft.strategy';
 import { PatreonProfilePayload } from './strategies/patreon.strategy';
@@ -724,26 +723,6 @@ export class AuthService {
     }
 
     /**
-     * After Spotify OAuth callback: upsert user, create exchange code, build redirect URL.
-     */
-    async completeSpotifyOAuth(
-        profile: SpotifyProfilePayload,
-        state?: string,
-    ): Promise<{ redirectUrl: string }> {
-        this.assertSpotifyAuthEnabled();
-
-        const redirectBase = this.parseAndValidateRedirectFromState(
-            state,
-            'spotifyOAuth.redirectAllowlist',
-        );
-        const user = await this.findOrCreateSpotifyUser(profile);
-        const code = await this.oauthExchangeService.createExchangeCode(user.id!);
-        return {
-            redirectUrl: this.buildOAuthRedirectUrl(redirectBase, code),
-        };
-    }
-
-    /**
      * After Amazon OAuth callback: upsert user, create exchange code, build redirect URL.
      */
     async completeAmazonOAuth(
@@ -844,7 +823,7 @@ export class AuthService {
     }
 
     /**
-     * Exchange a one-time OAuth code for JWT tokens (Google, Facebook, Twitter, GitHub, Figma, LinkedIn, Slack, Atlassian, GitLab, Bitbucket, Discord, Twitch, Steam, Reddit, Apple, Spotify, Amazon, Microsoft, Patreon, Dropbox, or Coinbase).
+     * Exchange a one-time OAuth code for JWT tokens (Google, Facebook, Twitter, GitHub, Figma, LinkedIn, Slack, Atlassian, GitLab, Bitbucket, Discord, Twitch, Steam, Reddit, Apple, Amazon, Microsoft, Patreon, Dropbox, or Coinbase).
      */
     async exchangeOAuthCode(dto: ExchangeCodeDto): Promise<{
         user: Partial<IUser>;
@@ -958,13 +937,6 @@ export class AuthService {
         }
     }
 
-    private assertSpotifyAuthEnabled(): void {
-        const enabled = this.configService.get<boolean>('spotifyOAuth.enabled');
-        if (!enabled) {
-            throw new ServiceUnavailableException('Spotify authentication is disabled');
-        }
-    }
-
     private assertAmazonAuthEnabled(): void {
         const enabled = this.configService.get<boolean>('amazonOAuth.enabled');
         if (!enabled) {
@@ -1062,7 +1034,6 @@ export class AuthService {
         const steam = this.configService.get<boolean>('steamOpenId.enabled');
         const reddit = this.configService.get<boolean>('redditOAuth.enabled');
         const apple = this.configService.get<boolean>('appleOAuth.enabled');
-        const spotify = this.configService.get<boolean>('spotifyOAuth.enabled');
         const amazon = this.configService.get<boolean>('amazonOAuth.enabled');
         const microsoft = this.configService.get<boolean>('microsoftOAuth.enabled');
         const patreon = this.configService.get<boolean>('patreonOAuth.enabled');
@@ -1084,7 +1055,6 @@ export class AuthService {
             !steam &&
             !reddit &&
             !apple &&
-            !spotify &&
             !amazon &&
             !microsoft &&
             !patreon &&
@@ -1556,42 +1526,6 @@ export class AuthService {
             lastName: profile.lastName || '-',
             username,
             twitchId: profile.twitchId,
-            isActive: true,
-            roles: [...defaultRoles],
-        });
-    }
-
-    private async findOrCreateSpotifyUser(
-        profile: SpotifyProfilePayload,
-    ): Promise<IUser> {
-        const bySpotify = await this.usersService.findBySpotifyId(
-            profile.spotifyId,
-        );
-        if (bySpotify) {
-            if (!bySpotify.isActive) {
-                return this.usersService.update(bySpotify.id!, { isActive: true });
-            }
-            return bySpotify;
-        }
-
-        const byEmail = await this.usersService.findByEmail(profile.email);
-        if (byEmail) {
-            return this.usersService.update(byEmail.id!, {
-                spotifyId: profile.spotifyId,
-                isActive: true,
-            });
-        }
-
-        const defaultRoles =
-            this.configService.get<Role[]>('spotifyOAuth.defaultRoles') ?? [];
-        const username = await this.buildUniqueUsername(profile.email);
-
-        return this.usersService.create({
-            email: profile.email,
-            firstName: profile.firstName,
-            lastName: profile.lastName || '-',
-            username,
-            spotifyId: profile.spotifyId,
             isActive: true,
             roles: [...defaultRoles],
         });

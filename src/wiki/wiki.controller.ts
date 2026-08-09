@@ -357,22 +357,6 @@ export class WikiController {
         );
     }
 
-    @Get('auth/social/spotify')
-    getAuthSocialSpotify(
-        @Req() req: AppRequest,
-        @Res() reply: AppReply,
-        @Query('lang') lang?: string,
-    ) {
-        return this.wikiRender.renderPage(
-            req,
-            reply,
-            lang,
-            'pages/auth-social-spotify',
-            'authSocialSpotify',
-            'auth-social-spotify',
-        );
-    }
-
     @Get('auth/social/amazon')
     getAuthSocialAmazon(
         @Req() req: AppRequest,

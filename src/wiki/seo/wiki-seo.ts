@@ -140,10 +140,6 @@ export const WIKI_SEO = {
             description:
                 'Reddit OAuth2 Code Exchange guide for the NestJS Boilerplate — Reddit app preferences setup, identity scope, no email from Reddit, HTTP Basic token exchange, API endpoints, and web/mobile frontend examples.',
         },
-        'auth-social-spotify': {
-            description:
-                'Spotify OAuth2 Code Exchange guide for the NestJS Boilerplate — Spotify app setup, Authorization Code flow, API endpoints, scopes, and web/mobile frontend examples.',
-        },
         'auth-social-amazon': {
             description:
                 'Login with Amazon Code Exchange guide for the NestJS Boilerplate — Security Profile setup, Authorization Code flow, profile scope, API endpoints, and web/mobile frontend examples.',

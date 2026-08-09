@@ -68,9 +68,6 @@ export class UserModel implements IUser {
     appleId?: string | null;
 
     @Field(() => String, { nullable: true })
-    spotifyId?: string | null;
-
-    @Field(() => String, { nullable: true })
     amazonId?: string | null;
 
     @Field(() => String, { nullable: true })

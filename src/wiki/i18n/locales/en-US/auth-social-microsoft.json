@@ -1,42 +1,178 @@
 {
   "authSocialMicrosoft": {
-    "badge": "Developer guide",
+    "meta": {
+      "title": "Microsoft OAuth2 - Backend NestJS"
+    },
+    "badge": "Microsoft",
     "hero": {
       "titlePrefix": "Microsoft",
-      "titleHighlight": "Entra ID",
-      "subtitle": "Plug Microsoft (Azure AD / Entra ID) login into your app with one shared Code Exchange flow for web and mobile."
+      "titleHighlight": "OAuth2",
+      "subtitle": "Authorization Code Exchange for web and mobile — Microsoft Developer Console setup, API reference, and frontend examples."
     },
     "overview": {
       "title": "Overview",
-      "description": "Microsoft Entra ID uses the OAuth2 Authorization Code flow (v2). After consent, the API fetches the user profile from Microsoft Graph, creates a short-lived single-use exchange code in Redis, and your client exchanges it for the same JWTs you get from password login."
+      "description": "Microsoft login is optional and controlled by <code class=\"px-1 py-0.5 bg-amber-100 rounded\">MICROSOFT_AUTH_ENABLED</code>. When disabled, Microsoft endpoints return <strong>503 Service Unavailable</strong>. JWTs are never placed in the redirect URL; the API issues a one-time <code class=\"px-1 py-0.5 bg-gray-100 rounded\">exchangeCode</code> (Redis, 60 seconds). The same <code class=\"px-1 py-0.5 bg-gray-100 rounded\">POST /auth/exchange</code> endpoint is shared with other social providers. Tenant is configured via <code class=\"px-1 py-0.5 bg-amber-100 rounded\">MICROSOFT_TENANT_ID</code> (default <code class=\"px-1 py-0.5 bg-gray-100 rounded\">common</code>).",
+      "items": [
+        "Feature-flagged via environment",
+        "Custom passport-oauth2 strategy + MicrosoftAuthGuard",
+        "Profile fetched via GET https://graph.microsoft.com/v1.0/me after token exchange",
+        "Scopes openid, profile, email, User.Read for profile and email",
+        "Redirect allowlist prevents open redirects",
+        "Same token response shape as POST /auth/login"
+      ]
     },
     "console": {
-      "title": "Microsoft Entra admin center",
-      "description": "Register an app in the <a href=\"https://entra.microsoft.com/\" class=\"text-indigo-600 hover:underline\" target=\"_blank\" rel=\"noopener noreferrer\">Entra admin center</a> → App registrations → set Redirect URI to <code class=\"px-1 py-0.5 bg-gray-100 rounded\">MICROSOFT_CALLBACK_URL</code>, create a client secret, and grant API permissions: <code class=\"px-1 py-0.5 bg-gray-100 rounded\">User.Read</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">openid</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">profile</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">email</code>. Use <code class=\"px-1 py-0.5 bg-gray-100 rounded\">MICROSOFT_TENANT_ID=common</code> for multi-tenant + personal Microsoft accounts, or your tenant GUID for single-tenant.",
-      "codeHeader": { "label": "Environment", "context": "Variables used by the API" }
+      "title": "Microsoft Entra ID (Azure AD) app registration",
+      "description": "Register an app in <strong>Microsoft Entra ID → App registrations</strong>. Set Redirect URI (Web) to <code class=\"px-1 py-0.5 bg-gray-100 rounded\">MICROSOFT_CALLBACK_URL</code>. Use <code class=\"px-1 py-0.5 bg-gray-100 rounded\">MICROSOFT_TENANT_ID</code> (<code class=\"px-1 py-0.5 bg-gray-100 rounded\">common</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">organizations</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">consumers</code>, or a tenant GUID). Scopes: <code class=\"px-1 py-0.5 bg-gray-100 rounded\">openid profile email User.Read</code>.",
+      "steps": [
+        "Open Azure Portal → Microsoft Entra ID → App registrations → New registration",
+        "Add a Web Redirect URI (e.g. http://localhost:3000/api/v1/auth/microsoft/callback)",
+        "Create a client secret under Certificates & secrets",
+        "Copy Application (client) ID and secret into MICROSOFT_CLIENT_ID / MICROSOFT_CLIENT_SECRET",
+        "Set MICROSOFT_TENANT_ID (default common) and match MICROSOFT_CALLBACK_URL",
+        "Grant Microsoft Graph delegated permissions: openid, profile, email, User.Read",
+        "Enable MICROSOFT_AUTH_ENABLED=true in .env"
+      ]
+    },
+    "env": {
+      "title": "Environment variables",
+      "description": "Loaded from <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> via <code class=\"px-1 py-0.5 bg-gray-100 rounded\">src/config/microsoft-oauth.config.ts</code> (namespace <code class=\"px-1 py-0.5 bg-gray-100 rounded\">microsoftOAuth</code> on <code class=\"px-1 py-0.5 bg-gray-100 rounded\">ConfigService</code>). See <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env.example</code>.",
+      "codeHeader": {
+        "label": "Environment",
+        "context": ".env"
+      }
+    },
+    "roles": {
+      "title": "Default roles for new Microsoft users",
+      "description": "New Microsoft users receive <code class=\"px-1 py-0.5 bg-gray-100 rounded\">roles: []</code> by default (same as password register). Set <code class=\"px-1 py-0.5 bg-amber-100 rounded\">MICROSOFT_OAUTH_DEFAULT_ROLES</code> in <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> to a comma-separated list of Role values (e.g. <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user</code> or <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user,manager</code>). Existing users linked by email keep their current roles."
+    },
+    "flow": {
+      "title": "Sequence",
+      "items": [
+        "Client opens GET /api/v1/auth/microsoft?redirect=<allowlisted URL>",
+        "User consents on Microsoft; browser hits GET /api/v1/auth/microsoft/callback",
+        "API calls https://graph.microsoft.com/v1.0/me, upserts user, stores exchangeCode in Redis, redirects to redirect?code=...",
+        "Client POSTs { code } to /api/v1/auth/exchange and receives JWTs"
+      ]
     },
     "api": {
-      "title": "API contract",
-      "description": "The API exposes a start URL and a callback that issues the exchange code.",
+      "title": "API reference",
       "start": {
-        "codeHeader": { "label": "Start", "context": "Redirect the user to Microsoft consent" }
+        "title": "1. Start OAuth",
+        "description": "Opens Microsoft consent at <code class=\"px-1 py-0.5 bg-gray-100 rounded\">https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize</code>. Query <code class=\"px-1 py-0.5 bg-gray-100 rounded\">redirect</code> must match a prefix in <code class=\"px-1 py-0.5 bg-gray-100 rounded\">MICROSOFT_REDIRECT_ALLOWLIST</code> (or omit to use the first allowlist entry). Scopes: <code class=\"px-1 py-0.5 bg-gray-100 rounded\">openid</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">profile</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">email</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">User.Read</code>.",
+        "codeHeader": {
+          "label": "HTTP",
+          "context": "GET /api/v1/auth/microsoft"
+        },
+        "errors": "400 invalid redirect · 503 feature disabled"
       },
       "callback": {
-        "codeHeader": { "label": "Callback", "context": "Microsoft redirects back to the API" }
+        "title": "2. Callback",
+        "description": "Handled by the API. Token exchange uses <code class=\"px-1 py-0.5 bg-gray-100 rounded\">https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token</code>. Redirects to your app with <code class=\"px-1 py-0.5 bg-gray-100 rounded\">?code=</code> (or <code class=\"px-1 py-0.5 bg-gray-100 rounded\">&code=</code> if the URL already has a query).",
+        "codeHeader": {
+          "label": "HTTP",
+          "context": "GET /api/v1/auth/microsoft/callback"
+        }
       },
       "exchange": {
-        "codeHeader": { "label": "Exchange", "context": "Client exchanges code for JWTs" }
+        "title": "3. Exchange code",
+        "description": "Public endpoint shared with other social providers. Consumes the code (single use) and returns the same shape as login.",
+        "requestHeader": {
+          "label": "HTTP Request",
+          "context": "POST /api/v1/auth/exchange"
+        },
+        "responseHeader": {
+          "label": "HTTP Response",
+          "context": "200 OK"
+        },
+        "errors": "401 invalid/expired/used code · 503 social auth disabled"
       }
+    },
+    "web": {
+      "title": "Frontend — Web (SPA)",
+      "description": "Typical flow: button starts OAuth in the same window (or popup); a callback route on your frontend origin reads <code class=\"px-1 py-0.5 bg-gray-100 rounded\">code</code> from the query string and calls exchange.",
+      "startHeader": {
+        "label": "JavaScript",
+        "context": "Start Microsoft login"
+      },
+      "callbackHeader": {
+        "label": "JavaScript",
+        "context": "Callback page /auth/callback"
+      },
+      "notes": [
+        "Add your frontend callback URL to MICROSOFT_REDIRECT_ALLOWLIST (e.g. http://localhost:5173/auth/callback)",
+        "MICROSOFT_CALLBACK_URL must point at the Nest API, not the SPA",
+        "Store accessToken / refreshToken securely (memory + httpOnly cookie patterns as you prefer)"
+      ]
+    },
+    "mobile": {
+      "title": "Frontend — Mobile (deep link)",
+      "description": "Use a custom scheme (or universal link) in the allowlist. After Microsoft, the API redirects to <code class=\"px-1 py-0.5 bg-gray-100 rounded\">myapp://success?code=...</code>. The app opens, parses the code, and calls exchange.",
+      "openHeader": {
+        "label": "React Native",
+        "context": "Open OAuth in browser"
+      },
+      "handleHeader": {
+        "label": "React Native",
+        "context": "Handle deep link + exchange"
+      },
+      "notes": [
+        "Register the scheme in the OS / Expo app.json",
+        "Prefer Linking.addEventListener('url', ...) and getInitialURL()",
+        "Exchange over HTTPS against your API base URL"
+      ]
+    },
+    "security": {
+      "title": "Security notes",
+      "items": [
+        "Redirect URLs must match MICROSOFT_REDIRECT_ALLOWLIST prefixes",
+        "Exchange codes are single-use and expire in 60 seconds (Redis)",
+        "Existing local users are linked by verified Microsoft email (microsoftId set; roles unchanged)",
+        "Microsoft-only users have password null — password login / change-password will fail until a password is set",
+        "Email is required from https://graph.microsoft.com/v1.0/me; login fails if Microsoft does not return an email"
+      ]
     },
     "userModel": {
       "title": "User model",
-      "description": "The Azure AD object ID from Graph `/me` is stored as `microsoftId`. Email comes from `mail` or `userPrincipalName`."
+      "description": "Postgres entity / interface fields used by Microsoft login:",
+      "items": [
+        "microsoftId — unique nullable Microsoft user id",
+        "password — nullable for OAuth-only accounts",
+        "isActive — set true for new Microsoft users",
+        "roles — from MICROSOFT_OAUTH_DEFAULT_ROLES env (default [])"
+      ]
     },
     "related": {
-      "title": "Related guides",
+      "title": "Related",
       "social": "Social Authentication hub",
-      "amazon": "Amazon Login with Amazon setup guide",
-      "apple": "Apple Sign In setup guide"
+      "google": "Google OAuth2 guide",
+      "facebook": "Facebook OAuth2 guide",
+      "twitter": "X / Twitter OAuth2 guide",
+      "github": "GitHub OAuth2 guide",
+      "figma": "Figma OAuth2 guide",
+      "linkedin": "LinkedIn OpenID Connect guide",
+      "slack": "Slack OpenID Connect guide",
+      "atlassian": "Atlassian OAuth 2.0 (3LO) guide",
+      "gitlab": "GitLab OAuth2 guide",
+      "bitbucket": "Bitbucket OAuth2 guide",
+      "discord": "Discord OAuth2 guide",
+      "twitch": "Twitch OAuth2 guide",
+      "steam": "Steam OpenID 2.0 guide",
+      "amazon": "Amazon OAuth2 guide",
+      "microsoft": "Microsoft OAuth2 guide",
+      "patreon": "Patreon OAuth2 guide",
+      "dropbox": "Dropbox OAuth2 guide",
+      "coinbase": "Coinbase OAuth2 guide",
+      "metamask": "MetaMask SIWE guide",
+      "apple": "Apple Sign In guide",
+      "reddit": "Reddit OAuth2 guide",
+      "auth": "Auth & JWT"
+    },
+    "samples": {
+      "fullPageRedirect": "// Full-page redirect to Nest → Microsoft → back to SPA",
+      "spaCallback": "// /auth/callback on the SPA",
+      "persistTokens": "// persist tokens as your app requires",
+      "tokenFields": "// data.accessToken, data.refreshToken, data.user"
     }
   }
 }

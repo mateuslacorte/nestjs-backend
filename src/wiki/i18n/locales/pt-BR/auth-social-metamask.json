@@ -1,44 +1,163 @@
 {
   "authSocialMetamask": {
-    "badge": "Guia para desenvolvedores",
+    "meta": {
+      "title": "MetaMask SIWE - Backend NestJS"
+    },
+    "badge": "MetaMask",
     "hero": {
       "titlePrefix": "MetaMask",
       "titleHighlight": "SIWE",
-      "subtitle": "Entre com sua carteira Ethereum via EIP-4361 — nonce, personal_sign e tokens JWT."
+      "subtitle": "Sign-In with Ethereum (EIP-4361) para carteiras web — emissão de nonce, verificação com personal_sign, JWTs e exemplos de frontend. Sem redirect OAuth."
     },
     "overview": {
       "title": "Visão geral",
-      "description": "MetaMask não é OAuth. A API implementa <strong>Sign-In with Ethereum (SIWE / EIP-4361)</strong>: emite um nonce de uso único, a carteira assina a mensagem, a API verifica a assinatura, faz upsert pelo endereço e devolve o mesmo contrato JWT do login por senha. Novos usuários recebem um nome aleatório (ex.: Fearful Bear)."
+      "description": "O login MetaMask é opcional e controlado por <code class=\"px-1 py-0.5 bg-amber-100 rounded\">METAMASK_AUTH_ENABLED</code>. Quando desligado, os endpoints MetaMask respondem <strong>503 Service Unavailable</strong>. Isto <strong>não é OAuth</strong>: a API implementa <strong>Sign-In with Ethereum (SIWE / EIP-4361)</strong>. O cliente pede um nonce de uso único, a carteira assina uma mensagem estruturada com <code class=\"px-1 py-0.5 bg-gray-100 rounded\">personal_sign</code>, e <code class=\"px-1 py-0.5 bg-gray-100 rounded\">POST /auth/metamask/verify</code> devolve o mesmo formato de JWT do login por senha. Não há callback por redirect nem passo <code class=\"px-1 py-0.5 bg-gray-100 rounded\">POST /auth/exchange</code>.",
+      "items": [
+        "Ativado por feature flag no ambiente",
+        "MetamaskSiweService verifica mensagens EIP-4361 (domain, URI, chainId, nonce, signature)",
+        "Nonce armazenado no Redis com TTL de METAMASK_NONCE_TTL_SECONDS (padrão 300)",
+        "Sem app no Developer Portal — domain / URI / statement / chain IDs devem bater com a mensagem do cliente",
+        "E-mail sintético {address}@users.noreply.metamask.local — MetaMask não retorna e-mail",
+        "Novos usuários recebem nome de exibição aleatório (adjetivo + substantivo)",
+        "Mesmo formato de tokens do POST /auth/login"
+      ]
     },
     "console": {
-      "title": "Configuração",
-      "description": "Não há app em portal de desenvolvedor. Alinhe <code class=\"px-1 py-0.5 bg-gray-100 rounded\">METAMASK_DOMAIN</code> / <code class=\"px-1 py-0.5 bg-gray-100 rounded\">METAMASK_URI</code> com o host/origin usados na mensagem SIWE do cliente e permita os chain IDs em que os usuários vão assinar.",
-      "codeHeader": { "label": "Ambiente", "context": "Variáveis usadas pela API" }
+      "title": "Setup MetaMask / SIWE",
+      "description": "Não é necessário console OAuth externo. Alinhe <code class=\"px-1 py-0.5 bg-gray-100 rounded\">METAMASK_DOMAIN</code> e <code class=\"px-1 py-0.5 bg-gray-100 rounded\">METAMASK_URI</code> com o host e a origem embutidos na mensagem SIWE do cliente. Defina <code class=\"px-1 py-0.5 bg-gray-100 rounded\">METAMASK_STATEMENT</code> como o texto que o usuário assina, e <code class=\"px-1 py-0.5 bg-gray-100 rounded\">METAMASK_CHAIN_IDS</code> com os chain IDs permitidos (separados por vírgula, padrão <code class=\"px-1 py-0.5 bg-gray-100 rounded\">1</code>).",
+      "steps": [
+        "Defina o domain e a origem públicos que os usuários vão assinar (ex.: localhost / http://localhost:3000 no dev)",
+        "Configure METAMASK_DOMAIN e METAMASK_URI exatamente iguais a esse host e origem",
+        "Defina METAMASK_STATEMENT (texto no prompt da carteira)",
+        "Defina METAMASK_CHAIN_IDS para cada chain aceita (ex.: 1 ou 1,11155111)",
+        "Opcionalmente ajuste METAMASK_NONCE_TTL_SECONDS (padrão 300)",
+        "Ative METAMASK_AUTH_ENABLED=true no .env"
+      ]
     },
-    "api": {
-      "title": "Contrato da API",
-      "description": "Dois endpoints POST — sem callback de redirect no navegador.",
-      "nonce": {
-        "codeHeader": { "label": "Nonce", "context": "Emite um nonce SIWE de curta duração" }
-      },
-      "verify": {
-        "codeHeader": { "label": "Verify", "context": "Troca assinatura por JWTs" }
+    "env": {
+      "title": "Variáveis de ambiente",
+      "description": "Carregadas do <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> via <code class=\"px-1 py-0.5 bg-gray-100 rounded\">src/config/metamask-auth.config.ts</code> (namespace <code class=\"px-1 py-0.5 bg-gray-100 rounded\">metamaskAuth</code> no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">ConfigService</code>). Veja <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env.example</code>.",
+      "codeHeader": {
+        "label": "Environment",
+        "context": ".env"
       }
     },
-    "client": {
-      "title": "Amostra no browser",
-      "description": "Fluxo mínimo com MetaMask. Domain, URI, chain ID e statement devem bater com a config do servidor.",
-      "codeHeader": { "label": "JavaScript", "context": "eth_requestAccounts + personal_sign" }
+    "roles": {
+      "title": "Roles padrão para novos usuários MetaMask",
+      "description": "Novos usuários MetaMask recebem <code class=\"px-1 py-0.5 bg-gray-100 rounded\">roles: []</code> por padrão (igual ao register). Defina <code class=\"px-1 py-0.5 bg-amber-100 rounded\">METAMASK_OAUTH_DEFAULT_ROLES</code> no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> como lista separada por vírgula (ex.: <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user</code> ou <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user,manager</code>). Usuários existentes vinculados por metamaskId mantêm as roles atuais."
+    },
+    "flow": {
+      "title": "Sequência",
+      "items": [
+        "Cliente faz POST /api/v1/auth/metamask/nonce e recebe { nonce, expiresIn }",
+        "Cliente conecta a carteira (eth_requestAccounts) e monta a mensagem EIP-4361 com domain, URI, statement, chainId e nonce",
+        "Carteira assina com personal_sign; cliente faz POST { message, signature } em /api/v1/auth/metamask/verify",
+        "API verifica SIWE, faz upsert por metamaskId e devolve user + accessToken + refreshToken"
+      ]
+    },
+    "api": {
+      "title": "Referência da API",
+      "nonce": {
+        "title": "1. Emitir nonce",
+        "description": "Endpoint público. Cria um nonce de uso único no Redis (TTL <code class=\"px-1 py-0.5 bg-gray-100 rounded\">METAMASK_NONCE_TTL_SECONDS</code>, padrão 300). Retorna <code class=\"px-1 py-0.5 bg-gray-100 rounded\">503</code> quando o auth MetaMask está desligado.",
+        "codeHeader": {
+          "label": "HTTP",
+          "context": "POST /api/v1/auth/metamask/nonce"
+        },
+        "errors": "503 feature desabilitada"
+      },
+      "verify": {
+        "title": "2. Verificar assinatura SIWE",
+        "description": "Endpoint público. Valida a mensagem EIP-4361 contra domain / URI / statement / chain IDs configurados, checa o nonce, recupera o endereço da assinatura, faz upsert do usuário e devolve JWTs (mesmo formato do login). Sem exchange code.",
+        "requestHeader": {
+          "label": "HTTP Request",
+          "context": "POST /api/v1/auth/metamask/verify"
+        },
+        "responseHeader": {
+          "label": "HTTP Response",
+          "context": "200 OK"
+        },
+        "errors": "400 SIWE inválido / assinatura inválida / nonce expirado · 503 feature desabilitada"
+      }
+    },
+    "web": {
+      "title": "Frontend — Web (carteira)",
+      "description": "Fluxo típico com MetaMask no browser: pedir contas, buscar nonce, montar a mensagem SIWE para que <code class=\"px-1 py-0.5 bg-gray-100 rounded\">domain</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">URI</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">statement</code> e <code class=\"px-1 py-0.5 bg-gray-100 rounded\">chainId</code> batam com a config do servidor, então <code class=\"px-1 py-0.5 bg-gray-100 rounded\">personal_sign</code> e chamar verify.",
+      "startHeader": {
+        "label": "JavaScript",
+        "context": "Nonce + personal_sign + verify"
+      },
+      "notes": [
+        "METAMASK_DOMAIN deve bater com o host usado na mensagem SIWE (muitas vezes window.location.host)",
+        "METAMASK_URI deve bater com a origem / campo URI da mensagem",
+        "O chain ID da mensagem deve estar em METAMASK_CHAIN_IDS",
+        "Armazene accessToken / refreshToken com segurança após o verify"
+      ]
+    },
+    "mobile": {
+      "title": "Frontend — Mobile (WalletConnect / deep link)",
+      "description": "No mobile, use um SDK de carteira (WalletConnect, MetaMask SDK, etc.) capaz de <code class=\"px-1 py-0.5 bg-gray-100 rounded\">personal_sign</code> uma mensagem EIP-4361. Chame os mesmos endpoints nonce e verify via HTTPS — não há allowlist de redirect OAuth.",
+      "openHeader": {
+        "label": "React Native",
+        "context": "Verify após assinatura da carteira"
+      },
+      "notes": [
+        "Aponte o app para a URL base da API em HTTPS",
+        "Mantenha METAMASK_DOMAIN / METAMASK_URI alinhados aos valores da mensagem SIWE",
+        "Identifique usuários por metamaskId — não pelo e-mail sintético"
+      ]
+    },
+    "security": {
+      "title": "Notas de segurança",
+      "items": [
+        "SIWE amarra a assinatura a domain, URI, chainId e um nonce Redis de uso único",
+        "Rejeite domain / URI / statement / chainId divergentes — não afrouxe checagens em produção",
+        "MetaMask nunca fornece e-mail — endereço sintético é só para upsert interno",
+        "Contas só-MetaMask têm password null — login / change-password falham até definir senha",
+        "Prefira origens HTTPS em produção para URI e domain não serem spoofados facilmente"
+      ]
     },
     "userModel": {
       "title": "Modelo de usuário",
-      "description": "O endereço Ethereum em minúsculas é salvo como metamaskId. O email é sintético (address@users.noreply.metamask.local). Nomes de exibição são pares aleatórios adjetivo+substantivo gerados só no primeiro login."
+      "description": "Campos da entity / interface usados no login MetaMask:",
+      "items": [
+        "metamaskId — endereço Ethereum lowercase único nullable",
+        "email — sintético {address}@users.noreply.metamask.local",
+        "password — nullable para contas só-SIWE",
+        "firstName / lastName — adjetivo + substantivo aleatórios no primeiro login",
+        "isActive — true para novos usuários MetaMask",
+        "roles — de METAMASK_OAUTH_DEFAULT_ROLES no env (padrão [])"
+      ]
     },
     "related": {
-      "title": "Guias relacionados",
-      "social": "Hub de Autenticação Social",
+      "title": "Relacionados",
+      "social": "Hub de autenticação social",
+      "google": "Guia Google OAuth2",
+      "facebook": "Guia Facebook OAuth2",
+      "twitter": "Guia X / Twitter OAuth2",
+      "github": "Guia GitHub OAuth2",
+      "figma": "Guia Figma OAuth2",
+      "linkedin": "Guia LinkedIn OpenID Connect",
+      "slack": "Guia Slack OpenID Connect",
+      "atlassian": "Guia Atlassian OAuth 2.0 (3LO)",
+      "gitlab": "Guia GitLab OAuth2",
+      "bitbucket": "Guia Bitbucket OAuth2",
+      "discord": "Guia Discord OAuth2",
+      "twitch": "Guia Twitch OAuth2",
+      "steam": "Guia Steam OpenID 2.0",
+      "amazon": "Guia Amazon OAuth2",
+      "microsoft": "Guia Microsoft OAuth2",
+      "patreon": "Guia Patreon OAuth2",
+      "dropbox": "Guia Dropbox OAuth2",
       "coinbase": "Guia Coinbase OAuth2",
-      "auth": "Visão geral Auth & JWT"
+      "apple": "Guia Apple Sign In",
+      "reddit": "Guia Reddit OAuth2",
+      "auth": "Auth & JWT"
+    },
+    "samples": {
+      "persistTokens": "// persista os tokens como sua app exigir",
+      "logAddress": "// MetaMask não tem e-mail real — use metamaskId como identificador estável",
+      "tokenFields": "// data.accessToken, data.refreshToken, data.user"
     }
   }
 }

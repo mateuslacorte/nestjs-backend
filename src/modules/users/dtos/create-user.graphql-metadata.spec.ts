@@ -31,7 +31,6 @@ describe('CreateUserDto GraphQL metadata', () => {
     'twitchId',
     'steamId',
     'redditId',
-    'spotifyId',
     'amazonId',
     'microsoftId',
     'patreonId',

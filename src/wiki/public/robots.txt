@@ -25,7 +25,6 @@ Allow: /auth/social/discord
 Allow: /auth/social/twitch
 Allow: /auth/social/steam
 Allow: /auth/social/reddit
-Allow: /auth/social/spotify
 Allow: /auth/social/amazon
 Allow: /auth/social/microsoft
 Allow: /auth/social/patreon

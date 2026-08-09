@@ -27,7 +27,7 @@ export class UserMongoRepository {
      */
     @EnableCache()
     async create(createUserDto: CreateUserDto, includePassword = false): Promise<IUser> {
-        const { username, email, password, googleId, facebookId, twitterId, githubId, figmaId, linkedinId, slackId, atlassianId, gitlabId, bitbucketId, discordId, twitchId, steamId, redditId, appleId, spotifyId, amazonId, microsoftId, patreonId, dropboxId, coinbaseId, metamaskId, activeDirectoryId } = createUserDto;
+        const { username, email, password, googleId, facebookId, twitterId, githubId, figmaId, linkedinId, slackId, atlassianId, gitlabId, bitbucketId, discordId, twitchId, steamId, redditId, appleId, amazonId, microsoftId, patreonId, dropboxId, coinbaseId, metamaskId, activeDirectoryId } = createUserDto;
         
         const existingUser = await this.userModel.findOne({ $or: [{ email }, { username }] });
         if (existingUser) {
@@ -59,7 +59,6 @@ export class UserMongoRepository {
             steamId: steamId ?? null,
             redditId: redditId ?? null,
             appleId: appleId ?? null,
-            spotifyId: spotifyId ?? null,
             amazonId: amazonId ?? null,
             microsoftId: microsoftId ?? null,
             patreonId: patreonId ?? null,

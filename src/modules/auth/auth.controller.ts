@@ -18,7 +18,6 @@ import { TwitchAuthGuard } from './guards/twitch-auth.guard';
 import { SteamAuthGuard } from './guards/steam-auth.guard';
 import { RedditAuthGuard } from './guards/reddit-auth.guard';
 import { AppleAuthGuard } from './guards/apple-auth.guard';
-import { SpotifyAuthGuard } from './guards/spotify-auth.guard';
 import { AmazonAuthGuard } from './guards/amazon-auth.guard';
 import { MicrosoftAuthGuard } from './guards/microsoft-auth.guard';
 import { PatreonAuthGuard } from './guards/patreon-auth.guard';
@@ -50,7 +49,6 @@ import { TwitchProfilePayload } from './strategies/twitch.strategy';
 import { SteamProfilePayload } from './strategies/steam.strategy';
 import { RedditProfilePayload } from './strategies/reddit.strategy';
 import { AppleProfilePayload } from './strategies/apple.strategy';
-import { SpotifyProfilePayload } from './strategies/spotify.strategy';
 import { AmazonProfilePayload } from './strategies/amazon.strategy';
 import { MicrosoftProfilePayload } from './strategies/microsoft.strategy';
 import { PatreonProfilePayload } from './strategies/patreon.strategy';
@@ -762,53 +760,6 @@ export class AuthController {
         const profile = req.user as TwitchProfilePayload;
         const state = typeof req.query.state === 'string' ? req.query.state : undefined;
         const { redirectUrl } = await this.authService.completeTwitchOAuth(
-            profile,
-            state,
-        );
-        return sendOAuthClientRedirect(reply, redirectUrl);
-    }
-
-    /**
-     * Start Spotify OAuth2 (Authorization Code). Redirects to Spotify consent screen.
-     */
-    @Public()
-    @Get('spotify')
-    @UseGuards(SpotifyAuthGuard)
-    @ApiOperation({
-        summary: 'Start Spotify OAuth2 login',
-        description:
-            'Redirects the browser to Spotify. Pass redirect (allowlisted) for the post-login deep link or web URL. Disabled when SPOTIFY_AUTH_ENABLED=false (503).',
-    })
-    @ApiQuery({
-        name: 'redirect',
-        required: false,
-        description:
-            'Post-login redirect URL (must match SPOTIFY_REDIRECT_ALLOWLIST). Defaults to the first allowlist entry.',
-    })
-    @ApiResponse({ status: 302, description: 'Redirect to Spotify OAuth consent.' })
-    @ApiResponse({ status: 400, description: 'Invalid or missing redirect.' })
-    @ApiResponse({ status: 503, description: 'Spotify authentication is disabled.' })
-    spotifyAuth() {
-        // Guard redirects to Spotify
-    }
-
-    /**
-     * Spotify OAuth2 callback — issues a one-time exchange code and redirects to the client.
-     */
-    @Public()
-    @Get('spotify/callback')
-    @UseGuards(SpotifyAuthGuard)
-    @ApiOperation({
-        summary: 'Spotify OAuth2 callback',
-        description:
-            'Processes the Spotify profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
-    })
-    @ApiResponse({ status: 200, description: 'HTML redirect (location.replace) to client with exchange code — http(s) or deep link.' })
-    @ApiResponse({ status: 503, description: 'Spotify authentication is disabled.' })
-    async spotifyAuthCallback(@Req() req: AppRequest, @Res() reply: AppReply) {
-        const profile = req.user as SpotifyProfilePayload;
-        const state = typeof req.query.state === 'string' ? req.query.state : undefined;
-        const { redirectUrl } = await this.authService.completeSpotifyOAuth(
             profile,
             state,
         );

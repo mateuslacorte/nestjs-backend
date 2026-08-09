@@ -111,7 +111,6 @@ var UsersService = function () {
     var _findByTwitchId_decorators;
     var _findBySteamId_decorators;
     var _findByRedditId_decorators;
-    var _findBySpotifyId_decorators;
     var _findByAmazonId_decorators;
     var _findByMicrosoftId_decorators;
     var _findByPatreonId_decorators;
@@ -337,17 +336,6 @@ var UsersService = function () {
                 if (includePassword === void 0) { includePassword = false; }
                 return __generator(this, function (_a) {
                     return [2 /*return*/, this.postgresRepo.findByRedditId(redditId, includePassword)];
-                });
-            });
-        };
-        /**
-         * Find a user by Spotify user ID
-         */
-        UsersService_1.prototype.findBySpotifyId = function (spotifyId_1) {
-            return __awaiter(this, arguments, void 0, function (spotifyId, includePassword) {
-                if (includePassword === void 0) { includePassword = false; }
-                return __generator(this, function (_a) {
-                    return [2 /*return*/, this.postgresRepo.findBySpotifyId(spotifyId, includePassword)];
                 });
             });
         };
@@ -632,7 +620,6 @@ var UsersService = function () {
         _findByTwitchId_decorators = [(0, cache_decorator_1.NoCache)()];
         _findBySteamId_decorators = [(0, cache_decorator_1.NoCache)()];
         _findByRedditId_decorators = [(0, cache_decorator_1.NoCache)()];
-        _findBySpotifyId_decorators = [(0, cache_decorator_1.NoCache)()];
         _findByAmazonId_decorators = [(0, cache_decorator_1.NoCache)()];
         _findByMicrosoftId_decorators = [(0, cache_decorator_1.NoCache)()];
         _findByPatreonId_decorators = [(0, cache_decorator_1.NoCache)()];
@@ -664,7 +651,6 @@ var UsersService = function () {
         __esDecorate(_classThis, null, _findByTwitchId_decorators, { kind: "method", name: "findByTwitchId", static: false, private: false, access: { has: function (obj) { return "findByTwitchId" in obj; }, get: function (obj) { return obj.findByTwitchId; } }, metadata: _metadata }, null, _instanceExtraInitializers);
         __esDecorate(_classThis, null, _findBySteamId_decorators, { kind: "method", name: "findBySteamId", static: false, private: false, access: { has: function (obj) { return "findBySteamId" in obj; }, get: function (obj) { return obj.findBySteamId; } }, metadata: _metadata }, null, _instanceExtraInitializers);
         __esDecorate(_classThis, null, _findByRedditId_decorators, { kind: "method", name: "findByRedditId", static: false, private: false, access: { has: function (obj) { return "findByRedditId" in obj; }, get: function (obj) { return obj.findByRedditId; } }, metadata: _metadata }, null, _instanceExtraInitializers);
-        __esDecorate(_classThis, null, _findBySpotifyId_decorators, { kind: "method", name: "findBySpotifyId", static: false, private: false, access: { has: function (obj) { return "findBySpotifyId" in obj; }, get: function (obj) { return obj.findBySpotifyId; } }, metadata: _metadata }, null, _instanceExtraInitializers);
         __esDecorate(_classThis, null, _findByAmazonId_decorators, { kind: "method", name: "findByAmazonId", static: false, private: false, access: { has: function (obj) { return "findByAmazonId" in obj; }, get: function (obj) { return obj.findByAmazonId; } }, metadata: _metadata }, null, _instanceExtraInitializers);
         __esDecorate(_classThis, null, _findByMicrosoftId_decorators, { kind: "method", name: "findByMicrosoftId", static: false, private: false, access: { has: function (obj) { return "findByMicrosoftId" in obj; }, get: function (obj) { return obj.findByMicrosoftId; } }, metadata: _metadata }, null, _instanceExtraInitializers);
         __esDecorate(_classThis, null, _findByPatreonId_decorators, { kind: "method", name: "findByPatreonId", static: false, private: false, access: { has: function (obj) { return "findByPatreonId" in obj; }, get: function (obj) { return obj.findByPatreonId; } }, metadata: _metadata }, null, _instanceExtraInitializers);

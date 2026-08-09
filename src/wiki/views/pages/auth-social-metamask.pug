@@ -7,7 +7,7 @@ block content
         path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z")
       span= t('authSocialMetamask.badge')
     h1(class="text-4xl font-bold text-gray-900 mb-4")
-      | #{t('authSocialMetamask.hero.titlePrefix')}
+      | #{t('authSocialMetamask.hero.titlePrefix')} 
       span.gradient-text= t('authSocialMetamask.hero.titleHighlight')
     p(class="text-xl text-gray-600 max-w-3xl")
       = t('authSocialMetamask.hero.subtitle')
@@ -15,18 +15,30 @@ block content
   section.mb-12
     h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMetamask.overview.title')
     .bg-white.rounded-xl.border.border-gray-200.p-8
-      p(class="text-gray-700 mb-0")
+      p(class="text-gray-700 mb-6")
         != t('authSocialMetamask.overview.description')
+      ul.space-y-2.text-gray-700
+        each item in tm('authSocialMetamask.overview.items')
+          li • #{item}
 
   section.mb-12
     h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMetamask.console.title')
     .bg-white.rounded-xl.border.border-gray-200.p-8
-      p(class="text-gray-700 mb-6")
+      p(class="text-gray-700 mb-4")
         != t('authSocialMetamask.console.description')
+      ol(class="list-decimal list-inside space-y-2 text-gray-700")
+        each item in tm('authSocialMetamask.console.steps')
+          li= item
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMetamask.env.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")
+        != t('authSocialMetamask.env.description')
       .code-block
         .code-header
-          span= t('authSocialMetamask.console.codeHeader.label')
-          span= t('authSocialMetamask.console.codeHeader.context')
+          span= t('authSocialMetamask.env.codeHeader.label')
+          span= t('authSocialMetamask.env.codeHeader.context')
         .code-content
           pre.
             METAMASK_AUTH_ENABLED=true
@@ -38,71 +50,203 @@ block content
             METAMASK_OAUTH_DEFAULT_ROLES=
 
   section.mb-12
-    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMetamask.api.title')
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMetamask.roles.title')
     .bg-white.rounded-xl.border.border-gray-200.p-8
-      p(class="text-gray-700 mb-6")= t('authSocialMetamask.api.description')
-      .code-block.mb-2
-        .code-header
-          span= t('authSocialMetamask.api.nonce.codeHeader.label')
-          span= t('authSocialMetamask.api.nonce.codeHeader.context')
-        .code-content
-          pre.
-            POST #{apiBasePath}/auth/metamask/nonce
-            → { "nonce": "...", "expiresIn": 300 }
-      .code-block.mb-0
-        .code-header
-          span= t('authSocialMetamask.api.verify.codeHeader.label')
-          span= t('authSocialMetamask.api.verify.codeHeader.context')
-        .code-content
-          pre.
-            POST #{apiBasePath}/auth/metamask/verify
-            Content-Type: application/json
-
-            { "message": "<EIP-4361 SIWE message>", "signature": "0x..." }
-            → { "user": {...}, "accessToken": "...", "refreshToken": "..." }
+      p(class="text-gray-700")
+        != t('authSocialMetamask.roles.description')
 
   section.mb-12
-    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMetamask.client.title')
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMetamask.flow.title')
     .bg-white.rounded-xl.border.border-gray-200.p-8
-      p(class="text-gray-700 mb-6")= t('authSocialMetamask.client.description')
-      .code-block.mb-0
+      ol(class="list-decimal list-inside space-y-2 text-gray-700")
+        each item in tm('authSocialMetamask.flow.items')
+          li= item
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMetamask.api.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8.space-y-8
+      div
+        h3(class="font-semibold text-gray-900 mb-2")= t('authSocialMetamask.api.nonce.title')
+        p(class="text-gray-700 mb-3")
+          != t('authSocialMetamask.api.nonce.description')
+        .code-block.mb-2
+          .code-header
+            span= t('authSocialMetamask.api.nonce.codeHeader.label')
+            span= t('authSocialMetamask.api.nonce.codeHeader.context')
+          .code-content
+            pre.
+              POST #{apiBasePath}/auth/metamask/nonce
+              → { "nonce": "...", "expiresIn": 300 }
+        p(class="text-sm text-gray-500")= t('authSocialMetamask.api.nonce.errors')
+
+      div
+        h3(class="font-semibold text-gray-900 mb-2")= t('authSocialMetamask.api.verify.title')
+        p(class="text-gray-700 mb-3")
+          != t('authSocialMetamask.api.verify.description')
+        .code-block.mb-4
+          .code-header
+            span= t('authSocialMetamask.api.verify.requestHeader.label')
+            span= t('authSocialMetamask.api.verify.requestHeader.context')
+          .code-content
+            pre.
+              POST #{apiBasePath}/auth/metamask/verify
+              Content-Type: application/json
+
+              {
+                "message": "<EIP-4361 SIWE message>",
+                "signature": "0x..."
+              }
+        .code-block.mb-2
+          .code-header
+            span= t('authSocialMetamask.api.verify.responseHeader.label')
+            span= t('authSocialMetamask.api.verify.responseHeader.context')
+          .code-content
+            pre.
+              {
+                "user": {
+                  "id": "...",
+                  "email": "0xf39f...@users.noreply.metamask.local",
+                  "firstName": "Fearful",
+                  "lastName": "Bear",
+                  "roles": [],
+                  "metamaskId": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+                  "isActive": true
+                },
+                "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+                "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
+              }
+        p(class="text-sm text-gray-500")= t('authSocialMetamask.api.verify.errors')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMetamask.web.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")
+        != t('authSocialMetamask.web.description')
+      .code-block.mb-6
         .code-header
-          span= t('authSocialMetamask.client.codeHeader.label')
-          span= t('authSocialMetamask.client.codeHeader.context')
+          span= t('authSocialMetamask.web.startHeader.label')
+          span= t('authSocialMetamask.web.startHeader.context')
         .code-content
           pre.
+            const API = 'http://localhost:3000/api/v1';
+
             const [{ nonce }] = await Promise.all([
-              fetch('/api/v1/auth/metamask/nonce', { method: 'POST' }).then(r => r.json()),
+              fetch(`${API}/auth/metamask/nonce`, { method: 'POST' }).then((r) => r.json()),
               window.ethereum.request({ method: 'eth_requestAccounts' }),
             ]);
             const [address] = await window.ethereum.request({ method: 'eth_accounts' });
             const message =
-              `${window.location.host} wants you to sign in with your Ethereum account:\\n` +
-              `${address}\\n\\nSign in to the NestJS Boilerplate\\n\\n` +
-              `URI: ${window.location.origin}\\nVersion: 1\\nChain ID: 1\\nNonce: ${nonce}\\n` +
+              `${window.location.host} wants you to sign in with your Ethereum account:\n` +
+              `${address}\n\nSign in to the NestJS Boilerplate\n\n` +
+              `URI: ${window.location.origin}\nVersion: 1\nChain ID: 1\nNonce: ${nonce}\n` +
               `Issued At: ${new Date().toISOString()}`;
             const signature = await window.ethereum.request({
               method: 'personal_sign',
               params: [message, address],
             });
-            const tokens = await fetch('/api/v1/auth/metamask/verify', {
+            const res = await fetch(`${API}/auth/metamask/verify`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ message, signature }),
-            }).then(r => r.json());
+            });
+            if (!res.ok) throw new Error(await res.text());
+            const { user, accessToken, refreshToken } = await res.json();
+            #{t('authSocialMetamask.samples.persistTokens')}
+            sessionStorage.setItem('accessToken', accessToken);
+            #{t('authSocialMetamask.samples.logAddress')}
+            console.log('signed in', user.metamaskId);
+      ul.space-y-2.text-gray-700
+        each item in tm('authSocialMetamask.web.notes')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMetamask.mobile.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-4")
+        != t('authSocialMetamask.mobile.description')
+      .code-block.mb-6
+        .code-header
+          span= t('authSocialMetamask.mobile.openHeader.label')
+          span= t('authSocialMetamask.mobile.openHeader.context')
+        .code-content
+          pre.
+            const API = 'https://api.example.com/api/v1';
+
+            async function loginWithMetamask(message, signature) {
+              const res = await fetch(`${API}/auth/metamask/verify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message, signature }),
+              });
+              const data = await res.json();
+              #{t('authSocialMetamask.samples.tokenFields')}
+              return data;
+            }
+      ul.space-y-2.text-gray-700
+        each item in tm('authSocialMetamask.mobile.notes')
+          li • #{item}
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMetamask.security.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      ul.space-y-2.text-gray-700
+        each item in tm('authSocialMetamask.security.items')
+          li • #{item}
 
   section.mb-12
     h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMetamask.userModel.title')
     .bg-white.rounded-xl.border.border-gray-200.p-8
-      p(class="text-gray-700 mb-0")= t('authSocialMetamask.userModel.description')
+      p(class="text-gray-700 mb-4")= t('authSocialMetamask.userModel.description')
+      ul.space-y-2.text-gray-700
+        each item in tm('authSocialMetamask.userModel.items')
+          li • #{item}
 
   section.mb-12
     h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authSocialMetamask.related.title')
     .bg-white.rounded-xl.border.border-gray-200.p-8
-      ul.space-y-2
+      ul.space-y-3
         li
           a(href=wikiPath('/auth/social') class="text-indigo-600 hover:underline font-medium")= t('authSocialMetamask.related.social')
         li
+          a(href=wikiPath('/auth/social/google') class="text-indigo-600 hover:underline font-medium")= t('authSocialMetamask.related.google')
+        li
+          a(href=wikiPath('/auth/social/facebook') class="text-indigo-600 hover:underline font-medium")= t('authSocialMetamask.related.facebook')
+        li
+          a(href=wikiPath('/auth/social/twitter') class="text-indigo-600 hover:underline font-medium")= t('authSocialMetamask.related.twitter')
+        li
+          a(href=wikiPath('/auth/social/github') class="text-indigo-600 hover:underline font-medium")= t('authSocialMetamask.related.github')
+        li
+          a(href=wikiPath('/auth/social/figma') class="text-indigo-600 hover:underline font-medium")= t('authSocialMetamask.related.figma')
+        li
+          a(href=wikiPath('/auth/social/linkedin') class="text-indigo-600 hover:underline font-medium")= t('authSocialMetamask.related.linkedin')
+        li
+          a(href=wikiPath('/auth/social/slack') class="text-indigo-600 hover:underline font-medium")= t('authSocialMetamask.related.slack')
+        li
+          a(href=wikiPath('/auth/social/atlassian') class="text-indigo-600 hover:underline font-medium")= t('authSocialMetamask.related.atlassian')
+        li
+          a(href=wikiPath('/auth/social/gitlab') class="text-indigo-600 hover:underline font-medium")= t('authSocialMetamask.related.gitlab')
+        li
+          a(href=wikiPath('/auth/social/bitbucket') class="text-indigo-600 hover:underline font-medium")= t('authSocialMetamask.related.bitbucket')
+        li
+          a(href=wikiPath('/auth/social/discord') class="text-indigo-600 hover:underline font-medium")= t('authSocialMetamask.related.discord')
+        li
+          a(href=wikiPath('/auth/social/twitch') class="text-indigo-600 hover:underline font-medium")= t('authSocialMetamask.related.twitch')
+        li
+          a(href=wikiPath('/auth/social/steam') class="text-indigo-600 hover:underline font-medium")= t('authSocialMetamask.related.steam')
+        li
+        li
+          a(href=wikiPath('/auth/social/amazon') class="text-indigo-600 hover:underline font-medium")= t('authSocialMetamask.related.amazon')
+        li
+          a(href=wikiPath('/auth/social/microsoft') class="text-indigo-600 hover:underline font-medium")= t('authSocialMetamask.related.microsoft')
+        li
+          a(href=wikiPath('/auth/social/patreon') class="text-indigo-600 hover:underline font-medium")= t('authSocialMetamask.related.patreon')
+        li
+          a(href=wikiPath('/auth/social/dropbox') class="text-indigo-600 hover:underline font-medium")= t('authSocialMetamask.related.dropbox')
+        li
           a(href=wikiPath('/auth/social/coinbase') class="text-indigo-600 hover:underline font-medium")= t('authSocialMetamask.related.coinbase')
+        li
+          a(href=wikiPath('/auth/social/apple') class="text-indigo-600 hover:underline font-medium")= t('authSocialMetamask.related.apple')
+        li
+          a(href=wikiPath('/auth/social/reddit') class="text-indigo-600 hover:underline font-medium")= t('authSocialMetamask.related.reddit')
         li
           a(href=wikiPath('/auth') class="text-indigo-600 hover:underline font-medium")= t('authSocialMetamask.related.auth')

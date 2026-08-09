@@ -35,8 +35,6 @@ import { RedditStrategy } from './strategies/reddit.strategy';
 import { RedditAuthGuard } from './guards/reddit-auth.guard';
 import { AppleStrategy } from './strategies/apple.strategy';
 import { AppleAuthGuard } from './guards/apple-auth.guard';
-import { SpotifyStrategy } from './strategies/spotify.strategy';
-import { SpotifyAuthGuard } from './guards/spotify-auth.guard';
 import { AmazonStrategy } from './strategies/amazon.strategy';
 import { AmazonAuthGuard } from './guards/amazon-auth.guard';
 import { MicrosoftStrategy } from './strategies/microsoft.strategy';
@@ -104,8 +102,6 @@ import { EmailModule } from '@modules/email/email.module';
         RedditAuthGuard,
         AppleStrategy,
         AppleAuthGuard,
-        SpotifyStrategy,
-        SpotifyAuthGuard,
         AmazonStrategy,
         AmazonAuthGuard,
         MicrosoftStrategy,

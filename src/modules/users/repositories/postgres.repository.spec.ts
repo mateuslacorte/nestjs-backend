@@ -49,7 +49,6 @@ function createEntity(overrides: Partial<UserEntity> = {}): UserEntity {
     steamId: null,
     redditId: null,
     appleId: null,
-    spotifyId: null,
     amazonId: null,
     microsoftId: null,
     patreonId: null,
@@ -143,7 +142,6 @@ describe('UserPostgresRepository', () => {
         steamId: null,
         redditId: null,
         appleId: null,
-        spotifyId: null,
         amazonId: null,
         microsoftId: null,
         patreonId: null,
@@ -200,7 +198,6 @@ describe('UserPostgresRepository', () => {
         steamId: '76561198000000000',
         redditId: 'abc123',
         appleId: 'apple-sub-001',
-        spotifyId: 'spotify-001',
         amazonId: 'amzn1.account.abc123',
         microsoftId: 'ms-object-id-001',
         patreonId: 'patreon-user-001',
@@ -225,7 +222,6 @@ describe('UserPostgresRepository', () => {
         steamId: '76561198000000000',
         redditId: 'abc123',
         appleId: 'apple-sub-001',
-        spotifyId: 'spotify-001',
         amazonId: 'amzn1.account.abc123',
         microsoftId: 'ms-object-id-001',
         patreonId: 'patreon-user-001',
@@ -260,7 +256,6 @@ describe('UserPostgresRepository', () => {
           steamId: '76561198000000000',
           redditId: 'abc123',
           appleId: 'apple-sub-001',
-          spotifyId: 'spotify-001',
           amazonId: 'amzn1.account.abc123',
           microsoftId: 'ms-object-id-001',
           patreonId: 'patreon-user-001',
@@ -306,7 +301,6 @@ describe('UserPostgresRepository', () => {
           steamId: null,
           redditId: null,
           appleId: null,
-          spotifyId: null,
         amazonId: null,
         microsoftId: null,
         }),
@@ -500,16 +494,6 @@ describe('UserPostgresRepository', () => {
       await expect(
         repository.create({ ...dto, appleId: 'apple-sub-001' }),
       ).rejects.toThrow('User with this Apple account already exists');
-    });
-
-    it('throws ConflictException when spotifyId already exists', async () => {
-      typeOrmRepo.findOne
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(createEntity({ spotifyId: 'spotify-001' }));
-
-      await expect(
-        repository.create({ ...dto, spotifyId: 'spotify-001' }),
-      ).rejects.toThrow('User with this Spotify account already exists');
     });
 
     it('throws ConflictException when amazonId already exists', async () => {
@@ -737,7 +721,7 @@ describe('UserPostgresRepository', () => {
     });
   });
 
-  describe('findByGoogleId / findByFacebookId / findByTwitterId / findByGithubId / findByFigmaId / findByLinkedinId / findBySlackId / findByAtlassianId / findByGitlabId / findByBitbucketId / findByDiscordId / findByTwitchId / findBySteamId / findByRedditId / findBySpotifyId / findByAmazonId / findByMicrosoftId / findByActiveDirectoryId / findByAppleId', () => {
+  describe('findByGoogleId / findByFacebookId / findByTwitterId / findByGithubId / findByFigmaId / findByLinkedinId / findBySlackId / findByAtlassianId / findByGitlabId / findByBitbucketId / findByDiscordId / findByTwitchId / findBySteamId / findByRedditId / findByAmazonId / findByMicrosoftId / findByActiveDirectoryId / findByAppleId', () => {
     it('finds by googleId with optional password', async () => {
       typeOrmRepo.findOne.mockResolvedValue(createEntity({ googleId: 'g-1' }));
 
@@ -1083,31 +1067,6 @@ describe('UserPostgresRepository', () => {
       typeOrmRepo.findOne.mockResolvedValue(null);
       await expect(
         repository.findByRedditId('abc123-missing'),
-      ).resolves.toBeNull();
-    });
-
-    it('finds by spotifyId with optional password', async () => {
-      typeOrmRepo.findOne.mockResolvedValue(
-        createEntity({ spotifyId: 'spotify-001' }),
-      );
-
-      await expect(
-        repository.findBySpotifyId('spotify-001'),
-      ).resolves.not.toHaveProperty('password');
-      expect(typeOrmRepo.findOne).toHaveBeenCalledWith({
-        where: { spotifyId: 'spotify-001' },
-      });
-
-      typeOrmRepo.findOne.mockResolvedValue(
-        createEntity({ spotifyId: 'spotify-001' }),
-      );
-      await expect(
-        repository.findBySpotifyId('spotify-001', true),
-      ).resolves.toHaveProperty('password');
-
-      typeOrmRepo.findOne.mockResolvedValue(null);
-      await expect(
-        repository.findBySpotifyId('spotify-missing'),
       ).resolves.toBeNull();
     });
 

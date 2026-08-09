@@ -25,7 +25,6 @@ export interface IUser {
     steamId?: string | null;
     redditId?: string | null;
     appleId?: string | null;
-    spotifyId?: string | null;
     amazonId?: string | null;
     microsoftId?: string | null;
     patreonId?: string | null;

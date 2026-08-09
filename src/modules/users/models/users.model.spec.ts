@@ -47,7 +47,6 @@ describe('UserModel GraphQL metadata', () => {
     'steamId',
     'redditId',
     'appleId',
-    'spotifyId',
     'amazonId',
     'microsoftId',
     'patreonId',

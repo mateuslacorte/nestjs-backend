@@ -72,7 +72,6 @@
           "twitchOAuth": "<code class=\"px-2 py-1 bg-gray-100 rounded\">twitch-oauth.config.ts</code> - Twitch OAuth2",
           "steamOpenId": "<code class=\"px-2 py-1 bg-gray-100 rounded\">steam-openid.config.ts</code> - Steam OpenID 2.0",
           "redditOAuth": "<code class=\"px-2 py-1 bg-gray-100 rounded\">reddit-oauth.config.ts</code> - Reddit OAuth2",
-          "spotifyOAuth": "<code class=\"px-2 py-1 bg-gray-100 rounded\">spotify-oauth.config.ts</code> - Spotify OAuth2",
           "amazonOAuth": "<code class=\"px-2 py-1 bg-gray-100 rounded\">amazon-oauth.config.ts</code> - Amazon Login with Amazon",
           "microsoftOAuth": "<code class=\"px-2 py-1 bg-gray-100 rounded\">microsoft-oauth.config.ts</code> - Microsoft Entra ID / Azure AD",
           "patreonOAuth": "<code class=\"px-2 py-1 bg-gray-100 rounded\">patreon-oauth.config.ts</code> - Patreon OAuth2",

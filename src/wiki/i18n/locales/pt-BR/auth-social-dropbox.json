@@ -1,42 +1,177 @@
 {
   "authSocialDropbox": {
-    "badge": "Guia para desenvolvedores",
+    "meta": {
+      "title": "Dropbox OAuth2 - Backend NestJS"
+    },
+    "badge": "Dropbox",
     "hero": {
       "titlePrefix": "Dropbox",
       "titleHighlight": "OAuth2",
-      "subtitle": "Conecte login Dropbox no seu app com um fluxo único de Code Exchange para web e mobile."
+      "subtitle": "Authorization Code Exchange para web e mobile — setup no console Dropbox, referência da API e exemplos de frontend."
     },
     "overview": {
       "title": "Visão geral",
-      "description": "Dropbox usa OAuth2 Authorization Code. Após o consent, a API chama <code class=\"px-1 py-0.5 bg-gray-100 rounded\">users/get_current_account</code>, cria um código de exchange de uso único no Redis e o cliente troca pelos mesmos JWTs do login por senha. Scope <code class=\"px-1 py-0.5 bg-gray-100 rounded\">account_info.read</code> é suficiente para login."
+      "description": "O login Dropbox é opcional e controlado por <code class=\"px-1 py-0.5 bg-amber-100 rounded\">DROPBOX_AUTH_ENABLED</code>. Quando desligado, os endpoints Dropbox respondem <strong>503 Service Unavailable</strong>. JWTs nunca vão na URL de redirect; a API emite um <code class=\"px-1 py-0.5 bg-gray-100 rounded\">exchangeCode</code> de uso único (Redis, 60 segundos). O mesmo <code class=\"px-1 py-0.5 bg-gray-100 rounded\">POST /auth/exchange</code> é compartilhado com os demais provedores sociais.",
+      "items": [
+        "Ativado por feature flag no ambiente",
+        "Strategy passport-oauth2 customizada + DropboxAuthGuard",
+        "Perfil obtido via POST https://api.dropboxapi.com/2/users/get_current_account after token exchange",
+        "Scope account_info.read para perfil e e-mail",
+        "Allowlist de redirect evita open redirects",
+        "Mesmo formato de tokens do POST /auth/login"
+      ]
     },
     "console": {
       "title": "Dropbox App Console",
-      "description": "Crie um app no <a href=\"https://www.dropbox.com/developers/apps\" class=\"text-indigo-600 hover:underline\" target=\"_blank\" rel=\"noopener noreferrer\">Dropbox App Console</a> → Redirect URI OAuth2 = <code class=\"px-1 py-0.5 bg-gray-100 rounded\">DROPBOX_CALLBACK_URL</code> e scope <code class=\"px-1 py-0.5 bg-gray-100 rounded\">account_info.read</code>.",
-      "codeHeader": { "label": "Ambiente", "context": "Variáveis usadas pela API" }
+      "description": "Crie um app em <strong>https://www.dropbox.com/developers/apps</strong>. Defina OAuth 2 redirect URI igual a <code class=\"px-1 py-0.5 bg-gray-100 rounded\">DROPBOX_CALLBACK_URL</code>. Scope: <code class=\"px-1 py-0.5 bg-gray-100 rounded\">account_info.read</code>.",
+      "steps": [
+        "Abra Dropbox App Console → Create app",
+        "Escolha scoped access e o tipo de permissão necessário",
+        "Adicione OAuth 2 redirect URI (ex.: http://localhost:3000/api/v1/auth/dropbox/callback)",
+        "Copie App key / App secret para DROPBOX_CLIENT_ID / DROPBOX_CLIENT_SECRET",
+        "Habilite account_info.read em Permissions",
+        "Ative DROPBOX_AUTH_ENABLED=true no .env"
+      ]
+    },
+    "env": {
+      "title": "Variáveis de ambiente",
+      "description": "Carregadas do <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> via <code class=\"px-1 py-0.5 bg-gray-100 rounded\">src/config/dropbox-oauth.config.ts</code> (namespace <code class=\"px-1 py-0.5 bg-gray-100 rounded\">dropboxOAuth</code> no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">ConfigService</code>). Veja <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env.example</code>.",
+      "codeHeader": {
+        "label": "Environment",
+        "context": ".env"
+      }
+    },
+    "roles": {
+      "title": "Roles padrão para novos usuários Dropbox",
+      "description": "Novos usuários Dropbox recebem <code class=\"px-1 py-0.5 bg-gray-100 rounded\">roles: []</code> por padrão (igual ao register). Defina <code class=\"px-1 py-0.5 bg-amber-100 rounded\">DROPBOX_OAUTH_DEFAULT_ROLES</code> no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> como lista separada por vírgula (ex.: <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user</code> ou <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user,manager</code>). Usuários existentes vinculados por e-mail mantêm as roles atuais."
+    },
+    "flow": {
+      "title": "Sequência",
+      "items": [
+        "Cliente abre GET /api/v1/auth/dropbox?redirect=<URL na allowlist>",
+        "Usuário consente no Dropbox; o browser chega em GET /api/v1/auth/dropbox/callback",
+        "API chama https://api.dropboxapi.com/2/users/get_current_account, faz upsert do usuário, grava exchangeCode no Redis e redireciona para redirect?code=...",
+        "Cliente faz POST { code } em /api/v1/auth/exchange e recebe JWTs"
+      ]
     },
     "api": {
-      "title": "Contrato da API",
-      "description": "A API expõe URL de início e callback que emite o código de exchange.",
+      "title": "Referência da API",
       "start": {
-        "codeHeader": { "label": "Início", "context": "Redireciona ao consent Dropbox" }
+        "title": "1. Iniciar OAuth",
+        "description": "Abre o consentimento Dropbox em <code class=\"px-1 py-0.5 bg-gray-100 rounded\">https://www.dropbox.com/oauth2/authorize</code>. O query <code class=\"px-1 py-0.5 bg-gray-100 rounded\">redirect</code> deve corresponder a um prefixo em <code class=\"px-1 py-0.5 bg-gray-100 rounded\">DROPBOX_REDIRECT_ALLOWLIST</code> (ou omita para usar a primeira entrada). Scope: <code class=\"px-1 py-0.5 bg-gray-100 rounded\">account_info.read</code>.",
+        "codeHeader": {
+          "label": "HTTP",
+          "context": "GET /api/v1/auth/dropbox"
+        },
+        "errors": "400 redirect inválido · 503 feature desabilitada"
       },
       "callback": {
-        "codeHeader": { "label": "Callback", "context": "Dropbox redireciona de volta à API" }
+        "title": "2. Callback",
+        "description": "Tratado pela API. A troca de token usa <code class=\"px-1 py-0.5 bg-gray-100 rounded\">https://api.dropboxapi.com/oauth2/token</code>. Redireciona para o app com <code class=\"px-1 py-0.5 bg-gray-100 rounded\">?code=</code> (ou <code class=\"px-1 py-0.5 bg-gray-100 rounded\">&code=</code> se a URL já tiver query).",
+        "codeHeader": {
+          "label": "HTTP",
+          "context": "GET /api/v1/auth/dropbox/callback"
+        }
       },
       "exchange": {
-        "codeHeader": { "label": "Exchange", "context": "Cliente troca código por JWTs" }
+        "title": "3. Trocar o code",
+        "description": "Endpoint público compartilhado com os demais provedores sociais. Consome o code (uso único) e devolve o mesmo formato do login.",
+        "requestHeader": {
+          "label": "HTTP Request",
+          "context": "POST /api/v1/auth/exchange"
+        },
+        "responseHeader": {
+          "label": "HTTP Response",
+          "context": "200 OK"
+        },
+        "errors": "401 code inválido/expirado/usado · 503 social auth desabilitado"
       }
+    },
+    "web": {
+      "title": "Frontend — Web (SPA)",
+      "description": "Fluxo típico: um botão inicia o OAuth na mesma janela (ou popup); a rota de callback na origem do frontend lê <code class=\"px-1 py-0.5 bg-gray-100 rounded\">code</code> da query string e chama o exchange.",
+      "startHeader": {
+        "label": "JavaScript",
+        "context": "Iniciar login Dropbox"
+      },
+      "callbackHeader": {
+        "label": "JavaScript",
+        "context": "Página de callback /auth/callback"
+      },
+      "notes": [
+        "Adicione a URL de callback do frontend em DROPBOX_REDIRECT_ALLOWLIST (ex.: http://localhost:5173/auth/callback)",
+        "DROPBOX_CALLBACK_URL deve apontar para a API Nest, não para a SPA",
+        "Armazene accessToken / refreshToken com segurança (memória + cookie httpOnly, conforme preferir)"
+      ]
+    },
+    "mobile": {
+      "title": "Frontend — Mobile (deep link)",
+      "description": "Use um scheme customizado (ou universal link) na allowlist. Após Dropbox, a API redireciona para <code class=\"px-1 py-0.5 bg-gray-100 rounded\">myapp://success?code=...</code>. O app abre, lê o code e chama o exchange.",
+      "openHeader": {
+        "label": "React Native",
+        "context": "Abrir OAuth no browser"
+      },
+      "handleHeader": {
+        "label": "React Native",
+        "context": "Deep link + exchange"
+      },
+      "notes": [
+        "Registre o scheme no SO / Expo app.json",
+        "Prefira Linking.addEventListener('url', ...) e getInitialURL()",
+        "Faça o exchange em HTTPS contra a URL base da API"
+      ]
+    },
+    "security": {
+      "title": "Notas de segurança",
+      "items": [
+        "URLs de redirect devem corresponder a prefixos de DROPBOX_REDIRECT_ALLOWLIST",
+        "Exchange codes são de uso único e expiram em 60 segundos (Redis)",
+        "Usuários locais existentes são vinculados pelo e-mail verificado do Dropbox (dropboxId preenchido; roles inalteradas)",
+        "Contas só-Dropbox têm password null — login / change-password falham até definir senha",
+        "E-mail é obrigatório em https://api.dropboxapi.com/2/users/get_current_account; o login falha se Dropbox não retornar e-mail"
+      ]
     },
     "userModel": {
       "title": "Modelo de usuário",
-      "description": "O account_id do Dropbox é salvo como dropboxId. Email e nome vêm do perfil da conta com scope account_info.read."
+      "description": "Campos da entity / interface usados no login Dropbox:",
+      "items": [
+        "dropboxId — id único nullable do Dropbox",
+        "password — nullable para contas só-OAuth",
+        "isActive — true para novos usuários Dropbox",
+        "roles — de DROPBOX_OAUTH_DEFAULT_ROLES no env (padrão [])"
+      ]
     },
     "related": {
-      "title": "Guias relacionados",
-      "social": "Hub de Autenticação Social",
+      "title": "Relacionados",
+      "social": "Hub de autenticação social",
+      "google": "Guia Google OAuth2",
+      "facebook": "Guia Facebook OAuth2",
+      "twitter": "Guia X / Twitter OAuth2",
+      "github": "Guia GitHub OAuth2",
+      "figma": "Guia Figma OAuth2",
+      "linkedin": "Guia LinkedIn OpenID Connect",
+      "slack": "Guia Slack OpenID Connect",
+      "atlassian": "Guia Atlassian OAuth 2.0 (3LO)",
+      "gitlab": "Guia GitLab OAuth2",
+      "bitbucket": "Guia Bitbucket OAuth2",
+      "discord": "Guia Discord OAuth2",
+      "twitch": "Guia Twitch OAuth2",
+      "steam": "Guia Steam OpenID 2.0",
+      "amazon": "Guia Amazon OAuth2",
+      "microsoft": "Guia Microsoft OAuth2",
       "patreon": "Guia Patreon OAuth2",
-      "microsoft": "Guia Microsoft Entra ID"
+      "dropbox": "Guia Dropbox OAuth2",
+      "coinbase": "Guia Coinbase OAuth2",
+      "metamask": "Guia MetaMask SIWE",
+      "apple": "Guia Apple Sign In",
+      "reddit": "Guia Reddit OAuth2",
+      "auth": "Auth & JWT"
+    },
+    "samples": {
+      "fullPageRedirect": "// Redirect full-page Nest → Dropbox → de volta à SPA",
+      "spaCallback": "// /auth/callback na SPA",
+      "persistTokens": "// persista os tokens como sua app exigir",
+      "tokenFields": "// data.accessToken, data.refreshToken, data.user"
     }
   }
 }

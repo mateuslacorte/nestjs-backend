@@ -1,42 +1,177 @@
 {
   "authSocialAmazon": {
-    "badge": "Guia do desenvolvedor",
+    "meta": {
+      "title": "Amazon OAuth2 - Backend NestJS"
+    },
+    "badge": "Amazon",
     "hero": {
       "titlePrefix": "Amazon",
-      "titleHighlight": "Login with Amazon",
-      "subtitle": "Adicione login Amazon ao seu app com um único fluxo de Code Exchange para web e mobile."
+      "titleHighlight": "OAuth2",
+      "subtitle": "Authorization Code Exchange para web e mobile — setup no console Amazon, referência da API e exemplos de frontend."
     },
     "overview": {
       "title": "Visão geral",
-      "description": "Login with Amazon usa o fluxo padrão OAuth2 Authorization Code. Após o consentimento, a API cria um exchange code de curta duração e uso único no Redis e, em seguida, seu cliente troca esse código pelos mesmos JWTs do login por senha."
+      "description": "O login Amazon é opcional e controlado por <code class=\"px-1 py-0.5 bg-amber-100 rounded\">AMAZON_AUTH_ENABLED</code>. Quando desligado, os endpoints Amazon respondem <strong>503 Service Unavailable</strong>. JWTs nunca vão na URL de redirect; a API emite um <code class=\"px-1 py-0.5 bg-gray-100 rounded\">exchangeCode</code> de uso único (Redis, 60 segundos). O mesmo <code class=\"px-1 py-0.5 bg-gray-100 rounded\">POST /auth/exchange</code> é compartilhado com os demais provedores sociais.",
+      "items": [
+        "Ativado por feature flag no ambiente",
+        "Strategy passport-oauth2 customizada + AmazonAuthGuard",
+        "Perfil obtido via GET https://api.amazon.com/user/profile after token exchange",
+        "Scope profile para perfil e e-mail",
+        "Allowlist de redirect evita open redirects",
+        "Mesmo formato de tokens do POST /auth/login"
+      ]
     },
     "console": {
-      "title": "Console Amazon Developer",
-      "description": "Crie um Security Profile no <a href=\"https://developer.amazon.com/loginwithamazon/console/sitepl/overview.html\" class=\"text-indigo-600 hover:underline\" target=\"_blank\" rel=\"noopener noreferrer\">console Login with Amazon</a>, abra <strong>Web Settings</strong> e defina Allowed Return URLs igual a <code class=\"px-1 py-0.5 bg-gray-100 rounded\">AMAZON_CALLBACK_URL</code>. Scope: <code class=\"px-1 py-0.5 bg-gray-100 rounded\">profile</code> (user_id, email, name).",
-      "codeHeader": { "label": "Ambiente", "context": "Variáveis usadas pela API" }
+      "title": "Amazon Developer Console (Login with Amazon)",
+      "description": "Crie um Security Profile em <strong>Login with Amazon</strong> em <strong>https://developer.amazon.com/</strong>. Adicione Allowed Return URLs iguais a <code class=\"px-1 py-0.5 bg-gray-100 rounded\">AMAZON_CALLBACK_URL</code>. Scope: <code class=\"px-1 py-0.5 bg-gray-100 rounded\">profile</code>.",
+      "steps": [
+        "Abra Amazon Developer Console → Login with Amazon",
+        "Crie um Security Profile e anote Client ID / Client Secret",
+        "Adicione Allowed Return URL (ex.: http://localhost:3000/api/v1/auth/amazon/callback)",
+        "Garanta que AMAZON_CALLBACK_URL corresponda ao Allowed Return URL",
+        "Solicite o scope profile durante a autorização",
+        "Ative AMAZON_AUTH_ENABLED=true no .env"
+      ]
+    },
+    "env": {
+      "title": "Variáveis de ambiente",
+      "description": "Carregadas do <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> via <code class=\"px-1 py-0.5 bg-gray-100 rounded\">src/config/amazon-oauth.config.ts</code> (namespace <code class=\"px-1 py-0.5 bg-gray-100 rounded\">amazonOAuth</code> no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">ConfigService</code>). Veja <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env.example</code>.",
+      "codeHeader": {
+        "label": "Environment",
+        "context": ".env"
+      }
+    },
+    "roles": {
+      "title": "Roles padrão para novos usuários Amazon",
+      "description": "Novos usuários Amazon recebem <code class=\"px-1 py-0.5 bg-gray-100 rounded\">roles: []</code> por padrão (igual ao register). Defina <code class=\"px-1 py-0.5 bg-amber-100 rounded\">AMAZON_OAUTH_DEFAULT_ROLES</code> no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> como lista separada por vírgula (ex.: <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user</code> ou <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user,manager</code>). Usuários existentes vinculados por e-mail mantêm as roles atuais."
+    },
+    "flow": {
+      "title": "Sequência",
+      "items": [
+        "Cliente abre GET /api/v1/auth/amazon?redirect=<URL na allowlist>",
+        "Usuário consente no Amazon; o browser chega em GET /api/v1/auth/amazon/callback",
+        "API chama https://api.amazon.com/user/profile, faz upsert do usuário, grava exchangeCode no Redis e redireciona para redirect?code=...",
+        "Cliente faz POST { code } em /api/v1/auth/exchange e recebe JWTs"
+      ]
     },
     "api": {
-      "title": "Contrato da API",
-      "description": "A API expõe uma URL de início e um callback que emite o exchange code.",
+      "title": "Referência da API",
       "start": {
-        "codeHeader": { "label": "Início", "context": "Redireciona o usuário para o consent do Amazon" }
+        "title": "1. Iniciar OAuth",
+        "description": "Abre o consentimento Amazon em <code class=\"px-1 py-0.5 bg-gray-100 rounded\">https://www.amazon.com/ap/oa</code>. O query <code class=\"px-1 py-0.5 bg-gray-100 rounded\">redirect</code> deve corresponder a um prefixo em <code class=\"px-1 py-0.5 bg-gray-100 rounded\">AMAZON_REDIRECT_ALLOWLIST</code> (ou omita para usar a primeira entrada). Scope: <code class=\"px-1 py-0.5 bg-gray-100 rounded\">profile</code>.",
+        "codeHeader": {
+          "label": "HTTP",
+          "context": "GET /api/v1/auth/amazon"
+        },
+        "errors": "400 redirect inválido · 503 feature desabilitada"
       },
       "callback": {
-        "codeHeader": { "label": "Callback", "context": "O Amazon retorna para a API" }
+        "title": "2. Callback",
+        "description": "Tratado pela API. A troca de token usa <code class=\"px-1 py-0.5 bg-gray-100 rounded\">https://api.amazon.com/auth/o2/token</code>. Redireciona para o app com <code class=\"px-1 py-0.5 bg-gray-100 rounded\">?code=</code> (ou <code class=\"px-1 py-0.5 bg-gray-100 rounded\">&code=</code> se a URL já tiver query).",
+        "codeHeader": {
+          "label": "HTTP",
+          "context": "GET /api/v1/auth/amazon/callback"
+        }
       },
       "exchange": {
-        "codeHeader": { "label": "Exchange", "context": "Cliente troca o code por JWTs" }
+        "title": "3. Trocar o code",
+        "description": "Endpoint público compartilhado com os demais provedores sociais. Consome o code (uso único) e devolve o mesmo formato do login.",
+        "requestHeader": {
+          "label": "HTTP Request",
+          "context": "POST /api/v1/auth/exchange"
+        },
+        "responseHeader": {
+          "label": "HTTP Response",
+          "context": "200 OK"
+        },
+        "errors": "401 code inválido/expirado/usado · 503 social auth desabilitado"
       }
+    },
+    "web": {
+      "title": "Frontend — Web (SPA)",
+      "description": "Fluxo típico: um botão inicia o OAuth na mesma janela (ou popup); a rota de callback na origem do frontend lê <code class=\"px-1 py-0.5 bg-gray-100 rounded\">code</code> da query string e chama o exchange.",
+      "startHeader": {
+        "label": "JavaScript",
+        "context": "Iniciar login Amazon"
+      },
+      "callbackHeader": {
+        "label": "JavaScript",
+        "context": "Página de callback /auth/callback"
+      },
+      "notes": [
+        "Adicione a URL de callback do frontend em AMAZON_REDIRECT_ALLOWLIST (ex.: http://localhost:5173/auth/callback)",
+        "AMAZON_CALLBACK_URL deve apontar para a API Nest, não para a SPA",
+        "Armazene accessToken / refreshToken com segurança (memória + cookie httpOnly, conforme preferir)"
+      ]
+    },
+    "mobile": {
+      "title": "Frontend — Mobile (deep link)",
+      "description": "Use um scheme customizado (ou universal link) na allowlist. Após Amazon, a API redireciona para <code class=\"px-1 py-0.5 bg-gray-100 rounded\">myapp://success?code=...</code>. O app abre, lê o code e chama o exchange.",
+      "openHeader": {
+        "label": "React Native",
+        "context": "Abrir OAuth no browser"
+      },
+      "handleHeader": {
+        "label": "React Native",
+        "context": "Deep link + exchange"
+      },
+      "notes": [
+        "Registre o scheme no SO / Expo app.json",
+        "Prefira Linking.addEventListener('url', ...) e getInitialURL()",
+        "Faça o exchange em HTTPS contra a URL base da API"
+      ]
+    },
+    "security": {
+      "title": "Notas de segurança",
+      "items": [
+        "URLs de redirect devem corresponder a prefixos de AMAZON_REDIRECT_ALLOWLIST",
+        "Exchange codes são de uso único e expiram em 60 segundos (Redis)",
+        "Usuários locais existentes são vinculados pelo e-mail verificado do Amazon (amazonId preenchido; roles inalteradas)",
+        "Contas só-Amazon têm password null — login / change-password falham até definir senha",
+        "E-mail é obrigatório em https://api.amazon.com/user/profile; o login falha se Amazon não retornar e-mail"
+      ]
     },
     "userModel": {
       "title": "Modelo de usuário",
-      "description": "O identificador único do usuário Amazon é armazenado como `amazonId` no registro do usuário (`user_id` do profile). O email vem do scope profile."
+      "description": "Campos da entity / interface usados no login Amazon:",
+      "items": [
+        "amazonId — id único nullable do Amazon",
+        "password — nullable para contas só-OAuth",
+        "isActive — true para novos usuários Amazon",
+        "roles — de AMAZON_OAUTH_DEFAULT_ROLES no env (padrão [])"
+      ]
     },
     "related": {
-      "title": "Guias relacionados",
+      "title": "Relacionados",
       "social": "Hub de autenticação social",
-      "spotify": "Guia Spotify OAuth2",
-      "apple": "Guia Apple Sign In"
+      "google": "Guia Google OAuth2",
+      "facebook": "Guia Facebook OAuth2",
+      "twitter": "Guia X / Twitter OAuth2",
+      "github": "Guia GitHub OAuth2",
+      "figma": "Guia Figma OAuth2",
+      "linkedin": "Guia LinkedIn OpenID Connect",
+      "slack": "Guia Slack OpenID Connect",
+      "atlassian": "Guia Atlassian OAuth 2.0 (3LO)",
+      "gitlab": "Guia GitLab OAuth2",
+      "bitbucket": "Guia Bitbucket OAuth2",
+      "discord": "Guia Discord OAuth2",
+      "twitch": "Guia Twitch OAuth2",
+      "steam": "Guia Steam OpenID 2.0",
+      "amazon": "Guia Amazon OAuth2",
+      "microsoft": "Guia Microsoft OAuth2",
+      "patreon": "Guia Patreon OAuth2",
+      "dropbox": "Guia Dropbox OAuth2",
+      "coinbase": "Guia Coinbase OAuth2",
+      "metamask": "Guia MetaMask SIWE",
+      "apple": "Guia Apple Sign In",
+      "reddit": "Guia Reddit OAuth2",
+      "auth": "Auth & JWT"
+    },
+    "samples": {
+      "fullPageRedirect": "// Redirect full-page Nest → Amazon → de volta à SPA",
+      "spaCallback": "// /auth/callback na SPA",
+      "persistTokens": "// persista os tokens como sua app exigir",
+      "tokenFields": "// data.accessToken, data.refreshToken, data.user"
     }
   }
 }

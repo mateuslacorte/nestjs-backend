@@ -52,7 +52,6 @@ import { TwitchProfilePayload } from './strategies/twitch.strategy';
 import { SteamProfilePayload } from './strategies/steam.strategy';
 import { RedditProfilePayload } from './strategies/reddit.strategy';
 import { AppleProfilePayload } from './strategies/apple.strategy';
-import { SpotifyProfilePayload } from './strategies/spotify.strategy';
 import { AmazonProfilePayload } from './strategies/amazon.strategy';
 import { MicrosoftProfilePayload } from './strategies/microsoft.strategy';
 import { PatreonProfilePayload } from './strategies/patreon.strategy';
@@ -176,12 +175,6 @@ const defaultConfig: Record<string, unknown> = {
     'https://app.example/',
   ],
   'appleOAuth.defaultRoles': [Role.USER],
-  'spotifyOAuth.enabled': true,
-  'spotifyOAuth.redirectAllowlist': [
-    'https://app.example/cb',
-    'https://app.example/',
-  ],
-  'spotifyOAuth.defaultRoles': [Role.USER],
   'amazonOAuth.enabled': true,
   'amazonOAuth.redirectAllowlist': [
     'https://app.example/cb',
@@ -235,7 +228,6 @@ describe('AuthService', () => {
     findByTwitchId: jest.Mock;
     findBySteamId: jest.Mock;
     findByRedditId: jest.Mock;
-    findBySpotifyId: jest.Mock;
     findByAmazonId: jest.Mock;
     findByMicrosoftId: jest.Mock;
     findByPatreonId: jest.Mock;
@@ -286,7 +278,6 @@ describe('AuthService', () => {
       findByTwitchId: jest.fn(),
       findBySteamId: jest.fn(),
       findByRedditId: jest.fn(),
-      findBySpotifyId: jest.fn(),
       findByAmazonId: jest.fn(),
       findByMicrosoftId: jest.fn(),
       findByPatreonId: jest.fn(),
@@ -2751,108 +2742,6 @@ describe('AuthService', () => {
     });
   });
 
-  describe('completeSpotifyOAuth', () => {
-    const profile: SpotifyProfilePayload = {
-      spotifyId: 'spotify-001',
-      email: 'spotify@example.com',
-      firstName: 'Jane',
-      lastName: 'Doe',
-    };
-    const state = encodeOAuthState('https://app.example/cb');
-
-    it('throws 503 when Spotify auth is disabled', async () => {
-      configService.get.mockImplementation((key: string) => {
-        if (key === 'spotifyOAuth.enabled') return false;
-        return defaultConfig[key];
-      });
-
-      await expect(
-        service.completeSpotifyOAuth(profile, state),
-      ).rejects.toThrow(
-        new ServiceUnavailableException('Spotify authentication is disabled'),
-      );
-    });
-
-    it('returns redirect URL for existing spotify user', async () => {
-      usersService.findBySpotifyId.mockResolvedValue(
-        createUser({ spotifyId: 'spotify-001' }),
-      );
-
-      const result = await service.completeSpotifyOAuth(profile, state);
-
-      expect(result.redirectUrl).toBe(
-        'https://app.example/cb?code=exchange-code-123',
-      );
-    });
-
-    it('reactivates inactive spotify user', async () => {
-      usersService.findBySpotifyId.mockResolvedValue(
-        createUser({ spotifyId: 'spotify-001', isActive: false }),
-      );
-      usersService.update.mockResolvedValue(createUser({ isActive: true }));
-
-      await service.completeSpotifyOAuth(profile, state);
-
-      expect(usersService.update).toHaveBeenCalledWith('user-1', {
-        isActive: true,
-      });
-    });
-
-    it('links spotify id to existing email user', async () => {
-      const byEmail = createUser({ email: profile.email });
-      usersService.findBySpotifyId.mockResolvedValue(null);
-      usersService.findByEmail.mockResolvedValue(byEmail);
-      usersService.update.mockResolvedValue({
-        ...byEmail,
-        spotifyId: profile.spotifyId,
-      });
-
-      await service.completeSpotifyOAuth(profile, state);
-
-      expect(usersService.update).toHaveBeenCalledWith('user-1', {
-        spotifyId: 'spotify-001',
-        isActive: true,
-      });
-    });
-
-    it('creates new user with dash lastName when empty', async () => {
-      configService.get.mockImplementation((key: string) => {
-        if (key === 'spotifyOAuth.defaultRoles') return undefined;
-        return defaultConfig[key];
-      });
-      usersService.findBySpotifyId.mockResolvedValue(null);
-      usersService.findByEmail.mockResolvedValue(null);
-      usersService.findByUsername.mockResolvedValue(null);
-      usersService.create.mockResolvedValue(createUser());
-
-      await service.completeSpotifyOAuth(
-        { ...profile, lastName: '' },
-        state,
-      );
-
-      expect(usersService.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          lastName: '-',
-          roles: [],
-          spotifyId: 'spotify-001',
-        }),
-      );
-    });
-
-    it('uses & separator when redirect already has query params', async () => {
-      const queryState = encodeOAuthState('https://app.example/cb?foo=1');
-      usersService.findBySpotifyId.mockResolvedValue(
-        createUser({ spotifyId: 'spotify-001' }),
-      );
-
-      const result = await service.completeSpotifyOAuth(profile, queryState);
-
-      expect(result.redirectUrl).toBe(
-        'https://app.example/cb?foo=1&code=exchange-code-123',
-      );
-    });
-  });
-
   describe('completeAppleOAuth', () => {
     const profile: AppleProfilePayload = {
       appleId: 'apple-sub-001',
@@ -3498,7 +3387,6 @@ describe('AuthService', () => {
           key === 'steamOpenId.enabled' ||
           key === 'redditOAuth.enabled' ||
           key === 'appleOAuth.enabled' ||
-          key === 'spotifyOAuth.enabled' ||
           key === 'amazonOAuth.enabled' ||
           key === 'microsoftOAuth.enabled' ||
           key === 'patreonOAuth.enabled' ||

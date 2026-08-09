@@ -56,7 +56,6 @@ describe('WIKI_SEO', () => {
         'auth-social-twitch',
         'auth-social-steam',
         'auth-social-reddit',
-        'auth-social-spotify',
         'auth-social-amazon',
         'auth-social-microsoft',
         'auth-social-patreon',
