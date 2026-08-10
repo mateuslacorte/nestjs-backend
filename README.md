@@ -1,98 +1,98 @@
 # Backend NestJS
 
-Template NestJS com REST + GraphQL, autenticação JWT e login social (Google / Facebook / X Twitter / GitHub / Figma / LinkedIn / Slack / Atlassian / GitLab / Bitbucket / Discord / Twitch / Amazon / Patreon / Dropbox / MetaMask / Steam / Reddit / Apple), cache Redis, Kafka, MinIO, email (SMTP/MailHog) e logging estruturado via **Graylog** (GELF).
+NestJS template with REST + GraphQL, JWT authentication, on-prem Active Directory login (LDAP/LDAPS), and social login (Google / Facebook / X Twitter / GitHub / Figma / LinkedIn / Slack / Atlassian / GitLab / Bitbucket / Discord / Twitch / Amazon / Patreon / Dropbox / MetaMask / Steam / Reddit / Apple), Redis cache, Kafka, MinIO, email (SMTP/MailHog), and structured logging via **Graylog** (GELF).
 
 ## Stack
 
 - **NestJS 11** + TypeScript
-- **PostgreSQL** (TypeORM) — persistência padrão do módulo `users`
-- **MongoDB** (Mongoose) — repositório disponível; stack CQRS-ready
+- **PostgreSQL** (TypeORM) — default persistence for the `users` module
+- **MongoDB** (Mongoose) — repository available; CQRS-ready stack
 - Redis, Apache Kafka, MinIO
 - Graylog + OpenSearch (logs)
-- Health checks com `@nestjs/terminus` em `GET /health`
-- **Jest** — testes unitários, coverage global (≥ 80%) e pre-commit com Husky
+- Health checks with `@nestjs/terminus` at `GET /health`
+- **Jest** — unit tests, global coverage (≥ 80%), and Husky pre-commit hook
 
-## Persistência e CQRS-ready
+## Persistence and CQRS-ready
 
-O acesso a dados usa **Repository pattern**. Hoje o `UsersService` lê e escreve no **PostgreSQL**. O `UserMongoRepository` permanece no projeto: você pode usar só Mongo, só Postgres, ou ativar CQRS (commands em um banco, queries no outro, com sync opcional via Kafka). Detalhes na [wiki de arquitetura](/architecture) após subir a API.
+Data access uses the **Repository pattern**. Today `UsersService` reads and writes to **PostgreSQL**. `UserMongoRepository` remains in the project: you can use Mongo only, Postgres only, or enable CQRS (commands in one database, queries in the other, with optional Kafka sync). Details are in the [architecture wiki](/architecture) after the API is up.
 
-## Autenticação
+## Authentication
 
-- JWT (login/registro, refresh, roles e guards)
-- Active Directory on-prem (LDAP/LDAPS bind contra AD DS no DC) — `POST /auth/ad/login`, guias em [/auth/active-directory](/auth/active-directory), [/auth/active-directory/ldap](/auth/active-directory/ldap), [/auth/active-directory/ldaps](/auth/active-directory/ldaps)
-- Login social via OAuth2 (Google, Facebook, X / Twitter, GitHub, Figma, LinkedIn, Slack, Atlassian, GitLab, Bitbucket, Discord, Twitch, Amazon, Patreon, Dropbox e Reddit), MetaMask SIWE (EIP-4361), Steam OpenID 2.0 e Apple Sign In (OIDC form_post) com fluxo de *code exchange* (PKCE no Twitter)
-- Guias na wiki: [/auth](/auth), [/auth/active-directory](/auth/active-directory), [/auth/social](/auth/social), [/auth/social/google](/auth/social/google), [/auth/social/facebook](/auth/social/facebook), [/auth/social/twitter](/auth/social/twitter), [/auth/social/github](/auth/social/github), [/auth/social/figma](/auth/social/figma), [/auth/social/linkedin](/auth/social/linkedin), [/auth/social/slack](/auth/social/slack), [/auth/social/atlassian](/auth/social/atlassian), [/auth/social/gitlab](/auth/social/gitlab), [/auth/social/bitbucket](/auth/social/bitbucket), [/auth/social/discord](/auth/social/discord), [/auth/social/twitch](/auth/social/twitch), [/auth/social/amazon](/auth/social/amazon), [/auth/social/patreon](/auth/social/patreon), [/auth/social/dropbox](/auth/social/dropbox), [/auth/social/metamask](/auth/social/metamask), [/auth/social/steam](/auth/social/steam), [/auth/social/reddit](/auth/social/reddit), [/auth/social/apple](/auth/social/apple)
+- JWT (login/register, refresh, roles, and guards)
+- On-prem Active Directory (LDAP/LDAPS bind against AD DS on the DC) — `POST /auth/ad/login`, guides at [/auth/active-directory](/auth/active-directory), [/auth/active-directory/ldap](/auth/active-directory/ldap), [/auth/active-directory/ldaps](/auth/active-directory/ldaps)
+- Social login via OAuth2 (Google, Facebook, X / Twitter, GitHub, Figma, LinkedIn, Slack, Atlassian, GitLab, Bitbucket, Discord, Twitch, Amazon, Patreon, Dropbox, and Reddit), MetaMask SIWE (EIP-4361), Steam OpenID 2.0, and Apple Sign In (OIDC form_post) with a *code exchange* flow (PKCE on Twitter)
+- Wiki guides: [/auth](/auth), [/auth/active-directory](/auth/active-directory), [/auth/social](/auth/social), [/auth/social/google](/auth/social/google), [/auth/social/facebook](/auth/social/facebook), [/auth/social/twitter](/auth/social/twitter), [/auth/social/github](/auth/social/github), [/auth/social/figma](/auth/social/figma), [/auth/social/linkedin](/auth/social/linkedin), [/auth/social/slack](/auth/social/slack), [/auth/social/atlassian](/auth/social/atlassian), [/auth/social/gitlab](/auth/social/gitlab), [/auth/social/bitbucket](/auth/social/bitbucket), [/auth/social/discord](/auth/social/discord), [/auth/social/twitch](/auth/social/twitch), [/auth/social/amazon](/auth/social/amazon), [/auth/social/patreon](/auth/social/patreon), [/auth/social/dropbox](/auth/social/dropbox), [/auth/social/metamask](/auth/social/metamask), [/auth/social/steam](/auth/social/steam), [/auth/social/reddit](/auth/social/reddit), [/auth/social/apple](/auth/social/apple)
 
-## Testes e coverage
+## Tests and coverage
 
 ```bash
-npm test              # suíte unitária
+npm test              # unit suite
 npm run test:watch    # watch mode
-npm run test:cov      # testes + coverage (limiar global 80%)
+npm run test:cov      # tests + coverage (global 80% threshold)
 ```
 
-O pre-commit (Husky) executa `npm run test:cov` e bloqueia o commit se os testes falharem ou a coverage cair abaixo de 80%. Detalhes na wiki: [/tests](/tests).
+The Husky pre-commit hook runs `npm run test:cov` and blocks the commit if tests fail or coverage drops below 80%. Details in the wiki: [/tests](/tests).
 
 ## Quickstart (Docker)
 
-Requisito: Docker + Docker Compose.
+Requirement: Docker + Docker Compose.
 
 ```bash
-# Stack completo (API + DBs + Kafka + MinIO + MailHog + Graylog)
+# Full stack (API + DBs + Kafka + MinIO + MailHog + Graylog)
 docker compose --env-file .env.docker up -d --build
 
 # Status
 docker compose --env-file .env.docker ps
 
-# Logs da API
+# API logs
 docker compose --env-file .env.docker logs -f api
 ```
 
-O `Dockerfile` é multi-stage (deps → build → runner) e faz `HEALTHCHECK` em `/health`. Os containers usam `container_name` estáveis (ex.: `nestjs-backend-api`).
+The `Dockerfile` is multi-stage (deps → build → runner) and runs a `HEALTHCHECK` against `/health`. Containers use stable `container_name` values (e.g. `nestjs-backend-api`).
 
-### URLs úteis
+### Useful URLs
 
-| Serviço | Path / URL |
+| Service | Path / URL |
 |---------|------------|
 | Wiki | [/](/) |
 | Swagger | [/swagger](/swagger) |
-| API REST | [/api/v1](/api/v1) (`API_VERSION`) |
+| REST API | [/api/v1](/api/v1) (`API_VERSION`) |
 | Health | [/health](/health) |
 | GraphQL | [/graphql](/graphql) |
 | MailHog UI | http://localhost:8025 |
 | MinIO Console | http://localhost:9001 |
 | Graylog UI | http://localhost:9009 |
 
-## Desenvolvimento local (sem Docker da API)
+## Local development (without Docker for the API)
 
-1. Copie `.env.example` para `.env` e ajuste as variáveis (`API_VERSION`, Graylog: `GRAYLOG_*`, OAuth social se for usar).
-2. Suba as dependências (ou use o Compose só dos serviços de infra).
+1. Copy `.env.example` to `.env` and adjust the variables (`API_VERSION`, Graylog: `GRAYLOG_*`, social OAuth if you use it).
+2. Start the dependencies (or use Compose for infra services only).
 3. `npm install && npm run start:dev`
 
-Guia completo de instalação: wiki em [/backend/install](/backend/install) (após a API estar no ar).
+Full install guide: wiki at [/backend/install](/backend/install) (after the API is running).
 
-## Documentação
+## Documentation
 
 - Swagger: `/swagger`
-- Wiki embutida: `/` (visão geral, arquitetura, guia backend, auth JWT, login social, testes)
-- Rotas REST: `/api/{API_VERSION}/...` (default `v1`)
+- Built-in wiki: `/` (overview, architecture, backend guide, JWT auth, social login, tests)
+- REST routes: `/api/{API_VERSION}/...` (default `v1`)
 
-## Como contribuir
+## Contributing
 
-Contribuições são bem-vindas. Fluxo sugerido:
+Contributions are welcome. Suggested flow:
 
-1. Faça um fork do repositório e clone o seu fork.
-2. Crie uma branch a partir de `main` (`git checkout -b feature/minha-mudanca`).
-3. Configure o ambiente (`npm install`; `.env` a partir de `.env.example`).
-4. Implemente a mudança seguindo os padrões do projeto (módulos NestJS, DTOs, repositories).
-5. Inclua testes unitários (`*.spec.ts`) para o código novo ou alterado.
-6. Rode `npm run test:cov` e garanta que a suíte passa e a coverage global permanece ≥ 80%.
-7. Abra um Pull Request descrevendo o problema, a solução e como testar.
+1. Fork the repository and clone your fork.
+2. Create a branch from `main` (`git checkout -b feature/my-change`).
+3. Set up the environment (`npm install`; `.env` from `.env.example`).
+4. Implement the change following project patterns (NestJS modules, DTOs, repositories).
+5. Add unit tests (`*.spec.ts`) for new or changed code.
+6. Run `npm run test:cov` and ensure the suite passes with global coverage ≥ 80%.
+7. Open a Pull Request describing the problem, the solution, and how to test.
 
-O pre-commit (Husky) roda `npm run test:cov` automaticamente; commits com testes falhando ou coverage abaixo do limiar serão rejeitados. Guia completo: [/tests](/tests).
+The Husky pre-commit hook runs `npm run test:cov` automatically; commits with failing tests or coverage below the threshold are rejected. Full guide: [/tests](/tests).
 
-Ao contribuir, você concorda que o código será distribuído sob a [GPL-3.0](./LICENSE).
+By contributing, you agree that the code will be distributed under [GPL-3.0](./LICENSE).
 
-## Licença
+## License
 
-Este projeto está sob a [GNU General Public License v3.0](./LICENSE) (GPL-3.0).
+This project is licensed under the [GNU General Public License v3.0](./LICENSE) (GPL-3.0).
