@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
-import { AuthService } from './auth.service'; // Import AuthService to verify user with JWT
+import { AuthService } from './auth.service';
+import { sanitizeUserForResponse } from '@modules/users/utils/sanitize-user-response.util';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -11,10 +12,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         private configService: ConfigService,
         private authService: AuthService
     ) {
+        const secret = configService.get<string>('jwt.secret')?.trim();
+        if (!secret) {
+            throw new Error(
+                'jwt.secret must be configured (JWT_SECRET is required)',
+            );
+        }
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(), // Extract JWT from authorization header
             ignoreExpiration: false, // Don't ignore expiration
-            secretOrKey: configService.get<string>('jwt.secret') ?? 'fallback-secret-key', // Get the secret key from the config with fallback
+            secretOrKey: secret,
         });
     }
 
@@ -25,6 +32,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         if (!user) {
             throw new Error('Unauthorized'); // or any specific error handling
         }
-        return user;
+        return sanitizeUserForResponse(user);
     }
 }

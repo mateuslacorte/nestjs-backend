@@ -54,6 +54,7 @@ import corsConfig from './config/cors.config';
 import { WikiModule } from "./wiki/wiki.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { SecurityModule} from "@common/security/security.module";
+import { BlockedIpGuard } from '@common/security/guards/blocked-ip.guard';
 import { CacheModule } from '@common/cache/cache.module';
 import { HealthModule } from '@modules/health/health.module';
 
@@ -161,6 +162,10 @@ import { HealthModule } from '@modules/health/health.module';
     ],
     controllers: [],
     providers: [
+        {
+            provide: APP_GUARD,
+            useClass: BlockedIpGuard,
+        },
         // Example providers for JWT guard to apply on all routes
         {
             provide: APP_GUARD,

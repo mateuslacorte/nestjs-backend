@@ -171,4 +171,61 @@ describe('GraylogInterceptor', () => {
       }),
     );
   });
+
+  it('redacts sensitive fields in request and response bodies', async () => {
+    const context = createExecutionContext({
+      method: 'POST',
+      url: '/api/auth/login',
+      body: { email: 'user@example.com', password: 'secret123' },
+      statusCode: 200,
+    });
+    const next: CallHandler = {
+      handle: () => of({ accessToken: 'jwt-token', refreshToken: 'refresh' }),
+    };
+
+    await firstValueFrom(interceptor.intercept(context, next));
+
+    expect(graylogService.log).toHaveBeenNthCalledWith(
+      1,
+      'Request: POST /api/auth/login',
+      expect.objectContaining({
+        body: { email: 'user@example.com', password: '[REDACTED]' },
+      }),
+    );
+    expect(graylogService.log).toHaveBeenNthCalledWith(
+      2,
+      expect.stringMatching(/^Response: POST \/api\/auth\/login \d+ms$/),
+      expect.objectContaining({
+        data: { accessToken: '[REDACTED]', refreshToken: '[REDACTED]' },
+      }),
+    );
+  });
+
+  it('redacts sensitive fields nested inside arrays', async () => {
+    const context = createExecutionContext({
+      method: 'POST',
+      url: '/api/users',
+      body: [{ password: 'a' }, { name: 'ok' }],
+    });
+    const next: CallHandler = {
+      handle: () => of([{ token: 'x' }, { id: 1 }]),
+    };
+
+    await firstValueFrom(interceptor.intercept(context, next));
+
+    expect(graylogService.log).toHaveBeenNthCalledWith(
+      1,
+      expect.any(String),
+      expect.objectContaining({
+        body: [{ password: '[REDACTED]' }, { name: 'ok' }],
+      }),
+    );
+    expect(graylogService.log).toHaveBeenNthCalledWith(
+      2,
+      expect.any(String),
+      expect.objectContaining({
+        data: [{ token: '[REDACTED]' }, { id: 1 }],
+      }),
+    );
+  });
 });

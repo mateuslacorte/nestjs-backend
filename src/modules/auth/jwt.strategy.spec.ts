@@ -57,22 +57,43 @@ describe('JwtStrategy', () => {
       expect(capturedStrategyOptions?.jwtFromRequest).toBe('mock-jwt-extractor');
     });
 
-    it('falls back to fallback-secret-key when jwt.secret is undefined', () => {
-      createStrategy(undefined);
-
-      expect(capturedStrategyOptions?.secretOrKey).toBe('fallback-secret-key');
+    it('throws when jwt.secret is missing', () => {
+      expect(() => createStrategy(undefined)).toThrow(
+        'jwt.secret must be configured',
+      );
     });
   });
 
   describe('validate', () => {
-    it('returns the user when validateUserById succeeds', async () => {
+    it('returns the sanitized user when validateUserById succeeds', async () => {
       const strategy = createStrategy('secret');
-      const user = { id: 'user-1', email: 'user@example.com' };
+      const user = {
+        id: 'user-1',
+        username: 'jane',
+        firstName: 'Jane',
+        lastName: 'Smith',
+        email: 'user@example.com',
+        password: 'hash',
+        isActive: true,
+        roles: [],
+        googleId: 'google-1',
+        activeDirectoryId: 'ad-1',
+      };
       authService.validateUserById.mockResolvedValue(user as never);
 
       const result = await strategy.validate({ id: 'user-1' });
 
-      expect(result).toBe(user);
+      expect(result).toEqual({
+        id: 'user-1',
+        username: 'jane',
+        firstName: 'Jane',
+        lastName: 'Smith',
+        email: 'user@example.com',
+        isActive: true,
+        roles: [],
+      });
+      expect(result).not.toHaveProperty('googleId');
+      expect(result).not.toHaveProperty('activeDirectoryId');
       expect(authService.validateUserById).toHaveBeenCalledWith('user-1');
     });
 

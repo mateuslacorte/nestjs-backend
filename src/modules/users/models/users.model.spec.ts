@@ -3,6 +3,7 @@ import { ID, TypeMetadataStorage } from '@nestjs/graphql';
 import { LazyMetadataStorage } from '@nestjs/graphql/dist/schema-builder/storages/lazy-metadata.storage.js';
 import { Role } from '@modules/auth/enums/role.enum';
 import { UserModel } from './users.model';
+import { USER_PROVIDER_ID_FIELDS } from '../utils/sanitize-user-response.util';
 
 describe('UserModel GraphQL metadata', () => {
   beforeAll(() => {
@@ -31,31 +32,8 @@ describe('UserModel GraphQL metadata', () => {
     expect(field(name)?.typeFn()).toBeTruthy();
   });
 
-  it.each([
-    'googleId',
-    'facebookId',
-    'twitterId',
-    'githubId',
-    'figmaId',
-    'linkedinId',
-    'slackId',
-    'atlassianId',
-    'gitlabId',
-    'bitbucketId',
-    'discordId',
-    'twitchId',
-    'steamId',
-    'redditId',
-    'appleId',
-    'amazonId',
-    'patreonId',
-    'dropboxId',
-    'metamaskId',
-    'activeDirectoryId',
-  ] as const)('exposes nullable %s as String', (name) => {
-    const providerField = field(name);
-    expect(providerField?.typeFn()).toBe(String);
-    expect(providerField?.options.nullable).toBe(true);
+  it.each(USER_PROVIDER_ID_FIELDS)('does not expose provider field %s', (name) => {
+    expect(field(name)).toBeUndefined();
   });
 
   it('exposes roles as Role array', () => {

@@ -1658,6 +1658,16 @@ describe('AuthController', () => {
         '123456',
       );
     });
+
+    it('returns the same message without sending email when user is unknown', async () => {
+      const dto: ForgotPasswordDto = { email: 'missing@example.com' };
+      authService.createPasswordResetToken.mockResolvedValue(null);
+
+      await expect(controller.forgotPassword(dto)).resolves.toEqual({
+        message: 'Password reset instructions sent to your email',
+      });
+      expect(authService.sendResetTokenEmail).not.toHaveBeenCalled();
+    });
   });
 
   describe('resetPassword', () => {

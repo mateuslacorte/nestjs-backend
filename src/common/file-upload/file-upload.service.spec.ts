@@ -75,6 +75,7 @@ describe('FileUploadService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    delete process.env.MINIO_PUBLIC_READ;
     MockClientConstructor.mockImplementation(() => mockClient);
 
     mockClient.bucketExists.mockResolvedValue(true);
@@ -117,8 +118,9 @@ describe('FileUploadService', () => {
       });
     });
 
-    it('creates default bucket when it does not exist, then sets public policy', async () => {
+    it('creates default bucket when it does not exist without public policy by default', async () => {
       mockClient.bucketExists.mockResolvedValue(false);
+      delete process.env.MINIO_PUBLIC_READ;
 
       new FileUploadService(createConfigService());
       await flushPromises();
@@ -128,6 +130,16 @@ describe('FileUploadService', () => {
         'default-bucket',
         'us-east-1',
       );
+      expect(mockClient.setBucketPolicy).not.toHaveBeenCalled();
+    });
+
+    it('sets public policy when MINIO_PUBLIC_READ=true', async () => {
+      process.env.MINIO_PUBLIC_READ = 'true';
+      mockClient.bucketExists.mockResolvedValue(false);
+
+      new FileUploadService(createConfigService());
+      await flushPromises();
+
       expect(mockClient.setBucketPolicy).toHaveBeenCalledWith(
         'default-bucket',
         expect.stringContaining('"s3:GetObject"'),
@@ -148,17 +160,14 @@ describe('FileUploadService', () => {
       });
     });
 
-    it('skips makeBucket when default bucket already exists, still sets policy', async () => {
+    it('skips makeBucket when default bucket already exists, does not set policy by default', async () => {
       mockClient.bucketExists.mockResolvedValue(true);
 
       new FileUploadService(createConfigService());
       await flushPromises();
 
       expect(mockClient.makeBucket).not.toHaveBeenCalled();
-      expect(mockClient.setBucketPolicy).toHaveBeenCalledWith(
-        'default-bucket',
-        expect.any(String),
-      );
+      expect(mockClient.setBucketPolicy).not.toHaveBeenCalled();
     });
 
     it('does not crash constructor when bootstrap bucketExists rejects', async () => {
@@ -172,7 +181,8 @@ describe('FileUploadService', () => {
       );
     });
 
-    it('swallows setBucketPolicy failures during bootstrap', async () => {
+    it('swallows setBucketPolicy failures during bootstrap when MINIO_PUBLIC_READ=true', async () => {
+      process.env.MINIO_PUBLIC_READ = 'true';
       mockClient.bucketExists.mockResolvedValue(true);
       mockClient.setBucketPolicy.mockRejectedValue(new Error('Access Denied'));
 

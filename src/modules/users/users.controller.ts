@@ -7,6 +7,7 @@ import { JwtAuthGuard } from '@modules/auth/guards/jwtauth.guard';
 import { RolesGuard } from '@modules/auth/guards/roles.guard';
 import { Roles } from '@modules/auth/decorators/roles.decorator';
 import { Role } from '@modules/auth/enums/role.enum';
+import { sanitizeUserForResponse } from './utils/sanitize-user-response.util';
 
 @ApiTags('Users')
 @ApiBearerAuth('access-token')
@@ -51,7 +52,9 @@ export class UsersController {
     @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions, requires super role.' })
     @ApiResponse({ status: 409, description: 'Conflict - email or username already exists.' })
     create(@Body() createUserDto: CreateUserDto) {
-        return this.usersService.create(createUserDto);
+        return this.usersService
+            .create(createUserDto)
+            .then(sanitizeUserForResponse);
     }
 
     /**
@@ -69,7 +72,9 @@ export class UsersController {
     @ApiResponse({ status: 401, description: 'Unauthorized - JWT token is missing or invalid.' })
     @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions, requires super role.' })
     findAll() {
-        return this.usersService.findAll();
+        return this.usersService
+            .findAll()
+            .then((users) => users?.map(sanitizeUserForResponse) ?? null);
     }
 
     /**
@@ -94,7 +99,9 @@ export class UsersController {
     @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions.' })
     @ApiResponse({ status: 404, description: 'User not found.' })
     findOne(@Param('id') id: string) {
-        return this.usersService.findById(id);
+        return this.usersService
+            .findById(id)
+            .then((user) => (user ? sanitizeUserForResponse(user) : null));
     }
 
     /**
@@ -137,8 +144,9 @@ export class UsersController {
     @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions, requires super role.' })
     @ApiResponse({ status: 404, description: 'User not found.' })
     @ApiResponse({ status: 409, description: 'Conflict - email or username already in use.' })
-    update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-        return this.usersService.update(id, updateUserDto);
+    async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+        const user = await this.usersService.update(id, updateUserDto);
+        return sanitizeUserForResponse(user);
     }
 
     /**
@@ -163,6 +171,6 @@ export class UsersController {
     @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions, requires super role.' })
     @ApiResponse({ status: 404, description: 'User not found.' })
     remove(@Param('id') id: string) {
-        return this.usersService.remove(id);
+        return this.usersService.remove(id).then(sanitizeUserForResponse);
     }
 }

@@ -7,8 +7,12 @@ import { LoginDto } from './dtos/login.dto';
 import { RefreshtokenDto } from './dtos/refreshtoken.dto';
 import { ChangePasswordDto } from './dtos/change-password.dto';
 import { IUser } from '../users/interfaces/user.interface';
+import {
+    PublicUser,
+    sanitizeUserForResponse,
+} from '../users/utils/sanitize-user-response.util';
 import { UpdateUserDto } from '../users/dtos/update-user.dto';
-import { randomBytes } from 'crypto';
+import { randomBytes, randomUUID } from 'crypto';
 import {ResetPasswordDto} from "@modules/auth/dtos/reset-password.dto";
 import {EmailService} from "@modules/email/email.service";
 import { withJitter } from './utils/jwt-expiration.util';
@@ -45,6 +49,8 @@ import {
     resolveAdLdapRoles,
     rolesEqual,
 } from '@config/ad-ldap-group-role-map.util';
+import { isAllowedOAuthRedirect } from './utils/oauth-redirect-allowlist.util';
+import { CacheService } from '@common/cache/cache.service';
 
 @Injectable()
 export class AuthService {
@@ -57,6 +63,7 @@ export class AuthService {
         private readonly oauthExchangeService: OauthExchangeService,
         private readonly activeDirectoryLdapService: ActiveDirectoryLdapService,
         private readonly metamaskSiweService: MetamaskSiweService,
+        private readonly cacheService: CacheService,
     ) {}
     /* istanbul ignore end */
 
@@ -91,12 +98,9 @@ export class AuthService {
         const verificationToken = await this.createEmailVerificationToken(newUser.email);
         await this.sendEmailVerification(newUser.email, verificationToken);
 
-        // Generate tokens
-        const tokens = await this.generateTokens(newUser);
-
+        // Do not issue JWTs until email is verified (isActive=true)
         return {
             user: this.sanitizeUser(newUser),
-            ...tokens,
             message: 'Registration successful. Please check your email to confirm your account.',
         };
     }
@@ -180,7 +184,11 @@ export class AuthService {
      * @param loginDto - User login credentials
      * @returns The authenticated user and access token
      */
-    async login(loginDto: LoginDto): Promise<any> {
+    async login(loginDto: LoginDto): Promise<{
+        user: PublicUser;
+        accessToken: string;
+        refreshToken: string;
+    }> {
         const { email, password } = loginDto;
 
         // Validate user credentials
@@ -202,7 +210,7 @@ export class AuthService {
      * Login with on-prem Active Directory (LDAP/LDAPS bind on domain controller).
      */
     async loginWithActiveDirectory(dto: AdLoginDto): Promise<{
-        user: Partial<IUser>;
+        user: PublicUser;
         accessToken: string;
         refreshToken: string;
     }> {
@@ -231,7 +239,7 @@ export class AuthService {
      * (same contract as POST /auth/login).
      */
     async loginWithMetamask(dto: MetamaskVerifyDto): Promise<{
-        user: Partial<IUser>;
+        user: PublicUser;
         accessToken: string;
         refreshToken: string;
     }> {
@@ -280,7 +288,11 @@ export class AuthService {
      * @returns The validated user or null
      */
     async validateUserById(userId: string): Promise<IUser | null> {
-        return this.usersService.findById(userId);
+        const user = await this.usersService.findById(userId);
+        if (!user || !user.isActive) {
+            return null;
+        }
+        return user;
     }
 
     /**
@@ -292,34 +304,49 @@ export class AuthService {
         const { refreshToken } = refreshTokenDto;
 
         try {
-            // Verify the refresh token
             const payload = this.jwtService.verify(refreshToken, {
                 secret: this.configService.get<string>('jwt.refreshSecret'),
-            });
+            }) as { id?: string; jti?: string };
 
-            const user = await this.usersService.findById(payload.id);
-            if (!user) {
-                throw new NotFoundException('User not found');
+            if (payload.jti && (await this.isRefreshTokenRevoked(payload.jti))) {
+                throw new UnauthorizedException('Invalid refresh token');
             }
 
-            // Generate new tokens
-            const tokens = await this.generateTokens(user);
+            const user = await this.usersService.findById(payload.id!);
+            if (!user || !user.isActive) {
+                throw new UnauthorizedException('Invalid refresh token');
+            }
 
-            return tokens;
+            if (payload.jti) {
+                await this.revokeRefreshToken(
+                    payload.jti,
+                    this.configService.get<string>('jwt.refreshExpirationTime') ??
+                        '7d',
+                );
+            }
+
+            return this.generateTokens(user);
         } catch (error) {
+            if (
+                error instanceof UnauthorizedException ||
+                error instanceof NotFoundException
+            ) {
+                throw error;
+            }
             throw new UnauthorizedException('Invalid refresh token');
         }
     }
 
     /**
-     * Create a password reset token for the user
+     * Create a password reset token for the user.
+     * Returns null when the email is unknown (avoids account enumeration).
      * @param email - User email to create reset token for
-     * @returns The reset token
+     * @returns The reset token, or null if no user exists
      */
-    async createPasswordResetToken(email: string): Promise<string> {
+    async createPasswordResetToken(email: string): Promise<string | null> {
         const user = await this.usersService.findByEmail(email);
         if (!user) {
-            throw new NotFoundException('User not found');
+            return null;
         }
 
         // Generate a random token
@@ -791,7 +818,7 @@ export class AuthService {
      * Exchange a one-time OAuth code for JWT tokens (Google, Facebook, Twitter, GitHub, Figma, LinkedIn, Slack, Atlassian, GitLab, Bitbucket, Discord, Twitch, Steam, Reddit, Apple, Amazon, Patreon, or Dropbox).
      */
     async exchangeOAuthCode(dto: ExchangeCodeDto): Promise<{
-        user: Partial<IUser>;
+        user: PublicUser;
         accessToken: string;
         refreshToken: string;
     }> {
@@ -1051,14 +1078,31 @@ export class AuthService {
 
         const allowlist =
             this.configService.get<string[]>(allowlistConfigKey) || [];
-        const allowed = allowlist.some(
-            (prefix) => redirect === prefix || redirect.startsWith(prefix),
-        );
-        if (!allowed) {
+        if (!isAllowedOAuthRedirect(redirect, allowlist)) {
             throw new BadRequestException('Redirect URL is not allowed');
         }
 
         return redirect;
+    }
+
+    /**
+     * Link a social/AD provider to an existing local account only when the
+     * email is already verified (isActive). Prevents pre-registration takeover.
+     */
+    private async linkProviderToVerifiedEmail(
+        email: string,
+        patch: UpdateUserDto,
+    ): Promise<IUser | null> {
+        const byEmail = await this.usersService.findByEmail(email);
+        if (!byEmail) {
+            return null;
+        }
+        if (!byEmail.isActive) {
+            throw new ConflictException(
+                'An account with this email already exists. Verify your email or sign in before linking a provider.',
+            );
+        }
+        return this.usersService.update(byEmail.id!, patch);
     }
 
     private async findOrCreateGoogleUser(
@@ -1072,12 +1116,11 @@ export class AuthService {
             return byGoogle;
         }
 
-        const byEmail = await this.usersService.findByEmail(profile.email);
-        if (byEmail) {
-            return this.usersService.update(byEmail.id!, {
-                googleId: profile.googleId,
-                isActive: true,
-            });
+        const linked = await this.linkProviderToVerifiedEmail(profile.email, {
+            googleId: profile.googleId,
+        });
+        if (linked) {
+            return linked;
         }
 
         const defaultRoles =
@@ -1106,12 +1149,11 @@ export class AuthService {
             return byFacebook;
         }
 
-        const byEmail = await this.usersService.findByEmail(profile.email);
-        if (byEmail) {
-            return this.usersService.update(byEmail.id!, {
-                facebookId: profile.facebookId,
-                isActive: true,
-            });
+        const linked = await this.linkProviderToVerifiedEmail(profile.email, {
+            facebookId: profile.facebookId,
+        });
+        if (linked) {
+            return linked;
         }
 
         const defaultRoles =
@@ -1140,12 +1182,11 @@ export class AuthService {
             return byTwitter;
         }
 
-        const byEmail = await this.usersService.findByEmail(profile.email);
-        if (byEmail) {
-            return this.usersService.update(byEmail.id!, {
-                twitterId: profile.twitterId,
-                isActive: true,
-            });
+        const linked = await this.linkProviderToVerifiedEmail(profile.email, {
+            twitterId: profile.twitterId,
+        });
+        if (linked) {
+            return linked;
         }
 
         const defaultRoles =
@@ -1174,12 +1215,11 @@ export class AuthService {
             return byGithub;
         }
 
-        const byEmail = await this.usersService.findByEmail(profile.email);
-        if (byEmail) {
-            return this.usersService.update(byEmail.id!, {
-                githubId: profile.githubId,
-                isActive: true,
-            });
+        const linked = await this.linkProviderToVerifiedEmail(profile.email, {
+            githubId: profile.githubId,
+        });
+        if (linked) {
+            return linked;
         }
 
         const defaultRoles =
@@ -1208,12 +1248,11 @@ export class AuthService {
             return byFigma;
         }
 
-        const byEmail = await this.usersService.findByEmail(profile.email);
-        if (byEmail) {
-            return this.usersService.update(byEmail.id!, {
-                figmaId: profile.figmaId,
-                isActive: true,
-            });
+        const linked = await this.linkProviderToVerifiedEmail(profile.email, {
+            figmaId: profile.figmaId,
+        });
+        if (linked) {
+            return linked;
         }
 
         const defaultRoles =
@@ -1244,12 +1283,11 @@ export class AuthService {
             return byLinkedin;
         }
 
-        const byEmail = await this.usersService.findByEmail(profile.email);
-        if (byEmail) {
-            return this.usersService.update(byEmail.id!, {
-                linkedinId: profile.linkedinId,
-                isActive: true,
-            });
+        const linked = await this.linkProviderToVerifiedEmail(profile.email, {
+            linkedinId: profile.linkedinId,
+        });
+        if (linked) {
+            return linked;
         }
 
         const defaultRoles =
@@ -1278,12 +1316,11 @@ export class AuthService {
             return bySlack;
         }
 
-        const byEmail = await this.usersService.findByEmail(profile.email);
-        if (byEmail) {
-            return this.usersService.update(byEmail.id!, {
-                slackId: profile.slackId,
-                isActive: true,
-            });
+        const linked = await this.linkProviderToVerifiedEmail(profile.email, {
+            slackId: profile.slackId,
+        });
+        if (linked) {
+            return linked;
         }
 
         const defaultRoles =
@@ -1314,12 +1351,11 @@ export class AuthService {
             return byAtlassian;
         }
 
-        const byEmail = await this.usersService.findByEmail(profile.email);
-        if (byEmail) {
-            return this.usersService.update(byEmail.id!, {
-                atlassianId: profile.atlassianId,
-                isActive: true,
-            });
+        const linked = await this.linkProviderToVerifiedEmail(profile.email, {
+            atlassianId: profile.atlassianId,
+        });
+        if (linked) {
+            return linked;
         }
 
         const defaultRoles =
@@ -1348,12 +1384,11 @@ export class AuthService {
             return byGitlab;
         }
 
-        const byEmail = await this.usersService.findByEmail(profile.email);
-        if (byEmail) {
-            return this.usersService.update(byEmail.id!, {
-                gitlabId: profile.gitlabId,
-                isActive: true,
-            });
+        const linked = await this.linkProviderToVerifiedEmail(profile.email, {
+            gitlabId: profile.gitlabId,
+        });
+        if (linked) {
+            return linked;
         }
 
         const defaultRoles =
@@ -1384,12 +1419,11 @@ export class AuthService {
             return byBitbucket;
         }
 
-        const byEmail = await this.usersService.findByEmail(profile.email);
-        if (byEmail) {
-            return this.usersService.update(byEmail.id!, {
-                bitbucketId: profile.bitbucketId,
-                isActive: true,
-            });
+        const linked = await this.linkProviderToVerifiedEmail(profile.email, {
+            bitbucketId: profile.bitbucketId,
+        });
+        if (linked) {
+            return linked;
         }
 
         const defaultRoles =
@@ -1418,12 +1452,11 @@ export class AuthService {
             return byDiscord;
         }
 
-        const byEmail = await this.usersService.findByEmail(profile.email);
-        if (byEmail) {
-            return this.usersService.update(byEmail.id!, {
-                discordId: profile.discordId,
-                isActive: true,
-            });
+        const linked = await this.linkProviderToVerifiedEmail(profile.email, {
+            discordId: profile.discordId,
+        });
+        if (linked) {
+            return linked;
         }
 
         const defaultRoles =
@@ -1452,12 +1485,11 @@ export class AuthService {
             return byTwitch;
         }
 
-        const byEmail = await this.usersService.findByEmail(profile.email);
-        if (byEmail) {
-            return this.usersService.update(byEmail.id!, {
-                twitchId: profile.twitchId,
-                isActive: true,
-            });
+        const linked = await this.linkProviderToVerifiedEmail(profile.email, {
+            twitchId: profile.twitchId,
+        });
+        if (linked) {
+            return linked;
         }
 
         const defaultRoles =
@@ -1486,12 +1518,11 @@ export class AuthService {
             return byAmazon;
         }
 
-        const byEmail = await this.usersService.findByEmail(profile.email);
-        if (byEmail) {
-            return this.usersService.update(byEmail.id!, {
-                amazonId: profile.amazonId,
-                isActive: true,
-            });
+        const linked = await this.linkProviderToVerifiedEmail(profile.email, {
+            amazonId: profile.amazonId,
+        });
+        if (linked) {
+            return linked;
         }
 
         const defaultRoles =
@@ -1521,12 +1552,11 @@ export class AuthService {
             return byPatreon;
         }
 
-        const byEmail = await this.usersService.findByEmail(profile.email);
-        if (byEmail) {
-            return this.usersService.update(byEmail.id!, {
-                patreonId: profile.patreonId,
-                isActive: true,
-            });
+        const linked = await this.linkProviderToVerifiedEmail(profile.email, {
+            patreonId: profile.patreonId,
+        });
+        if (linked) {
+            return linked;
         }
 
         const defaultRoles =
@@ -1555,12 +1585,11 @@ export class AuthService {
             return byDropbox;
         }
 
-        const byEmail = await this.usersService.findByEmail(profile.email);
-        if (byEmail) {
-            return this.usersService.update(byEmail.id!, {
-                dropboxId: profile.dropboxId,
-                isActive: true,
-            });
+        const linked = await this.linkProviderToVerifiedEmail(profile.email, {
+            dropboxId: profile.dropboxId,
+        });
+        if (linked) {
+            return linked;
         }
 
         const defaultRoles =
@@ -1626,16 +1655,18 @@ export class AuthService {
             return byAd;
         }
 
-        const byEmail = await this.usersService.findByEmail(profile.email);
-        if (byEmail) {
-            const patch: UpdateUserDto = {
-                activeDirectoryId: profile.activeDirectoryId,
-                isActive: true,
-            };
-            if (syncRoles && !rolesEqual(byEmail.roles, resolvedRoles)) {
-                patch.roles = resolvedRoles;
-            }
-            return this.usersService.update(byEmail.id!, patch);
+        const adLinkPatch: UpdateUserDto = {
+            activeDirectoryId: profile.activeDirectoryId,
+        };
+        if (syncRoles) {
+            adLinkPatch.roles = resolvedRoles;
+        }
+        const linkedAd = await this.linkProviderToVerifiedEmail(
+            profile.email,
+            adLinkPatch,
+        );
+        if (linkedAd) {
+            return linkedAd;
         }
 
         const usernameBase =
@@ -1695,12 +1726,11 @@ export class AuthService {
             return bySteam;
         }
 
-        const byEmail = await this.usersService.findByEmail(profile.email);
-        if (byEmail) {
-            return this.usersService.update(byEmail.id!, {
-                steamId: profile.steamId,
-                isActive: true,
-            });
+        const linked = await this.linkProviderToVerifiedEmail(profile.email, {
+            steamId: profile.steamId,
+        });
+        if (linked) {
+            return linked;
         }
 
         const defaultRoles =
@@ -1729,12 +1759,11 @@ export class AuthService {
             return byReddit;
         }
 
-        const byEmail = await this.usersService.findByEmail(profile.email);
-        if (byEmail) {
-            return this.usersService.update(byEmail.id!, {
-                redditId: profile.redditId,
-                isActive: true,
-            });
+        const linked = await this.linkProviderToVerifiedEmail(profile.email, {
+            redditId: profile.redditId,
+        });
+        if (linked) {
+            return linked;
         }
 
         const defaultRoles =
@@ -1763,12 +1792,11 @@ export class AuthService {
             return byApple;
         }
 
-        const byEmail = await this.usersService.findByEmail(profile.email);
-        if (byEmail) {
-            return this.usersService.update(byEmail.id!, {
-                appleId: profile.appleId,
-                isActive: true,
-            });
+        const linked = await this.linkProviderToVerifiedEmail(profile.email, {
+            appleId: profile.appleId,
+        });
+        if (linked) {
+            return linked;
         }
 
         const defaultRoles =
@@ -1814,8 +1842,8 @@ export class AuthService {
     private async generateTokens(user: IUser): Promise<{ accessToken: string; refreshToken: string }> {
         const payload = { id: user.id, email: user.email, roles: user.roles };
         const jitterSeconds = this.configService.get<number>('jwt.jitterSeconds') ?? 0;
+        const refreshJti = randomUUID();
 
-        // Generate access token (base TTL + random jitter)
         const accessToken = this.jwtService.sign(payload, {
             secret: this.configService.get<string>('jwt.secret'),
             expiresIn: withJitter(
@@ -1824,14 +1852,15 @@ export class AuthService {
             ),
         });
 
-        // Generate refresh token (base TTL + random jitter)
-        const refreshToken = this.jwtService.sign(payload, {
-            secret: this.configService.get<string>('jwt.refreshSecret'),
-            expiresIn: withJitter(
-                this.configService.get<string>('jwt.refreshExpirationTime') ?? '7d',
-                jitterSeconds,
-            ),
-        });
+        const refreshExpiresIn =
+            this.configService.get<string>('jwt.refreshExpirationTime') ?? '7d';
+        const refreshToken = this.jwtService.sign(
+            { ...payload, jti: refreshJti },
+            {
+                secret: this.configService.get<string>('jwt.refreshSecret'),
+                expiresIn: withJitter(refreshExpiresIn, jitterSeconds),
+            },
+        );
 
         return {
             accessToken,
@@ -1839,14 +1868,51 @@ export class AuthService {
         };
     }
 
+    private refreshRevokeKey(jti: string): string {
+        return `auth:refresh:revoke:${jti}`;
+    }
+
+    private async revokeRefreshToken(
+        jti: string,
+        expiresIn: string,
+    ): Promise<void> {
+        const ttlSeconds = this.parseExpiresInToSeconds(expiresIn);
+        await this.cacheService.set(this.refreshRevokeKey(jti), true, ttlSeconds);
+    }
+
+    private async isRefreshTokenRevoked(jti: string): Promise<boolean> {
+        const revoked = await this.cacheService.get<boolean>(
+            this.refreshRevokeKey(jti),
+        );
+        return revoked === true;
+    }
+
+    private parseExpiresInToSeconds(expiresIn: string): number {
+        const match = /^(\d+)([smhd])$/i.exec(expiresIn.trim());
+        if (!match) {
+            return 7 * 24 * 60 * 60;
+        }
+        const value = parseInt(match[1], 10);
+        switch (match[2].toLowerCase()) {
+            case 's':
+                return value;
+            case 'm':
+                return value * 60;
+            case 'h':
+                return value * 60 * 60;
+            case 'd':
+                return value * 24 * 60 * 60;
+            /* istanbul ignore next -- regex only matches smhd */
+            default:
+                return 7 * 24 * 60 * 60;
+        }
+    }
+
     /**
-     * Remove sensitive data from user object
-     * @param user - User object to sanitize
-     * @returns Sanitized user object
+     * Remove sensitive and internal linkage data from user objects in API responses.
      */
-    private sanitizeUser(user: IUser): Partial<IUser> {
-        const { password, ...sanitizedUser } = user as any;
-        return sanitizedUser;
+    private sanitizeUser(user: IUser): PublicUser {
+        return sanitizeUserForResponse(user);
     }
 
 }

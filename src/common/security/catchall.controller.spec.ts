@@ -188,7 +188,24 @@ describe('CatchAllController', () => {
   });
 
   describe('getClientIp', () => {
-    it('uses the first x-forwarded-for value (string)', async () => {
+    it('prefers req.ip over x-forwarded-for when both are present', async () => {
+      const req = createReq({
+        originalUrl: '/probe',
+        ip: '1.1.1.1',
+        headers: { 'x-forwarded-for': '9.9.9.9, 8.8.8.8' },
+      });
+      const reply = createReply();
+
+      await controller.handleNotFound(req, reply as unknown as AppReply);
+
+      expect(securityService.registerInvalidRouteAttempt).toHaveBeenCalledWith(
+        '1.1.1.1',
+        '/probe',
+        undefined,
+      );
+    });
+
+    it('uses the first x-forwarded-for value when req.ip is missing (string)', async () => {
       const req = createReq({
         originalUrl: '/probe',
         headers: { 'x-forwarded-for': ' 9.9.9.9, 8.8.8.8 ' },
@@ -204,7 +221,7 @@ describe('CatchAllController', () => {
       );
     });
 
-    it('uses the first x-forwarded-for value (array)', async () => {
+    it('uses the first x-forwarded-for value when req.ip is missing (array)', async () => {
       const req = createReq({
         originalUrl: '/probe',
         headers: { 'x-forwarded-for': ['2.2.2.2', '3.3.3.3'] },

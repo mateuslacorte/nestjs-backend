@@ -10,6 +10,7 @@ import { ConfigService } from '@nestjs/config';
 import { AbstractWebsocketService } from './abstract-websocket.service';
 import { Role } from '@modules/auth/enums/role.enum';
 import { isOriginAllowed } from '@config/cors-origins.util';
+import { UsersService } from '@modules/users/users.service';
 import * as jwt from 'jsonwebtoken';
 
 export type WebsocketUser = {
@@ -35,10 +36,11 @@ export abstract class AbstractWebsocketGateway
     constructor(
         protected readonly websocketService: AbstractWebsocketService,
         protected readonly configService: ConfigService,
+        protected readonly usersService: UsersService,
     ) {}
 
     afterInit(server: Server): void {
-        server.use((socket: Socket, next) => {
+        server.use(async (socket: Socket, next) => {
             try {
                 const allowed =
                     this.configService.get<string[]>('cors.origins') || [];
@@ -73,8 +75,6 @@ export abstract class AbstractWebsocketGateway
                     'fallback-secret-key';
                 const decoded = jwt.verify(token, jwtSecret) as {
                     id?: string;
-                    email?: string;
-                    roles?: Role[];
                 };
 
                 if (!decoded?.id) {
@@ -84,10 +84,18 @@ export abstract class AbstractWebsocketGateway
                     return next(new Error('Invalid token'));
                 }
 
+                const dbUser = await this.usersService.findById(decoded.id);
+                if (!dbUser?.isActive) {
+                    this.logger.warn(
+                        `Connection rejected: User missing or inactive for ${socket.id}`,
+                    );
+                    return next(new Error('User not found or inactive'));
+                }
+
                 const user: WebsocketUser = {
-                    id: decoded.id,
-                    email: decoded.email,
-                    roles: Array.isArray(decoded.roles) ? decoded.roles : [],
+                    id: dbUser.id!,
+                    email: dbUser.email,
+                    roles: Array.isArray(dbUser.roles) ? dbUser.roles : [],
                 };
 
                 const authSocket = socket as AuthenticatedSocket;

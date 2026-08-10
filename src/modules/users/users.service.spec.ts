@@ -169,8 +169,8 @@ describe('UsersService', () => {
   });
 
   describe('findAll', () => {
-    it('returns repository result', async () => {
-      const users = [createUser()];
+    it('returns sanitized repository result', async () => {
+      const users = [createUser({ googleId: 'g-1' })];
       postgresRepo.findAll.mockResolvedValue(users);
 
       await expect(service.findAll()).resolves.toBe(users);

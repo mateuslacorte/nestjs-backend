@@ -2,6 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import { WebsocketGateway } from './websocket.gateway';
 import { WebsocketService } from './websocket.service';
 import { AbstractWebsocketGateway } from './abstract-websocket.gateway';
+import { UsersService } from '@modules/users/users.service';
 import { Socket } from 'socket.io';
 
 describe('WebsocketGateway', () => {
@@ -11,6 +12,7 @@ describe('WebsocketGateway', () => {
     removeClient: jest.Mock;
   };
   let configService: ConfigService;
+  let usersService: { findById: jest.Mock };
   let gateway: WebsocketGateway;
 
   beforeEach(() => {
@@ -22,10 +24,14 @@ describe('WebsocketGateway', () => {
     configService = {
       get: jest.fn(),
     } as unknown as ConfigService;
+    usersService = {
+      findById: jest.fn(),
+    };
 
     gateway = new WebsocketGateway(
       websocketService as unknown as WebsocketService,
       configService,
+      usersService as unknown as UsersService,
     );
   });
 

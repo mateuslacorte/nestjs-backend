@@ -1,3 +1,7 @@
+jest.mock('uuid', () => ({
+  v4: () => 'fixed-uuid',
+}));
+
 import { Module } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { MODULE_METADATA } from '@nestjs/common/constants';

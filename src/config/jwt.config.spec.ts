@@ -5,6 +5,8 @@ describe('jwt.config', () => {
 
   beforeEach(() => {
     process.env = { ...originalEnv };
+    delete process.env.NODE_ENV;
+    delete process.env.APP_ENV;
     delete process.env.JWT_SECRET;
     delete process.env.JWT_EXPIRATION_TIME;
     delete process.env.JWT_REFRESH_SECRET;
@@ -42,10 +44,32 @@ describe('jwt.config', () => {
     });
   });
 
-  it('uses JWT_SECRET as refreshSecret when refresh secret is unset', () => {
+  it('uses fallback refresh secret when refresh secret is unset in non-production', () => {
+    expect(jwtConfig().refreshSecret).toBe('fallback-refresh-secret-key');
+  });
+
+  it('does not reuse JWT_SECRET as refreshSecret when refresh secret is unset', () => {
     process.env.JWT_SECRET = 'shared-secret';
 
-    expect(jwtConfig().refreshSecret).toBe('shared-secret');
+    expect(jwtConfig().refreshSecret).toBe('fallback-refresh-secret-key');
+    expect(jwtConfig().refreshSecret).not.toBe('shared-secret');
+  });
+
+  it('throws in production when JWT_SECRET is missing', () => {
+    process.env.NODE_ENV = 'production';
+
+    expect(() => jwtConfig()).toThrow(
+      'JWT_SECRET must be set in production (no insecure fallback)',
+    );
+  });
+
+  it('throws in production when JWT_REFRESH_SECRET is missing', () => {
+    process.env.NODE_ENV = 'production';
+    process.env.JWT_SECRET = 'access-secret';
+
+    expect(() => jwtConfig()).toThrow(
+      'JWT_REFRESH_SECRET must be set in production (no insecure fallback)',
+    );
   });
 
   it('parses JWT_JITTER_SECONDS=0 as 0', () => {

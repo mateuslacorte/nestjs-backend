@@ -7,6 +7,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { AppRequest, requestPath } from '@common/http/app-http';
+import { isAllowedOAuthRedirect } from '../utils/oauth-redirect-allowlist.util';
 
 @Injectable()
 export class SteamAuthGuard extends AuthGuard('steam') {
@@ -68,8 +69,6 @@ export class SteamAuthGuard extends AuthGuard('steam') {
     }
 
     private isAllowedRedirect(redirect: string, allowlist: string[]): boolean {
-        return allowlist.some(
-            (prefix) => redirect === prefix || redirect.startsWith(prefix),
-        );
+        return isAllowedOAuthRedirect(redirect, allowlist);
     }
 }

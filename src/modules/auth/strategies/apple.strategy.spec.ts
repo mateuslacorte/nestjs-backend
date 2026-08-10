@@ -1,8 +1,13 @@
 import { ConfigService } from '@nestjs/config';
+import { createPublicKey } from 'crypto';
 import * as jwt from 'jsonwebtoken';
 import { AppleStrategy, AppleProfilePayload } from './apple.strategy';
 
 jest.mock('jsonwebtoken');
+jest.mock('crypto', () => ({
+  ...jest.requireActual('crypto'),
+  createPublicKey: jest.fn(() => 'mock-public-key'),
+}));
 jest.mock('passport-apple', () => {
   const MockAppleStrategy = class {
     name = 'apple';
@@ -14,6 +19,10 @@ jest.mock('@nestjs/passport', () => ({
     return class PassportStrategyMixin {};
   },
 }));
+
+const mockedCreatePublicKey = createPublicKey as jest.MockedFunction<
+  typeof createPublicKey
+>;
 
 function createConfigService(
   values: Record<string, unknown> = {},
@@ -34,10 +43,24 @@ function runValidate(
 
 describe('AppleStrategy', () => {
   let strategy: AppleStrategy;
-  const mockedJwtDecode = jwt.decode as jest.MockedFunction<typeof jwt.decode>;
+  const mockedJwtDecode = jwt.decode as jest.Mock;
+  const mockedJwtVerify = jwt.verify as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        keys: [{ kid: 'test-kid', kty: 'RSA', n: 'n', e: 'AQAB' }],
+      }),
+    }) as jest.Mock;
+
+    mockedJwtDecode.mockReturnValue({
+      header: { kid: 'test-kid', alg: 'RS256' },
+      payload: {},
+    } as jwt.Jwt);
+    mockedCreatePublicKey.mockReturnValue('mock-public-key' as never);
+
     strategy = new AppleStrategy(
       createConfigService({
         'appleOAuth.clientId': 'com.example.service',
@@ -75,11 +98,17 @@ describe('AppleStrategy', () => {
         response_mode: 'form_post',
       });
     });
+
+    it('omits state when state is an empty string', () => {
+      expect(strategy.authorizationParams({ state: '' })).toEqual({
+        response_mode: 'form_post',
+      });
+    });
   });
 
   describe('validate', () => {
     it('returns profile payload from id_token with name from body on first login', async () => {
-      mockedJwtDecode.mockReturnValue({
+      mockedJwtVerify.mockReturnValue({
         sub: 'apple-sub-001',
         email: 'user@privaterelay.appleid.com',
       } as jwt.JwtPayload);
@@ -94,10 +123,31 @@ describe('AppleStrategy', () => {
         firstName: 'Jane',
         lastName: 'Doe',
       } satisfies AppleProfilePayload);
+      expect(mockedJwtVerify).toHaveBeenCalledWith(
+        'id-token-str',
+        'mock-public-key',
+        expect.objectContaining({
+          algorithms: ['RS256'],
+          audience: 'com.example.service',
+          issuer: 'https://appleid.apple.com',
+        }),
+      );
+    });
+
+    it('reuses cached Apple JWKS within TTL', async () => {
+      mockedJwtVerify.mockReturnValue({
+        sub: 'apple-sub-cache',
+        email: 'user@privaterelay.appleid.com',
+      } as jwt.JwtPayload);
+
+      await runValidate(strategy, 'id-token-1');
+      await runValidate(strategy, 'id-token-2');
+
+      expect(global.fetch).toHaveBeenCalledTimes(1);
     });
 
     it('falls back to Apple as firstName when no name in body (subsequent login)', async () => {
-      mockedJwtDecode.mockReturnValue({
+      mockedJwtVerify.mockReturnValue({
         sub: 'apple-sub-002',
         email: 'user@privaterelay.appleid.com',
       } as jwt.JwtPayload);
@@ -112,7 +162,7 @@ describe('AppleStrategy', () => {
     });
 
     it('uses Apple as firstName when body firstName is whitespace only', async () => {
-      mockedJwtDecode.mockReturnValue({
+      mockedJwtVerify.mockReturnValue({
         sub: 'apple-sub-ws',
         email: 'user@privaterelay.appleid.com',
       } as jwt.JwtPayload);
@@ -128,7 +178,7 @@ describe('AppleStrategy', () => {
     });
 
     it('uses empty lastName when body lastName is missing or whitespace', async () => {
-      mockedJwtDecode.mockReturnValue({
+      mockedJwtVerify.mockReturnValue({
         sub: 'apple-sub-nolast',
         email: 'user@privaterelay.appleid.com',
       } as jwt.JwtPayload);
@@ -151,7 +201,7 @@ describe('AppleStrategy', () => {
     });
 
     it('accepts user body as object (not JSON string)', async () => {
-      mockedJwtDecode.mockReturnValue({
+      mockedJwtVerify.mockReturnValue({
         sub: 'apple-sub-obj',
         email: 'user@privaterelay.appleid.com',
       } as jwt.JwtPayload);
@@ -169,7 +219,7 @@ describe('AppleStrategy', () => {
     });
 
     it('throws when sub is missing from id_token', async () => {
-      mockedJwtDecode.mockReturnValue({ email: 'user@example.com' } as jwt.JwtPayload);
+      mockedJwtVerify.mockReturnValue({ email: 'user@example.com' } as jwt.JwtPayload);
 
       await expect(runValidate(strategy, 'bad-token')).rejects.toThrow(
         'Apple id_token did not provide a subject (sub)',
@@ -177,23 +227,66 @@ describe('AppleStrategy', () => {
     });
 
     it('throws when email is missing from id_token', async () => {
-      mockedJwtDecode.mockReturnValue({ sub: 'apple-sub-003' } as jwt.JwtPayload);
+      mockedJwtVerify.mockReturnValue({ sub: 'apple-sub-003' } as jwt.JwtPayload);
 
       await expect(runValidate(strategy, 'bad-token')).rejects.toThrow(
         'Apple id_token did not provide an email',
       );
     });
 
-    it('throws when id_token cannot be decoded (null)', async () => {
-      mockedJwtDecode.mockReturnValue(null);
+    it('throws when id_token cannot be verified (verify throws)', async () => {
+      mockedJwtVerify.mockImplementation(() => {
+        throw new Error('invalid token');
+      });
 
       await expect(runValidate(strategy, 'bad-token')).rejects.toThrow(
-        'Apple id_token did not provide a subject (sub)',
+        'invalid token',
+      );
+    });
+
+    it('throws when Apple JWKS fetch fails', async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status: 503,
+      }) as jest.Mock;
+
+      await expect(runValidate(strategy, 'id-token')).rejects.toThrow(
+        'Failed to fetch Apple JWKS: HTTP 503',
+      );
+    });
+
+    it('throws when id_token header is missing kid', async () => {
+      mockedJwtDecode.mockReturnValue({
+        header: { alg: 'RS256' },
+        payload: {},
+      } as jwt.Jwt);
+
+      await expect(runValidate(strategy, 'id-token')).rejects.toThrow(
+        'Apple id_token header missing kid',
+      );
+    });
+
+    it('throws when id_token decode returns a raw string', async () => {
+      mockedJwtDecode.mockReturnValue('not-a-jwt-object');
+
+      await expect(runValidate(strategy, 'id-token')).rejects.toThrow(
+        'Apple id_token header missing kid',
+      );
+    });
+
+    it('throws when kid is not present in Apple JWKS', async () => {
+      mockedJwtDecode.mockReturnValue({
+        header: { kid: 'unknown-kid', alg: 'RS256' },
+        payload: {},
+      } as jwt.Jwt);
+
+      await expect(runValidate(strategy, 'id-token')).rejects.toThrow(
+        'Apple id_token kid not found in JWKS: unknown-kid',
       );
     });
 
     it('throws SyntaxError when user body JSON is invalid', async () => {
-      mockedJwtDecode.mockReturnValue({
+      mockedJwtVerify.mockReturnValue({
         sub: 'apple-sub-err',
         email: 'user@privaterelay.appleid.com',
       } as jwt.JwtPayload);

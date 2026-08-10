@@ -5,6 +5,30 @@ import { tap } from 'rxjs/operators';
 import { NO_LOG_KEY } from './decorators/no-log.decorator';
 import { GraylogService } from './graylog.service';
 
+const SENSITIVE_KEY =
+    /pass(word)?|secret|token|authorization|refresh|cookie|client_secret|private.?key|code$/i;
+
+function redactValue(value: unknown, depth = 0): unknown {
+    if (depth > 6 || value == null) {
+        return value;
+    }
+    if (Array.isArray(value)) {
+        return value.map((item) => redactValue(item, depth + 1));
+    }
+    if (typeof value === 'object') {
+        const out: Record<string, unknown> = {};
+        for (const [key, nested] of Object.entries(
+            value as Record<string, unknown>,
+        )) {
+            out[key] = SENSITIVE_KEY.test(key)
+                ? '[REDACTED]'
+                : redactValue(nested, depth + 1);
+        }
+        return out;
+    }
+    return value;
+}
+
 @Injectable()
 export class GraylogInterceptor implements NestInterceptor {
     /* istanbul ignore next -- Nest DI constructor parameter emit */
@@ -31,9 +55,9 @@ export class GraylogInterceptor implements NestInterceptor {
             type: 'request',
             method,
             url,
-            body,
-            query,
-            params,
+            body: redactValue(body),
+            query: redactValue(query),
+            params: redactValue(params),
             userAgent: headers['user-agent'] || '',
             ip: request.ip || '',
         });
@@ -47,7 +71,7 @@ export class GraylogInterceptor implements NestInterceptor {
                         url,
                         responseTime: Date.now() - startedAt,
                         status: context.switchToHttp().getResponse().statusCode,
-                        data,
+                        data: redactValue(data),
                     });
                 },
                 error: () => {

@@ -38,6 +38,7 @@ describe('LinkedinAuthGuard', () => {
       'linkedinOAuth.redirectAllowlist': [
         'https://app.example.com',
         'https://app.example.com/dashboard',
+        'https://app.example.com/dashboard/settings',
       ],
     });
     guard = new LinkedinAuthGuard(configService);
@@ -114,19 +115,16 @@ describe('LinkedinAuthGuard', () => {
       expect(state.r).toBe(redirect);
     });
 
-    it('allows redirect that starts with an allowlist prefix', () => {
+    it('rejects redirect that only matches an allowlist prefix', () => {
       const redirect = 'https://app.example.com/settings/profile';
       const context = createHttpContext({
         path: '/api/v1/auth/linkedin',
         query: { redirect },
       });
 
-      const options = guard.getAuthenticateOptions(context);
-      const state = JSON.parse(
-        Buffer.from(options.state as string, 'base64url').toString('utf8'),
+      expect(() => guard.getAuthenticateOptions(context)).toThrow(
+        BadRequestException,
       );
-
-      expect(state.r).toBe(redirect);
     });
 
     it('throws BadRequestException when redirect is not in allowlist', () => {

@@ -15,6 +15,7 @@ import { SecurityService } from './security.service';
 import { Public } from '@modules/auth/decorators/public.decorator';
 import { NoLog } from '@common/graylog/decorators/no-log.decorator';
 import { WikiRenderService } from '../../wiki/wiki-render.service';
+import { getClientIp } from './utils/client-ip.util';
 
 @ApiExcludeController()
 @NoLog() // Do not log requests for nonexistent routes
@@ -35,7 +36,7 @@ export class CatchAllController {
         @Req() req: AppRequest,
         @Res() reply: AppReply,
     ) {
-        const ip = this.getClientIp(req);
+        const ip = getClientIp(req);
         const path = requestOriginalUrl(req);
         const userAgent = req.headers['user-agent'];
 
@@ -90,21 +91,4 @@ export class CatchAllController {
         });
     }
 
-    /**
-     * Extracts the real client IP, considering proxies
-     */
-    private getClientIp(req: AppRequest): string {
-        const forwarded = req.headers['x-forwarded-for'];
-        if (forwarded) {
-            const ips = Array.isArray(forwarded) ? forwarded[0] : forwarded.split(',')[0];
-            return ips.trim();
-        }
-        
-        const realIp = req.headers['x-real-ip'];
-        if (realIp) {
-            return Array.isArray(realIp) ? realIp[0] : realIp;
-        }
-
-        return req.ip || req.socket?.remoteAddress || 'unknown';
-    }
 }

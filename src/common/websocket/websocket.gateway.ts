@@ -9,6 +9,7 @@ import { WebsocketService } from './websocket.service';
 import { AbstractWebsocketGateway } from './abstract-websocket.gateway';
 import { JwtAuthGuard } from '@modules/auth/guards/jwtauth.guard';
 import { RolesGuard } from '@modules/auth/guards/roles.guard';
+import { UsersService } from '@modules/users/users.service';
 
 @NestWebSocketGateway({
     // CORS: CorsIoAdapter (Engine.IO) + Origin check in AbstractWebsocketGateway
@@ -19,8 +20,9 @@ export class WebsocketGateway extends AbstractWebsocketGateway {
     constructor(
         protected readonly websocketService: WebsocketService,
         protected readonly configService: ConfigService,
+        protected readonly usersService: UsersService,
     ) {
-        super(websocketService, configService);
+        super(websocketService, configService, usersService);
     }
 
     @SubscribeMessage('message')

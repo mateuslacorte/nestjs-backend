@@ -14,6 +14,7 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { IUser } from './interfaces/user.interface';
+import { sanitizeUserForResponse } from './utils/sanitize-user-response.util';
 
 function createUser(overrides: Partial<IUser> = {}): IUser {
   return {
@@ -119,7 +120,9 @@ describe('UsersController', () => {
       const created = createUser();
       usersService.create.mockResolvedValue(created);
 
-      await expect(controller.create(dto)).resolves.toBe(created);
+      await expect(controller.create(dto)).resolves.toEqual(
+        sanitizeUserForResponse(created),
+      );
       expect(usersService.create).toHaveBeenCalledWith(dto);
     });
 
@@ -139,42 +142,50 @@ describe('UsersController', () => {
   });
 
   describe('findAll', () => {
-    it('delegates to UsersService.findAll', async () => {
-      const users = [createUser()];
+    it('delegates to UsersService.findAll and returns sanitized users', async () => {
+      const users = [createUser({ googleId: 'g-1' })];
       usersService.findAll.mockResolvedValue(users);
 
-      await expect(controller.findAll()).resolves.toBe(users);
+      await expect(controller.findAll()).resolves.toEqual([
+        sanitizeUserForResponse(users[0]),
+      ]);
       expect(usersService.findAll).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('findOne', () => {
-    it('delegates to UsersService.findById', async () => {
-      const user = createUser();
+    it('delegates to UsersService.findById and returns sanitized user', async () => {
+      const user = createUser({ googleId: 'g-1' });
       usersService.findById.mockResolvedValue(user);
 
-      await expect(controller.findOne('user-1')).resolves.toBe(user);
+      await expect(controller.findOne('user-1')).resolves.toEqual(
+        sanitizeUserForResponse(user),
+      );
       expect(usersService.findById).toHaveBeenCalledWith('user-1');
     });
   });
 
   describe('update', () => {
-    it('delegates to UsersService.update', async () => {
+    it('delegates to UsersService.update and returns sanitized user', async () => {
       const dto: UpdateUserDto = { firstName: 'Janet' };
-      const updated = createUser({ firstName: 'Janet' });
+      const updated = createUser({ firstName: 'Janet', googleId: 'g-1' });
       usersService.update.mockResolvedValue(updated);
 
-      await expect(controller.update('user-1', dto)).resolves.toBe(updated);
+      await expect(controller.update('user-1', dto)).resolves.toEqual(
+        sanitizeUserForResponse(updated),
+      );
       expect(usersService.update).toHaveBeenCalledWith('user-1', dto);
     });
   });
 
   describe('remove', () => {
-    it('delegates to UsersService.remove', async () => {
-      const removed = createUser();
+    it('delegates to UsersService.remove and returns sanitized user', async () => {
+      const removed = createUser({ googleId: 'g-1' });
       usersService.remove.mockResolvedValue(removed);
 
-      await expect(controller.remove('user-1')).resolves.toBe(removed);
+      await expect(controller.remove('user-1')).resolves.toEqual(
+        sanitizeUserForResponse(removed),
+      );
       expect(usersService.remove).toHaveBeenCalledWith('user-1');
     });
   });

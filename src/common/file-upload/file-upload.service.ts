@@ -46,8 +46,12 @@ export class FileUploadService {
         console.log(`Bucket ${bucketName} already exists`);
       }
 
-      // Set bucket policy to allow public read access
-      await this.setBucketPublicPolicy(bucketName);
+      const publicReadEnabled =
+        process.env.MINIO_PUBLIC_READ === 'true' ||
+        process.env.MINIO_PUBLIC_READ === '1';
+      if (publicReadEnabled) {
+        await this.setBucketPublicPolicy(bucketName);
+      }
     } catch (error: any) {
       console.error(`Error ensuring bucket exists: ${error.message}`);
       throw error;

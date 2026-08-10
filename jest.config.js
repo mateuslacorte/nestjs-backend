@@ -40,6 +40,7 @@ module.exports = {
     '!src/common/security/**/*.spec.ts',
     '!src/common/security/**/*.interface.ts',
     '!src/common/security/**/*.controller.ts',
+    '!src/common/security/guards/**/*.ts',
     '!src/common/security/entities/**/*.ts',
     '!src/common/security/schemas/**/*.ts',
     'src/common/crypto/**/*.ts',

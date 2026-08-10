@@ -7,6 +7,7 @@ import {
 } from './abstract-websocket.gateway';
 import { AbstractWebsocketService } from './abstract-websocket.service';
 import { Role } from '@modules/auth/enums/role.enum';
+import { UsersService } from '@modules/users/users.service';
 
 jest.mock('@config/cors-origins.util', () => ({
   isOriginAllowed: jest.fn(),
@@ -34,7 +35,7 @@ class TestGateway extends AbstractWebsocketGateway {
 type CapturedMiddleware = (
   socket: Socket,
   next: (err?: Error) => void,
-) => void;
+) => void | Promise<void>;
 
 function createConfigService(
   values: Record<string, unknown> = {},
@@ -47,6 +48,21 @@ function createConfigService(
   return {
     get: jest.fn((key: string) => defaults[key]),
   } as unknown as ConfigService;
+}
+
+function createUsersService(): jest.Mocked<Pick<UsersService, 'findById'>> {
+  return {
+    findById: jest.fn().mockImplementation(async (id: string) => ({
+      id,
+      username: 'user',
+      firstName: 'Test',
+      lastName: 'User',
+      email: 'user@example.com',
+      password: null,
+      isActive: true,
+      roles: [Role.USER],
+    })),
+  };
 }
 
 function createService(): jest.Mocked<
@@ -113,6 +129,7 @@ function createHandshakeSocket(
 describe('AbstractWebsocketGateway', () => {
   let websocketService: ReturnType<typeof createService>;
   let configService: ConfigService;
+  let usersService: ReturnType<typeof createUsersService>;
   let gateway: TestGateway;
   let logSpy: jest.SpyInstance;
   let warnSpy: jest.SpyInstance;
@@ -123,9 +140,11 @@ describe('AbstractWebsocketGateway', () => {
     mockIsOriginAllowed.mockReturnValue(true);
     websocketService = createService();
     configService = createConfigService();
+    usersService = createUsersService();
     gateway = new TestGateway(
       websocketService as unknown as AbstractWebsocketService,
       configService,
+      usersService as unknown as UsersService,
     );
 
     logSpy = jest.spyOn(gateway['logger'], 'log').mockImplementation();
@@ -153,13 +172,13 @@ describe('AbstractWebsocketGateway', () => {
       expect(server.use).toHaveBeenCalledWith(expect.any(Function));
     });
 
-    it('rejects when origin is not allowed', () => {
+    it('rejects when origin is not allowed', async () => {
       mockIsOriginAllowed.mockReturnValue(false);
       const middleware = installMiddleware();
       const socket = createHandshakeSocket({ origin: 'https://evil.com' });
       const next = jest.fn();
 
-      middleware(socket, next);
+      await middleware(socket, next);
 
       expect(mockIsOriginAllowed).toHaveBeenCalledWith('https://evil.com', [
         'https://app.example.com',
@@ -172,24 +191,25 @@ describe('AbstractWebsocketGateway', () => {
       );
     });
 
-    it('treats non-string origin header as undefined', () => {
+    it('treats non-string origin header as undefined', async () => {
       mockIsOriginAllowed.mockReturnValue(false);
       const middleware = installMiddleware();
       const socket = createHandshakeSocket({ origin: ['https://a.com'] });
       const next = jest.fn();
 
-      middleware(socket, next);
+      await middleware(socket, next);
 
       expect(mockIsOriginAllowed).toHaveBeenCalledWith(undefined, [
         'https://app.example.com',
       ]);
     });
 
-    it('uses empty allowed origins when cors.origins is unset', () => {
+    it('uses empty allowed origins when cors.origins is unset', async () => {
       configService = createConfigService({ 'cors.origins': undefined });
       gateway = new TestGateway(
         websocketService as unknown as AbstractWebsocketService,
         configService,
+        usersService as unknown as UsersService,
       );
       logSpy = jest.spyOn(gateway['logger'], 'log').mockImplementation();
       warnSpy = jest.spyOn(gateway['logger'], 'warn').mockImplementation();
@@ -199,24 +219,25 @@ describe('AbstractWebsocketGateway', () => {
       const { server } = createServer();
       gateway.afterInit(server);
       const middleware = (server.use as jest.Mock).mock.calls[0][0] as CapturedMiddleware;
-      const token = jwt.sign({ id: 'u1', roles: [Role.USER] }, 'fallback-secret-key');
+      const token = jwt.sign({ id: 'u1', roles: [Role.USER] }, 'test-secret');
       const socket = createHandshakeSocket({ authToken: token });
       const next = jest.fn();
 
-      middleware(socket, next);
+      await middleware(socket, next);
 
       expect(mockIsOriginAllowed).toHaveBeenCalledWith(
         'https://app.example.com',
         [],
       );
+      expect(next).toHaveBeenCalledWith();
     });
 
-    it('rejects when no token is provided', () => {
+    it('rejects when no token is provided', async () => {
       const middleware = installMiddleware();
       const socket = createHandshakeSocket();
       const next = jest.fn();
 
-      middleware(socket, next);
+      await middleware(socket, next);
 
       expect(next).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -228,22 +249,33 @@ describe('AbstractWebsocketGateway', () => {
       );
     });
 
-    it('accepts token from handshake.auth.token', () => {
+    it('accepts token from handshake.auth.token and loads user from DB', async () => {
       const middleware = installMiddleware();
       const token = jwt.sign(
-        { id: 'user-1', email: 'a@b.com', roles: [Role.ADMIN] },
+        { id: 'user-1', email: 'jwt@b.com', roles: [Role.ADMIN] },
         'test-secret',
       );
+      usersService.findById.mockResolvedValue({
+        id: 'user-1',
+        username: 'user1',
+        firstName: 'A',
+        lastName: 'B',
+        email: 'db@b.com',
+        password: null,
+        isActive: true,
+        roles: [Role.ADMIN],
+      });
       const socket = createHandshakeSocket({ authToken: token });
       const next = jest.fn();
 
-      middleware(socket, next);
+      await middleware(socket, next);
 
+      expect(usersService.findById).toHaveBeenCalledWith('user-1');
       expect(next).toHaveBeenCalledWith();
       expect(socket.userId).toBe('user-1');
       expect(socket.user).toEqual({
         id: 'user-1',
-        email: 'a@b.com',
+        email: 'db@b.com',
         roles: [Role.ADMIN],
       });
       expect(socket.data.user).toEqual(socket.user);
@@ -252,7 +284,7 @@ describe('AbstractWebsocketGateway', () => {
       );
     });
 
-    it('accepts Bearer token from authorization header', () => {
+    it('accepts Bearer token from authorization header', async () => {
       const middleware = installMiddleware();
       const token = jwt.sign({ id: 'user-2', roles: [Role.USER] }, 'test-secret');
       const socket = createHandshakeSocket({
@@ -260,13 +292,13 @@ describe('AbstractWebsocketGateway', () => {
       });
       const next = jest.fn();
 
-      middleware(socket, next);
+      await middleware(socket, next);
 
       expect(next).toHaveBeenCalledWith();
       expect(socket.userId).toBe('user-2');
     });
 
-    it('strips Bearer prefix case-insensitively', () => {
+    it('strips Bearer prefix case-insensitively', async () => {
       const middleware = installMiddleware();
       const token = jwt.sign({ id: 'user-3' }, 'test-secret');
       const socket = createHandshakeSocket({
@@ -274,30 +306,54 @@ describe('AbstractWebsocketGateway', () => {
       });
       const next = jest.fn();
 
-      middleware(socket, next);
+      await middleware(socket, next);
 
       expect(next).toHaveBeenCalledWith();
       expect(socket.userId).toBe('user-3');
     });
 
-    it('defaults roles to [] when claim is not an array', () => {
+    it('uses DB roles from UsersService', async () => {
       const middleware = installMiddleware();
       const token = jwt.sign({ id: 'user-4', roles: 'admin' }, 'test-secret');
+      usersService.findById.mockResolvedValue({
+        id: 'user-4',
+        username: 'user4',
+        firstName: 'A',
+        lastName: 'B',
+        email: 'user4@example.com',
+        password: null,
+        isActive: true,
+        roles: [Role.USER],
+      });
       const socket = createHandshakeSocket({ authToken: token });
       const next = jest.fn();
 
-      middleware(socket, next);
+      await middleware(socket, next);
 
-      expect(socket.user?.roles).toEqual([]);
+      expect(socket.user?.roles).toEqual([Role.USER]);
     });
 
-    it('rejects when decoded token has no id', () => {
+    it('rejects when user is missing or inactive', async () => {
+      const middleware = installMiddleware();
+      const token = jwt.sign({ id: 'inactive-user' }, 'test-secret');
+      usersService.findById.mockResolvedValue(null);
+      const socket = createHandshakeSocket({ authToken: token });
+      const next = jest.fn();
+
+      await middleware(socket, next);
+
+      expect(next).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'User not found or inactive' }),
+      );
+    });
+
+    it('rejects when decoded token has no id', async () => {
       const middleware = installMiddleware();
       const token = jwt.sign({ email: 'x@y.com' }, 'test-secret');
       const socket = createHandshakeSocket({ authToken: token });
       const next = jest.fn();
 
-      middleware(socket, next);
+      await middleware(socket, next);
 
       expect(next).toHaveBeenCalledWith(
         expect.objectContaining({ message: 'Invalid token' }),
@@ -307,11 +363,12 @@ describe('AbstractWebsocketGateway', () => {
       );
     });
 
-    it('uses fallback jwt secret when jwt.secret is unset', () => {
+    it('uses fallback jwt secret when jwt.secret is unset', async () => {
       configService = createConfigService({ 'jwt.secret': undefined });
       gateway = new TestGateway(
         websocketService as unknown as AbstractWebsocketService,
         configService,
+        usersService as unknown as UsersService,
       );
       logSpy = jest.spyOn(gateway['logger'], 'log').mockImplementation();
       warnSpy = jest.spyOn(gateway['logger'], 'warn').mockImplementation();
@@ -325,18 +382,18 @@ describe('AbstractWebsocketGateway', () => {
       const socket = createHandshakeSocket({ authToken: token });
       const next = jest.fn();
 
-      middleware(socket, next);
+      await middleware(socket, next);
 
       expect(next).toHaveBeenCalledWith();
       expect(socket.userId).toBe('fallback-user');
     });
 
-    it('rejects with Authentication failed when jwt.verify throws', () => {
+    it('rejects with Authentication failed when jwt.verify throws', async () => {
       const middleware = installMiddleware();
       const socket = createHandshakeSocket({ authToken: 'not-a-jwt' });
       const next = jest.fn();
 
-      middleware(socket, next);
+      await middleware(socket, next);
 
       expect(next).toHaveBeenCalledWith(
         expect.objectContaining({ message: 'Authentication failed' }),
@@ -346,14 +403,14 @@ describe('AbstractWebsocketGateway', () => {
       );
     });
 
-    it('ignores non-string authorization header values', () => {
+    it('ignores non-string authorization header values', async () => {
       const middleware = installMiddleware();
       const socket = createHandshakeSocket({
         authorization: ['Bearer abc'] as unknown as string,
       });
       const next = jest.fn();
 
-      middleware(socket, next);
+      await middleware(socket, next);
 
       expect(next).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -449,6 +506,7 @@ describe('AbstractWebsocketGateway', () => {
       const bare = new BareGateway(
         websocketService as unknown as AbstractWebsocketService,
         configService,
+        usersService as unknown as UsersService,
       );
       jest.spyOn(bare['logger'], 'log').mockImplementation();
       jest.spyOn(bare['logger'], 'warn').mockImplementation();

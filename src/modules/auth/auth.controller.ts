@@ -1175,12 +1175,22 @@ export class AuthController {
     @Public()
     @Post('forgot-password')
     @HttpCode(HttpStatus.OK)
-    @ApiResponse({ status: 200, description: 'Password reset email sent.' })
-    @ApiResponse({ status: 404, description: 'User not found.' })
+    @ApiResponse({
+        status: 200,
+        description:
+            'Generic success whether or not the email exists (anti-enumeration).',
+    })
     @ApiBody({ type: ForgotPasswordDto })
     async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
-        const resetToken = await this.authService.createPasswordResetToken(forgotPasswordDto.email);
-        await this.authService.sendResetTokenEmail(forgotPasswordDto.email, resetToken);
+        const resetToken = await this.authService.createPasswordResetToken(
+            forgotPasswordDto.email,
+        );
+        if (resetToken) {
+            await this.authService.sendResetTokenEmail(
+                forgotPasswordDto.email,
+                resetToken,
+            );
+        }
         return { message: 'Password reset instructions sent to your email' };
     }
 

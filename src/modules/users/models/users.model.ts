@@ -22,64 +22,26 @@ export class UserModel implements IUser {
     // Exclude password from GraphQL responses for security
     password!: string | null;
 
-    @Field(() => String, { nullable: true })
+    // Provider linkage IDs are internal — not exposed via GraphQL
     googleId?: string | null;
-
-    @Field(() => String, { nullable: true })
     facebookId?: string | null;
-
-    @Field(() => String, { nullable: true })
     twitterId?: string | null;
-
-    @Field(() => String, { nullable: true })
     githubId?: string | null;
-
-    @Field(() => String, { nullable: true })
     figmaId?: string | null;
-
-    @Field(() => String, { nullable: true })
     linkedinId?: string | null;
-
-    @Field(() => String, { nullable: true })
     slackId?: string | null;
-
-    @Field(() => String, { nullable: true })
     atlassianId?: string | null;
-
-    @Field(() => String, { nullable: true })
     gitlabId?: string | null;
-
-    @Field(() => String, { nullable: true })
     bitbucketId?: string | null;
-
-    @Field(() => String, { nullable: true })
     discordId?: string | null;
-
-    @Field(() => String, { nullable: true })
     twitchId?: string | null;
-
-    @Field(() => String, { nullable: true })
     steamId?: string | null;
-
-    @Field(() => String, { nullable: true })
     redditId?: string | null;
-
-    @Field(() => String, { nullable: true })
     appleId?: string | null;
-
-    @Field(() => String, { nullable: true })
     amazonId?: string | null;
-
-    @Field(() => String, { nullable: true })
     patreonId?: string | null;
-
-    @Field(() => String, { nullable: true })
     dropboxId?: string | null;
-
-    @Field(() => String, { nullable: true })
     metamaskId?: string | null;
-
-    @Field(() => String, { nullable: true })
     activeDirectoryId?: string | null;
 
     @Field()

@@ -38,6 +38,7 @@ describe('PatreonAuthGuard', () => {
             'patreonOAuth.redirectAllowlist': [
                 'https://app.example.com',
                 'https://app.example.com/dashboard',
+              'https://app.example.com/dashboard/settings',
             ],
         });
         guard = new PatreonAuthGuard(configService);

@@ -77,6 +77,14 @@ function encodeOAuthState(redirect: string): string {
   );
 }
 
+const oauthRedirectAllowlist = [
+  'https://app.example/cb',
+  'https://app.example/',
+  'https://app.example/cb?foo=bar',
+  'https://app.example/cb?foo=1',
+  'https://app.example/cb#/home',
+];
+
 const defaultConfig: Record<string, unknown> = {
   'jwt.secret': 'jwt-secret',
   'jwt.refreshSecret': 'jwt-refresh-secret',
@@ -84,112 +92,58 @@ const defaultConfig: Record<string, unknown> = {
   'jwt.refreshExpirationTime': '7d',
   'jwt.jitterSeconds': 0,
   'googleOAuth.enabled': true,
-  'googleOAuth.redirectAllowlist': [
-    'https://app.example/cb',
-    'https://app.example/',
-  ],
+  'googleOAuth.redirectAllowlist': oauthRedirectAllowlist,
   'googleOAuth.defaultRoles': [Role.USER],
   'facebookOAuth.enabled': true,
-  'facebookOAuth.redirectAllowlist': [
-    'https://app.example/cb',
-    'https://app.example/',
-  ],
+  'facebookOAuth.redirectAllowlist': oauthRedirectAllowlist,
   'facebookOAuth.defaultRoles': [Role.USER],
   'twitterOAuth.enabled': true,
-  'twitterOAuth.redirectAllowlist': [
-    'https://app.example/cb',
-    'https://app.example/',
-  ],
+  'twitterOAuth.redirectAllowlist': oauthRedirectAllowlist,
   'twitterOAuth.defaultRoles': [Role.USER],
   'githubOAuth.enabled': true,
-  'githubOAuth.redirectAllowlist': [
-    'https://app.example/cb',
-    'https://app.example/',
-  ],
+  'githubOAuth.redirectAllowlist': oauthRedirectAllowlist,
   'githubOAuth.defaultRoles': [Role.USER],
   'figmaOAuth.enabled': true,
-  'figmaOAuth.redirectAllowlist': [
-    'https://app.example/cb',
-    'https://app.example/',
-  ],
+  'figmaOAuth.redirectAllowlist': oauthRedirectAllowlist,
   'figmaOAuth.defaultRoles': [Role.USER],
   'linkedinOAuth.enabled': true,
-  'linkedinOAuth.redirectAllowlist': [
-    'https://app.example/cb',
-    'https://app.example/',
-  ],
+  'linkedinOAuth.redirectAllowlist': oauthRedirectAllowlist,
   'linkedinOAuth.defaultRoles': [Role.USER],
   'slackOAuth.enabled': true,
-  'slackOAuth.redirectAllowlist': [
-    'https://app.example/cb',
-    'https://app.example/',
-  ],
+  'slackOAuth.redirectAllowlist': oauthRedirectAllowlist,
   'slackOAuth.defaultRoles': [Role.USER],
   'atlassianOAuth.enabled': true,
-  'atlassianOAuth.redirectAllowlist': [
-    'https://app.example/cb',
-    'https://app.example/',
-  ],
+  'atlassianOAuth.redirectAllowlist': oauthRedirectAllowlist,
   'atlassianOAuth.defaultRoles': [Role.USER],
   'gitlabOAuth.enabled': true,
-  'gitlabOAuth.redirectAllowlist': [
-    'https://app.example/cb',
-    'https://app.example/',
-  ],
+  'gitlabOAuth.redirectAllowlist': oauthRedirectAllowlist,
   'gitlabOAuth.defaultRoles': [Role.USER],
   'bitbucketOAuth.enabled': true,
-  'bitbucketOAuth.redirectAllowlist': [
-    'https://app.example/cb',
-    'https://app.example/',
-  ],
+  'bitbucketOAuth.redirectAllowlist': oauthRedirectAllowlist,
   'bitbucketOAuth.defaultRoles': [Role.USER],
   'discordOAuth.enabled': true,
-  'discordOAuth.redirectAllowlist': [
-    'https://app.example/cb',
-    'https://app.example/',
-  ],
+  'discordOAuth.redirectAllowlist': oauthRedirectAllowlist,
   'discordOAuth.defaultRoles': [Role.USER],
   'twitchOAuth.enabled': true,
-  'twitchOAuth.redirectAllowlist': [
-    'https://app.example/cb',
-    'https://app.example/',
-  ],
+  'twitchOAuth.redirectAllowlist': oauthRedirectAllowlist,
   'twitchOAuth.defaultRoles': [Role.USER],
   'steamOpenId.enabled': true,
-  'steamOpenId.redirectAllowlist': [
-    'https://app.example/cb',
-    'https://app.example/',
-  ],
+  'steamOpenId.redirectAllowlist': oauthRedirectAllowlist,
   'steamOpenId.defaultRoles': [Role.USER],
   'redditOAuth.enabled': true,
-  'redditOAuth.redirectAllowlist': [
-    'https://app.example/cb',
-    'https://app.example/',
-  ],
+  'redditOAuth.redirectAllowlist': oauthRedirectAllowlist,
   'redditOAuth.defaultRoles': [Role.USER],
   'appleOAuth.enabled': true,
-  'appleOAuth.redirectAllowlist': [
-    'https://app.example/cb',
-    'https://app.example/',
-  ],
+  'appleOAuth.redirectAllowlist': oauthRedirectAllowlist,
   'appleOAuth.defaultRoles': [Role.USER],
   'amazonOAuth.enabled': true,
-  'amazonOAuth.redirectAllowlist': [
-    'https://app.example/cb',
-    'https://app.example/',
-  ],
+  'amazonOAuth.redirectAllowlist': oauthRedirectAllowlist,
   'amazonOAuth.defaultRoles': [Role.USER],
   'patreonOAuth.enabled': true,
-  'patreonOAuth.redirectAllowlist': [
-    'https://app.example/cb',
-    'https://app.example/',
-  ],
+  'patreonOAuth.redirectAllowlist': oauthRedirectAllowlist,
   'patreonOAuth.defaultRoles': [Role.USER],
   'dropboxOAuth.enabled': true,
-  'dropboxOAuth.redirectAllowlist': [
-    'https://app.example/cb',
-    'https://app.example/',
-  ],
+  'dropboxOAuth.redirectAllowlist': oauthRedirectAllowlist,
   'dropboxOAuth.defaultRoles': [Role.USER],
 };
 
@@ -240,6 +194,11 @@ describe('AuthService', () => {
   let metamaskSiweService: {
     createNonce: jest.Mock;
     verifyAndGetProfile: jest.Mock;
+  };
+  let cacheService: {
+    get: jest.Mock;
+    set: jest.Mock;
+    del: jest.Mock;
   };
 
   beforeEach(() => {
@@ -308,6 +267,12 @@ describe('AuthService', () => {
       verifyAndGetProfile: jest.fn(),
     };
 
+    cacheService = {
+      get: jest.fn().mockResolvedValue(undefined),
+      set: jest.fn().mockResolvedValue(undefined),
+      del: jest.fn().mockResolvedValue(undefined),
+    };
+
     service = new AuthService(
       usersService as unknown as UsersService,
       jwtService as unknown as JwtService,
@@ -316,6 +281,7 @@ describe('AuthService', () => {
       oauthExchangeService as unknown as OauthExchangeService,
       activeDirectoryLdapService as unknown as import('./services/active-directory-ldap.service').ActiveDirectoryLdapService,
       metamaskSiweService as unknown as import('./services/metamask-siwe.service').MetamaskSiweService,
+      cacheService as unknown as import('@common/cache/cache.service').CacheService,
     );
 
     mockRandomBytes.mockImplementation((size: number) =>
@@ -351,7 +317,7 @@ describe('AuthService', () => {
       );
     });
 
-    it('creates inactive user, sends verification, returns tokens and message', async () => {
+    it('creates inactive user, sends verification, returns user and message without tokens', async () => {
       const newUser = createUser({ isActive: false, roles: [], password: 'hash' });
       usersService.findByEmail
         .mockResolvedValueOnce(null)
@@ -381,15 +347,13 @@ describe('AuthService', () => {
         'jane@example.com',
         expect.any(String),
       );
-      expect(result).toEqual(
-        expect.objectContaining({
-          user: expect.not.objectContaining({ password: expect.anything() }),
-          accessToken: 'access-token',
-          refreshToken: 'refresh-token',
-          message:
-            'Registration successful. Please check your email to confirm your account.',
-        }),
-      );
+      expect(result).toEqual({
+        user: expect.not.objectContaining({ password: expect.anything() }),
+        message:
+          'Registration successful. Please check your email to confirm your account.',
+      });
+      expect(result).not.toHaveProperty('accessToken');
+      expect(result).not.toHaveProperty('refreshToken');
     });
   });
 
@@ -562,15 +526,22 @@ describe('AuthService', () => {
     });
 
     it('returns sanitized user and tokens on success', async () => {
-      usersService.findByEmail.mockResolvedValue(createUser());
+      usersService.findByEmail.mockResolvedValue(createUser({ googleId: 'google-1' }));
       (verifyPassword as jest.Mock).mockResolvedValue(true);
 
       const result = await service.login(loginDto);
 
       expect(result).toEqual({
-        user: expect.not.objectContaining({ password: expect.anything() }),
+        user: expect.not.objectContaining({
+          password: expect.anything(),
+          googleId: expect.anything(),
+          activeDirectoryId: expect.anything(),
+        }),
         accessToken: 'access-token',
         refreshToken: 'refresh-token',
+      });
+      expect(result.user).toMatchObject({
+        email: 'jane@example.com',
       });
     });
   });
@@ -624,7 +595,6 @@ describe('AuthService', () => {
 
       expect(usersService.update).toHaveBeenCalledWith('user-1', {
         activeDirectoryId: 'ad-guid-001',
-        isActive: true,
       });
     });
 
@@ -853,7 +823,6 @@ describe('AuthService', () => {
 
       expect(usersService.update).toHaveBeenCalledWith('user-1', {
         activeDirectoryId: 'ad-guid-001',
-        isActive: true,
         roles: [Role.ADMIN],
       });
     });
@@ -973,6 +942,12 @@ describe('AuthService', () => {
       await expect(service.validateUserById('user-1')).resolves.toBe(user);
       expect(usersService.findById).toHaveBeenCalledWith('user-1');
     });
+
+    it('returns null when user is inactive', async () => {
+      usersService.findById.mockResolvedValue(createUser({ isActive: false }));
+
+      await expect(service.validateUserById('user-1')).resolves.toBeNull();
+    });
   });
 
   describe('refreshToken', () => {
@@ -990,6 +965,85 @@ describe('AuthService', () => {
         accessToken: 'access-token',
         refreshToken: 'refresh-token',
       });
+    });
+
+    it('revokes previous refresh jti before issuing new tokens', async () => {
+      const user = createUser();
+      jwtService.verify.mockReturnValue({ id: 'user-1', jti: 'jti-old' });
+      usersService.findById.mockResolvedValue(user);
+      cacheService.get.mockResolvedValue(undefined);
+
+      await service.refreshToken({ refreshToken: 'valid-refresh' });
+
+      expect(cacheService.set).toHaveBeenCalledWith(
+        'auth:refresh:revoke:jti-old',
+        true,
+        604800,
+      );
+    });
+
+    it.each([
+      ['30s', 30],
+      ['5m', 300],
+      ['2h', 7200],
+    ] as const)(
+      'parses refresh TTL %s as %s seconds when revoking jti',
+      async (expiresIn, ttlSeconds) => {
+        configService.get.mockImplementation((key: string) => {
+          if (key === 'jwt.refreshExpirationTime') return expiresIn;
+          return defaultConfig[key];
+        });
+        jwtService.verify.mockReturnValue({ id: 'user-1', jti: 'jti-ttl' });
+        usersService.findById.mockResolvedValue(createUser());
+        cacheService.get.mockResolvedValue(undefined);
+
+        await service.refreshToken({ refreshToken: 'valid-refresh' });
+
+        expect(cacheService.set).toHaveBeenCalledWith(
+          'auth:refresh:revoke:jti-ttl',
+          true,
+          ttlSeconds,
+        );
+      },
+    );
+
+    it('falls back to 7d TTL when revoking with an unparseable refresh expiration', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'jwt.refreshExpirationTime') return 'not-a-duration';
+        if (key === 'jwt.expirationTime') return '1h';
+        return defaultConfig[key];
+      });
+      jwtService.verify.mockReturnValue({ id: 'user-1', jti: 'jti-bad-ttl' });
+      usersService.findById.mockResolvedValue(createUser());
+      cacheService.get.mockResolvedValue(undefined);
+
+      await expect(
+        service.refreshToken({ refreshToken: 'valid-refresh' }),
+      ).rejects.toThrow(/Invalid JWT duration format/);
+
+      expect(cacheService.set).toHaveBeenCalledWith(
+        'auth:refresh:revoke:jti-bad-ttl',
+        true,
+        604800,
+      );
+    });
+
+    it('rejects revoked refresh tokens', async () => {
+      jwtService.verify.mockReturnValue({ id: 'user-1', jti: 'jti-revoked' });
+      cacheService.get.mockResolvedValue(true);
+
+      await expect(
+        service.refreshToken({ refreshToken: 'valid-refresh' }),
+      ).rejects.toThrow(new UnauthorizedException('Invalid refresh token'));
+    });
+
+    it('rejects inactive users', async () => {
+      jwtService.verify.mockReturnValue({ id: 'user-1' });
+      usersService.findById.mockResolvedValue(createUser({ isActive: false }));
+
+      await expect(
+        service.refreshToken({ refreshToken: 'valid-refresh' }),
+      ).rejects.toThrow(new UnauthorizedException('Invalid refresh token'));
     });
 
     it('uses jwt TTL fallbacks when expiration config is undefined', async () => {
@@ -1041,12 +1095,12 @@ describe('AuthService', () => {
   });
 
   describe('createPasswordResetToken', () => {
-    it('throws 404 when user is not found', async () => {
+    it('returns null when user is not found (anti-enumeration)', async () => {
       usersService.findByEmail.mockResolvedValue(null);
 
       await expect(
         service.createPasswordResetToken('missing@example.com'),
-      ).rejects.toThrow(new NotFoundException('User not found'));
+      ).resolves.toBeNull();
     });
 
     it('generates token and updates reset fields', async () => {
@@ -1323,16 +1377,14 @@ describe('AuthService', () => {
       ).rejects.toThrow(new BadRequestException('Redirect URL is not allowed'));
     });
 
-    it('allows redirect via allowlist prefix match', async () => {
+    it('rejects redirect that only matches allowlist as prefix', async () => {
       const existing = createUser({ googleId: 'google-1' });
       usersService.findByGoogleId.mockResolvedValue(existing);
       const prefixState = encodeOAuthState('https://app.example/dashboard');
 
-      const result = await service.completeGoogleOAuth(profile, prefixState);
-
-      expect(result.redirectUrl).toBe(
-        'https://app.example/dashboard?code=exchange-code-123',
-      );
+      await expect(
+        service.completeGoogleOAuth(profile, prefixState),
+      ).rejects.toThrow(new BadRequestException('Redirect URL is not allowed'));
     });
 
     it('allows redirect via exact allowlist match', async () => {
@@ -1387,8 +1439,19 @@ describe('AuthService', () => {
 
       expect(usersService.update).toHaveBeenCalledWith('user-1', {
         googleId: 'google-1',
-        isActive: true,
       });
+    });
+
+    it('rejects linking google id to inactive unverified email account', async () => {
+      usersService.findByGoogleId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(
+        createUser({ email: profile.email, isActive: false }),
+      );
+
+      await expect(service.completeGoogleOAuth(profile, state)).rejects.toThrow(
+        ConflictException,
+      );
+      expect(usersService.update).not.toHaveBeenCalled();
     });
 
     it('creates new user with dash lastName when empty', async () => {
@@ -1454,7 +1517,8 @@ describe('AuthService', () => {
 
     it('falls back for relative redirect that already has query params', async () => {
       configService.get.mockImplementation((key: string) => {
-        if (key === 'googleOAuth.redirectAllowlist') return ['/oauth/cb'];
+        if (key === 'googleOAuth.redirectAllowlist')
+          return ['/oauth/cb', '/oauth/cb?foo=bar'];
         return defaultConfig[key];
       });
       usersService.findByGoogleId.mockResolvedValue(createUser());
@@ -1469,7 +1533,8 @@ describe('AuthService', () => {
 
     it('falls back for relative redirect with a hash fragment', async () => {
       configService.get.mockImplementation((key: string) => {
-        if (key === 'googleOAuth.redirectAllowlist') return ['/oauth/cb'];
+        if (key === 'googleOAuth.redirectAllowlist')
+          return ['/oauth/cb', '/oauth/cb#/home'];
         return defaultConfig[key];
       });
       usersService.findByGoogleId.mockResolvedValue(createUser());
@@ -1615,7 +1680,6 @@ describe('AuthService', () => {
 
       expect(usersService.update).toHaveBeenCalledWith('user-1', {
         facebookId: 'fb-1',
-        isActive: true,
       });
     });
 
@@ -1713,7 +1777,6 @@ describe('AuthService', () => {
 
       expect(usersService.update).toHaveBeenCalledWith('user-1', {
         twitterId: 'tw-1',
-        isActive: true,
       });
     });
 
@@ -1815,7 +1878,6 @@ describe('AuthService', () => {
 
       expect(usersService.update).toHaveBeenCalledWith('user-1', {
         githubId: 'gh-1',
-        isActive: true,
       });
     });
 
@@ -1917,7 +1979,6 @@ describe('AuthService', () => {
 
       expect(usersService.update).toHaveBeenCalledWith('user-1', {
         figmaId: 'fig-1',
-        isActive: true,
       });
     });
 
@@ -2019,7 +2080,6 @@ describe('AuthService', () => {
 
       expect(usersService.update).toHaveBeenCalledWith('user-1', {
         linkedinId: 'li-1',
-        isActive: true,
       });
     });
 
@@ -2121,7 +2181,6 @@ describe('AuthService', () => {
 
       expect(usersService.update).toHaveBeenCalledWith('user-1', {
         slackId: 'U0R7JM',
-        isActive: true,
       });
     });
 
@@ -2223,7 +2282,6 @@ describe('AuthService', () => {
 
       expect(usersService.update).toHaveBeenCalledWith('user-1', {
         atlassianId: '712020:abc123',
-        isActive: true,
       });
     });
 
@@ -2325,7 +2383,6 @@ describe('AuthService', () => {
 
       expect(usersService.update).toHaveBeenCalledWith('user-1', {
         gitlabId: '12345678',
-        isActive: true,
       });
     });
 
@@ -2430,7 +2487,6 @@ describe('AuthService', () => {
 
       expect(usersService.update).toHaveBeenCalledWith('user-1', {
         bitbucketId: '{aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee}',
-        isActive: true,
       });
     });
 
@@ -2535,7 +2591,6 @@ describe('AuthService', () => {
 
       expect(usersService.update).toHaveBeenCalledWith('user-1', {
         discordId: '123456789012345678',
-        isActive: true,
       });
     });
 
@@ -2640,7 +2695,6 @@ describe('AuthService', () => {
 
       expect(usersService.update).toHaveBeenCalledWith('user-1', {
         twitchId: '141981764',
-        isActive: true,
       });
     });
 
@@ -2745,7 +2799,6 @@ describe('AuthService', () => {
 
       expect(usersService.update).toHaveBeenCalledWith('user-1', {
         steamId: '76561198000000000',
-        isActive: true,
       });
     });
 
@@ -2850,7 +2903,6 @@ describe('AuthService', () => {
 
       expect(usersService.update).toHaveBeenCalledWith('user-1', {
         redditId: 'abc123',
-        isActive: true,
       });
     });
 
@@ -2952,7 +3004,6 @@ describe('AuthService', () => {
 
       expect(usersService.update).toHaveBeenCalledWith('user-1', {
         appleId: 'apple-sub-001',
-        isActive: true,
       });
     });
 
@@ -3054,7 +3105,6 @@ describe('AuthService', () => {
 
       expect(usersService.update).toHaveBeenCalledWith('user-1', {
         amazonId: 'amzn1.account.abc123',
-        isActive: true,
       });
     });
 
@@ -3159,7 +3209,6 @@ describe('AuthService', () => {
 
       expect(usersService.update).toHaveBeenCalledWith('user-1', {
         patreonId: 'patreon-user-001',
-        isActive: true,
       });
     });
 
@@ -3266,7 +3315,6 @@ describe('AuthService', () => {
 
       expect(usersService.update).toHaveBeenCalledWith('user-1', {
         dropboxId: 'dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc',
-        isActive: true,
       });
     });
 

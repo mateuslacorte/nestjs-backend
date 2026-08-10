@@ -1,9 +1,11 @@
-import { Module, DynamicModule } from '@nestjs/common';
+import { Module, DynamicModule, forwardRef } from '@nestjs/common';
 import { WebsocketGateway } from './websocket.gateway';
 import { WebsocketService } from './websocket.service';
 import { MessageHandler } from './interfaces/message-handler.interface';
+import { UsersModule } from '@modules/users/users.module';
 
 @Module({
+    imports: [forwardRef(() => UsersModule)],
     providers: [WebsocketGateway, WebsocketService],
     exports: [WebsocketService],
 })
@@ -11,6 +13,7 @@ export class WebsocketModule {
     static forRoot(): DynamicModule {
         return {
             module: WebsocketModule,
+            imports: [forwardRef(() => UsersModule)],
             providers: [WebsocketGateway, WebsocketService],
             exports: [WebsocketService],
         };

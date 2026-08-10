@@ -135,10 +135,19 @@ async function bootstrap() {
         configService.get<string>('app.environment') === 'production';
     let sessionSecret =
         configService.get<string>('SESSION_SECRET') ||
-        process.env.SESSION_SECRET ||
-        configService.get<string>('jwt.secret') ||
-        process.env.JWT_SECRET ||
-        'dev-session-secret-change-me';
+        process.env.SESSION_SECRET;
+    if (!sessionSecret?.trim()) {
+        if (isProduction) {
+            throw new Error(
+                'SESSION_SECRET must be set in production (no JWT_SECRET fallback)',
+            );
+        }
+        sessionSecret =
+            configService.get<string>('jwt.secret') ||
+            process.env.JWT_SECRET ||
+            'dev-session-secret-change-me';
+    }
+    sessionSecret = sessionSecret.trim();
     // @fastify/session requires secret length >= 32
     if (sessionSecret.length < 32) {
         sessionSecret = `${sessionSecret}`.padEnd(32, '0');
@@ -201,10 +210,14 @@ async function bootstrap() {
         }),
     );
 
-    const config = new DocumentBuilder()
-        .setTitle('Backend NestJS API')
-        .setDescription(
-            `
+    const swaggerEnabled =
+        process.env.SWAGGER_ENABLED === 'true' ||
+        process.env.SWAGGER_ENABLED === '1';
+    if (!isProduction || swaggerEnabled) {
+        const config = new DocumentBuilder()
+            .setTitle('Backend NestJS API')
+            .setDescription(
+                `
 ## API Documentation
 
 ### Authentication
@@ -216,35 +229,36 @@ See the full documentation with flows and examples at [/](/).
 ### API Prefix
 REST routes: \`/${apiPrefix}/...\`
         `,
-        )
-        .setVersion('1.0.0')
-        .setContact(
-            'Mateus M. Côrtes',
-            'https://www.lacorte.dev',
-            'https://www.lacorte.dev/contact',
-        )
-        .addTag('Auth', 'Authentication and authorization')
-        .addTag('Users', 'User management')
-        .addTag('Email', 'Email delivery')
-        .addTag('Whatsapp', 'WhatsApp integration')
-        .addTag('Security', 'IP blocking and invalid routes')
-        .addServer('/')
-        .addBearerAuth(
-            {
-                type: 'http',
-                scheme: 'bearer',
-                bearerFormat: 'JWT',
-                name: 'Authorization',
-                description: 'JWT token obtained at login',
-                in: 'header',
-            },
-            'access-token',
-        )
-        .build();
-    const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('swagger', app, document, {
-        useGlobalPrefix: false,
-    });
+            )
+            .setVersion('1.0.0')
+            .setContact(
+                'Mateus M. Côrtes',
+                'https://www.lacorte.dev',
+                'https://www.lacorte.dev/contact',
+            )
+            .addTag('Auth', 'Authentication and authorization')
+            .addTag('Users', 'User management')
+            .addTag('Email', 'Email delivery')
+            .addTag('Whatsapp', 'WhatsApp integration')
+            .addTag('Security', 'IP blocking and invalid routes')
+            .addServer('/')
+            .addBearerAuth(
+                {
+                    type: 'http',
+                    scheme: 'bearer',
+                    bearerFormat: 'JWT',
+                    name: 'Authorization',
+                    description: 'JWT token obtained at login',
+                    in: 'header',
+                },
+                'access-token',
+            )
+            .build();
+        const document = SwaggerModule.createDocument(app, config);
+        SwaggerModule.setup('swagger', app, document, {
+            useGlobalPrefix: false,
+        });
+    }
 
     // Wiki page at GET /users (outside API prefix; avoids collision with UsersController)
     const wikiRender = app.get(WikiRenderService);

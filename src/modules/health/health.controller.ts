@@ -1,4 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
     HealthCheck,
     HealthCheckService,
@@ -11,6 +12,16 @@ import { KafkaHealthIndicator } from './indicators/kafka.health';
 import { PostgresPoolHealthIndicator } from './indicators/postgres.health';
 import { MongoPoolHealthIndicator } from './indicators/mongo.health';
 
+function isProductionEnvironment(configService: ConfigService): boolean {
+    const env = (
+        process.env.NODE_ENV ||
+        process.env.APP_ENV ||
+        configService.get<string>('app.environment') ||
+        ''
+    ).toLowerCase();
+    return env === 'production' || env === 'prod';
+}
+
 @Controller('health')
 export class HealthController {
     constructor(
@@ -20,6 +31,7 @@ export class HealthController {
         private readonly memory: MemoryHealthIndicator,
         private readonly redis: RedisHealthIndicator,
         private readonly kafka: KafkaHealthIndicator,
+        private readonly configService: ConfigService,
     ) {}
 
     /**
@@ -31,6 +43,14 @@ export class HealthController {
     @Get()
     @HealthCheck()
     check() {
+        const healthDetailed =
+            process.env.HEALTH_DETAILED === 'true' ||
+            process.env.HEALTH_DETAILED === '1';
+
+        if (isProductionEnvironment(this.configService) && !healthDetailed) {
+            return { status: 'ok' };
+        }
+
         return this.health.check([
             () => this.postgres.isHealthy('postgres'),
             () => this.mongo.isHealthy('mongo'),

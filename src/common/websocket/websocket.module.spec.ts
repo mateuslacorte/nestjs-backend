@@ -1,3 +1,27 @@
+jest.mock('uuid', () => ({
+  v4: () => 'fixed-uuid',
+}));
+
+jest.mock('@modules/users/users.module', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { Module } = require('@nestjs/common');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { UsersService } = require('@modules/users/users.service');
+
+  @Module({
+    providers: [
+      {
+        provide: UsersService,
+        useValue: { findById: jest.fn() },
+      },
+    ],
+    exports: [UsersService],
+  })
+  class UsersModule {}
+
+  return { UsersModule };
+});
+
 import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { WebsocketModule } from './websocket.module';

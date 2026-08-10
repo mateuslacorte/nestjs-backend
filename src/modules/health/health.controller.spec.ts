@@ -1,5 +1,6 @@
 import { PATH_METADATA, METHOD_METADATA } from '@nestjs/common/constants';
 import { RequestMethod } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
   HealthCheckService,
   MemoryHealthIndicator,
@@ -20,9 +21,16 @@ describe('HealthController', () => {
   let memory: { checkHeap: jest.Mock };
   let redis: { isHealthy: jest.Mock };
   let kafka: { isHealthy: jest.Mock };
+  let configService: { get: jest.Mock };
   let controller: HealthController;
+  const originalEnv = process.env;
 
   beforeEach(() => {
+    process.env = { ...originalEnv };
+    delete process.env.NODE_ENV;
+    delete process.env.APP_ENV;
+    delete process.env.HEALTH_DETAILED;
+
     health = { check: jest.fn() };
     postgres = { isHealthy: jest.fn().mockResolvedValue({ postgres: { status: 'up' } }) };
     mongo = { isHealthy: jest.fn().mockResolvedValue({ mongo: { status: 'up' } }) };
@@ -31,6 +39,11 @@ describe('HealthController', () => {
     };
     redis = { isHealthy: jest.fn().mockResolvedValue({ redis: { status: 'up' } }) };
     kafka = { isHealthy: jest.fn().mockResolvedValue({ kafka: { status: 'up' } }) };
+    configService = {
+      get: jest.fn((key: string) =>
+        key === 'app.environment' ? 'development' : undefined,
+      ),
+    };
 
     controller = new HealthController(
       health as unknown as HealthCheckService,
@@ -39,7 +52,12 @@ describe('HealthController', () => {
       memory as unknown as MemoryHealthIndicator,
       redis as unknown as RedisHealthIndicator,
       kafka as unknown as KafkaHealthIndicator,
+      configService as unknown as ConfigService,
     );
+  });
+
+  afterAll(() => {
+    process.env = originalEnv;
   });
 
   describe('routing metadata', () => {
@@ -74,7 +92,26 @@ describe('HealthController', () => {
   });
 
   describe('check', () => {
-    it('delegates to HealthCheckService with all indicators', async () => {
+    it('returns minimal status in production without HEALTH_DETAILED', async () => {
+      process.env.NODE_ENV = 'production';
+      configService.get.mockReturnValue('production');
+
+      expect(controller.check()).toEqual({ status: 'ok' });
+      expect(health.check).not.toHaveBeenCalled();
+    });
+
+    it('runs full checks in production when HEALTH_DETAILED=true', async () => {
+      process.env.NODE_ENV = 'production';
+      process.env.HEALTH_DETAILED = 'true';
+      configService.get.mockReturnValue('production');
+      health.check.mockResolvedValue({ status: 'ok' });
+
+      await controller.check();
+
+      expect(health.check).toHaveBeenCalledTimes(1);
+    });
+
+    it('delegates to HealthCheckService with all indicators in non-production', async () => {
       const expected = { status: 'ok', info: {}, error: {}, details: {} };
       health.check.mockImplementation(
         async (fns: Array<() => Promise<unknown>>) => {
