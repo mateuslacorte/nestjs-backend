@@ -140,10 +140,6 @@ export const WIKI_SEO = {
             description:
                 'Steam OpenID 2.0 Code Exchange guide for the NestJS Boilerplate — Steam Web API key (optional), OpenID login setup, no email from Steam, API endpoints, and web/mobile frontend examples.',
         },
-        'auth-social-reddit': {
-            description:
-                'Reddit OAuth2 Code Exchange guide for the NestJS Boilerplate — Reddit app preferences setup, identity scope, no email from Reddit, HTTP Basic token exchange, API endpoints, and web/mobile frontend examples.',
-        },
         'auth-social-amazon': {
             description:
                 'Login with Amazon Code Exchange guide for the NestJS Boilerplate — Security Profile setup, Authorization Code flow, profile scope, API endpoints, and web/mobile frontend examples.',

@@ -13,19 +13,33 @@
       "title": "Technology Stack",
       "framework": {
         "title": "Framework",
-        "items": ["NestJS 11.x", "TypeScript", "Node.js"]
+        "items": [
+          "NestJS 11.x",
+          "TypeScript",
+          "Node.js"
+        ]
       },
       "databases": {
         "title": "Databases",
-        "items": ["MongoDB (Mongoose + pool)", "PostgreSQL (TypeORM + pool)"]
+        "items": [
+          "MongoDB (Mongoose + pool)",
+          "PostgreSQL (TypeORM + pool)"
+        ]
       },
       "cacheMessaging": {
         "title": "Cache & Messaging",
-        "items": ["Redis (ioredis)", "Apache Kafka"]
+        "items": [
+          "Redis (ioredis)",
+          "Apache Kafka"
+        ]
       },
       "storageApis": {
         "title": "Storage & APIs",
-        "items": ["MinIO (S3 Compatible)", "GraphQL (Apollo)", "REST API"]
+        "items": [
+          "MinIO (S3 Compatible)",
+          "GraphQL (Apollo)",
+          "REST API"
+        ]
       },
       "authentication": {
         "title": "Authentication",
@@ -71,7 +85,6 @@
           "discordOAuth": "<code class=\"px-2 py-1 bg-gray-100 rounded\">discord-oauth.config.ts</code> - Discord OAuth2",
           "twitchOAuth": "<code class=\"px-2 py-1 bg-gray-100 rounded\">twitch-oauth.config.ts</code> - Twitch OAuth2",
           "steamOpenId": "<code class=\"px-2 py-1 bg-gray-100 rounded\">steam-openid.config.ts</code> - Steam OpenID 2.0",
-          "redditOAuth": "<code class=\"px-2 py-1 bg-gray-100 rounded\">reddit-oauth.config.ts</code> - Reddit OAuth2",
           "amazonOAuth": "<code class=\"px-2 py-1 bg-gray-100 rounded\">amazon-oauth.config.ts</code> - Amazon Login with Amazon",
           "patreonOAuth": "<code class=\"px-2 py-1 bg-gray-100 rounded\">patreon-oauth.config.ts</code> - Patreon OAuth2",
           "dropboxOAuth": "<code class=\"px-2 py-1 bg-gray-100 rounded\">dropbox-oauth.config.ts</code> - Dropbox OAuth2",
@@ -224,13 +237,34 @@
       "diagram": {
         "title": "Relationship Diagram",
         "nodes": {
-          "nestjs": { "label": "NestJS", "subtitle": "Framework Core" },
-          "mongo": { "label": "MongoDB", "subtitle": "Available / CQRS" },
-          "postgres": { "label": "PostgreSQL", "subtitle": "Persistence / queries" },
-          "redis": { "label": "Redis", "subtitle": "Cache" },
-          "kafka": { "label": "Kafka", "subtitle": "Messaging" },
-          "minio": { "label": "MinIO", "subtitle": "Storage" },
-          "graylog": { "label": "Graylog", "subtitle": "GELF Logs" }
+          "nestjs": {
+            "label": "NestJS",
+            "subtitle": "Framework Core"
+          },
+          "mongo": {
+            "label": "MongoDB",
+            "subtitle": "Available / CQRS"
+          },
+          "postgres": {
+            "label": "PostgreSQL",
+            "subtitle": "Persistence / queries"
+          },
+          "redis": {
+            "label": "Redis",
+            "subtitle": "Cache"
+          },
+          "kafka": {
+            "label": "Kafka",
+            "subtitle": "Messaging"
+          },
+          "minio": {
+            "label": "MinIO",
+            "subtitle": "Storage"
+          },
+          "graylog": {
+            "label": "Graylog",
+            "subtitle": "GELF Logs"
+          }
         }
       },
       "items": {

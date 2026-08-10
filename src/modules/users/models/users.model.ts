@@ -36,7 +36,6 @@ export class UserModel implements IUser {
     discordId?: string | null;
     twitchId?: string | null;
     steamId?: string | null;
-    redditId?: string | null;
     appleId?: string | null;
     amazonId?: string | null;
     patreonId?: string | null;

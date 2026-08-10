@@ -453,22 +453,6 @@ export class WikiController {
         );
     }
 
-    @Get('auth/social/reddit')
-    getAuthSocialReddit(
-        @Req() req: AppRequest,
-        @Res() reply: AppReply,
-        @Query('lang') lang?: string,
-    ) {
-        return this.wikiRender.renderPage(
-            req,
-            reply,
-            lang,
-            'pages/auth-social-reddit',
-            'authSocialReddit',
-            'auth-social-reddit',
-        );
-    }
-
     @Get('auth/social/apple')
     getAuthSocialApple(
         @Req() req: AppRequest,

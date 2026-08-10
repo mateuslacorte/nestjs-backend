@@ -205,7 +205,6 @@ describe('OauthExchangeService', () => {
         if (key === 'discordOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'twitchOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'steamOpenId.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'redditOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'appleOAuth.exchangeCodeTtlSeconds') return undefined;
         return undefined;
       });
@@ -237,7 +236,6 @@ describe('OauthExchangeService', () => {
         if (key === 'discordOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'twitchOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'steamOpenId.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'redditOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'appleOAuth.exchangeCodeTtlSeconds') return undefined;
         return undefined;
       });
@@ -269,7 +267,6 @@ describe('OauthExchangeService', () => {
         if (key === 'discordOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'twitchOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'steamOpenId.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'redditOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'appleOAuth.exchangeCodeTtlSeconds') return undefined;
         return undefined;
       });
@@ -301,7 +298,6 @@ describe('OauthExchangeService', () => {
         if (key === 'discordOAuth.exchangeCodeTtlSeconds') return 8;
         if (key === 'twitchOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'steamOpenId.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'redditOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'appleOAuth.exchangeCodeTtlSeconds') return undefined;
         return undefined;
       });
@@ -333,7 +329,6 @@ describe('OauthExchangeService', () => {
         if (key === 'discordOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'twitchOAuth.exchangeCodeTtlSeconds') return 6;
         if (key === 'steamOpenId.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'redditOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'appleOAuth.exchangeCodeTtlSeconds') return undefined;
         return undefined;
       });
@@ -350,7 +345,7 @@ describe('OauthExchangeService', () => {
       );
     });
 
-    it('falls back to steam OpenID TTL when google, facebook, twitter, github, figma, linkedin, slack, atlassian, gitlab, bitbucket, discord, twitch, and reddit TTL are missing', async () => {
+    it('falls back to steam OpenID TTL when google, facebook, twitter, github, figma, linkedin, slack, atlassian, gitlab, bitbucket, discord, and twitch TTL are missing', async () => {
       configService.get.mockImplementation((key: string) => {
         if (key === 'googleOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'facebookOAuth.exchangeCodeTtlSeconds') return undefined;
@@ -365,7 +360,6 @@ describe('OauthExchangeService', () => {
         if (key === 'discordOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'twitchOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'steamOpenId.exchangeCodeTtlSeconds') return 4;
-        if (key === 'redditOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'appleOAuth.exchangeCodeTtlSeconds') return undefined;
         return undefined;
       });
@@ -382,7 +376,8 @@ describe('OauthExchangeService', () => {
       );
     });
 
-    it('falls back to reddit OAuth TTL when google, facebook, twitter, github, figma, linkedin, slack, atlassian, gitlab, bitbucket, discord, twitch, and steam TTL are missing', async () => {
+
+    it('falls back to Apple OAuth TTL when google, facebook, twitter, github, figma, linkedin, slack, atlassian, gitlab, bitbucket, discord, twitch, and steam TTL are missing', async () => {
       configService.get.mockImplementation((key: string) => {
         if (key === 'googleOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'facebookOAuth.exchangeCodeTtlSeconds') return undefined;
@@ -397,38 +392,6 @@ describe('OauthExchangeService', () => {
         if (key === 'discordOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'twitchOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'steamOpenId.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'redditOAuth.exchangeCodeTtlSeconds') return 2;
-        return undefined;
-      });
-
-      await service.createExchangeCode(userId);
-
-      expect(cacheService.set).toHaveBeenCalledWith(
-        `auth:oauth:exchange:${fixedCode}`,
-        { userId },
-        2,
-      );
-      expect(configService.get).toHaveBeenCalledWith(
-        'redditOAuth.exchangeCodeTtlSeconds',
-      );
-    });
-
-    it('falls back to Apple OAuth TTL when google, facebook, twitter, github, figma, linkedin, slack, atlassian, gitlab, bitbucket, discord, twitch, steam, and reddit TTL are missing', async () => {
-      configService.get.mockImplementation((key: string) => {
-        if (key === 'googleOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'facebookOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'twitterOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'githubOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'figmaOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'linkedinOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'slackOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'atlassianOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'gitlabOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'bitbucketOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'discordOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'twitchOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'steamOpenId.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'redditOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'appleOAuth.exchangeCodeTtlSeconds') return 1;
         return undefined;
       });
@@ -445,7 +408,7 @@ describe('OauthExchangeService', () => {
       );
     });
 
-    it('falls back to Amazon OAuth TTL when google, facebook, twitter, github, figma, linkedin, slack, atlassian, gitlab, bitbucket, discord, twitch, steam, reddit, apple TTL are missing', async () => {
+    it('falls back to Amazon OAuth TTL when google, facebook, twitter, github, figma, linkedin, slack, atlassian, gitlab, bitbucket, discord, twitch, steam, apple TTL are missing', async () => {
       configService.get.mockImplementation((key: string) => {
         if (key === 'googleOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'facebookOAuth.exchangeCodeTtlSeconds') return undefined;
@@ -460,7 +423,6 @@ describe('OauthExchangeService', () => {
         if (key === 'discordOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'twitchOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'steamOpenId.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'redditOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'appleOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'amazonOAuth.exchangeCodeTtlSeconds') return 7;
         return undefined;
@@ -478,7 +440,7 @@ describe('OauthExchangeService', () => {
       );
     });
 
-    it('falls back to Patreon OAuth TTL when google, facebook, twitter, github, figma, linkedin, slack, atlassian, gitlab, bitbucket, discord, twitch, steam, reddit, apple, and amazon TTL are missing', async () => {
+    it('falls back to Patreon OAuth TTL when google, facebook, twitter, github, figma, linkedin, slack, atlassian, gitlab, bitbucket, discord, twitch, steam, apple, and amazon TTL are missing', async () => {
       configService.get.mockImplementation((key: string) => {
         if (key === 'googleOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'facebookOAuth.exchangeCodeTtlSeconds') return undefined;
@@ -493,7 +455,6 @@ describe('OauthExchangeService', () => {
         if (key === 'discordOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'twitchOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'steamOpenId.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'redditOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'appleOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'amazonOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'patreonOAuth.exchangeCodeTtlSeconds') return 9;
@@ -513,7 +474,7 @@ describe('OauthExchangeService', () => {
       );
     });
 
-    it('falls back to Dropbox OAuth TTL when google, facebook, twitter, github, figma, linkedin, slack, atlassian, gitlab, bitbucket, discord, twitch, steam, reddit, apple, amazon, and patreon TTL are missing', async () => {
+    it('falls back to Dropbox OAuth TTL when google, facebook, twitter, github, figma, linkedin, slack, atlassian, gitlab, bitbucket, discord, twitch, steam, apple, amazon, and patreon TTL are missing', async () => {
       configService.get.mockImplementation((key: string) => {
         if (key === 'googleOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'facebookOAuth.exchangeCodeTtlSeconds') return undefined;
@@ -528,7 +489,6 @@ describe('OauthExchangeService', () => {
         if (key === 'discordOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'twitchOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'steamOpenId.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'redditOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'appleOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'amazonOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'patreonOAuth.exchangeCodeTtlSeconds') return undefined;
@@ -548,7 +508,7 @@ describe('OauthExchangeService', () => {
       );
     });
 
-    it('falls back to 60 seconds when google, facebook, twitter, github, figma, linkedin, slack, atlassian, gitlab, bitbucket, discord, twitch, steam, reddit, apple, amazon, patreon, and dropbox TTL are missing', async () => {
+    it('falls back to 60 seconds when google, facebook, twitter, github, figma, linkedin, slack, atlassian, gitlab, bitbucket, discord, twitch, steam, apple, amazon, patreon, and dropbox TTL are missing', async () => {
       configService.get.mockImplementation((key: string) => {
         if (key === 'googleOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'facebookOAuth.exchangeCodeTtlSeconds') return undefined;
@@ -563,7 +523,6 @@ describe('OauthExchangeService', () => {
         if (key === 'discordOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'twitchOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'steamOpenId.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'redditOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'appleOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'amazonOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'patreonOAuth.exchangeCodeTtlSeconds') return undefined;

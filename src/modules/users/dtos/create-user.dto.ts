@@ -32,10 +32,10 @@ export class CreateUserDto {
 
   @ApiPropertyOptional({
     example: 'Str0ng!P@ssword',
-    description: 'Password (required unless googleId, facebookId, twitterId, githubId, figmaId, linkedinId, slackId, atlassianId, gitlabId, bitbucketId, discordId, twitchId, steamId, redditId, amazonId, patreonId, dropboxId, metamaskId, activeDirectoryId, or appleId is set)',
+    description: 'Password (required unless googleId, facebookId, twitterId, githubId, figmaId, linkedinId, slackId, atlassianId, gitlabId, bitbucketId, discordId, twitchId, steamId, amazonId, patreonId, dropboxId, metamaskId, activeDirectoryId, or appleId is set)',
   })
   @Field(() => String, { nullable: true })
-  @ValidateIf((o: CreateUserDto) => !o.googleId && !o.facebookId && !o.twitterId && !o.githubId && !o.figmaId && !o.linkedinId && !o.slackId && !o.atlassianId && !o.gitlabId && !o.bitbucketId && !o.discordId && !o.twitchId && !o.steamId && !o.redditId && !o.amazonId && !o.patreonId && !o.dropboxId && !o.metamaskId && !o.activeDirectoryId && !o.appleId)
+  @ValidateIf((o: CreateUserDto) => !o.googleId && !o.facebookId && !o.twitterId && !o.githubId && !o.figmaId && !o.linkedinId && !o.slackId && !o.atlassianId && !o.gitlabId && !o.bitbucketId && !o.discordId && !o.twitchId && !o.steamId && !o.amazonId && !o.patreonId && !o.dropboxId && !o.metamaskId && !o.activeDirectoryId && !o.appleId)
   @StrongPassword({message: 'Invalid password format'})
   @IsNotEmpty({message: 'Password is required'})
   password?: string;
@@ -157,14 +157,6 @@ export class CreateUserDto {
   @IsOptional()
   steamId?: string;
 
-  @ApiPropertyOptional({
-    example: 'abc123',
-    description: 'Reddit user ID for OAuth users',
-  })
-  @Field(() => String, { nullable: true })
-  @IsString()
-  @IsOptional()
-  redditId?: string;
 
   @ApiPropertyOptional({
     example: 'amzn1.account.abc123',

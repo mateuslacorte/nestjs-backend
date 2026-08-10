@@ -156,7 +156,6 @@
       "bitbucket": "Guia Bitbucket OAuth2",
       "twitch": "Guia Twitch OAuth2",
       "steam": "Guia Steam OpenID 2.0",
-      "reddit": "Guia Reddit OAuth2",
       "auth": "Auth & JWT",
       "facebook": "Guia Facebook OAuth2"
     },

@@ -74,8 +74,6 @@ export class UserEntity implements IUser {
     @Column({ type: 'varchar', unique: true, nullable: true })
     steamId?: string | null;
 
-    @Column({ type: 'varchar', unique: true, nullable: true })
-    redditId?: string | null;
 
     @Column({ type: 'varchar', unique: true, nullable: true })
     appleId?: string | null;

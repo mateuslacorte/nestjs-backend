@@ -16,7 +16,6 @@ import { BitbucketAuthGuard } from './guards/bitbucket-auth.guard';
 import { DiscordAuthGuard } from './guards/discord-auth.guard';
 import { TwitchAuthGuard } from './guards/twitch-auth.guard';
 import { SteamAuthGuard } from './guards/steam-auth.guard';
-import { RedditAuthGuard } from './guards/reddit-auth.guard';
 import { AppleAuthGuard } from './guards/apple-auth.guard';
 import { AmazonAuthGuard } from './guards/amazon-auth.guard';
 import { PatreonAuthGuard } from './guards/patreon-auth.guard';
@@ -46,7 +45,6 @@ import { BitbucketProfilePayload } from './strategies/bitbucket.strategy';
 import { DiscordProfilePayload } from './strategies/discord.strategy';
 import { TwitchProfilePayload } from './strategies/twitch.strategy';
 import { SteamProfilePayload } from './strategies/steam.strategy';
-import { RedditProfilePayload } from './strategies/reddit.strategy';
 import { AppleProfilePayload } from './strategies/apple.strategy';
 import { AmazonProfilePayload } from './strategies/amazon.strategy';
 import { PatreonProfilePayload } from './strategies/patreon.strategy';
@@ -1078,59 +1076,6 @@ export class AuthController {
     }
 
     /**
-     * Start Reddit OAuth2 (Authorization Code). Redirects to Reddit consent screen.
-     */
-    @Public()
-    @Get('reddit')
-    @UseGuards(RedditAuthGuard)
-    @ApiOperation({
-        summary: 'Start Reddit OAuth2 login',
-        description:
-            'Redirects the browser to Reddit. Pass redirect (allowlisted) for the post-login deep link or web URL. Disabled when REDDIT_AUTH_ENABLED=false (503). Reddit does not provide email — a synthetic address is used.',
-    })
-    @ApiQuery({
-        name: 'redirect',
-        required: false,
-        description:
-            'Post-login redirect URL (must match REDDIT_REDIRECT_ALLOWLIST). Defaults to the first allowlist entry.',
-    })
-    @ApiResponse({ status: 302, description: 'Redirect to Reddit OAuth consent.' })
-    @ApiResponse({ status: 400, description: 'Invalid or missing redirect.' })
-    @ApiResponse({ status: 503, description: 'Reddit authentication is disabled.' })
-    redditAuth() {
-        // Guard redirects to Reddit
-    }
-
-    /**
-     * Reddit OAuth2 callback — issues a one-time exchange code and redirects to the client.
-     */
-    @Public()
-    @Audit({
-        action: 'auth.oauth.callback',
-        category: 'auth',
-        provider: 'reddit',
-        description: 'Reddit OAuth callback — issue exchange code',
-    })
-    @Get('reddit/callback')
-    @UseGuards(RedditAuthGuard)
-    @ApiOperation({
-        summary: 'Reddit OAuth2 callback',
-        description:
-            'Processes the Reddit profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
-    })
-    @ApiResponse({ status: 200, description: 'HTML redirect (location.replace) to client with exchange code — http(s) or deep link.' })
-    @ApiResponse({ status: 503, description: 'Reddit authentication is disabled.' })
-    async redditAuthCallback(@Req() req: AppRequest, @Res() reply: AppReply) {
-        const profile = req.user as RedditProfilePayload;
-        const state = typeof req.query.state === 'string' ? req.query.state : undefined;
-        const { redirectUrl } = await this.authService.completeRedditOAuth(
-            profile,
-            state,
-        );
-        return sendOAuthClientRedirect(reply, redirectUrl);
-    }
-
-    /**
      * Start Apple Sign In (OIDC form_post). Redirects to Apple consent screen.
      *
      * Note: Apple's callback is a POST (form_post response mode), not a GET.
@@ -1204,7 +1149,7 @@ export class AuthController {
     @ApiOperation({
         summary: 'Exchange OAuth code for JWT tokens',
         description:
-            'Consumes a one-time exchange code (60s TTL) from Google, Facebook, X / Twitter, GitHub, Figma, LinkedIn, Slack, Atlassian, GitLab, Bitbucket, Discord, Twitch, Steam, Reddit, or Apple and returns accessToken, refreshToken, and user — same shape as login.',
+            'Consumes a one-time exchange code (60s TTL) from Google, Facebook, X / Twitter, GitHub, Figma, LinkedIn, Slack, Atlassian, GitLab, Bitbucket, Discord, Twitch, Steam, or Apple and returns accessToken, refreshToken, and user — same shape as login.',
     })
     @ApiBody({ type: ExchangeCodeDto })
     @ApiResponse({

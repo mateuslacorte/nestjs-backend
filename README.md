@@ -1,6 +1,6 @@
 # Backend NestJS
 
-NestJS template with REST + GraphQL, JWT authentication, on-prem Active Directory login (LDAP/LDAPS), and social login (Google / Facebook / X Twitter / GitHub / Figma / LinkedIn / Slack / Atlassian / GitLab / Bitbucket / Discord / Twitch / Amazon / Patreon / Dropbox / MetaMask / Steam / Reddit / Apple), Redis cache, Kafka, MinIO, email (SMTP/MailHog), and structured logging via **Graylog** (GELF).
+NestJS template with REST + GraphQL, JWT authentication, on-prem Active Directory login (LDAP/LDAPS), and social login (Google / Facebook / X Twitter / GitHub / Figma / LinkedIn / Slack / Atlassian / GitLab / Bitbucket / Discord / Twitch / Amazon / Patreon / Dropbox / MetaMask / Steam / Apple), Redis cache, Kafka, MinIO, email (SMTP/MailHog), and structured logging via **Graylog** (GELF).
 
 ## Stack
 
@@ -20,8 +20,8 @@ Data access uses the **Repository pattern**. Today `UsersService` reads and writ
 
 - JWT (login/register, refresh, roles, and guards)
 - On-prem Active Directory (LDAP/LDAPS bind against AD DS on the DC) — `POST /auth/ad/login`, guides at [/auth/active-directory](/auth/active-directory), [/auth/active-directory/ldap](/auth/active-directory/ldap), [/auth/active-directory/ldaps](/auth/active-directory/ldaps)
-- Social login via OAuth2 (Google, Facebook, X / Twitter, GitHub, Figma, LinkedIn, Slack, Atlassian, GitLab, Bitbucket, Discord, Twitch, Amazon, Patreon, Dropbox, and Reddit), MetaMask SIWE (EIP-4361), Steam OpenID 2.0, and Apple Sign In (OIDC form_post) with a *code exchange* flow (PKCE on Twitter)
-- Wiki guides: [/auth](/auth), [/auth/active-directory](/auth/active-directory), [/auth/social](/auth/social), [/auth/social/google](/auth/social/google), [/auth/social/facebook](/auth/social/facebook), [/auth/social/twitter](/auth/social/twitter), [/auth/social/github](/auth/social/github), [/auth/social/figma](/auth/social/figma), [/auth/social/linkedin](/auth/social/linkedin), [/auth/social/slack](/auth/social/slack), [/auth/social/atlassian](/auth/social/atlassian), [/auth/social/gitlab](/auth/social/gitlab), [/auth/social/bitbucket](/auth/social/bitbucket), [/auth/social/discord](/auth/social/discord), [/auth/social/twitch](/auth/social/twitch), [/auth/social/amazon](/auth/social/amazon), [/auth/social/patreon](/auth/social/patreon), [/auth/social/dropbox](/auth/social/dropbox), [/auth/social/metamask](/auth/social/metamask), [/auth/social/steam](/auth/social/steam), [/auth/social/reddit](/auth/social/reddit), [/auth/social/apple](/auth/social/apple)
+- Social login via OAuth2 (Google, Facebook, X / Twitter, GitHub, Figma, LinkedIn, Slack, Atlassian, GitLab, Bitbucket, Discord, Twitch, Amazon, Patreon, Dropbox), MetaMask SIWE (EIP-4361), Steam OpenID 2.0, and Apple Sign In (OIDC form_post) with a *code exchange* flow (PKCE on Twitter)
+- Wiki guides: [/auth](/auth), [/auth/active-directory](/auth/active-directory), [/auth/social](/auth/social), [/auth/social/google](/auth/social/google), [/auth/social/facebook](/auth/social/facebook), [/auth/social/twitter](/auth/social/twitter), [/auth/social/github](/auth/social/github), [/auth/social/figma](/auth/social/figma), [/auth/social/linkedin](/auth/social/linkedin), [/auth/social/slack](/auth/social/slack), [/auth/social/atlassian](/auth/social/atlassian), [/auth/social/gitlab](/auth/social/gitlab), [/auth/social/bitbucket](/auth/social/bitbucket), [/auth/social/discord](/auth/social/discord), [/auth/social/twitch](/auth/social/twitch), [/auth/social/amazon](/auth/social/amazon), [/auth/social/patreon](/auth/social/patreon), [/auth/social/dropbox](/auth/social/dropbox), [/auth/social/metamask](/auth/social/metamask), [/auth/social/steam](/auth/social/steam), [/auth/social/apple](/auth/social/apple)
 
 ## Tests and coverage
 

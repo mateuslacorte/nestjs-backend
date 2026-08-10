@@ -24,7 +24,6 @@ Allow: /auth/social/bitbucket
 Allow: /auth/social/discord
 Allow: /auth/social/twitch
 Allow: /auth/social/steam
-Allow: /auth/social/reddit
 Allow: /auth/social/amazon
 Allow: /auth/social/patreon
 Allow: /auth/social/dropbox

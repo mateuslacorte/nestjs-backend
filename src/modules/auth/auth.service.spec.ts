@@ -50,7 +50,6 @@ import { BitbucketProfilePayload } from './strategies/bitbucket.strategy';
 import { DiscordProfilePayload } from './strategies/discord.strategy';
 import { TwitchProfilePayload } from './strategies/twitch.strategy';
 import { SteamProfilePayload } from './strategies/steam.strategy';
-import { RedditProfilePayload } from './strategies/reddit.strategy';
 import { AppleProfilePayload } from './strategies/apple.strategy';
 import { AmazonProfilePayload } from './strategies/amazon.strategy';
 import { PatreonProfilePayload } from './strategies/patreon.strategy';
@@ -130,9 +129,6 @@ const defaultConfig: Record<string, unknown> = {
   'steamOpenId.enabled': true,
   'steamOpenId.redirectAllowlist': oauthRedirectAllowlist,
   'steamOpenId.defaultRoles': [Role.USER],
-  'redditOAuth.enabled': true,
-  'redditOAuth.redirectAllowlist': oauthRedirectAllowlist,
-  'redditOAuth.defaultRoles': [Role.USER],
   'appleOAuth.enabled': true,
   'appleOAuth.redirectAllowlist': oauthRedirectAllowlist,
   'appleOAuth.defaultRoles': [Role.USER],
@@ -167,7 +163,6 @@ describe('AuthService', () => {
     findByDiscordId: jest.Mock;
     findByTwitchId: jest.Mock;
     findBySteamId: jest.Mock;
-    findByRedditId: jest.Mock;
     findByAmazonId: jest.Mock;
     findByPatreonId: jest.Mock;
     findByDropboxId: jest.Mock;
@@ -219,7 +214,6 @@ describe('AuthService', () => {
       findByDiscordId: jest.fn(),
       findByTwitchId: jest.fn(),
       findBySteamId: jest.fn(),
-      findByRedditId: jest.fn(),
       findByAmazonId: jest.fn(),
       findByPatreonId: jest.fn(),
       findByDropboxId: jest.fn(),
@@ -2849,109 +2843,6 @@ describe('AuthService', () => {
     });
   });
 
-  describe('completeRedditOAuth', () => {
-    const profile: RedditProfilePayload = {
-      redditId: 'abc123',
-      email: 'abc123@users.noreply.reddit.com',
-      firstName: 'Reddit',
-      lastName: 'User',
-    };
-    const state = encodeOAuthState('https://app.example/cb');
-
-    it('throws 503 when Reddit auth is disabled', async () => {
-      configService.get.mockImplementation((key: string) => {
-        if (key === 'redditOAuth.enabled') return false;
-        return defaultConfig[key];
-      });
-
-      await expect(
-        service.completeRedditOAuth(profile, state),
-      ).rejects.toThrow(
-        new ServiceUnavailableException('Reddit authentication is disabled'),
-      );
-    });
-
-    it('returns redirect URL for existing reddit user', async () => {
-      usersService.findByRedditId.mockResolvedValue(
-        createUser({ redditId: 'abc123' }),
-      );
-
-      const result = await service.completeRedditOAuth(profile, state);
-
-      expect(result.redirectUrl).toBe(
-        'https://app.example/cb?code=exchange-code-123',
-      );
-    });
-
-    it('reactivates inactive reddit user', async () => {
-      usersService.findByRedditId.mockResolvedValue(
-        createUser({
-          redditId: 'abc123',
-          isActive: false,
-        }),
-      );
-      usersService.update.mockResolvedValue(createUser({ isActive: true }));
-
-      await service.completeRedditOAuth(profile, state);
-
-      expect(usersService.update).toHaveBeenCalledWith('user-1', {
-        isActive: true,
-      });
-    });
-
-    it('links reddit id to existing email user', async () => {
-      const byEmail = createUser({ email: profile.email });
-      usersService.findByRedditId.mockResolvedValue(null);
-      usersService.findByEmail.mockResolvedValue(byEmail);
-      usersService.update.mockResolvedValue({
-        ...byEmail,
-        redditId: profile.redditId,
-      });
-
-      await service.completeRedditOAuth(profile, state);
-
-      expect(usersService.update).toHaveBeenCalledWith('user-1', {
-        redditId: 'abc123',
-      });
-    });
-
-    it('creates new user with dash lastName when empty', async () => {
-      configService.get.mockImplementation((key: string) => {
-        if (key === 'redditOAuth.defaultRoles') return undefined;
-        return defaultConfig[key];
-      });
-      usersService.findByRedditId.mockResolvedValue(null);
-      usersService.findByEmail.mockResolvedValue(null);
-      usersService.findByUsername.mockResolvedValue(null);
-      usersService.create.mockResolvedValue(createUser());
-
-      await service.completeRedditOAuth(
-        { ...profile, lastName: '' },
-        state,
-      );
-
-      expect(usersService.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          lastName: '-',
-          roles: [],
-          redditId: 'abc123',
-        }),
-      );
-    });
-
-    it('uses & separator when redirect already has query params', async () => {
-      const queryState = encodeOAuthState('https://app.example/cb?foo=1');
-      usersService.findByRedditId.mockResolvedValue(
-        createUser({ redditId: 'abc123' }),
-      );
-
-      const result = await service.completeRedditOAuth(profile, queryState);
-
-      expect(result.redirectUrl).toBe(
-        'https://app.example/cb?foo=1&code=exchange-code-123',
-      );
-    });
-  });
 
   describe('completeAppleOAuth', () => {
     const profile: AppleProfilePayload = {
@@ -3382,7 +3273,6 @@ describe('AuthService', () => {
           key === 'discordOAuth.enabled' ||
           key === 'twitchOAuth.enabled' ||
           key === 'steamOpenId.enabled' ||
-          key === 'redditOAuth.enabled' ||
           key === 'appleOAuth.enabled' ||
           key === 'amazonOAuth.enabled' ||
           key === 'patreonOAuth.enabled' ||

@@ -149,7 +149,6 @@
       "patreon": "Guia Patreon OAuth2",
       "dropbox": "Guia Dropbox OAuth2",
       "apple": "Guia Apple Sign In",
-      "reddit": "Guia Reddit OAuth2",
       "auth": "Auth & JWT"
     },
     "samples": {

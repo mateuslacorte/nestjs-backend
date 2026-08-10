@@ -153,8 +153,7 @@
       "bitbucket": "Guia Bitbucket OAuth2",
       "discord": "Guia Discord OAuth2",
       "twitch": "Guia Twitch OAuth2",
-      "steam": "Guia Steam OpenID 2.0",
-      "reddit": "Guia Reddit OAuth2"
+      "steam": "Guia Steam OpenID 2.0"
     },
     "samples": {
       "fullPageRedirect": "// Redirect de página inteira: Nest → GitHub → de volta à SPA",

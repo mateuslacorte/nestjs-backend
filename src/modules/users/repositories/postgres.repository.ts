@@ -28,7 +28,7 @@ export class UserPostgresRepository {
      */
     @EnableCache()
     async create(createUserDto: CreateUserDto, includePassword = false): Promise<IUser> {
-        const { username, email, password, googleId, facebookId, twitterId, githubId, figmaId, linkedinId, slackId, atlassianId, gitlabId, bitbucketId, discordId, twitchId, steamId, redditId, appleId, amazonId, patreonId, dropboxId, metamaskId, activeDirectoryId } = createUserDto;
+        const { username, email, password, googleId, facebookId, twitterId, githubId, figmaId, linkedinId, slackId, atlassianId, gitlabId, bitbucketId, discordId, twitchId, steamId, appleId, amazonId, patreonId, dropboxId, metamaskId, activeDirectoryId } = createUserDto;
 
         const existingUser = await this.userRepository.findOne({
             where: [{ email }, { username }],
@@ -154,14 +154,6 @@ export class UserPostgresRepository {
             }
         }
 
-        if (redditId) {
-            const existingReddit = await this.userRepository.findOne({
-                where: { redditId },
-            });
-            if (existingReddit) {
-                throw new ConflictException('User with this Reddit account already exists');
-            }
-        }
 
         if (appleId) {
             const existingApple = await this.userRepository.findOne({
@@ -246,7 +238,6 @@ export class UserPostgresRepository {
             discordId: discordId ?? null,
             twitchId: twitchId ?? null,
             steamId: steamId ?? null,
-            redditId: redditId ?? null,
             appleId: appleId ?? null,
             amazonId: amazonId ?? null,
             patreonId: patreonId ?? null,
@@ -497,18 +488,6 @@ export class UserPostgresRepository {
     @NoCache()
     async findBySteamId(steamId: string, includePassword = false): Promise<IUser | null> {
         const user = await this.userRepository.findOne({ where: { steamId } });
-        if (!user) {
-            return null;
-        }
-        return includePassword ? user : this.omitPassword(user);
-    }
-
-    /**
-     * Find a user by Reddit user ID
-     */
-    @NoCache()
-    async findByRedditId(redditId: string, includePassword = false): Promise<IUser | null> {
-        const user = await this.userRepository.findOne({ where: { redditId } });
         if (!user) {
             return null;
         }

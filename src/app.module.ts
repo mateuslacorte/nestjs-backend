@@ -43,7 +43,6 @@ import bitbucketOAuthConfig from './config/bitbucket-oauth.config';
 import discordOAuthConfig from './config/discord-oauth.config';
 import twitchOAuthConfig from './config/twitch-oauth.config';
 import steamOpenIdConfig from './config/steam-openid.config';
-import redditOAuthConfig from './config/reddit-oauth.config';
 import appleOAuthConfig from './config/apple-oauth.config';
 import amazonOAuthConfig from './config/amazon-oauth.config';
 import patreonOAuthConfig from './config/patreon-oauth.config';
@@ -89,7 +88,6 @@ import { HealthModule } from '@modules/health/health.module';
                 discordOAuthConfig,
                 twitchOAuthConfig,
                 steamOpenIdConfig,
-                redditOAuthConfig,
                 appleOAuthConfig,
                 amazonOAuthConfig,
                 patreonOAuthConfig,

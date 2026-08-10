@@ -103,9 +103,6 @@ var CreateUserDto = function () {
     var _steamId_decorators;
     var _steamId_initializers = [];
     var _steamId_extraInitializers = [];
-    var _redditId_decorators;
-    var _redditId_initializers = [];
-    var _redditId_extraInitializers = [];
     var _amazonId_decorators;
     var _amazonId_initializers = [];
     var _amazonId_extraInitializers = [];
@@ -150,8 +147,7 @@ var CreateUserDto = function () {
             this.discordId = (__runInitializers(this, _bitbucketId_extraInitializers), __runInitializers(this, _discordId_initializers, void 0));
             this.twitchId = (__runInitializers(this, _discordId_extraInitializers), __runInitializers(this, _twitchId_initializers, void 0));
             this.steamId = (__runInitializers(this, _twitchId_extraInitializers), __runInitializers(this, _steamId_initializers, void 0));
-            this.redditId = (__runInitializers(this, _steamId_extraInitializers), __runInitializers(this, _redditId_initializers, void 0));
-            this.amazonId = (__runInitializers(this, _redditId_extraInitializers), __runInitializers(this, _amazonId_initializers, void 0));
+            this.amazonId = (__runInitializers(this, _steamId_extraInitializers), __runInitializers(this, _amazonId_initializers, void 0));
             this.patreonId = (__runInitializers(this, _amazonId_extraInitializers), __runInitializers(this, _patreonId_initializers, void 0));
             this.dropboxId = (__runInitializers(this, _patreonId_extraInitializers), __runInitializers(this, _dropboxId_initializers, void 0));
             this.metamaskId = (__runInitializers(this, _dropboxId_extraInitializers), __runInitializers(this, _metamaskId_initializers, void 0));
@@ -172,8 +168,8 @@ var CreateUserDto = function () {
         _email_decorators = [(0, swagger_1.ApiProperty)({ example: 'jane.smith@example.com', description: 'User email address' }), (0, graphql_1.Field)(), (0, class_validator_1.IsEmail)({}, { message: 'Invalid email address' }), (0, class_validator_1.IsNotEmpty)({ message: 'Email is required' })];
         _password_decorators = [(0, swagger_1.ApiPropertyOptional)({
                 example: 'Str0ng!P@ssword',
-                description: 'Password (required unless googleId, facebookId, twitterId, githubId, figmaId, linkedinId, slackId, atlassianId, gitlabId, bitbucketId, discordId, twitchId, steamId, redditId, amazonId, patreonId, dropboxId, metamaskId, activeDirectoryId, or appleId is set)',
-            }), (0, graphql_1.Field)(function () { return String; }, { nullable: true }), (0, class_validator_1.ValidateIf)(function (o) { return !o.googleId && !o.facebookId && !o.twitterId && !o.githubId && !o.figmaId && !o.linkedinId && !o.slackId && !o.atlassianId && !o.gitlabId && !o.bitbucketId && !o.discordId && !o.twitchId && !o.steamId && !o.redditId && !o.amazonId && !o.patreonId && !o.dropboxId && !o.metamaskId && !o.activeDirectoryId && !o.appleId; }), (0, strongpassword_decorator_1.StrongPassword)({ message: 'Invalid password format' }), (0, class_validator_1.IsNotEmpty)({ message: 'Password is required' })];
+                description: 'Password (required unless googleId, facebookId, twitterId, githubId, figmaId, linkedinId, slackId, atlassianId, gitlabId, bitbucketId, discordId, twitchId, steamId, amazonId, patreonId, dropboxId, metamaskId, activeDirectoryId, or appleId is set)',
+            }), (0, graphql_1.Field)(function () { return String; }, { nullable: true }), (0, class_validator_1.ValidateIf)(function (o) { return !o.googleId && !o.facebookId && !o.twitterId && !o.githubId && !o.figmaId && !o.linkedinId && !o.slackId && !o.atlassianId && !o.gitlabId && !o.bitbucketId && !o.discordId && !o.twitchId && !o.steamId && !o.amazonId && !o.patreonId && !o.dropboxId && !o.metamaskId && !o.activeDirectoryId && !o.appleId; }), (0, strongpassword_decorator_1.StrongPassword)({ message: 'Invalid password format' }), (0, class_validator_1.IsNotEmpty)({ message: 'Password is required' })];
         _googleId_decorators = [(0, swagger_1.ApiPropertyOptional)({
                 example: '108234567890123456789',
                 description: 'Google subject ID for OAuth users',
@@ -226,10 +222,6 @@ var CreateUserDto = function () {
                 example: '76561198000000000',
                 description: 'SteamID64 for OpenID users',
             }), (0, graphql_1.Field)(function () { return String; }, { nullable: true }), (0, class_validator_1.IsString)(), (0, class_validator_1.IsOptional)()];
-        _redditId_decorators = [(0, swagger_1.ApiPropertyOptional)({
-                example: 'abc123',
-                description: 'Reddit user ID for OAuth users',
-            }), (0, graphql_1.Field)(function () { return String; }, { nullable: true }), (0, class_validator_1.IsString)(), (0, class_validator_1.IsOptional)()];
         _amazonId_decorators = [(0, swagger_1.ApiPropertyOptional)({
                 example: 'amzn1.account.abc123',
                 description: 'Amazon user ID for OAuth users',
@@ -279,7 +271,6 @@ var CreateUserDto = function () {
         __esDecorate(null, null, _discordId_decorators, { kind: "field", name: "discordId", static: false, private: false, access: { has: function (obj) { return "discordId" in obj; }, get: function (obj) { return obj.discordId; }, set: function (obj, value) { obj.discordId = value; } }, metadata: _metadata }, _discordId_initializers, _discordId_extraInitializers);
         __esDecorate(null, null, _twitchId_decorators, { kind: "field", name: "twitchId", static: false, private: false, access: { has: function (obj) { return "twitchId" in obj; }, get: function (obj) { return obj.twitchId; }, set: function (obj, value) { obj.twitchId = value; } }, metadata: _metadata }, _twitchId_initializers, _twitchId_extraInitializers);
         __esDecorate(null, null, _steamId_decorators, { kind: "field", name: "steamId", static: false, private: false, access: { has: function (obj) { return "steamId" in obj; }, get: function (obj) { return obj.steamId; }, set: function (obj, value) { obj.steamId = value; } }, metadata: _metadata }, _steamId_initializers, _steamId_extraInitializers);
-        __esDecorate(null, null, _redditId_decorators, { kind: "field", name: "redditId", static: false, private: false, access: { has: function (obj) { return "redditId" in obj; }, get: function (obj) { return obj.redditId; }, set: function (obj, value) { obj.redditId = value; } }, metadata: _metadata }, _redditId_initializers, _redditId_extraInitializers);
         __esDecorate(null, null, _amazonId_decorators, { kind: "field", name: "amazonId", static: false, private: false, access: { has: function (obj) { return "amazonId" in obj; }, get: function (obj) { return obj.amazonId; }, set: function (obj, value) { obj.amazonId = value; } }, metadata: _metadata }, _amazonId_initializers, _amazonId_extraInitializers);
         __esDecorate(null, null, _patreonId_decorators, { kind: "field", name: "patreonId", static: false, private: false, access: { has: function (obj) { return "patreonId" in obj; }, get: function (obj) { return obj.patreonId; }, set: function (obj, value) { obj.patreonId = value; } }, metadata: _metadata }, _patreonId_initializers, _patreonId_extraInitializers);
         __esDecorate(null, null, _dropboxId_decorators, { kind: "field", name: "dropboxId", static: false, private: false, access: { has: function (obj) { return "dropboxId" in obj; }, get: function (obj) { return obj.dropboxId; }, set: function (obj, value) { obj.dropboxId = value; } }, metadata: _metadata }, _dropboxId_initializers, _dropboxId_extraInitializers);

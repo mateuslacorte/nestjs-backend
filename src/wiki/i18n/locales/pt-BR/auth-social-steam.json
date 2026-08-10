@@ -162,7 +162,6 @@
       "bitbucket": "Guia Bitbucket OAuth2",
       "discord": "Guia Discord OAuth2",
       "twitch": "Guia Twitch OAuth2",
-      "reddit": "Guia Reddit OAuth2",
       "auth": "Auth & JWT",
       "facebook": "Guia Facebook OAuth2"
     },

@@ -110,7 +110,6 @@ var UsersService = function () {
     var _findByDiscordId_decorators;
     var _findByTwitchId_decorators;
     var _findBySteamId_decorators;
-    var _findByRedditId_decorators;
     var _findByAmazonId_decorators;
     var _findByPatreonId_decorators;
     var _findByDropboxId_decorators;
@@ -323,17 +322,6 @@ var UsersService = function () {
                 if (includePassword === void 0) { includePassword = false; }
                 return __generator(this, function (_a) {
                     return [2 /*return*/, this.postgresRepo.findBySteamId(steamId, includePassword)];
-                });
-            });
-        };
-        /**
-         * Find a user by Reddit user ID
-         */
-        UsersService_1.prototype.findByRedditId = function (redditId_1) {
-            return __awaiter(this, arguments, void 0, function (redditId, includePassword) {
-                if (includePassword === void 0) { includePassword = false; }
-                return __generator(this, function (_a) {
-                    return [2 /*return*/, this.postgresRepo.findByRedditId(redditId, includePassword)];
                 });
             });
         };
@@ -595,7 +583,6 @@ var UsersService = function () {
         _findByDiscordId_decorators = [(0, cache_decorator_1.NoCache)()];
         _findByTwitchId_decorators = [(0, cache_decorator_1.NoCache)()];
         _findBySteamId_decorators = [(0, cache_decorator_1.NoCache)()];
-        _findByRedditId_decorators = [(0, cache_decorator_1.NoCache)()];
         _findByAmazonId_decorators = [(0, cache_decorator_1.NoCache)()];
         _findByPatreonId_decorators = [(0, cache_decorator_1.NoCache)()];
         _findByDropboxId_decorators = [(0, cache_decorator_1.NoCache)()];
@@ -624,7 +611,6 @@ var UsersService = function () {
         __esDecorate(_classThis, null, _findByDiscordId_decorators, { kind: "method", name: "findByDiscordId", static: false, private: false, access: { has: function (obj) { return "findByDiscordId" in obj; }, get: function (obj) { return obj.findByDiscordId; } }, metadata: _metadata }, null, _instanceExtraInitializers);
         __esDecorate(_classThis, null, _findByTwitchId_decorators, { kind: "method", name: "findByTwitchId", static: false, private: false, access: { has: function (obj) { return "findByTwitchId" in obj; }, get: function (obj) { return obj.findByTwitchId; } }, metadata: _metadata }, null, _instanceExtraInitializers);
         __esDecorate(_classThis, null, _findBySteamId_decorators, { kind: "method", name: "findBySteamId", static: false, private: false, access: { has: function (obj) { return "findBySteamId" in obj; }, get: function (obj) { return obj.findBySteamId; } }, metadata: _metadata }, null, _instanceExtraInitializers);
-        __esDecorate(_classThis, null, _findByRedditId_decorators, { kind: "method", name: "findByRedditId", static: false, private: false, access: { has: function (obj) { return "findByRedditId" in obj; }, get: function (obj) { return obj.findByRedditId; } }, metadata: _metadata }, null, _instanceExtraInitializers);
         __esDecorate(_classThis, null, _findByAmazonId_decorators, { kind: "method", name: "findByAmazonId", static: false, private: false, access: { has: function (obj) { return "findByAmazonId" in obj; }, get: function (obj) { return obj.findByAmazonId; } }, metadata: _metadata }, null, _instanceExtraInitializers);
         __esDecorate(_classThis, null, _findByPatreonId_decorators, { kind: "method", name: "findByPatreonId", static: false, private: false, access: { has: function (obj) { return "findByPatreonId" in obj; }, get: function (obj) { return obj.findByPatreonId; } }, metadata: _metadata }, null, _instanceExtraInitializers);
         __esDecorate(_classThis, null, _findByDropboxId_decorators, { kind: "method", name: "findByDropboxId", static: false, private: false, access: { has: function (obj) { return "findByDropboxId" in obj; }, get: function (obj) { return obj.findByDropboxId; } }, metadata: _metadata }, null, _instanceExtraInitializers);

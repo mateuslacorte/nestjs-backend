@@ -199,13 +199,6 @@ export class UsersService {
     return this.postgresRepo.findBySteamId(steamId, includePassword);
   }
 
-  /**
-   * Find a user by Reddit user ID
-   */
-  @NoCache()
-  async findByRedditId(redditId: string, includePassword = false): Promise<IUser | null> {
-    return this.postgresRepo.findByRedditId(redditId, includePassword);
-  }
 
   /**
    * Find a user by Amazon user ID

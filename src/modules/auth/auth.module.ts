@@ -31,8 +31,6 @@ import { TwitchStrategy } from './strategies/twitch.strategy';
 import { TwitchAuthGuard } from './guards/twitch-auth.guard';
 import { SteamStrategy } from './strategies/steam.strategy';
 import { SteamAuthGuard } from './guards/steam-auth.guard';
-import { RedditStrategy } from './strategies/reddit.strategy';
-import { RedditAuthGuard } from './guards/reddit-auth.guard';
 import { AppleStrategy } from './strategies/apple.strategy';
 import { AppleAuthGuard } from './guards/apple-auth.guard';
 import { AmazonStrategy } from './strategies/amazon.strategy';
@@ -96,8 +94,6 @@ import { AuditModule } from '@common/audit/audit.module';
         TwitchAuthGuard,
         SteamStrategy,
         SteamAuthGuard,
-        RedditStrategy,
-        RedditAuthGuard,
         AppleStrategy,
         AppleAuthGuard,
         AmazonStrategy,

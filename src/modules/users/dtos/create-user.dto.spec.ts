@@ -159,14 +159,6 @@ describe('CreateUserDto', () => {
     expect(errors).toHaveLength(0);
   });
 
-  it('accepts OAuth user with redditId and no password', async () => {
-    const { password: _password, ...withoutPassword } = validBase;
-    const errors = await validateDto({
-      ...withoutPassword,
-      redditId: 'abc123',
-    });
-    expect(errors).toHaveLength(0);
-  });
 
   it('accepts OAuth user with amazonId and no password', async () => {
     const { password: _password, ...withoutPassword } = validBase;
@@ -214,7 +206,7 @@ describe('CreateUserDto', () => {
     expect(errors).toHaveLength(0);
   });
 
-  it('requires password when neither googleId, facebookId, twitterId, githubId, figmaId, linkedinId, slackId, atlassianId, gitlabId, bitbucketId, discordId, twitchId, steamId, redditId, amazonId, patreonId, dropboxId, metamaskId, activeDirectoryId, nor appleId is set', async () => {
+  it('requires password when neither googleId, facebookId, twitterId, githubId, figmaId, linkedinId, slackId, atlassianId, gitlabId, bitbucketId, discordId, twitchId, steamId, amazonId, patreonId, dropboxId, metamaskId, activeDirectoryId, nor appleId is set', async () => {
     const { password: _password, ...withoutPassword } = validBase;
     const errors = await validateDto(withoutPassword);
     expect(messages(errors, 'password')).toEqual(

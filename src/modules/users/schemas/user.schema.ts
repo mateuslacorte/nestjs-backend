@@ -71,8 +71,6 @@ export class User extends Document<string> {
   @Prop({ type: String, unique: true, sparse: true, default: null })
   steamId?: string | null;
 
-  @Prop({ type: String, unique: true, sparse: true, default: null })
-  redditId?: string | null;
 
   @Prop({ type: String, unique: true, sparse: true, default: null })
   appleId?: string | null;

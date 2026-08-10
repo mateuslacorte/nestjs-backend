@@ -28,7 +28,6 @@ type MockPostgresRepo = {
   findByDiscordId: jest.Mock;
   findByTwitchId: jest.Mock;
   findBySteamId: jest.Mock;
-  findByRedditId: jest.Mock;
   findByAmazonId: jest.Mock;
   findByPatreonId: jest.Mock;
   findByDropboxId: jest.Mock;
@@ -84,7 +83,6 @@ describe('UsersService', () => {
       findByDiscordId: jest.fn(),
       findByTwitchId: jest.fn(),
       findBySteamId: jest.fn(),
-      findByRedditId: jest.fn(),
       findByAmazonId: jest.fn(),
       findByPatreonId: jest.fn(),
       findByDropboxId: jest.fn(),
@@ -135,7 +133,6 @@ describe('UsersService', () => {
         'findByDiscordId',
         'findByTwitchId',
         'findBySteamId',
-        'findByRedditId',
         'findByAmazonId',
         'findByPatreonId',
         'findByDropboxId',
@@ -327,7 +324,6 @@ describe('UsersService', () => {
         repo: 'findBySteamId',
         id: '76561198000000000',
       },
-      { method: 'findByRedditId', repo: 'findByRedditId', id: 'abc123' },
       {
         method: 'findByAmazonId',
         repo: 'findByAmazonId',

@@ -152,7 +152,6 @@
       "discord": "Discord OAuth2 guide",
       "twitch": "Twitch OAuth2 guide",
       "steam": "Steam OpenID 2.0 guide",
-      "reddit": "Reddit OAuth2 guide",
       "auth": "Auth & JWT",
       "facebook": "Facebook OAuth2 guide"
     },

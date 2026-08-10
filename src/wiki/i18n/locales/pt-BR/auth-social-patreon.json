@@ -162,7 +162,6 @@
       "dropbox": "Guia Dropbox OAuth2",
       "metamask": "Guia MetaMask SIWE",
       "apple": "Guia Apple Sign In",
-      "reddit": "Guia Reddit OAuth2",
       "auth": "Auth & JWT"
     },
     "samples": {

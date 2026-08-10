@@ -149,7 +149,6 @@
       "patreon": "Patreon OAuth2 guide",
       "dropbox": "Dropbox OAuth2 guide",
       "apple": "Apple Sign In guide",
-      "reddit": "Reddit OAuth2 guide",
       "auth": "Auth & JWT"
     },
     "samples": {

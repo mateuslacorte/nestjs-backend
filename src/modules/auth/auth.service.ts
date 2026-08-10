@@ -30,7 +30,6 @@ import { BitbucketProfilePayload } from './strategies/bitbucket.strategy';
 import { DiscordProfilePayload } from './strategies/discord.strategy';
 import { TwitchProfilePayload } from './strategies/twitch.strategy';
 import { SteamProfilePayload } from './strategies/steam.strategy';
-import { RedditProfilePayload } from './strategies/reddit.strategy';
 import { AppleProfilePayload } from './strategies/apple.strategy';
 import { AmazonProfilePayload } from './strategies/amazon.strategy';
 import { PatreonProfilePayload } from './strategies/patreon.strategy';
@@ -741,26 +740,6 @@ export class AuthService {
     }
 
     /**
-     * After Reddit OAuth callback: upsert user, create exchange code, build redirect URL.
-     */
-    async completeRedditOAuth(
-        profile: RedditProfilePayload,
-        state?: string,
-    ): Promise<{ redirectUrl: string }> {
-        this.assertRedditAuthEnabled();
-
-        const redirectBase = this.parseAndValidateRedirectFromState(
-            state,
-            'redditOAuth.redirectAllowlist',
-        );
-        const user = await this.findOrCreateRedditUser(profile);
-        const code = await this.oauthExchangeService.createExchangeCode(user.id!);
-        return {
-            redirectUrl: this.buildOAuthRedirectUrl(redirectBase, code),
-        };
-    }
-
-    /**
      * After Amazon OAuth callback: upsert user, create exchange code, build redirect URL.
      */
     async completeAmazonOAuth(
@@ -822,7 +801,7 @@ export class AuthService {
     }
 
     /**
-     * Exchange a one-time OAuth code for JWT tokens (Google, Facebook, Twitter, GitHub, Figma, LinkedIn, Slack, Atlassian, GitLab, Bitbucket, Discord, Twitch, Steam, Reddit, Apple, Amazon, Patreon, or Dropbox).
+     * Exchange a one-time OAuth code for JWT tokens (Google, Facebook, Twitter, GitHub, Figma, LinkedIn, Slack, Atlassian, GitLab, Bitbucket, Discord, Twitch, Steam, Apple, Amazon, Patreon, or Dropbox).
      */
     async exchangeOAuthCode(dto: ExchangeCodeDto): Promise<{
         user: PublicUser;
@@ -990,13 +969,6 @@ export class AuthService {
         };
     }
 
-    private assertRedditAuthEnabled(): void {
-        const enabled = this.configService.get<boolean>('redditOAuth.enabled');
-        if (!enabled) {
-            throw new ServiceUnavailableException('Reddit authentication is disabled');
-        }
-    }
-
     private assertAppleAuthEnabled(): void {
         const enabled = this.configService.get<boolean>('appleOAuth.enabled');
         if (!enabled) {
@@ -1018,7 +990,6 @@ export class AuthService {
         const discord = this.configService.get<boolean>('discordOAuth.enabled');
         const twitch = this.configService.get<boolean>('twitchOAuth.enabled');
         const steam = this.configService.get<boolean>('steamOpenId.enabled');
-        const reddit = this.configService.get<boolean>('redditOAuth.enabled');
         const apple = this.configService.get<boolean>('appleOAuth.enabled');
         const amazon = this.configService.get<boolean>('amazonOAuth.enabled');
         const patreon = this.configService.get<boolean>('patreonOAuth.enabled');
@@ -1037,7 +1008,6 @@ export class AuthService {
             !discord &&
             !twitch &&
             !steam &&
-            !reddit &&
             !apple &&
             !amazon &&
             !patreon &&
@@ -1754,39 +1724,6 @@ export class AuthService {
             lastName: profile.lastName || '-',
             username,
             steamId: profile.steamId,
-            isActive: true,
-            roles: [...defaultRoles],
-        });
-    }
-
-    private async findOrCreateRedditUser(
-        profile: RedditProfilePayload,
-    ): Promise<IUser> {
-        const byReddit = await this.usersService.findByRedditId(profile.redditId);
-        if (byReddit) {
-            if (!byReddit.isActive) {
-                return this.usersService.update(byReddit.id!, { isActive: true });
-            }
-            return byReddit;
-        }
-
-        const linked = await this.linkProviderToVerifiedEmail(profile.email, {
-            redditId: profile.redditId,
-        });
-        if (linked) {
-            return linked;
-        }
-
-        const defaultRoles =
-            this.configService.get<Role[]>('redditOAuth.defaultRoles') ?? [];
-        const username = await this.buildUniqueUsername(profile.email);
-
-        return this.usersService.create({
-            email: profile.email,
-            firstName: profile.firstName,
-            lastName: profile.lastName || '-',
-            username,
-            redditId: profile.redditId,
             isActive: true,
             roles: [...defaultRoles],
         });

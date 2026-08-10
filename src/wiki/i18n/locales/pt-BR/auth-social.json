@@ -25,13 +25,13 @@
     },
     "enable": {
       "title": "Ativar um provedor",
-      "description": "Cada provedor vem <strong>desligado por padrão</strong>. Ative no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> (carregado por <code class=\"px-1 py-0.5 bg-gray-100 rounded\">google-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">facebook-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">twitter-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">github-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">figma-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">linkedin-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">slack-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">atlassian-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">gitlab-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">bitbucket-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">discord-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">twitch-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">steam-openid.config.ts</code> e <code class=\"px-1 py-0.5 bg-gray-100 rounded\">reddit-oauth.config.ts</code> em <code class=\"px-1 py-0.5 bg-gray-100 rounded\">src/config/</code>), crie o app OAuth no IdP e aponte o callback para esta API.",
+      "description": "Cada provedor vem <strong>desligado por padrão</strong>. Ative no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">.env</code> (carregado por <code class=\"px-1 py-0.5 bg-gray-100 rounded\">google-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">facebook-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">twitter-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">github-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">figma-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">linkedin-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">slack-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">atlassian-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">gitlab-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">bitbucket-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">discord-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">twitch-oauth.config.ts</code>, <code class=\"px-1 py-0.5 bg-gray-100 rounded\">steam-openid.config.ts</code> e em <code class=\"px-1 py-0.5 bg-gray-100 rounded\">src/config/</code>), crie o app OAuth no IdP e aponte o callback para esta API.",
       "items": [
-        "Defina a feature flag do provedor como true (ex.: GOOGLE_AUTH_ENABLED, FACEBOOK_AUTH_ENABLED, TWITTER_AUTH_ENABLED, GITHUB_AUTH_ENABLED, FIGMA_AUTH_ENABLED, LINKEDIN_AUTH_ENABLED, SLACK_AUTH_ENABLED, ATLASSIAN_AUTH_ENABLED, GITLAB_AUTH_ENABLED, BITBUCKET_AUTH_ENABLED, DISCORD_AUTH_ENABLED, TWITCH_AUTH_ENABLED, STEAM_AUTH_ENABLED ou REDDIT_AUTH_ENABLED)",
+        "Defina a feature flag do provedor como true (ex.: GOOGLE_AUTH_ENABLED, FACEBOOK_AUTH_ENABLED, TWITTER_AUTH_ENABLED, GITHUB_AUTH_ENABLED, FIGMA_AUTH_ENABLED, LINKEDIN_AUTH_ENABLED, SLACK_AUTH_ENABLED, ATLASSIAN_AUTH_ENABLED, GITLAB_AUTH_ENABLED, BITBUCKET_AUTH_ENABLED, DISCORD_AUTH_ENABLED, TWITCH_AUTH_ENABLED, STEAM_AUTH_ENABLED)",
         "Preencha as credenciais e o CALLBACK_URL (caminho da API Nest, não da SPA)",
         "Liste as URLs pós-login permitidas no REDIRECT_ALLOWLIST do provedor (origem web e/ou deep link mobile)",
         "Opcionalmente defina *_OAUTH_DEFAULT_ROLES (valores de Role separados por vírgula) para usuários novos",
-        "Os valores ficam disponíveis via ConfigService nos namespaces googleOAuth, facebookOAuth, twitterOAuth, githubOAuth, figmaOAuth, linkedinOAuth, slackOAuth, atlassianOAuth, gitlabOAuth, bitbucketOAuth, discordOAuth, twitchOAuth, steamOpenId e redditOAuth",
+        "Os valores ficam disponíveis via ConfigService nos namespaces googleOAuth, facebookOAuth, twitterOAuth, githubOAuth, figmaOAuth, linkedinOAuth, slackOAuth, atlassianOAuth, gitlabOAuth, bitbucketOAuth, discordOAuth, twitchOAuth, steamOpenId",
         "Siga a página do provedor abaixo para passos no console e nomes das variáveis"
       ]
     },
@@ -133,11 +133,6 @@
         "description": "Sign-In with Ethereum (SIWE / EIP-4361): nonce, personal_sign, JWTs, env vars e amostras no browser.",
         "cta": "Guia MetaMask SIWE →"
       },
-      "reddit": {
-        "title": "Reddit",
-        "description": "Web app OAuth2 Reddit, scope identity, env vars, endpoints e amostras web/mobile. Reddit nunca devolve e-mail.",
-        "cta": "Guia Reddit →"
-      },
       "apple": {
         "title": "Apple",
         "description": "Sign in with Apple OIDC form_post, JWT client secret via chave .p8, env vars, endpoints e amostras web/mobile. Nome enviado apenas no primeiro login.",
@@ -173,7 +168,6 @@
       "patreon": "Guia de setup Patreon OAuth2",
       "dropbox": "Guia de setup Dropbox OAuth2",
       "metamask": "Guia de setup MetaMask SIWE",
-      "reddit": "Guia de setup Reddit OAuth2",
       "apple": "Guia de setup Apple Sign In"
     },
     "samples": {

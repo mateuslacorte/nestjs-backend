@@ -161,13 +161,6 @@ export class UpdateUserDto {
   @IsOptional()
   steamId?: string | null;
 
-  @ApiPropertyOptional({
-    example: 'abc123',
-    description: 'Reddit user ID for OAuth users',
-  })
-  @IsString()
-  @IsOptional()
-  redditId?: string | null;
 
   @ApiPropertyOptional({
     example: 'amzn1.account.abc123',

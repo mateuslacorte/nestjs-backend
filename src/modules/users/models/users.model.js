@@ -100,9 +100,6 @@ var UserModel = function () {
     var _steamId_decorators;
     var _steamId_initializers = [];
     var _steamId_extraInitializers = [];
-    var _redditId_decorators;
-    var _redditId_initializers = [];
-    var _redditId_extraInitializers = [];
     var _appleId_decorators;
     var _appleId_initializers = [];
     var _appleId_extraInitializers = [];
@@ -149,8 +146,7 @@ var UserModel = function () {
             this.discordId = (__runInitializers(this, _bitbucketId_extraInitializers), __runInitializers(this, _discordId_initializers, void 0));
             this.twitchId = (__runInitializers(this, _discordId_extraInitializers), __runInitializers(this, _twitchId_initializers, void 0));
             this.steamId = (__runInitializers(this, _twitchId_extraInitializers), __runInitializers(this, _steamId_initializers, void 0));
-            this.redditId = (__runInitializers(this, _steamId_extraInitializers), __runInitializers(this, _redditId_initializers, void 0));
-            this.appleId = (__runInitializers(this, _redditId_extraInitializers), __runInitializers(this, _appleId_initializers, void 0));
+            this.appleId = (__runInitializers(this, _steamId_extraInitializers), __runInitializers(this, _appleId_initializers, void 0));
             this.amazonId = (__runInitializers(this, _appleId_extraInitializers), __runInitializers(this, _amazonId_initializers, void 0));
             this.patreonId = (__runInitializers(this, _amazonId_extraInitializers), __runInitializers(this, _patreonId_initializers, void 0));
             this.dropboxId = (__runInitializers(this, _patreonId_extraInitializers), __runInitializers(this, _dropboxId_initializers, void 0));
@@ -184,7 +180,6 @@ var UserModel = function () {
         _discordId_decorators = [(0, graphql_1.Field)(function () { return String; }, { nullable: true })];
         _twitchId_decorators = [(0, graphql_1.Field)(function () { return String; }, { nullable: true })];
         _steamId_decorators = [(0, graphql_1.Field)(function () { return String; }, { nullable: true })];
-        _redditId_decorators = [(0, graphql_1.Field)(function () { return String; }, { nullable: true })];
         _appleId_decorators = [(0, graphql_1.Field)(function () { return String; }, { nullable: true })];
         _amazonId_decorators = [(0, graphql_1.Field)(function () { return String; }, { nullable: true })];
         _patreonId_decorators = [(0, graphql_1.Field)(function () { return String; }, { nullable: true })];
@@ -211,7 +206,6 @@ var UserModel = function () {
         __esDecorate(null, null, _discordId_decorators, { kind: "field", name: "discordId", static: false, private: false, access: { has: function (obj) { return "discordId" in obj; }, get: function (obj) { return obj.discordId; }, set: function (obj, value) { obj.discordId = value; } }, metadata: _metadata }, _discordId_initializers, _discordId_extraInitializers);
         __esDecorate(null, null, _twitchId_decorators, { kind: "field", name: "twitchId", static: false, private: false, access: { has: function (obj) { return "twitchId" in obj; }, get: function (obj) { return obj.twitchId; }, set: function (obj, value) { obj.twitchId = value; } }, metadata: _metadata }, _twitchId_initializers, _twitchId_extraInitializers);
         __esDecorate(null, null, _steamId_decorators, { kind: "field", name: "steamId", static: false, private: false, access: { has: function (obj) { return "steamId" in obj; }, get: function (obj) { return obj.steamId; }, set: function (obj, value) { obj.steamId = value; } }, metadata: _metadata }, _steamId_initializers, _steamId_extraInitializers);
-        __esDecorate(null, null, _redditId_decorators, { kind: "field", name: "redditId", static: false, private: false, access: { has: function (obj) { return "redditId" in obj; }, get: function (obj) { return obj.redditId; }, set: function (obj, value) { obj.redditId = value; } }, metadata: _metadata }, _redditId_initializers, _redditId_extraInitializers);
         __esDecorate(null, null, _appleId_decorators, { kind: "field", name: "appleId", static: false, private: false, access: { has: function (obj) { return "appleId" in obj; }, get: function (obj) { return obj.appleId; }, set: function (obj, value) { obj.appleId = value; } }, metadata: _metadata }, _appleId_initializers, _appleId_extraInitializers);
         __esDecorate(null, null, _amazonId_decorators, { kind: "field", name: "amazonId", static: false, private: false, access: { has: function (obj) { return "amazonId" in obj; }, get: function (obj) { return obj.amazonId; }, set: function (obj, value) { obj.amazonId = value; } }, metadata: _metadata }, _amazonId_initializers, _amazonId_extraInitializers);
         __esDecorate(null, null, _patreonId_decorators, { kind: "field", name: "patreonId", static: false, private: false, access: { has: function (obj) { return "patreonId" in obj; }, get: function (obj) { return obj.patreonId; }, set: function (obj, value) { obj.patreonId = value; } }, metadata: _metadata }, _patreonId_initializers, _patreonId_extraInitializers);

@@ -47,7 +47,6 @@ describe('UpdateUserDto', () => {
       discordId: '123456789012345678',
       twitchId: '141981764',
       steamId: '76561198000000000',
-      redditId: 'abc123',
       amazonId: 'amzn1.account.abc123',
       patreonId: 'patreon-user-001',
       dropboxId: 'dbid:abc123',
@@ -193,10 +192,6 @@ describe('UpdateUserDto', () => {
     expect(errors.some((e) => e.property === 'steamId')).toBe(true);
   });
 
-  it('rejects non-string redditId', async () => {
-    const errors = await validateDto({ redditId: false });
-    expect(errors.some((e) => e.property === 'redditId')).toBe(true);
-  });
 
   it('rejects non-string amazonId', async () => {
     const errors = await validateDto({ amazonId: false });

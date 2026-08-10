@@ -64,7 +64,6 @@ async function bootstrap() {
             { path: 'auth/social/discord', method: RequestMethod.GET },
             { path: 'auth/social/twitch', method: RequestMethod.GET },
             { path: 'auth/social/steam', method: RequestMethod.GET },
-            { path: 'auth/social/reddit', method: RequestMethod.GET },
             { path: 'auth/social/amazon', method: RequestMethod.GET },
             { path: 'auth/social/patreon', method: RequestMethod.GET },
             { path: 'auth/social/dropbox', method: RequestMethod.GET },

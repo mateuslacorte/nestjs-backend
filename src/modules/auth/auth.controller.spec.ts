@@ -23,7 +23,6 @@ import { BitbucketAuthGuard } from './guards/bitbucket-auth.guard';
 import { DiscordAuthGuard } from './guards/discord-auth.guard';
 import { TwitchAuthGuard } from './guards/twitch-auth.guard';
 import { SteamAuthGuard } from './guards/steam-auth.guard';
-import { RedditAuthGuard } from './guards/reddit-auth.guard';
 import { AppleAuthGuard } from './guards/apple-auth.guard';
 import { AmazonAuthGuard } from './guards/amazon-auth.guard';
 import { PatreonAuthGuard } from './guards/patreon-auth.guard';
@@ -48,7 +47,6 @@ import { BitbucketProfilePayload } from './strategies/bitbucket.strategy';
 import { DiscordProfilePayload } from './strategies/discord.strategy';
 import { TwitchProfilePayload } from './strategies/twitch.strategy';
 import { SteamProfilePayload } from './strategies/steam.strategy';
-import { RedditProfilePayload } from './strategies/reddit.strategy';
 import { AppleProfilePayload } from './strategies/apple.strategy';
 import { AmazonProfilePayload } from './strategies/amazon.strategy';
 import { PatreonProfilePayload } from './strategies/patreon.strategy';
@@ -81,7 +79,6 @@ describe('AuthController', () => {
     completeDiscordOAuth: jest.Mock;
     completeTwitchOAuth: jest.Mock;
     completeSteamOAuth: jest.Mock;
-    completeRedditOAuth: jest.Mock;
     completeAmazonOAuth: jest.Mock;
     completePatreonOAuth: jest.Mock;
     completeDropboxOAuth: jest.Mock;
@@ -119,7 +116,6 @@ describe('AuthController', () => {
       completeDiscordOAuth: jest.fn(),
       completeTwitchOAuth: jest.fn(),
       completeSteamOAuth: jest.fn(),
-      completeRedditOAuth: jest.fn(),
       completeAmazonOAuth: jest.fn(),
       completePatreonOAuth: jest.fn(),
       completeDropboxOAuth: jest.fn(),
@@ -181,8 +177,6 @@ describe('AuthController', () => {
       ['dropboxAuthCallback', RequestMethod.GET, 'dropbox/callback'],
       ['steamAuth', RequestMethod.GET, 'steam'],
       ['steamAuthCallback', RequestMethod.GET, 'steam/callback'],
-      ['redditAuth', RequestMethod.GET, 'reddit'],
-      ['redditAuthCallback', RequestMethod.GET, 'reddit/callback'],
       ['appleAuth', RequestMethod.GET, 'apple'],
       ['appleAuthCallback', RequestMethod.POST, 'apple/callback'],
       ['exchangeCode', RequestMethod.POST, 'exchange'],
@@ -248,8 +242,6 @@ describe('AuthController', () => {
       'dropboxAuthCallback',
       'steamAuth',
       'steamAuthCallback',
-      'redditAuth',
-      'redditAuthCallback',
       'appleAuth',
       'appleAuthCallback',
       'exchangeCode',
@@ -471,14 +463,6 @@ describe('AuthController', () => {
       expect(guards).toEqual(expect.arrayContaining([SteamAuthGuard]));
     });
 
-    it('redditAuth uses RedditAuthGuard', () => {
-      const guards = Reflect.getMetadata(
-        GUARDS_METADATA,
-        AuthController.prototype.redditAuth,
-      ) as unknown[];
-
-      expect(guards).toEqual(expect.arrayContaining([RedditAuthGuard]));
-    });
 
     it('appleAuth uses AppleAuthGuard', () => {
       const guards = Reflect.getMetadata(
@@ -616,9 +600,6 @@ describe('AuthController', () => {
       expect(controller.steamAuth()).toBeUndefined();
     });
 
-    it('redditAuth is a no-op (guard handles redirect)', () => {
-      expect(controller.redditAuth()).toBeUndefined();
-    });
 
     it('appleAuth is a no-op (guard handles redirect)', () => {
       expect(controller.appleAuth()).toBeUndefined();
@@ -874,17 +855,6 @@ describe('AuthController', () => {
           email: 'steam@example.com',
           firstName: 'S',
           lastName: 'Team',
-        },
-        stateSource: 'query',
-      },
-      {
-        method: 'redditAuthCallback',
-        serviceMethod: 'completeRedditOAuth',
-        profile: {
-          redditId: 'rd-1',
-          email: 'rd@example.com',
-          firstName: 'R',
-          lastName: 'D',
         },
         stateSource: 'query',
       },
@@ -1524,42 +1494,6 @@ describe('AuthController', () => {
     });
   });
 
-  describe('redditAuthCallback', () => {
-    it('redirects using AuthService.completeRedditOAuth result', async () => {
-      const profile: RedditProfilePayload = {
-        redditId: 'abc123',
-        email: 'abc123@users.noreply.reddit.com',
-        firstName: 'Reddit',
-        lastName: 'User',
-      };
-      const state = encodeOAuthState('https://app.example/cb');
-      const req = {
-        user: profile,
-        query: { state },
-      } as unknown as AppRequest;
-
-      authService.completeRedditOAuth.mockResolvedValue({
-        redirectUrl: 'https://app.example/cb?code=reddit',
-      });
-
-      const reply = {
-        status: jest.fn().mockReturnThis(),
-        header: jest.fn().mockReturnThis(),
-        send: jest.fn().mockReturnThis(),
-      } as unknown as AppReply;
-
-      await controller.redditAuthCallback(req, reply);
-
-      expect(authService.completeRedditOAuth).toHaveBeenCalledWith(
-        profile,
-        state,
-      );
-      expect(reply.status).toHaveBeenCalledWith(200);
-      expect(reply.send).toHaveBeenCalledWith(
-        expect.stringContaining("window.location.replace(\"https://app.example/cb?code=reddit\")"),
-      );
-    });
-  });
 
   describe('appleAuthCallback', () => {
     it('redirects using AuthService.completeAppleOAuth result (reads state from body)', async () => {

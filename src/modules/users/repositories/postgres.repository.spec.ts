@@ -48,7 +48,6 @@ function createEntity(overrides: Partial<UserEntity> = {}): UserEntity {
     discordId: null,
     twitchId: null,
     steamId: null,
-    redditId: null,
     appleId: null,
     amazonId: null,
     patreonId: null,
@@ -155,8 +154,7 @@ describe('UserPostgresRepository', () => {
         discordId: null,
         twitchId: null,
         steamId: null,
-        redditId: null,
-        appleId: null,
+            appleId: null,
         amazonId: null,
             patreonId: null,
         dropboxId: null,
@@ -209,7 +207,6 @@ describe('UserPostgresRepository', () => {
         discordId: '123456789012345678',
         twitchId: '141981764',
         steamId: '76561198000000000',
-        redditId: 'abc123',
         appleId: 'apple-sub-001',
         amazonId: 'amzn1.account.abc123',
         patreonId: 'patreon-user-001',
@@ -231,7 +228,6 @@ describe('UserPostgresRepository', () => {
         discordId: '123456789012345678',
         twitchId: '141981764',
         steamId: '76561198000000000',
-        redditId: 'abc123',
         appleId: 'apple-sub-001',
         amazonId: 'amzn1.account.abc123',
         patreonId: 'patreon-user-001',
@@ -263,8 +259,7 @@ describe('UserPostgresRepository', () => {
           discordId: '123456789012345678',
           twitchId: '141981764',
           steamId: '76561198000000000',
-          redditId: 'abc123',
-          appleId: 'apple-sub-001',
+            appleId: 'apple-sub-001',
           amazonId: 'amzn1.account.abc123',
             patreonId: 'patreon-user-001',
           dropboxId: 'dbid:abc123',
@@ -306,8 +301,7 @@ describe('UserPostgresRepository', () => {
           discordId: null,
           twitchId: null,
           steamId: null,
-          redditId: null,
-          appleId: null,
+                appleId: null,
         amazonId: null,
             }),
       );
@@ -482,15 +476,6 @@ describe('UserPostgresRepository', () => {
       ).rejects.toThrow('User with this Steam account already exists');
     });
 
-    it('throws ConflictException when redditId already exists', async () => {
-      typeOrmRepo.findOne
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(createEntity({ redditId: 'abc123' }));
-
-      await expect(
-        repository.create({ ...dto, redditId: 'abc123' }),
-      ).rejects.toThrow('User with this Reddit account already exists');
-    });
 
     it('throws ConflictException when appleId already exists', async () => {
       typeOrmRepo.findOne
@@ -717,7 +702,7 @@ describe('UserPostgresRepository', () => {
     });
   });
 
-  describe('findByGoogleId / findByFacebookId / findByTwitterId / findByGithubId / findByFigmaId / findByLinkedinId / findBySlackId / findByAtlassianId / findByGitlabId / findByBitbucketId / findByDiscordId / findByTwitchId / findBySteamId / findByRedditId / findByAmazonId / findByActiveDirectoryId / findByAppleId', () => {
+  describe('findByGoogleId / findByFacebookId / findByTwitterId / findByGithubId / findByFigmaId / findByLinkedinId / findBySlackId / findByAtlassianId / findByGitlabId / findByBitbucketId / findByDiscordId / findByTwitchId / findBySteamId / findByAmazonId / findByActiveDirectoryId / findByAppleId', () => {
     it('finds by googleId with optional password', async () => {
       typeOrmRepo.findOne.mockResolvedValue(createEntity({ googleId: 'g-1' }));
 
@@ -1041,30 +1026,6 @@ describe('UserPostgresRepository', () => {
       ).resolves.toBeNull();
     });
 
-    it('finds by redditId with optional password', async () => {
-      typeOrmRepo.findOne.mockResolvedValue(
-        createEntity({ redditId: 'abc123' }),
-      );
-
-      await expect(
-        repository.findByRedditId('abc123'),
-      ).resolves.not.toHaveProperty('password');
-      expect(typeOrmRepo.findOne).toHaveBeenCalledWith({
-        where: { redditId: 'abc123' },
-      });
-
-      typeOrmRepo.findOne.mockResolvedValue(
-        createEntity({ redditId: 'abc123' }),
-      );
-      await expect(
-        repository.findByRedditId('abc123', true),
-      ).resolves.toHaveProperty('password');
-
-      typeOrmRepo.findOne.mockResolvedValue(null);
-      await expect(
-        repository.findByRedditId('abc123-missing'),
-      ).resolves.toBeNull();
-    });
 
     it('finds by amazonId with optional password', async () => {
       typeOrmRepo.findOne.mockResolvedValue(

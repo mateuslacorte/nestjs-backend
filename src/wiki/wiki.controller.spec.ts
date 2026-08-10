@@ -244,13 +244,6 @@ describe('WikiController', () => {
         page: 'auth-social-steam',
       },
       {
-        method: 'getAuthSocialReddit',
-        route: 'auth/social/reddit',
-        view: 'pages/auth-social-reddit',
-        namespace: 'authSocialReddit',
-        page: 'auth-social-reddit',
-      },
-      {
         method: 'getAuthSocialApple',
         route: 'auth/social/apple',
         view: 'pages/auth-social-apple',
