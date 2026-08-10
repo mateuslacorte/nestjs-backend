@@ -28,13 +28,8 @@ function runValidate(
   idToken: string,
   body: Record<string, unknown> = {},
 ): Promise<AppleProfilePayload> {
-  return new Promise((resolve, reject) => {
-    const req = { body } as unknown as import('@common/http/app-http').AppRequest;
-    strategy.validate(req, 'access', 'refresh', idToken, undefined, (err, user) => {
-      if (err) reject(err);
-      else resolve(user as AppleProfilePayload);
-    });
-  });
+  const req = { body } as unknown as import('@common/http/app-http').AppRequest;
+  return strategy.validate(req, 'access', 'refresh', idToken, undefined);
 }
 
 describe('AppleStrategy', () => {
@@ -58,6 +53,27 @@ describe('AppleStrategy', () => {
     it('uses disabled/default config when env keys are undefined', () => {
       const fallbackStrategy = new AppleStrategy(createConfigService());
       expect(fallbackStrategy).toBeDefined();
+    });
+  });
+
+  describe('authorizationParams', () => {
+    it('returns only Apple-safe query params (no Nest session/property leak)', () => {
+      expect(
+        strategy.authorizationParams({
+          state: 'abc123',
+          session: false,
+          property: 'user',
+        }),
+      ).toEqual({
+        response_mode: 'form_post',
+        state: 'abc123',
+      });
+    });
+
+    it('omits state when not provided', () => {
+      expect(strategy.authorizationParams({})).toEqual({
+        response_mode: 'form_post',
+      });
     });
   });
 
@@ -176,7 +192,7 @@ describe('AppleStrategy', () => {
       );
     });
 
-    it('wraps non-Error throws from JSON.parse as Error', async () => {
+    it('throws SyntaxError when user body JSON is invalid', async () => {
       mockedJwtDecode.mockReturnValue({
         sub: 'apple-sub-err',
         email: 'user@privaterelay.appleid.com',
@@ -185,16 +201,6 @@ describe('AppleStrategy', () => {
       await expect(
         runValidate(strategy, 'id-token', { user: '{not-json' }),
       ).rejects.toThrow(SyntaxError);
-    });
-
-    it('wraps non-Error thrown values in Error', async () => {
-      mockedJwtDecode.mockImplementation(() => {
-        throw 'decode-failed';
-      });
-
-      await expect(runValidate(strategy, 'id-token')).rejects.toThrow(
-        'decode-failed',
-      );
     });
   });
 });

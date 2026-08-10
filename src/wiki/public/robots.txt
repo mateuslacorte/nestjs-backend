@@ -26,10 +26,8 @@ Allow: /auth/social/twitch
 Allow: /auth/social/steam
 Allow: /auth/social/reddit
 Allow: /auth/social/amazon
-Allow: /auth/social/microsoft
 Allow: /auth/social/patreon
 Allow: /auth/social/dropbox
-Allow: /auth/social/coinbase
 Allow: /auth/social/metamask
 Allow: /auth/social/apple
 Allow: /users

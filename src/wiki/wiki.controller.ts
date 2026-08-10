@@ -373,22 +373,6 @@ export class WikiController {
         );
     }
 
-    @Get('auth/social/microsoft')
-    getAuthSocialMicrosoft(
-        @Req() req: AppRequest,
-        @Res() reply: AppReply,
-        @Query('lang') lang?: string,
-    ) {
-        return this.wikiRender.renderPage(
-            req,
-            reply,
-            lang,
-            'pages/auth-social-microsoft',
-            'authSocialMicrosoft',
-            'auth-social-microsoft',
-        );
-    }
-
     @Get('auth/social/patreon')
     getAuthSocialPatreon(
         @Req() req: AppRequest,
@@ -418,22 +402,6 @@ export class WikiController {
             'pages/auth-social-dropbox',
             'authSocialDropbox',
             'auth-social-dropbox',
-        );
-    }
-
-    @Get('auth/social/coinbase')
-    getAuthSocialCoinbase(
-        @Req() req: AppRequest,
-        @Res() reply: AppReply,
-        @Query('lang') lang?: string,
-    ) {
-        return this.wikiRender.renderPage(
-            req,
-            reply,
-            lang,
-            'pages/auth-social-coinbase',
-            'authSocialCoinbase',
-            'auth-social-coinbase',
         );
     }
 

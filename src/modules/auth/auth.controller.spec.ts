@@ -26,10 +26,8 @@ import { SteamAuthGuard } from './guards/steam-auth.guard';
 import { RedditAuthGuard } from './guards/reddit-auth.guard';
 import { AppleAuthGuard } from './guards/apple-auth.guard';
 import { AmazonAuthGuard } from './guards/amazon-auth.guard';
-import { MicrosoftAuthGuard } from './guards/microsoft-auth.guard';
 import { PatreonAuthGuard } from './guards/patreon-auth.guard';
 import { DropboxAuthGuard } from './guards/dropbox-auth.guard';
-import { CoinbaseAuthGuard } from './guards/coinbase-auth.guard';
 import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
 import { RefreshtokenDto } from './dtos/refreshtoken.dto';
@@ -53,10 +51,8 @@ import { SteamProfilePayload } from './strategies/steam.strategy';
 import { RedditProfilePayload } from './strategies/reddit.strategy';
 import { AppleProfilePayload } from './strategies/apple.strategy';
 import { AmazonProfilePayload } from './strategies/amazon.strategy';
-import { MicrosoftProfilePayload } from './strategies/microsoft.strategy';
 import { PatreonProfilePayload } from './strategies/patreon.strategy';
 import { DropboxProfilePayload } from './strategies/dropbox.strategy';
-import { CoinbaseProfilePayload } from './strategies/coinbase.strategy';
 import { Role } from './enums/role.enum';
 
 function encodeOAuthState(redirect: string): string {
@@ -87,10 +83,8 @@ describe('AuthController', () => {
     completeSteamOAuth: jest.Mock;
     completeRedditOAuth: jest.Mock;
     completeAmazonOAuth: jest.Mock;
-    completeMicrosoftOAuth: jest.Mock;
     completePatreonOAuth: jest.Mock;
     completeDropboxOAuth: jest.Mock;
-    completeCoinbaseOAuth: jest.Mock;
     completeAppleOAuth: jest.Mock;
     exchangeOAuthCode: jest.Mock;
     refreshToken: jest.Mock;
@@ -127,10 +121,8 @@ describe('AuthController', () => {
       completeSteamOAuth: jest.fn(),
       completeRedditOAuth: jest.fn(),
       completeAmazonOAuth: jest.fn(),
-      completeMicrosoftOAuth: jest.fn(),
       completePatreonOAuth: jest.fn(),
       completeDropboxOAuth: jest.fn(),
-      completeCoinbaseOAuth: jest.fn(),
       completeAppleOAuth: jest.fn(),
       exchangeOAuthCode: jest.fn(),
       refreshToken: jest.fn(),
@@ -183,14 +175,10 @@ describe('AuthController', () => {
       ['twitchAuthCallback', RequestMethod.GET, 'twitch/callback'],
       ['amazonAuth', RequestMethod.GET, 'amazon'],
       ['amazonAuthCallback', RequestMethod.GET, 'amazon/callback'],
-      ['microsoftAuth', RequestMethod.GET, 'microsoft'],
-      ['microsoftAuthCallback', RequestMethod.GET, 'microsoft/callback'],
       ['patreonAuth', RequestMethod.GET, 'patreon'],
       ['patreonAuthCallback', RequestMethod.GET, 'patreon/callback'],
       ['dropboxAuth', RequestMethod.GET, 'dropbox'],
       ['dropboxAuthCallback', RequestMethod.GET, 'dropbox/callback'],
-      ['coinbaseAuth', RequestMethod.GET, 'coinbase'],
-      ['coinbaseAuthCallback', RequestMethod.GET, 'coinbase/callback'],
       ['steamAuth', RequestMethod.GET, 'steam'],
       ['steamAuthCallback', RequestMethod.GET, 'steam/callback'],
       ['redditAuth', RequestMethod.GET, 'reddit'],
@@ -254,14 +242,10 @@ describe('AuthController', () => {
       'twitchAuthCallback',
       'amazonAuth',
       'amazonAuthCallback',
-      'microsoftAuth',
-      'microsoftAuthCallback',
       'patreonAuth',
       'patreonAuthCallback',
       'dropboxAuth',
       'dropboxAuthCallback',
-      'coinbaseAuth',
-      'coinbaseAuthCallback',
       'steamAuth',
       'steamAuthCallback',
       'redditAuth',
@@ -440,23 +424,7 @@ describe('AuthController', () => {
       expect(guards).toEqual(expect.arrayContaining([AmazonAuthGuard]));
     });
 
-    it('microsoftAuth uses MicrosoftAuthGuard', () => {
-      const guards = Reflect.getMetadata(
-        GUARDS_METADATA,
-        AuthController.prototype.microsoftAuth,
-      ) as unknown[];
 
-      expect(guards).toEqual(expect.arrayContaining([MicrosoftAuthGuard]));
-    });
-
-    it('microsoftAuthCallback uses MicrosoftAuthGuard', () => {
-      const guards = Reflect.getMetadata(
-        GUARDS_METADATA,
-        AuthController.prototype.microsoftAuthCallback,
-      ) as unknown[];
-
-      expect(guards).toEqual(expect.arrayContaining([MicrosoftAuthGuard]));
-    });
 
     it('patreonAuth uses PatreonAuthGuard', () => {
       const guards = Reflect.getMetadata(
@@ -492,24 +460,6 @@ describe('AuthController', () => {
       ) as unknown[];
 
       expect(guards).toEqual(expect.arrayContaining([DropboxAuthGuard]));
-    });
-
-    it('coinbaseAuth uses CoinbaseAuthGuard', () => {
-      const guards = Reflect.getMetadata(
-        GUARDS_METADATA,
-        AuthController.prototype.coinbaseAuth,
-      ) as unknown[];
-
-      expect(guards).toEqual(expect.arrayContaining([CoinbaseAuthGuard]));
-    });
-
-    it('coinbaseAuthCallback uses CoinbaseAuthGuard', () => {
-      const guards = Reflect.getMetadata(
-        GUARDS_METADATA,
-        AuthController.prototype.coinbaseAuthCallback,
-      ) as unknown[];
-
-      expect(guards).toEqual(expect.arrayContaining([CoinbaseAuthGuard]));
     });
 
     it('steamAuth uses SteamAuthGuard', () => {
@@ -678,9 +628,6 @@ describe('AuthController', () => {
       expect(controller.amazonAuth()).toBeUndefined();
     });
 
-    it('microsoftAuth is a no-op (guard handles redirect)', () => {
-      expect(controller.microsoftAuth()).toBeUndefined();
-    });
 
     it('patreonAuth is a no-op (guard handles redirect)', () => {
       expect(controller.patreonAuth()).toBeUndefined();
@@ -688,10 +635,6 @@ describe('AuthController', () => {
 
     it('dropboxAuth is a no-op (guard handles redirect)', () => {
       expect(controller.dropboxAuth()).toBeUndefined();
-    });
-
-    it('coinbaseAuth is a no-op (guard handles redirect)', () => {
-      expect(controller.coinbaseAuth()).toBeUndefined();
     });
   });
 
@@ -902,17 +845,6 @@ describe('AuthController', () => {
         stateSource: 'query',
       },
       {
-        method: 'microsoftAuthCallback',
-        serviceMethod: 'completeMicrosoftOAuth',
-        profile: {
-          microsoftId: 'ms-1',
-          email: 'ms@example.com',
-          firstName: 'M',
-          lastName: 'S',
-        },
-        stateSource: 'query',
-      },
-      {
         method: 'patreonAuthCallback',
         serviceMethod: 'completePatreonOAuth',
         profile: {
@@ -930,17 +862,6 @@ describe('AuthController', () => {
           dropboxId: 'db-1',
           email: 'db@example.com',
           firstName: 'D',
-          lastName: 'B',
-        },
-        stateSource: 'query',
-      },
-      {
-        method: 'coinbaseAuthCallback',
-        serviceMethod: 'completeCoinbaseOAuth',
-        profile: {
-          coinbaseId: 'cb-1',
-          email: 'cb@example.com',
-          firstName: 'C',
           lastName: 'B',
         },
         stateSource: 'query',
@@ -1491,42 +1412,6 @@ describe('AuthController', () => {
     });
   });
 
-  describe('microsoftAuthCallback', () => {
-    it('redirects using AuthService.completeMicrosoftOAuth result', async () => {
-      const profile: MicrosoftProfilePayload = {
-        microsoftId: 'ms-object-id-001',
-        email: 'microsoft@example.com',
-        firstName: 'Microsoft',
-        lastName: 'User',
-      };
-      const state = encodeOAuthState('https://app.example/cb');
-      const req = {
-        user: profile,
-        query: { state },
-      } as unknown as AppRequest;
-
-      authService.completeMicrosoftOAuth.mockResolvedValue({
-        redirectUrl: 'https://app.example/cb?code=microsoft',
-      });
-
-      const reply = {
-        status: jest.fn().mockReturnThis(),
-        header: jest.fn().mockReturnThis(),
-        send: jest.fn().mockReturnThis(),
-      } as unknown as AppReply;
-
-      await controller.microsoftAuthCallback(req, reply);
-
-      expect(authService.completeMicrosoftOAuth).toHaveBeenCalledWith(
-        profile,
-        state,
-      );
-      expect(reply.status).toHaveBeenCalledWith(200);
-      expect(reply.send).toHaveBeenCalledWith(
-        expect.stringContaining("window.location.replace(\"https://app.example/cb?code=microsoft\")"),
-      );
-    });
-  });
 
   describe('patreonAuthCallback', () => {
     it('redirects using AuthService.completePatreonOAuth result', async () => {
@@ -1598,43 +1483,6 @@ describe('AuthController', () => {
       expect(reply.status).toHaveBeenCalledWith(200);
       expect(reply.send).toHaveBeenCalledWith(
         expect.stringContaining("window.location.replace(\"https://app.example/cb?code=dropbox\")"),
-      );
-    });
-  });
-
-  describe('coinbaseAuthCallback', () => {
-    it('redirects using AuthService.completeCoinbaseOAuth result', async () => {
-      const profile: CoinbaseProfilePayload = {
-        coinbaseId: '9da7a204-544e-5fd1-9a12-61176c5d4cd8',
-        email: 'coinbase@example.com',
-        firstName: 'Coinbase',
-        lastName: 'User',
-      };
-      const state = encodeOAuthState('https://app.example/cb');
-      const req = {
-        user: profile,
-        query: { state },
-      } as unknown as AppRequest;
-
-      authService.completeCoinbaseOAuth.mockResolvedValue({
-        redirectUrl: 'https://app.example/cb?code=coinbase',
-      });
-
-      const reply = {
-        status: jest.fn().mockReturnThis(),
-        header: jest.fn().mockReturnThis(),
-        send: jest.fn().mockReturnThis(),
-      } as unknown as AppReply;
-
-      await controller.coinbaseAuthCallback(req, reply);
-
-      expect(authService.completeCoinbaseOAuth).toHaveBeenCalledWith(
-        profile,
-        state,
-      );
-      expect(reply.status).toHaveBeenCalledWith(200);
-      expect(reply.send).toHaveBeenCalledWith(
-        expect.stringContaining("window.location.replace(\"https://app.example/cb?code=coinbase\")"),
       );
     });
   });

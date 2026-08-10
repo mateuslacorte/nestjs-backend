@@ -46,10 +46,8 @@ import steamOpenIdConfig from './config/steam-openid.config';
 import redditOAuthConfig from './config/reddit-oauth.config';
 import appleOAuthConfig from './config/apple-oauth.config';
 import amazonOAuthConfig from './config/amazon-oauth.config';
-import microsoftOAuthConfig from './config/microsoft-oauth.config';
 import patreonOAuthConfig from './config/patreon-oauth.config';
 import dropboxOAuthConfig from './config/dropbox-oauth.config';
-import coinbaseOAuthConfig from './config/coinbase-oauth.config';
 import metamaskAuthConfig from './config/metamask-auth.config';
 import adLdapConfig from './config/ad-ldap.config';
 import corsConfig from './config/cors.config';
@@ -92,10 +90,8 @@ import { HealthModule } from '@modules/health/health.module';
                 redditOAuthConfig,
                 appleOAuthConfig,
                 amazonOAuthConfig,
-                microsoftOAuthConfig,
                 patreonOAuthConfig,
                 dropboxOAuthConfig,
-                coinbaseOAuthConfig,
                 metamaskAuthConfig,
                 adLdapConfig,
                 corsConfig,

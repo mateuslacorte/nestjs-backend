@@ -80,17 +80,12 @@ export class User extends Document<string> {
   @Prop({ type: String, unique: true, sparse: true, default: null })
   amazonId?: string | null;
 
-  @Prop({ type: String, unique: true, sparse: true, default: null })
-  microsoftId?: string | null;
 
   @Prop({ type: String, unique: true, sparse: true, default: null })
   patreonId?: string | null;
 
   @Prop({ type: String, unique: true, sparse: true, default: null })
   dropboxId?: string | null;
-
-  @Prop({ type: String, unique: true, sparse: true, default: null })
-  coinbaseId?: string | null;
 
   @Prop({ type: String, unique: true, sparse: true, default: null })
   metamaskId?: string | null;

@@ -146,10 +146,8 @@
       "twitch": "Twitch OAuth2 guide",
       "steam": "Steam OpenID 2.0 guide",
       "amazon": "Amazon OAuth2 guide",
-      "microsoft": "Microsoft OAuth2 guide",
       "patreon": "Patreon OAuth2 guide",
       "dropbox": "Dropbox OAuth2 guide",
-      "coinbase": "Coinbase OAuth2 guide",
       "apple": "Apple Sign In guide",
       "reddit": "Reddit OAuth2 guide",
       "auth": "Auth & JWT"

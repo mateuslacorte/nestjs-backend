@@ -37,14 +37,10 @@ import { AppleStrategy } from './strategies/apple.strategy';
 import { AppleAuthGuard } from './guards/apple-auth.guard';
 import { AmazonStrategy } from './strategies/amazon.strategy';
 import { AmazonAuthGuard } from './guards/amazon-auth.guard';
-import { MicrosoftStrategy } from './strategies/microsoft.strategy';
 import { PatreonStrategy } from './strategies/patreon.strategy';
 import { DropboxStrategy } from './strategies/dropbox.strategy';
-import { CoinbaseStrategy } from './strategies/coinbase.strategy';
-import { MicrosoftAuthGuard } from './guards/microsoft-auth.guard';
 import { PatreonAuthGuard } from './guards/patreon-auth.guard';
 import { DropboxAuthGuard } from './guards/dropbox-auth.guard';
-import { CoinbaseAuthGuard } from './guards/coinbase-auth.guard';
 import { OauthExchangeService } from './services/oauth-exchange.service';
 import { ActiveDirectoryLdapService } from './services/active-directory-ldap.service';
 import { MetamaskSiweService } from './services/metamask-siwe.service';
@@ -104,14 +100,10 @@ import { EmailModule } from '@modules/email/email.module';
         AppleAuthGuard,
         AmazonStrategy,
         AmazonAuthGuard,
-        MicrosoftStrategy,
-        MicrosoftAuthGuard,
         PatreonStrategy,
         PatreonAuthGuard,
         DropboxStrategy,
         DropboxAuthGuard,
-        CoinbaseStrategy,
-        CoinbaseAuthGuard,
         OauthExchangeService,
         ActiveDirectoryLdapService,
         MetamaskSiweService,

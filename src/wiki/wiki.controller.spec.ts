@@ -209,13 +209,6 @@ describe('WikiController', () => {
         page: 'auth-social-amazon',
       },
       {
-        method: 'getAuthSocialMicrosoft',
-        route: 'auth/social/microsoft',
-        view: 'pages/auth-social-microsoft',
-        namespace: 'authSocialMicrosoft',
-        page: 'auth-social-microsoft',
-      },
-      {
         method: 'getAuthSocialPatreon',
         route: 'auth/social/patreon',
         view: 'pages/auth-social-patreon',
@@ -228,13 +221,6 @@ describe('WikiController', () => {
         view: 'pages/auth-social-dropbox',
         namespace: 'authSocialDropbox',
         page: 'auth-social-dropbox',
-      },
-      {
-        method: 'getAuthSocialCoinbase',
-        route: 'auth/social/coinbase',
-        view: 'pages/auth-social-coinbase',
-        namespace: 'authSocialCoinbase',
-        page: 'auth-social-coinbase',
       },
       {
         method: 'getAuthSocialMetamask',

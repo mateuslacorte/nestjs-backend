@@ -177,14 +177,6 @@ describe('CreateUserDto', () => {
     expect(errors).toHaveLength(0);
   });
 
-  it('accepts OAuth user with microsoftId and no password', async () => {
-    const { password: _password, ...withoutPassword } = validBase;
-    const errors = await validateDto({
-      ...withoutPassword,
-      microsoftId: 'ms-object-id-001',
-    });
-    expect(errors).toHaveLength(0);
-  });
 
   it('accepts OAuth user with patreonId and no password', async () => {
     const { password: _password, ...withoutPassword } = validBase;
@@ -200,15 +192,6 @@ describe('CreateUserDto', () => {
     const errors = await validateDto({
       ...withoutPassword,
       dropboxId: 'dbid:abc123',
-    });
-    expect(errors).toHaveLength(0);
-  });
-
-  it('accepts OAuth user with coinbaseId and no password', async () => {
-    const { password: _password, ...withoutPassword } = validBase;
-    const errors = await validateDto({
-      ...withoutPassword,
-      coinbaseId: '9da7a204-544e-5fd1-9a12-61176c5d4cd8',
     });
     expect(errors).toHaveLength(0);
   });
@@ -231,7 +214,7 @@ describe('CreateUserDto', () => {
     expect(errors).toHaveLength(0);
   });
 
-  it('requires password when neither googleId, facebookId, twitterId, githubId, figmaId, linkedinId, slackId, atlassianId, gitlabId, bitbucketId, discordId, twitchId, steamId, redditId, amazonId, microsoftId, patreonId, dropboxId, coinbaseId, metamaskId, activeDirectoryId, nor appleId is set', async () => {
+  it('requires password when neither googleId, facebookId, twitterId, githubId, figmaId, linkedinId, slackId, atlassianId, gitlabId, bitbucketId, discordId, twitchId, steamId, redditId, amazonId, patreonId, dropboxId, metamaskId, activeDirectoryId, nor appleId is set', async () => {
     const { password: _password, ...withoutPassword } = validBase;
     const errors = await validateDto(withoutPassword);
     expect(messages(errors, 'password')).toEqual(

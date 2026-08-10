@@ -36,10 +36,8 @@ export class OauthExchangeService {
             this.configService.get<number>('redditOAuth.exchangeCodeTtlSeconds') ??
             this.configService.get<number>('appleOAuth.exchangeCodeTtlSeconds') ??
             this.configService.get<number>('amazonOAuth.exchangeCodeTtlSeconds') ??
-            this.configService.get<number>('microsoftOAuth.exchangeCodeTtlSeconds') ??
             this.configService.get<number>('patreonOAuth.exchangeCodeTtlSeconds') ??
             this.configService.get<number>('dropboxOAuth.exchangeCodeTtlSeconds') ??
-            this.configService.get<number>('coinbaseOAuth.exchangeCodeTtlSeconds') ??
             60;
 
         await this.cacheService.set(

@@ -19,10 +19,8 @@ import { SteamAuthGuard } from './guards/steam-auth.guard';
 import { RedditAuthGuard } from './guards/reddit-auth.guard';
 import { AppleAuthGuard } from './guards/apple-auth.guard';
 import { AmazonAuthGuard } from './guards/amazon-auth.guard';
-import { MicrosoftAuthGuard } from './guards/microsoft-auth.guard';
 import { PatreonAuthGuard } from './guards/patreon-auth.guard';
 import { DropboxAuthGuard } from './guards/dropbox-auth.guard';
-import { CoinbaseAuthGuard } from './guards/coinbase-auth.guard';
 import { AppRequest, AppReply } from '@common/http/app-http';
 import { sendOAuthClientRedirect } from './utils/oauth-client-redirect';
 import {ApiTags, ApiResponse, ApiBody, ApiBearerAuth, ApiOperation, ApiQuery} from '@nestjs/swagger';
@@ -50,10 +48,8 @@ import { SteamProfilePayload } from './strategies/steam.strategy';
 import { RedditProfilePayload } from './strategies/reddit.strategy';
 import { AppleProfilePayload } from './strategies/apple.strategy';
 import { AmazonProfilePayload } from './strategies/amazon.strategy';
-import { MicrosoftProfilePayload } from './strategies/microsoft.strategy';
 import { PatreonProfilePayload } from './strategies/patreon.strategy';
 import { DropboxProfilePayload } from './strategies/dropbox.strategy';
-import { CoinbaseProfilePayload } from './strategies/coinbase.strategy';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -813,52 +809,6 @@ export class AuthController {
         return sendOAuthClientRedirect(reply, redirectUrl);
     }
 
-    /**
-     * Start Microsoft Entra ID / Azure AD OAuth2 (Authorization Code). Redirects to Microsoft consent screen.
-     */
-    @Public()
-    @Get('microsoft')
-    @UseGuards(MicrosoftAuthGuard)
-    @ApiOperation({
-        summary: 'Start Microsoft OAuth2 login',
-        description:
-            'Redirects the browser to Microsoft. Pass redirect (allowlisted) for the post-login deep link or web URL. Disabled when MICROSOFT_AUTH_ENABLED=false (503).',
-    })
-    @ApiQuery({
-        name: 'redirect',
-        required: false,
-        description:
-            'Post-login redirect URL (must match MICROSOFT_REDIRECT_ALLOWLIST). Defaults to the first allowlist entry.',
-    })
-    @ApiResponse({ status: 302, description: 'Redirect to Microsoft OAuth consent.' })
-    @ApiResponse({ status: 400, description: 'Invalid or missing redirect.' })
-    @ApiResponse({ status: 503, description: 'Microsoft authentication is disabled.' })
-    microsoftAuth() {
-        // Guard redirects to Microsoft
-    }
-
-    /**
-     * Microsoft OAuth2 callback — issues a one-time exchange code and redirects to the client.
-     */
-    @Public()
-    @Get('microsoft/callback')
-    @UseGuards(MicrosoftAuthGuard)
-    @ApiOperation({
-        summary: 'Microsoft OAuth2 callback',
-        description:
-            'Processes the Microsoft profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
-    })
-    @ApiResponse({ status: 200, description: 'HTML redirect (location.replace) to client with exchange code — http(s) or deep link.' })
-    @ApiResponse({ status: 503, description: 'Microsoft authentication is disabled.' })
-    async microsoftAuthCallback(@Req() req: AppRequest, @Res() reply: AppReply) {
-        const profile = req.user as MicrosoftProfilePayload;
-        const state = typeof req.query.state === 'string' ? req.query.state : undefined;
-        const { redirectUrl } = await this.authService.completeMicrosoftOAuth(
-            profile,
-            state,
-        );
-        return sendOAuthClientRedirect(reply, redirectUrl);
-    }
 
     /**
      * Start Patreon OAuth2 (Authorization Code). Redirects to Patreon consent screen.
@@ -948,53 +898,6 @@ export class AuthController {
         const profile = req.user as DropboxProfilePayload;
         const state = typeof req.query.state === 'string' ? req.query.state : undefined;
         const { redirectUrl } = await this.authService.completeDropboxOAuth(
-            profile,
-            state,
-        );
-        return sendOAuthClientRedirect(reply, redirectUrl);
-    }
-
-    /**
-     * Start Coinbase OAuth2 (Authorization Code). Redirects to Coinbase consent screen.
-     */
-    @Public()
-    @Get('coinbase')
-    @UseGuards(CoinbaseAuthGuard)
-    @ApiOperation({
-        summary: 'Start Coinbase OAuth2 login',
-        description:
-            'Redirects the browser to Coinbase. Pass redirect (allowlisted) for the post-login deep link or web URL. Disabled when COINBASE_AUTH_ENABLED=false (503).',
-    })
-    @ApiQuery({
-        name: 'redirect',
-        required: false,
-        description:
-            'Post-login redirect URL (must match COINBASE_REDIRECT_ALLOWLIST). Defaults to the first allowlist entry.',
-    })
-    @ApiResponse({ status: 302, description: 'Redirect to Coinbase OAuth consent.' })
-    @ApiResponse({ status: 400, description: 'Invalid or missing redirect.' })
-    @ApiResponse({ status: 503, description: 'Coinbase authentication is disabled.' })
-    coinbaseAuth() {
-        // Guard redirects to Coinbase
-    }
-
-    /**
-     * Coinbase OAuth2 callback — issues a one-time exchange code and redirects to the client.
-     */
-    @Public()
-    @Get('coinbase/callback')
-    @UseGuards(CoinbaseAuthGuard)
-    @ApiOperation({
-        summary: 'Coinbase OAuth2 callback',
-        description:
-            'Processes the Coinbase profile, stores a short-lived single-use exchange code in Redis, and redirects to the client redirect URL with ?code=',
-    })
-    @ApiResponse({ status: 200, description: 'HTML redirect (location.replace) to client with exchange code — http(s) or deep link.' })
-    @ApiResponse({ status: 503, description: 'Coinbase authentication is disabled.' })
-    async coinbaseAuthCallback(@Req() req: AppRequest, @Res() reply: AppReply) {
-        const profile = req.user as CoinbaseProfilePayload;
-        const state = typeof req.query.state === 'string' ? req.query.state : undefined;
-        const { redirectUrl } = await this.authService.completeCoinbaseOAuth(
             profile,
             state,
         );

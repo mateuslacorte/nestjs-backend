@@ -50,10 +50,8 @@ function createEntity(overrides: Partial<UserEntity> = {}): UserEntity {
     redditId: null,
     appleId: null,
     amazonId: null,
-    microsoftId: null,
     patreonId: null,
     dropboxId: null,
-    coinbaseId: null,
     metamaskId: null,
     activeDirectoryId: null,
     ...overrides,
@@ -143,10 +141,8 @@ describe('UserPostgresRepository', () => {
         redditId: null,
         appleId: null,
         amazonId: null,
-        microsoftId: null,
-        patreonId: null,
+            patreonId: null,
         dropboxId: null,
-        coinbaseId: null,
         metamaskId: null,
         activeDirectoryId: null,
         isActive: true,
@@ -199,10 +195,8 @@ describe('UserPostgresRepository', () => {
         redditId: 'abc123',
         appleId: 'apple-sub-001',
         amazonId: 'amzn1.account.abc123',
-        microsoftId: 'ms-object-id-001',
         patreonId: 'patreon-user-001',
         dropboxId: 'dbid:abc123',
-        coinbaseId: '9da7a204-544e-5fd1-9a12-61176c5d4cd8',
         metamaskId: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
         activeDirectoryId: 'ad-guid-001',
       };
@@ -223,10 +217,8 @@ describe('UserPostgresRepository', () => {
         redditId: 'abc123',
         appleId: 'apple-sub-001',
         amazonId: 'amzn1.account.abc123',
-        microsoftId: 'ms-object-id-001',
         patreonId: 'patreon-user-001',
         dropboxId: 'dbid:abc123',
-        coinbaseId: '9da7a204-544e-5fd1-9a12-61176c5d4cd8',
         metamaskId: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
         activeDirectoryId: 'ad-guid-001',
       });
@@ -257,10 +249,8 @@ describe('UserPostgresRepository', () => {
           redditId: 'abc123',
           appleId: 'apple-sub-001',
           amazonId: 'amzn1.account.abc123',
-          microsoftId: 'ms-object-id-001',
-          patreonId: 'patreon-user-001',
+            patreonId: 'patreon-user-001',
           dropboxId: 'dbid:abc123',
-          coinbaseId: '9da7a204-544e-5fd1-9a12-61176c5d4cd8',
           metamaskId: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
           activeDirectoryId: 'ad-guid-001',
         }),
@@ -302,8 +292,7 @@ describe('UserPostgresRepository', () => {
           redditId: null,
           appleId: null,
         amazonId: null,
-        microsoftId: null,
-        }),
+            }),
       );
     });
 
@@ -506,15 +495,6 @@ describe('UserPostgresRepository', () => {
       ).rejects.toThrow('User with this Amazon account already exists');
     });
 
-    it('throws ConflictException when microsoftId already exists', async () => {
-      typeOrmRepo.findOne
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(createEntity({ microsoftId: 'ms-object-id-001' }));
-
-      await expect(
-        repository.create({ ...dto, microsoftId: 'ms-object-id-001' }),
-      ).rejects.toThrow('User with this Microsoft account already exists');
-    });
 
     it('throws ConflictException when patreonId already exists', async () => {
       typeOrmRepo.findOne
@@ -534,16 +514,6 @@ describe('UserPostgresRepository', () => {
       await expect(
         repository.create({ ...dto, dropboxId: 'dbid:abc123' }),
       ).rejects.toThrow('User with this Dropbox account already exists');
-    });
-
-    it('throws ConflictException when coinbaseId already exists', async () => {
-      typeOrmRepo.findOne
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(createEntity({ coinbaseId: '9da7a204-544e-5fd1-9a12-61176c5d4cd8' }));
-
-      await expect(
-        repository.create({ ...dto, coinbaseId: '9da7a204-544e-5fd1-9a12-61176c5d4cd8' }),
-      ).rejects.toThrow('User with this Coinbase account already exists');
     });
 
     it('throws ConflictException when metamaskId already exists', async () => {
@@ -721,7 +691,7 @@ describe('UserPostgresRepository', () => {
     });
   });
 
-  describe('findByGoogleId / findByFacebookId / findByTwitterId / findByGithubId / findByFigmaId / findByLinkedinId / findBySlackId / findByAtlassianId / findByGitlabId / findByBitbucketId / findByDiscordId / findByTwitchId / findBySteamId / findByRedditId / findByAmazonId / findByMicrosoftId / findByActiveDirectoryId / findByAppleId', () => {
+  describe('findByGoogleId / findByFacebookId / findByTwitterId / findByGithubId / findByFigmaId / findByLinkedinId / findBySlackId / findByAtlassianId / findByGitlabId / findByBitbucketId / findByDiscordId / findByTwitchId / findBySteamId / findByRedditId / findByAmazonId / findByActiveDirectoryId / findByAppleId', () => {
     it('finds by googleId with optional password', async () => {
       typeOrmRepo.findOne.mockResolvedValue(createEntity({ googleId: 'g-1' }));
 
@@ -1095,30 +1065,6 @@ describe('UserPostgresRepository', () => {
       ).resolves.toBeNull();
     });
 
-    it('finds by microsoftId with optional password', async () => {
-      typeOrmRepo.findOne.mockResolvedValue(
-        createEntity({ microsoftId: 'ms-object-id-001' }),
-      );
-
-      await expect(
-        repository.findByMicrosoftId('ms-object-id-001'),
-      ).resolves.not.toHaveProperty('password');
-      expect(typeOrmRepo.findOne).toHaveBeenCalledWith({
-        where: { microsoftId: 'ms-object-id-001' },
-      });
-
-      typeOrmRepo.findOne.mockResolvedValue(
-        createEntity({ microsoftId: 'ms-object-id-001' }),
-      );
-      await expect(
-        repository.findByMicrosoftId('ms-object-id-001', true),
-      ).resolves.toHaveProperty('password');
-
-      typeOrmRepo.findOne.mockResolvedValue(null);
-      await expect(
-        repository.findByMicrosoftId('ms-object-id-missing'),
-      ).resolves.toBeNull();
-    });
 
     it('finds by patreonId with optional password', async () => {
       typeOrmRepo.findOne.mockResolvedValue(
@@ -1167,31 +1113,6 @@ describe('UserPostgresRepository', () => {
       typeOrmRepo.findOne.mockResolvedValue(null);
       await expect(
         repository.findByDropboxId('dbid:missing'),
-      ).resolves.toBeNull();
-    });
-
-    it('finds by coinbaseId with optional password', async () => {
-      typeOrmRepo.findOne.mockResolvedValue(
-        createEntity({ coinbaseId: '9da7a204-544e-5fd1-9a12-61176c5d4cd8' }),
-      );
-
-      await expect(
-        repository.findByCoinbaseId('9da7a204-544e-5fd1-9a12-61176c5d4cd8'),
-      ).resolves.not.toHaveProperty('password');
-      expect(typeOrmRepo.findOne).toHaveBeenCalledWith({
-        where: { coinbaseId: '9da7a204-544e-5fd1-9a12-61176c5d4cd8' },
-      });
-
-      typeOrmRepo.findOne.mockResolvedValue(
-        createEntity({ coinbaseId: '9da7a204-544e-5fd1-9a12-61176c5d4cd8' }),
-      );
-      await expect(
-        repository.findByCoinbaseId('9da7a204-544e-5fd1-9a12-61176c5d4cd8', true),
-      ).resolves.toHaveProperty('password');
-
-      typeOrmRepo.findOne.mockResolvedValue(null);
-      await expect(
-        repository.findByCoinbaseId('9da7a204-544e-5fd1-9a12-61176c5d4cd8-missing'),
       ).resolves.toBeNull();
     });
 

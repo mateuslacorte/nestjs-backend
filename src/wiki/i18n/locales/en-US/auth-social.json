@@ -7,7 +7,7 @@
     "hero": {
       "titlePrefix": "Social",
       "titleHighlight": "Authentication",
-      "subtitle": "How to plug Google, Facebook, X / Twitter, GitHub, Figma, LinkedIn, Slack, Atlassian, GitLab, Bitbucket, Discord, Twitch, Amazon, Microsoft, Patreon, Dropbox, Coinbase, MetaMask, or Steam login into your app — OAuth Code Exchange for most providers; SIWE for MetaMask."
+      "subtitle": "How to plug Google, Facebook, X / Twitter, GitHub, Figma, LinkedIn, Slack, Atlassian, GitLab, Bitbucket, Discord, Twitch, Amazon, Patreon, Dropbox, MetaMask, or Steam login into your app — OAuth Code Exchange for most providers; SIWE for MetaMask."
     },
     "howItWorks": {
       "title": "How it works",
@@ -118,11 +118,6 @@
         "description": "Login with Amazon OAuth2 Authorization Code login, env vars, endpoints, and web/mobile samples.",
         "cta": "Amazon setup guide →"
       },
-      "microsoft": {
-        "title": "Microsoft",
-        "description": "Microsoft Entra ID / Azure AD OAuth2 Authorization Code login, env vars, endpoints, and web/mobile samples.",
-        "cta": "Microsoft setup guide →"
-      },
       "patreon": {
         "title": "Patreon",
         "description": "Patreon OAuth2 Authorization Code login, identity scopes, env vars, endpoints, and web/mobile samples.",
@@ -132,11 +127,6 @@
         "title": "Dropbox",
         "description": "Dropbox OAuth2 Authorization Code login, account_info.read scope, env vars, endpoints, and web/mobile samples.",
         "cta": "Dropbox setup guide →"
-      },
-      "coinbase": {
-        "title": "Coinbase",
-        "description": "Coinbase OAuth2 Authorization Code login, wallet:user:email scope, env vars, endpoints, and web/mobile samples.",
-        "cta": "Coinbase setup guide →"
       },
       "metamask": {
         "title": "MetaMask",
@@ -180,10 +170,8 @@
       "twitch": "Twitch OAuth2 setup guide",
       "steam": "Steam OpenID 2.0 setup guide",
       "amazon": "Amazon Login with Amazon setup guide",
-      "microsoft": "Microsoft Entra ID setup guide",
       "patreon": "Patreon OAuth2 setup guide",
       "dropbox": "Dropbox OAuth2 setup guide",
-      "coinbase": "Coinbase OAuth2 setup guide",
       "metamask": "MetaMask SIWE setup guide",
       "reddit": "Reddit OAuth2 setup guide",
       "apple": "Apple Sign In setup guide"

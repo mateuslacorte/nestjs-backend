@@ -32,10 +32,10 @@ export class CreateUserDto {
 
   @ApiPropertyOptional({
     example: 'Str0ng!P@ssword',
-    description: 'Password (required unless googleId, facebookId, twitterId, githubId, figmaId, linkedinId, slackId, atlassianId, gitlabId, bitbucketId, discordId, twitchId, steamId, redditId, amazonId, microsoftId, patreonId, dropboxId, coinbaseId, metamaskId, activeDirectoryId, or appleId is set)',
+    description: 'Password (required unless googleId, facebookId, twitterId, githubId, figmaId, linkedinId, slackId, atlassianId, gitlabId, bitbucketId, discordId, twitchId, steamId, redditId, amazonId, patreonId, dropboxId, metamaskId, activeDirectoryId, or appleId is set)',
   })
   @Field(() => String, { nullable: true })
-  @ValidateIf((o: CreateUserDto) => !o.googleId && !o.facebookId && !o.twitterId && !o.githubId && !o.figmaId && !o.linkedinId && !o.slackId && !o.atlassianId && !o.gitlabId && !o.bitbucketId && !o.discordId && !o.twitchId && !o.steamId && !o.redditId && !o.amazonId && !o.microsoftId && !o.patreonId && !o.dropboxId && !o.coinbaseId && !o.metamaskId && !o.activeDirectoryId && !o.appleId)
+  @ValidateIf((o: CreateUserDto) => !o.googleId && !o.facebookId && !o.twitterId && !o.githubId && !o.figmaId && !o.linkedinId && !o.slackId && !o.atlassianId && !o.gitlabId && !o.bitbucketId && !o.discordId && !o.twitchId && !o.steamId && !o.redditId && !o.amazonId && !o.patreonId && !o.dropboxId && !o.metamaskId && !o.activeDirectoryId && !o.appleId)
   @StrongPassword({message: 'Invalid password format'})
   @IsNotEmpty({message: 'Password is required'})
   password?: string;
@@ -176,15 +176,6 @@ export class CreateUserDto {
   amazonId?: string;
 
   @ApiPropertyOptional({
-    example: 'ms-object-id-001',
-    description: 'Microsoft Entra ID object ID for OAuth users',
-  })
-  @Field(() => String, { nullable: true })
-  @IsString()
-  @IsOptional()
-  microsoftId?: string;
-
-  @ApiPropertyOptional({
     example: 'patreon-user-123',
     description: 'Patreon user ID for OAuth users',
   })
@@ -201,15 +192,6 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   dropboxId?: string;
-
-  @ApiPropertyOptional({
-    example: '9da7a204-544e-5fd1-9a12-61176c5d4cd8',
-    description: 'Coinbase user ID for OAuth users',
-  })
-  @Field(() => String, { nullable: true })
-  @IsString()
-  @IsOptional()
-  coinbaseId?: string;
 
   @ApiPropertyOptional({
     example: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',

@@ -49,10 +49,8 @@ describe('UpdateUserDto', () => {
       steamId: '76561198000000000',
       redditId: 'abc123',
       amazonId: 'amzn1.account.abc123',
-      microsoftId: 'ms-object-id-001',
       patreonId: 'patreon-user-001',
       dropboxId: 'dbid:abc123',
-      coinbaseId: '9da7a204-544e-5fd1-9a12-61176c5d4cd8',
       metamaskId: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
       activeDirectoryId: 'ad-guid-001',
       emailVerificationToken: 'tok',
@@ -205,10 +203,6 @@ describe('UpdateUserDto', () => {
     expect(errors.some((e) => e.property === 'amazonId')).toBe(true);
   });
 
-  it('rejects non-string microsoftId', async () => {
-    const errors = await validateDto({ microsoftId: false });
-    expect(errors.some((e) => e.property === 'microsoftId')).toBe(true);
-  });
 
   it('rejects non-string patreonId', async () => {
     const errors = await validateDto({ patreonId: false });
@@ -218,11 +212,6 @@ describe('UpdateUserDto', () => {
   it('rejects non-string dropboxId', async () => {
     const errors = await validateDto({ dropboxId: false });
     expect(errors.some((e) => e.property === 'dropboxId')).toBe(true);
-  });
-
-  it('rejects non-string coinbaseId', async () => {
-    const errors = await validateDto({ coinbaseId: false });
-    expect(errors.some((e) => e.property === 'coinbaseId')).toBe(true);
   });
 
   it('rejects non-string metamaskId', async () => {

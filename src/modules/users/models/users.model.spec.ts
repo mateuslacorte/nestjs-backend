@@ -48,10 +48,8 @@ describe('UserModel GraphQL metadata', () => {
     'redditId',
     'appleId',
     'amazonId',
-    'microsoftId',
     'patreonId',
     'dropboxId',
-    'coinbaseId',
     'metamaskId',
     'activeDirectoryId',
   ] as const)('exposes nullable %s as String', (name) => {

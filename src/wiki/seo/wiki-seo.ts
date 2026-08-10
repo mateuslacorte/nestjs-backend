@@ -144,10 +144,6 @@ export const WIKI_SEO = {
             description:
                 'Login with Amazon Code Exchange guide for the NestJS Boilerplate — Security Profile setup, Authorization Code flow, profile scope, API endpoints, and web/mobile frontend examples.',
         },
-        'auth-social-microsoft': {
-            description:
-                'Microsoft Entra ID / Azure AD Code Exchange guide for the NestJS Boilerplate — app registration, Microsoft Graph User.Read, tenant configuration, API endpoints, and web/mobile frontend examples.',
-        },
         'auth-social-patreon': {
             description:
                 'Patreon OAuth2 Code Exchange guide for the NestJS Boilerplate — developer portal setup, identity scopes, API v2 identity endpoint, and web/mobile frontend examples.',
@@ -155,10 +151,6 @@ export const WIKI_SEO = {
         'auth-social-dropbox': {
             description:
                 'Dropbox OAuth2 Code Exchange guide for the NestJS Boilerplate — App Console setup, account_info.read scope, get_current_account endpoint, and web/mobile frontend examples.',
-        },
-        'auth-social-coinbase': {
-            description:
-                'Coinbase OAuth2 Code Exchange guide for the NestJS Boilerplate — Developer Portal setup, wallet:user:email and wallet:user:read scopes, GET /v2/user endpoint, and web/mobile frontend examples.',
         },
         'auth-social-metamask': {
             description:

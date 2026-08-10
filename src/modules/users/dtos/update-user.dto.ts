@@ -178,14 +178,6 @@ export class UpdateUserDto {
   amazonId?: string | null;
 
   @ApiPropertyOptional({
-    example: 'ms-object-id-001',
-    description: 'Microsoft Entra ID object ID for OAuth users',
-  })
-  @IsString()
-  @IsOptional()
-  microsoftId?: string | null;
-
-  @ApiPropertyOptional({
     example: 'patreon-user-123',
     description: 'Patreon user ID for OAuth users',
   })
@@ -200,14 +192,6 @@ export class UpdateUserDto {
   @IsString()
   @IsOptional()
   dropboxId?: string | null;
-
-  @ApiPropertyOptional({
-    example: '9da7a204-544e-5fd1-9a12-61176c5d4cd8',
-    description: 'Coinbase user ID for OAuth users',
-  })
-  @IsString()
-  @IsOptional()
-  coinbaseId?: string | null;
 
   @ApiPropertyOptional({
     example: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',

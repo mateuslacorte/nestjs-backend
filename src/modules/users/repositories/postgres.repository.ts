@@ -25,7 +25,7 @@ export class UserPostgresRepository {
      */
     @EnableCache()
     async create(createUserDto: CreateUserDto, includePassword = false): Promise<IUser> {
-        const { username, email, password, googleId, facebookId, twitterId, githubId, figmaId, linkedinId, slackId, atlassianId, gitlabId, bitbucketId, discordId, twitchId, steamId, redditId, appleId, amazonId, microsoftId, patreonId, dropboxId, coinbaseId, metamaskId, activeDirectoryId } = createUserDto;
+        const { username, email, password, googleId, facebookId, twitterId, githubId, figmaId, linkedinId, slackId, atlassianId, gitlabId, bitbucketId, discordId, twitchId, steamId, redditId, appleId, amazonId, patreonId, dropboxId, metamaskId, activeDirectoryId } = createUserDto;
 
         const existingUser = await this.userRepository.findOne({
             where: [{ email }, { username }],
@@ -178,16 +178,6 @@ export class UserPostgresRepository {
             }
         }
 
-        if (microsoftId) {
-            const existingMicrosoft = await this.userRepository.findOne({
-                where: { microsoftId },
-            });
-            if (existingMicrosoft) {
-                throw new ConflictException(
-                    'User with this Microsoft account already exists',
-                );
-            }
-        }
 
         if (patreonId) {
             const existingPatreon = await this.userRepository.findOne({
@@ -207,17 +197,6 @@ export class UserPostgresRepository {
             if (existingDropbox) {
                 throw new ConflictException(
                     'User with this Dropbox account already exists',
-                );
-            }
-        }
-
-        if (coinbaseId) {
-            const existingCoinbase = await this.userRepository.findOne({
-                where: { coinbaseId },
-            });
-            if (existingCoinbase) {
-                throw new ConflictException(
-                    'User with this Coinbase account already exists',
                 );
             }
         }
@@ -267,10 +246,8 @@ export class UserPostgresRepository {
             redditId: redditId ?? null,
             appleId: appleId ?? null,
             amazonId: amazonId ?? null,
-            microsoftId: microsoftId ?? null,
             patreonId: patreonId ?? null,
             dropboxId: dropboxId ?? null,
-            coinbaseId: coinbaseId ?? null,
             metamaskId: metamaskId ?? null,
             activeDirectoryId: activeDirectoryId ?? null,
             isActive: createUserDto.isActive ?? true,
@@ -513,21 +490,6 @@ export class UserPostgresRepository {
     }
 
     /**
-     * Find a user by Microsoft Entra ID object ID
-     */
-    @NoCache()
-    async findByMicrosoftId(
-        microsoftId: string,
-        includePassword = false,
-    ): Promise<IUser | null> {
-        const user = await this.userRepository.findOne({ where: { microsoftId } });
-        if (!user) {
-            return null;
-        }
-        return includePassword ? user : this.omitPassword(user);
-    }
-
-    /**
      * Find a user by Patreon user ID
      */
     @NoCache()
@@ -551,21 +513,6 @@ export class UserPostgresRepository {
         includePassword = false,
     ): Promise<IUser | null> {
         const user = await this.userRepository.findOne({ where: { dropboxId } });
-        if (!user) {
-            return null;
-        }
-        return includePassword ? user : this.omitPassword(user);
-    }
-
-    /**
-     * Find a user by Coinbase user ID
-     */
-    @NoCache()
-    async findByCoinbaseId(
-        coinbaseId: string,
-        includePassword = false,
-    ): Promise<IUser | null> {
-        const user = await this.userRepository.findOne({ where: { coinbaseId } });
         if (!user) {
             return null;
         }

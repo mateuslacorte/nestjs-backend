@@ -478,7 +478,7 @@ describe('OauthExchangeService', () => {
       );
     });
 
-    it('falls back to Microsoft OAuth TTL when google, facebook, twitter, github, figma, linkedin, slack, atlassian, gitlab, bitbucket, discord, twitch, steam, reddit, apple, and amazon TTL are missing', async () => {
+    it('falls back to Patreon OAuth TTL when google, facebook, twitter, github, figma, linkedin, slack, atlassian, gitlab, bitbucket, discord, twitch, steam, reddit, apple, and amazon TTL are missing', async () => {
       configService.get.mockImplementation((key: string) => {
         if (key === 'googleOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'facebookOAuth.exchangeCodeTtlSeconds') return undefined;
@@ -496,43 +496,6 @@ describe('OauthExchangeService', () => {
         if (key === 'redditOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'appleOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'amazonOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'microsoftOAuth.exchangeCodeTtlSeconds') return 8;
-        if (key === 'patreonOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'dropboxOAuth.exchangeCodeTtlSeconds') return undefined;
-        return undefined;
-      });
-
-      await service.createExchangeCode(userId);
-
-      expect(cacheService.set).toHaveBeenCalledWith(
-        `auth:oauth:exchange:${fixedCode}`,
-        { userId },
-        8,
-      );
-      expect(configService.get).toHaveBeenCalledWith(
-        'microsoftOAuth.exchangeCodeTtlSeconds',
-      );
-    });
-
-    it('falls back to Patreon OAuth TTL when google, facebook, twitter, github, figma, linkedin, slack, atlassian, gitlab, bitbucket, discord, twitch, steam, reddit, apple, amazon, and microsoft TTL are missing', async () => {
-      configService.get.mockImplementation((key: string) => {
-        if (key === 'googleOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'facebookOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'twitterOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'githubOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'figmaOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'linkedinOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'slackOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'atlassianOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'gitlabOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'bitbucketOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'discordOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'twitchOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'steamOpenId.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'redditOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'appleOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'amazonOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'microsoftOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'patreonOAuth.exchangeCodeTtlSeconds') return 9;
         if (key === 'dropboxOAuth.exchangeCodeTtlSeconds') return undefined;
         return undefined;
@@ -550,7 +513,7 @@ describe('OauthExchangeService', () => {
       );
     });
 
-    it('falls back to Dropbox OAuth TTL when google, facebook, twitter, github, figma, linkedin, slack, atlassian, gitlab, bitbucket, discord, twitch, steam, reddit, apple, amazon, microsoft, and patreon TTL are missing', async () => {
+    it('falls back to Dropbox OAuth TTL when google, facebook, twitter, github, figma, linkedin, slack, atlassian, gitlab, bitbucket, discord, twitch, steam, reddit, apple, amazon, and patreon TTL are missing', async () => {
       configService.get.mockImplementation((key: string) => {
         if (key === 'googleOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'facebookOAuth.exchangeCodeTtlSeconds') return undefined;
@@ -568,10 +531,8 @@ describe('OauthExchangeService', () => {
         if (key === 'redditOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'appleOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'amazonOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'microsoftOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'patreonOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'dropboxOAuth.exchangeCodeTtlSeconds') return 10;
-        if (key === 'coinbaseOAuth.exchangeCodeTtlSeconds') return undefined;
         return undefined;
       });
 
@@ -587,7 +548,7 @@ describe('OauthExchangeService', () => {
       );
     });
 
-    it('falls back to Coinbase OAuth TTL when google, facebook, twitter, github, figma, linkedin, slack, atlassian, gitlab, bitbucket, discord, twitch, steam, reddit, apple, amazon, microsoft, patreon, and dropbox TTL are missing', async () => {
+    it('falls back to 60 seconds when google, facebook, twitter, github, figma, linkedin, slack, atlassian, gitlab, bitbucket, discord, twitch, steam, reddit, apple, amazon, patreon, and dropbox TTL are missing', async () => {
       configService.get.mockImplementation((key: string) => {
         if (key === 'googleOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'facebookOAuth.exchangeCodeTtlSeconds') return undefined;
@@ -605,10 +566,8 @@ describe('OauthExchangeService', () => {
         if (key === 'redditOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'appleOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'amazonOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'microsoftOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'patreonOAuth.exchangeCodeTtlSeconds') return undefined;
         if (key === 'dropboxOAuth.exchangeCodeTtlSeconds') return undefined;
-        if (key === 'coinbaseOAuth.exchangeCodeTtlSeconds') return 10;
         return undefined;
       });
 
@@ -617,10 +576,10 @@ describe('OauthExchangeService', () => {
       expect(cacheService.set).toHaveBeenCalledWith(
         `auth:oauth:exchange:${fixedCode}`,
         { userId },
-        10,
+        60,
       );
       expect(configService.get).toHaveBeenCalledWith(
-        'coinbaseOAuth.exchangeCodeTtlSeconds',
+        'dropboxOAuth.exchangeCodeTtlSeconds',
       );
     });
 

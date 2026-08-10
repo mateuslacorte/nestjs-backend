@@ -50,9 +50,13 @@ export class DropboxStrategy extends PassportStrategy(Strategy, 'dropbox') {
     ): Promise<DropboxProfilePayload> {
         const { data } = await axios.post<DropboxAccountResponse>(
             DROPBOX_ACCOUNT_URL,
-            null,
+            'null',
             {
-                headers: { Authorization: `Bearer ${accessToken}` },
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json',
+                },
+                transformRequest: [(body) => body],
             },
         );
 

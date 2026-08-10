@@ -53,10 +53,8 @@ import { SteamProfilePayload } from './strategies/steam.strategy';
 import { RedditProfilePayload } from './strategies/reddit.strategy';
 import { AppleProfilePayload } from './strategies/apple.strategy';
 import { AmazonProfilePayload } from './strategies/amazon.strategy';
-import { MicrosoftProfilePayload } from './strategies/microsoft.strategy';
 import { PatreonProfilePayload } from './strategies/patreon.strategy';
 import { DropboxProfilePayload } from './strategies/dropbox.strategy';
-import { CoinbaseProfilePayload } from './strategies/coinbase.strategy';
 import { generateRandomDisplayName } from './utils/generate-random-display-name.util';
 
 function createUser(overrides: Partial<IUser> = {}): IUser {
@@ -181,12 +179,6 @@ const defaultConfig: Record<string, unknown> = {
     'https://app.example/',
   ],
   'amazonOAuth.defaultRoles': [Role.USER],
-  'microsoftOAuth.enabled': true,
-  'microsoftOAuth.redirectAllowlist': [
-    'https://app.example/cb',
-    'https://app.example/',
-  ],
-  'microsoftOAuth.defaultRoles': [Role.USER],
   'patreonOAuth.enabled': true,
   'patreonOAuth.redirectAllowlist': [
     'https://app.example/cb',
@@ -199,12 +191,6 @@ const defaultConfig: Record<string, unknown> = {
     'https://app.example/',
   ],
   'dropboxOAuth.defaultRoles': [Role.USER],
-  'coinbaseOAuth.enabled': true,
-  'coinbaseOAuth.redirectAllowlist': [
-    'https://app.example/cb',
-    'https://app.example/',
-  ],
-  'coinbaseOAuth.defaultRoles': [Role.USER],
 };
 
 describe('AuthService', () => {
@@ -229,10 +215,8 @@ describe('AuthService', () => {
     findBySteamId: jest.Mock;
     findByRedditId: jest.Mock;
     findByAmazonId: jest.Mock;
-    findByMicrosoftId: jest.Mock;
     findByPatreonId: jest.Mock;
     findByDropboxId: jest.Mock;
-    findByCoinbaseId: jest.Mock;
     findByMetamaskId: jest.Mock;
     findByActiveDirectoryId: jest.Mock;
     findByAppleId: jest.Mock;
@@ -279,10 +263,8 @@ describe('AuthService', () => {
       findBySteamId: jest.fn(),
       findByRedditId: jest.fn(),
       findByAmazonId: jest.fn(),
-      findByMicrosoftId: jest.fn(),
       findByPatreonId: jest.fn(),
       findByDropboxId: jest.fn(),
-      findByCoinbaseId: jest.fn(),
       findByMetamaskId: jest.fn(),
       findByActiveDirectoryId: jest.fn(),
       findByAppleId: jest.fn(),
@@ -2946,109 +2928,6 @@ describe('AuthService', () => {
     });
   });
 
-  describe('completeMicrosoftOAuth', () => {
-    const profile: MicrosoftProfilePayload = {
-      microsoftId: 'ms-object-id-001',
-      email: 'microsoft@example.com',
-      firstName: 'Jane',
-      lastName: 'Doe',
-    };
-    const state = encodeOAuthState('https://app.example/cb');
-
-    it('throws 503 when Microsoft auth is disabled', async () => {
-      configService.get.mockImplementation((key: string) => {
-        if (key === 'microsoftOAuth.enabled') return false;
-        return defaultConfig[key];
-      });
-
-      await expect(
-        service.completeMicrosoftOAuth(profile, state),
-      ).rejects.toThrow(
-        new ServiceUnavailableException(
-          'Microsoft authentication is disabled',
-        ),
-      );
-    });
-
-    it('returns redirect URL for existing microsoft user', async () => {
-      usersService.findByMicrosoftId.mockResolvedValue(
-        createUser({ microsoftId: 'ms-object-id-001' }),
-      );
-
-      const result = await service.completeMicrosoftOAuth(profile, state);
-
-      expect(result.redirectUrl).toBe(
-        'https://app.example/cb?code=exchange-code-123',
-      );
-    });
-
-    it('reactivates inactive microsoft user', async () => {
-      usersService.findByMicrosoftId.mockResolvedValue(
-        createUser({ microsoftId: 'ms-object-id-001', isActive: false }),
-      );
-      usersService.update.mockResolvedValue(createUser({ isActive: true }));
-
-      await service.completeMicrosoftOAuth(profile, state);
-
-      expect(usersService.update).toHaveBeenCalledWith('user-1', {
-        isActive: true,
-      });
-    });
-
-    it('links microsoft id to existing email user', async () => {
-      const byEmail = createUser({ email: profile.email });
-      usersService.findByMicrosoftId.mockResolvedValue(null);
-      usersService.findByEmail.mockResolvedValue(byEmail);
-      usersService.update.mockResolvedValue({
-        ...byEmail,
-        microsoftId: profile.microsoftId,
-      });
-
-      await service.completeMicrosoftOAuth(profile, state);
-
-      expect(usersService.update).toHaveBeenCalledWith('user-1', {
-        microsoftId: 'ms-object-id-001',
-        isActive: true,
-      });
-    });
-
-    it('creates new user with dash lastName when empty', async () => {
-      configService.get.mockImplementation((key: string) => {
-        if (key === 'microsoftOAuth.defaultRoles') return undefined;
-        return defaultConfig[key];
-      });
-      usersService.findByMicrosoftId.mockResolvedValue(null);
-      usersService.findByEmail.mockResolvedValue(null);
-      usersService.findByUsername.mockResolvedValue(null);
-      usersService.create.mockResolvedValue(createUser());
-
-      await service.completeMicrosoftOAuth(
-        { ...profile, lastName: '' },
-        state,
-      );
-
-      expect(usersService.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          lastName: '-',
-          roles: [],
-          microsoftId: 'ms-object-id-001',
-        }),
-      );
-    });
-
-    it('uses & separator when redirect already has query params', async () => {
-      const queryState = encodeOAuthState('https://app.example/cb?foo=1');
-      usersService.findByMicrosoftId.mockResolvedValue(
-        createUser({ microsoftId: 'ms-object-id-001' }),
-      );
-
-      const result = await service.completeMicrosoftOAuth(profile, queryState);
-
-      expect(result.redirectUrl).toBe(
-        'https://app.example/cb?foo=1&code=exchange-code-123',
-      );
-    });
-  });
 
   describe('completePatreonOAuth', () => {
     const profile: PatreonProfilePayload = {
@@ -3261,113 +3140,6 @@ describe('AuthService', () => {
     });
   });
 
-  describe('completeCoinbaseOAuth', () => {
-    const profile: CoinbaseProfilePayload = {
-      coinbaseId: '9da7a204-544e-5fd1-9a12-61176c5d4cd8',
-      email: 'coinbase@example.com',
-      firstName: 'Coin',
-      lastName: 'Base',
-    };
-    const state = encodeOAuthState('https://app.example/cb');
-
-    it('throws 503 when Coinbase auth is disabled', async () => {
-      configService.get.mockImplementation((key: string) => {
-        if (key === 'coinbaseOAuth.enabled') return false;
-        return defaultConfig[key];
-      });
-
-      await expect(
-        service.completeCoinbaseOAuth(profile, state),
-      ).rejects.toThrow(
-        new ServiceUnavailableException(
-          'Coinbase authentication is disabled',
-        ),
-      );
-    });
-
-    it('returns redirect URL for existing coinbase user', async () => {
-      usersService.findByCoinbaseId.mockResolvedValue(
-        createUser({ coinbaseId: '9da7a204-544e-5fd1-9a12-61176c5d4cd8' }),
-      );
-
-      const result = await service.completeCoinbaseOAuth(profile, state);
-
-      expect(result.redirectUrl).toBe(
-        'https://app.example/cb?code=exchange-code-123',
-      );
-    });
-
-    it('reactivates inactive coinbase user', async () => {
-      usersService.findByCoinbaseId.mockResolvedValue(
-        createUser({
-          coinbaseId: '9da7a204-544e-5fd1-9a12-61176c5d4cd8',
-          isActive: false,
-        }),
-      );
-      usersService.update.mockResolvedValue(createUser({ isActive: true }));
-
-      await service.completeCoinbaseOAuth(profile, state);
-
-      expect(usersService.update).toHaveBeenCalledWith('user-1', {
-        isActive: true,
-      });
-    });
-
-    it('links coinbase id to existing email user', async () => {
-      const byEmail = createUser({ email: profile.email });
-      usersService.findByCoinbaseId.mockResolvedValue(null);
-      usersService.findByEmail.mockResolvedValue(byEmail);
-      usersService.update.mockResolvedValue({
-        ...byEmail,
-        coinbaseId: profile.coinbaseId,
-      });
-
-      await service.completeCoinbaseOAuth(profile, state);
-
-      expect(usersService.update).toHaveBeenCalledWith('user-1', {
-        coinbaseId: '9da7a204-544e-5fd1-9a12-61176c5d4cd8',
-        isActive: true,
-      });
-    });
-
-    it('creates new user with dash lastName when empty', async () => {
-      configService.get.mockImplementation((key: string) => {
-        if (key === 'coinbaseOAuth.defaultRoles') return undefined;
-        return defaultConfig[key];
-      });
-      usersService.findByCoinbaseId.mockResolvedValue(null);
-      usersService.findByEmail.mockResolvedValue(null);
-      usersService.findByUsername.mockResolvedValue(null);
-      usersService.create.mockResolvedValue(createUser());
-
-      await service.completeCoinbaseOAuth(
-        { ...profile, lastName: '' },
-        state,
-      );
-
-      expect(usersService.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          lastName: '-',
-          roles: [],
-          coinbaseId: '9da7a204-544e-5fd1-9a12-61176c5d4cd8',
-        }),
-      );
-    });
-
-    it('uses & separator when redirect already has query params', async () => {
-      const queryState = encodeOAuthState('https://app.example/cb?foo=1');
-      usersService.findByCoinbaseId.mockResolvedValue(
-        createUser({ coinbaseId: '9da7a204-544e-5fd1-9a12-61176c5d4cd8' }),
-      );
-
-      const result = await service.completeCoinbaseOAuth(profile, queryState);
-
-      expect(result.redirectUrl).toBe(
-        'https://app.example/cb?foo=1&code=exchange-code-123',
-      );
-    });
-  });
-
   describe('exchangeOAuthCode', () => {
     it('throws 503 when all social auth is disabled', async () => {
       configService.get.mockImplementation((key: string) => {
@@ -3388,10 +3160,8 @@ describe('AuthService', () => {
           key === 'redditOAuth.enabled' ||
           key === 'appleOAuth.enabled' ||
           key === 'amazonOAuth.enabled' ||
-          key === 'microsoftOAuth.enabled' ||
           key === 'patreonOAuth.enabled' ||
-          key === 'dropboxOAuth.enabled' ||
-          key === 'coinbaseOAuth.enabled'
+          key === 'dropboxOAuth.enabled'
         ) {
           return false;
         }

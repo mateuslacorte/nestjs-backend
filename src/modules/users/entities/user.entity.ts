@@ -76,17 +76,12 @@ export class UserEntity implements IUser {
     @Column({ type: 'varchar', unique: true, nullable: true })
     amazonId?: string | null;
 
-    @Column({ type: 'varchar', unique: true, nullable: true })
-    microsoftId?: string | null;
 
     @Column({ type: 'varchar', unique: true, nullable: true })
     patreonId?: string | null;
 
     @Column({ type: 'varchar', unique: true, nullable: true })
     dropboxId?: string | null;
-
-    @Column({ type: 'varchar', unique: true, nullable: true })
-    coinbaseId?: string | null;
 
     @Column({ type: 'varchar', unique: true, nullable: true })
     metamaskId?: string | null;

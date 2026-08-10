@@ -180,16 +180,6 @@ export class UsersService {
     return this.postgresRepo.findByAmazonId(amazonId, includePassword);
   }
 
-  /**
-   * Find a user by Microsoft Entra ID object ID
-   */
-  @NoCache()
-  async findByMicrosoftId(
-    microsoftId: string,
-    includePassword = false,
-  ): Promise<IUser | null> {
-    return this.postgresRepo.findByMicrosoftId(microsoftId, includePassword);
-  }
 
   /**
    * Find a user by Patreon user ID
@@ -211,17 +201,6 @@ export class UsersService {
     includePassword = false,
   ): Promise<IUser | null> {
     return this.postgresRepo.findByDropboxId(dropboxId, includePassword);
-  }
-
-  /**
-   * Find a user by Coinbase user ID
-   */
-  @NoCache()
-  async findByCoinbaseId(
-    coinbaseId: string,
-    includePassword = false,
-  ): Promise<IUser | null> {
-    return this.postgresRepo.findByCoinbaseId(coinbaseId, includePassword);
   }
 
   /**

@@ -7,7 +7,7 @@
     "hero": {
       "titlePrefix": "Autenticação",
       "titleHighlight": "Social",
-      "subtitle": "Como conectar login Google, Facebook, X / Twitter, GitHub, Figma, LinkedIn, Slack, Atlassian, GitLab, Bitbucket, Discord, Twitch, Amazon, Microsoft, Patreon, Dropbox, Coinbase, MetaMask ou Steam no seu app — Code Exchange OAuth na maioria; SIWE no MetaMask."
+      "subtitle": "Como conectar login Google, Facebook, X / Twitter, GitHub, Figma, LinkedIn, Slack, Atlassian, GitLab, Bitbucket, Discord, Twitch, Amazon, Patreon, Dropbox, MetaMask ou Steam no seu app — Code Exchange OAuth na maioria; SIWE no MetaMask."
     },
     "howItWorks": {
       "title": "Como funciona",
@@ -118,11 +118,6 @@
         "description": "Login with Amazon via OAuth2 Authorization Code, env vars, endpoints e amostras web/mobile.",
         "cta": "Guia Amazon →"
       },
-      "microsoft": {
-        "title": "Microsoft",
-        "description": "Microsoft Entra ID / Azure AD via OAuth2 Authorization Code, env vars, endpoints e amostras web/mobile.",
-        "cta": "Guia Microsoft →"
-      },
       "patreon": {
         "title": "Patreon",
         "description": "Patreon via OAuth2 Authorization Code, scopes identity, env vars, endpoints e amostras web/mobile.",
@@ -132,11 +127,6 @@
         "title": "Dropbox",
         "description": "Dropbox via OAuth2 Authorization Code, scope account_info.read, env vars, endpoints e amostras web/mobile.",
         "cta": "Guia Dropbox →"
-      },
-      "coinbase": {
-        "title": "Coinbase",
-        "description": "Coinbase via OAuth2 Authorization Code, scopes wallet:user:email, env vars, endpoints e amostras web/mobile.",
-        "cta": "Guia Coinbase →"
       },
       "metamask": {
         "title": "MetaMask",
@@ -180,10 +170,8 @@
       "twitch": "Guia de setup Twitch OAuth2",
       "steam": "Guia de setup Steam OpenID 2.0",
       "amazon": "Guia de setup Login with Amazon",
-      "microsoft": "Guia de setup Microsoft Entra ID",
       "patreon": "Guia de setup Patreon OAuth2",
       "dropbox": "Guia de setup Dropbox OAuth2",
-      "coinbase": "Guia de setup Coinbase OAuth2",
       "metamask": "Guia de setup MetaMask SIWE",
       "reddit": "Guia de setup Reddit OAuth2",
       "apple": "Guia de setup Apple Sign In"

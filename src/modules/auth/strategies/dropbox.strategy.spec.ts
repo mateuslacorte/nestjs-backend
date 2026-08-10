@@ -66,9 +66,13 @@ describe('DropboxStrategy', () => {
 
             expect(mockedAxios.post).toHaveBeenCalledWith(
                 'https://api.dropboxapi.com/2/users/get_current_account',
-                null,
+                'null',
                 {
-                    headers: { Authorization: 'Bearer access-token' },
+                    headers: {
+                        Authorization: 'Bearer access-token',
+                        'Content-Type': 'application/json',
+                    },
+                    transformRequest: [expect.any(Function)],
                 },
             );
             expect(payload).toEqual({

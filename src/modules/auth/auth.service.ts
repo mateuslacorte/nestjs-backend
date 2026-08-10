@@ -28,10 +28,8 @@ import { SteamProfilePayload } from './strategies/steam.strategy';
 import { RedditProfilePayload } from './strategies/reddit.strategy';
 import { AppleProfilePayload } from './strategies/apple.strategy';
 import { AmazonProfilePayload } from './strategies/amazon.strategy';
-import { MicrosoftProfilePayload } from './strategies/microsoft.strategy';
 import { PatreonProfilePayload } from './strategies/patreon.strategy';
 import { DropboxProfilePayload } from './strategies/dropbox.strategy';
-import { CoinbaseProfilePayload } from './strategies/coinbase.strategy';
 import { ActiveDirectoryProfilePayload } from './interfaces/active-directory-profile.interface';
 import { ActiveDirectoryLdapService } from './services/active-directory-ldap.service';
 import { MetamaskSiweService } from './services/metamask-siwe.service';
@@ -742,25 +740,6 @@ export class AuthService {
         };
     }
 
-    /**
-     * After Microsoft OAuth callback: upsert user, create exchange code, build redirect URL.
-     */
-    async completeMicrosoftOAuth(
-        profile: MicrosoftProfilePayload,
-        state?: string,
-    ): Promise<{ redirectUrl: string }> {
-        this.assertMicrosoftAuthEnabled();
-
-        const redirectBase = this.parseAndValidateRedirectFromState(
-            state,
-            'microsoftOAuth.redirectAllowlist',
-        );
-        const user = await this.findOrCreateMicrosoftUser(profile);
-        const code = await this.oauthExchangeService.createExchangeCode(user.id!);
-        return {
-            redirectUrl: this.buildOAuthRedirectUrl(redirectBase, code),
-        };
-    }
 
     /**
      * After Patreon OAuth callback: upsert user, create exchange code, build redirect URL.
@@ -803,27 +782,7 @@ export class AuthService {
     }
 
     /**
-     * After Coinbase OAuth callback: upsert user, create exchange code, build redirect URL.
-     */
-    async completeCoinbaseOAuth(
-        profile: CoinbaseProfilePayload,
-        state?: string,
-    ): Promise<{ redirectUrl: string }> {
-        this.assertCoinbaseAuthEnabled();
-
-        const redirectBase = this.parseAndValidateRedirectFromState(
-            state,
-            'coinbaseOAuth.redirectAllowlist',
-        );
-        const user = await this.findOrCreateCoinbaseUser(profile);
-        const code = await this.oauthExchangeService.createExchangeCode(user.id!);
-        return {
-            redirectUrl: this.buildOAuthRedirectUrl(redirectBase, code),
-        };
-    }
-
-    /**
-     * Exchange a one-time OAuth code for JWT tokens (Google, Facebook, Twitter, GitHub, Figma, LinkedIn, Slack, Atlassian, GitLab, Bitbucket, Discord, Twitch, Steam, Reddit, Apple, Amazon, Microsoft, Patreon, Dropbox, or Coinbase).
+     * Exchange a one-time OAuth code for JWT tokens (Google, Facebook, Twitter, GitHub, Figma, LinkedIn, Slack, Atlassian, GitLab, Bitbucket, Discord, Twitch, Steam, Reddit, Apple, Amazon, Patreon, or Dropbox).
      */
     async exchangeOAuthCode(dto: ExchangeCodeDto): Promise<{
         user: Partial<IUser>;
@@ -944,14 +903,6 @@ export class AuthService {
         }
     }
 
-    private assertMicrosoftAuthEnabled(): void {
-        const enabled = this.configService.get<boolean>('microsoftOAuth.enabled');
-        if (!enabled) {
-            throw new ServiceUnavailableException(
-                'Microsoft authentication is disabled',
-            );
-        }
-    }
 
     private assertPatreonAuthEnabled(): void {
         const enabled = this.configService.get<boolean>('patreonOAuth.enabled');
@@ -967,15 +918,6 @@ export class AuthService {
         if (!enabled) {
             throw new ServiceUnavailableException(
                 'Dropbox authentication is disabled',
-            );
-        }
-    }
-
-    private assertCoinbaseAuthEnabled(): void {
-        const enabled = this.configService.get<boolean>('coinbaseOAuth.enabled');
-        if (!enabled) {
-            throw new ServiceUnavailableException(
-                'Coinbase authentication is disabled',
             );
         }
     }
@@ -1035,10 +977,8 @@ export class AuthService {
         const reddit = this.configService.get<boolean>('redditOAuth.enabled');
         const apple = this.configService.get<boolean>('appleOAuth.enabled');
         const amazon = this.configService.get<boolean>('amazonOAuth.enabled');
-        const microsoft = this.configService.get<boolean>('microsoftOAuth.enabled');
         const patreon = this.configService.get<boolean>('patreonOAuth.enabled');
         const dropbox = this.configService.get<boolean>('dropboxOAuth.enabled');
-        const coinbase = this.configService.get<boolean>('coinbaseOAuth.enabled');
         if (
             !google &&
             !facebook &&
@@ -1056,10 +996,8 @@ export class AuthService {
             !reddit &&
             !apple &&
             !amazon &&
-            !microsoft &&
             !patreon &&
-            !dropbox &&
-            !coinbase
+            !dropbox
         ) {
             throw new ServiceUnavailableException('Social authentication is disabled');
         }
@@ -1565,43 +1503,6 @@ export class AuthService {
         });
     }
 
-    private async findOrCreateMicrosoftUser(
-        profile: MicrosoftProfilePayload,
-    ): Promise<IUser> {
-        const byMicrosoft = await this.usersService.findByMicrosoftId(
-            profile.microsoftId,
-        );
-        if (byMicrosoft) {
-            if (!byMicrosoft.isActive) {
-                return this.usersService.update(byMicrosoft.id!, {
-                    isActive: true,
-                });
-            }
-            return byMicrosoft;
-        }
-
-        const byEmail = await this.usersService.findByEmail(profile.email);
-        if (byEmail) {
-            return this.usersService.update(byEmail.id!, {
-                microsoftId: profile.microsoftId,
-                isActive: true,
-            });
-        }
-
-        const defaultRoles =
-            this.configService.get<Role[]>('microsoftOAuth.defaultRoles') ?? [];
-        const username = await this.buildUniqueUsername(profile.email);
-
-        return this.usersService.create({
-            email: profile.email,
-            firstName: profile.firstName,
-            lastName: profile.lastName || '-',
-            username,
-            microsoftId: profile.microsoftId,
-            isActive: true,
-            roles: [...defaultRoles],
-        });
-    }
 
     private async findOrCreatePatreonUser(
         profile: PatreonProfilePayload,
@@ -1666,42 +1567,6 @@ export class AuthService {
             lastName: profile.lastName || '-',
             username,
             dropboxId: profile.dropboxId,
-            isActive: true,
-            roles: [...defaultRoles],
-        });
-    }
-
-    private async findOrCreateCoinbaseUser(
-        profile: CoinbaseProfilePayload,
-    ): Promise<IUser> {
-        const byCoinbase = await this.usersService.findByCoinbaseId(
-            profile.coinbaseId,
-        );
-        if (byCoinbase) {
-            if (!byCoinbase.isActive) {
-                return this.usersService.update(byCoinbase.id!, { isActive: true });
-            }
-            return byCoinbase;
-        }
-
-        const byEmail = await this.usersService.findByEmail(profile.email);
-        if (byEmail) {
-            return this.usersService.update(byEmail.id!, {
-                coinbaseId: profile.coinbaseId,
-                isActive: true,
-            });
-        }
-
-        const defaultRoles =
-            this.configService.get<Role[]>('coinbaseOAuth.defaultRoles') ?? [];
-        const username = await this.buildUniqueUsername(profile.email);
-
-        return this.usersService.create({
-            email: profile.email,
-            firstName: profile.firstName,
-            lastName: profile.lastName || '-',
-            username,
-            coinbaseId: profile.coinbaseId,
             isActive: true,
             roles: [...defaultRoles],
         });

@@ -30,10 +30,8 @@ type MockPostgresRepo = {
   findBySteamId: jest.Mock;
   findByRedditId: jest.Mock;
   findByAmazonId: jest.Mock;
-  findByMicrosoftId: jest.Mock;
   findByPatreonId: jest.Mock;
   findByDropboxId: jest.Mock;
-  findByCoinbaseId: jest.Mock;
   findByMetamaskId: jest.Mock;
   findByActiveDirectoryId: jest.Mock;
   findByAppleId: jest.Mock;
@@ -88,10 +86,8 @@ describe('UsersService', () => {
       findBySteamId: jest.fn(),
       findByRedditId: jest.fn(),
       findByAmazonId: jest.fn(),
-      findByMicrosoftId: jest.fn(),
       findByPatreonId: jest.fn(),
       findByDropboxId: jest.fn(),
-      findByCoinbaseId: jest.fn(),
       findByMetamaskId: jest.fn(),
       findByActiveDirectoryId: jest.fn(),
       findByAppleId: jest.fn(),
@@ -140,10 +136,8 @@ describe('UsersService', () => {
         'findBySteamId',
         'findByRedditId',
         'findByAmazonId',
-        'findByMicrosoftId',
         'findByPatreonId',
         'findByDropboxId',
-        'findByCoinbaseId',
         'findByMetamaskId',
         'findByActiveDirectoryId',
         'findByAppleId',
@@ -292,21 +286,11 @@ describe('UsersService', () => {
         id: 'amzn1.account.abc123',
       },
       {
-        method: 'findByMicrosoftId',
-        repo: 'findByMicrosoftId',
-        id: 'ms-object-id-001',
-      },
-      {
         method: 'findByPatreonId',
         repo: 'findByPatreonId',
         id: 'patreon-user-001',
       },
       { method: 'findByDropboxId', repo: 'findByDropboxId', id: 'dbid:abc123' },
-      {
-        method: 'findByCoinbaseId',
-        repo: 'findByCoinbaseId',
-        id: '9da7a204-544e-5fd1-9a12-61176c5d4cd8',
-      },
       {
         method: 'findByMetamaskId',
         repo: 'findByMetamaskId',

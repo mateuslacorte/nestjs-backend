@@ -26,10 +26,8 @@ export interface IUser {
     redditId?: string | null;
     appleId?: string | null;
     amazonId?: string | null;
-    microsoftId?: string | null;
     patreonId?: string | null;
     dropboxId?: string | null;
-    coinbaseId?: string | null;
     metamaskId?: string | null;
     activeDirectoryId?: string | null;
     passwordResetToken?: string;

@@ -71,16 +71,10 @@ export class UserModel implements IUser {
     amazonId?: string | null;
 
     @Field(() => String, { nullable: true })
-    microsoftId?: string | null;
-
-    @Field(() => String, { nullable: true })
     patreonId?: string | null;
 
     @Field(() => String, { nullable: true })
     dropboxId?: string | null;
-
-    @Field(() => String, { nullable: true })
-    coinbaseId?: string | null;
 
     @Field(() => String, { nullable: true })
     metamaskId?: string | null;

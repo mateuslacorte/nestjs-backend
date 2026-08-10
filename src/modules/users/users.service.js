@@ -112,10 +112,8 @@ var UsersService = function () {
     var _findBySteamId_decorators;
     var _findByRedditId_decorators;
     var _findByAmazonId_decorators;
-    var _findByMicrosoftId_decorators;
     var _findByPatreonId_decorators;
     var _findByDropboxId_decorators;
-    var _findByCoinbaseId_decorators;
     var _findByMetamaskId_decorators;
     var _findByActiveDirectoryId_decorators;
     var _findByAppleId_decorators;
@@ -351,17 +349,6 @@ var UsersService = function () {
             });
         };
         /**
-         * Find a user by Microsoft Entra ID object ID
-         */
-        UsersService_1.prototype.findByMicrosoftId = function (microsoftId_1) {
-            return __awaiter(this, arguments, void 0, function (microsoftId, includePassword) {
-                if (includePassword === void 0) { includePassword = false; }
-                return __generator(this, function (_a) {
-                    return [2 /*return*/, this.postgresRepo.findByMicrosoftId(microsoftId, includePassword)];
-                });
-            });
-        };
-        /**
          * Find a user by Patreon user ID
          */
         UsersService_1.prototype.findByPatreonId = function (patreonId_1) {
@@ -380,17 +367,6 @@ var UsersService = function () {
                 if (includePassword === void 0) { includePassword = false; }
                 return __generator(this, function (_a) {
                     return [2 /*return*/, this.postgresRepo.findByDropboxId(dropboxId, includePassword)];
-                });
-            });
-        };
-        /**
-         * Find a user by Coinbase user ID
-         */
-        UsersService_1.prototype.findByCoinbaseId = function (coinbaseId_1) {
-            return __awaiter(this, arguments, void 0, function (coinbaseId, includePassword) {
-                if (includePassword === void 0) { includePassword = false; }
-                return __generator(this, function (_a) {
-                    return [2 /*return*/, this.postgresRepo.findByCoinbaseId(coinbaseId, includePassword)];
                 });
             });
         };
@@ -621,10 +597,8 @@ var UsersService = function () {
         _findBySteamId_decorators = [(0, cache_decorator_1.NoCache)()];
         _findByRedditId_decorators = [(0, cache_decorator_1.NoCache)()];
         _findByAmazonId_decorators = [(0, cache_decorator_1.NoCache)()];
-        _findByMicrosoftId_decorators = [(0, cache_decorator_1.NoCache)()];
         _findByPatreonId_decorators = [(0, cache_decorator_1.NoCache)()];
         _findByDropboxId_decorators = [(0, cache_decorator_1.NoCache)()];
-        _findByCoinbaseId_decorators = [(0, cache_decorator_1.NoCache)()];
         _findByMetamaskId_decorators = [(0, cache_decorator_1.NoCache)()];
         _findByActiveDirectoryId_decorators = [(0, cache_decorator_1.NoCache)()];
         _findByAppleId_decorators = [(0, cache_decorator_1.NoCache)()];
@@ -652,10 +626,8 @@ var UsersService = function () {
         __esDecorate(_classThis, null, _findBySteamId_decorators, { kind: "method", name: "findBySteamId", static: false, private: false, access: { has: function (obj) { return "findBySteamId" in obj; }, get: function (obj) { return obj.findBySteamId; } }, metadata: _metadata }, null, _instanceExtraInitializers);
         __esDecorate(_classThis, null, _findByRedditId_decorators, { kind: "method", name: "findByRedditId", static: false, private: false, access: { has: function (obj) { return "findByRedditId" in obj; }, get: function (obj) { return obj.findByRedditId; } }, metadata: _metadata }, null, _instanceExtraInitializers);
         __esDecorate(_classThis, null, _findByAmazonId_decorators, { kind: "method", name: "findByAmazonId", static: false, private: false, access: { has: function (obj) { return "findByAmazonId" in obj; }, get: function (obj) { return obj.findByAmazonId; } }, metadata: _metadata }, null, _instanceExtraInitializers);
-        __esDecorate(_classThis, null, _findByMicrosoftId_decorators, { kind: "method", name: "findByMicrosoftId", static: false, private: false, access: { has: function (obj) { return "findByMicrosoftId" in obj; }, get: function (obj) { return obj.findByMicrosoftId; } }, metadata: _metadata }, null, _instanceExtraInitializers);
         __esDecorate(_classThis, null, _findByPatreonId_decorators, { kind: "method", name: "findByPatreonId", static: false, private: false, access: { has: function (obj) { return "findByPatreonId" in obj; }, get: function (obj) { return obj.findByPatreonId; } }, metadata: _metadata }, null, _instanceExtraInitializers);
         __esDecorate(_classThis, null, _findByDropboxId_decorators, { kind: "method", name: "findByDropboxId", static: false, private: false, access: { has: function (obj) { return "findByDropboxId" in obj; }, get: function (obj) { return obj.findByDropboxId; } }, metadata: _metadata }, null, _instanceExtraInitializers);
-        __esDecorate(_classThis, null, _findByCoinbaseId_decorators, { kind: "method", name: "findByCoinbaseId", static: false, private: false, access: { has: function (obj) { return "findByCoinbaseId" in obj; }, get: function (obj) { return obj.findByCoinbaseId; } }, metadata: _metadata }, null, _instanceExtraInitializers);
         __esDecorate(_classThis, null, _findByMetamaskId_decorators, { kind: "method", name: "findByMetamaskId", static: false, private: false, access: { has: function (obj) { return "findByMetamaskId" in obj; }, get: function (obj) { return obj.findByMetamaskId; } }, metadata: _metadata }, null, _instanceExtraInitializers);
         __esDecorate(_classThis, null, _findByActiveDirectoryId_decorators, { kind: "method", name: "findByActiveDirectoryId", static: false, private: false, access: { has: function (obj) { return "findByActiveDirectoryId" in obj; }, get: function (obj) { return obj.findByActiveDirectoryId; } }, metadata: _metadata }, null, _instanceExtraInitializers);
         __esDecorate(_classThis, null, _findByAppleId_decorators, { kind: "method", name: "findByAppleId", static: false, private: false, access: { has: function (obj) { return "findByAppleId" in obj; }, get: function (obj) { return obj.findByAppleId; } }, metadata: _metadata }, null, _instanceExtraInitializers);
