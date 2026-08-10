@@ -50,9 +50,21 @@ export class UserModel implements IUser {
     @Field(() => [Role])
     roles!: Role[];
 
+    @Field({ nullable: true })
+    createdAt?: Date;
+
     // These fields are for internal use and not exposed via GraphQL
     passwordResetToken?: string;
     passwordResetExpires?: Date;
     emailVerificationToken?: string;
     emailVerificationExpires?: Date;
+}
+
+@ObjectType()
+export class UsersPageModel {
+    @Field(() => [UserModel])
+    items!: UserModel[];
+
+    @Field(() => String, { nullable: true })
+    nextCursor!: string | null;
 }

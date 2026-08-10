@@ -18,8 +18,17 @@
           "CatchAllController registers invalid-route attempts (production/staging only)",
           "BlockedIpPostgresRepository is the active store; Mongo repo is CQRS-ready / unused",
           "After MAX_ATTEMPTS, the IP is blocked (403 on further hits)",
-          "Admin API: list, unblock, reset, remove — JWT + Role.SUPER"
+          "Admin API: list, unblock, reset, remove — JWT + Role.SUPER",
+          "Audit logging via @Audit — see the Audit logging guide under Security"
         ]
+      }
+    },
+    "related": {
+      "title": "Related",
+      "audit": {
+        "title": "Audit logging",
+        "description": "Use the @Audit decorator for new events and query them with cursor pagination as SUPER.",
+        "cta": "Open audit guide"
       }
     },
     "structure": {

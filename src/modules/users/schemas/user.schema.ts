@@ -104,6 +104,9 @@ export class User extends Document<string> {
 
   @Prop({type: Date, default: null})
   emailVerificationExpires?: Date;
+
+  /** Populated by `@Schema({ timestamps: true })` */
+  createdAt?: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

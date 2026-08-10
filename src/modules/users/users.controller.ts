@@ -1,5 +1,23 @@
-import { Body, Controller, Get, Param, Patch, Post, Delete, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiResponse, ApiOperation, ApiBearerAuth, ApiParam, ApiBody } from '@nestjs/swagger';
+import {
+    Body,
+    Controller,
+    Get,
+    Param,
+    Patch,
+    Post,
+    Delete,
+    UseGuards,
+    Query,
+} from '@nestjs/common';
+import {
+    ApiTags,
+    ApiResponse,
+    ApiOperation,
+    ApiBearerAuth,
+    ApiParam,
+    ApiBody,
+    ApiQuery,
+} from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
@@ -8,6 +26,7 @@ import { RolesGuard } from '@modules/auth/guards/roles.guard';
 import { Roles } from '@modules/auth/decorators/roles.decorator';
 import { Role } from '@modules/auth/enums/role.enum';
 import { sanitizeUserForResponse } from './utils/sanitize-user-response.util';
+import { Audit } from '@common/audit/decorators/audit.decorator';
 
 @ApiTags('Users')
 @ApiBearerAuth('access-token')
@@ -23,6 +42,13 @@ export class UsersController {
     @Post()
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.SUPER)
+    @Audit({
+        action: 'user.create',
+        category: 'user',
+        description: 'Create user (admin)',
+        identifierFrom: 'email',
+        userIdFrom: 'id',
+    })
     @ApiOperation({
         summary: 'Create a new user',
         description: 'Creates a new user in the system. Requires the super role.',
@@ -58,23 +84,49 @@ export class UsersController {
     }
 
     /**
-     * Get all users
-     * @returns All users
+     * Search users with cursor pagination
      */
     @Get()
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.SUPER)
     @ApiOperation({
-        summary: 'Get all users',
-        description: 'Retrieves a list of all users. Requires the super role.',
+        summary: 'Search users (cursor pagination)',
+        description:
+            'SUPER-only. Pass nextCursor from a prior response as cursor for the next page. Optional q searches email, username, firstName, lastName.',
     })
-    @ApiResponse({ status: 200, description: 'List of users retrieved successfully.' })
+    @ApiQuery({ name: 'cursor', required: false, type: String })
+    @ApiQuery({ name: 'limit', required: false, type: Number })
+    @ApiQuery({ name: 'q', required: false, type: String })
+    @ApiQuery({ name: 'isActive', required: false, type: Boolean })
+    @ApiResponse({ status: 200, description: 'Users page with nextCursor' })
+    @ApiResponse({ status: 400, description: 'Invalid cursor' })
     @ApiResponse({ status: 401, description: 'Unauthorized - JWT token is missing or invalid.' })
     @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions, requires super role.' })
-    findAll() {
-        return this.usersService
-            .findAll()
-            .then((users) => users?.map(sanitizeUserForResponse) ?? null);
+    async search(
+        @Query('cursor') cursor?: string,
+        @Query('limit') limit?: string,
+        @Query('q') q?: string,
+        @Query('isActive') isActive?: string,
+    ) {
+        const parsedLimit = limit ? parseInt(limit, 10) : undefined;
+        let parsedIsActive: boolean | undefined;
+        if (isActive === 'true') {
+            parsedIsActive = true;
+        } else if (isActive === 'false') {
+            parsedIsActive = false;
+        }
+
+        const page = await this.usersService.search({
+            cursor,
+            limit: Number.isFinite(parsedLimit) ? parsedLimit : undefined,
+            q,
+            isActive: parsedIsActive,
+        });
+
+        return {
+            items: page.items.map(sanitizeUserForResponse),
+            nextCursor: page.nextCursor,
+        };
     }
 
     /**
@@ -113,6 +165,13 @@ export class UsersController {
     @Patch(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.SUPER)
+    @Audit({
+        action: 'user.update',
+        category: 'user',
+        description: 'Update user (admin)',
+        userIdFrom: 'id',
+        userIdParam: 'id',
+    })
     @ApiOperation({
         summary: 'Update a user by ID',
         description: 'Updates a specific user by their ID. Requires the super role.',
@@ -157,6 +216,13 @@ export class UsersController {
     @Delete(':id')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.SUPER)
+    @Audit({
+        action: 'user.delete',
+        category: 'user',
+        description: 'Delete user (admin)',
+        userIdFrom: 'id',
+        userIdParam: 'id',
+    })
     @ApiOperation({
         summary: 'Delete a user by ID',
         description: 'Deletes a specific user by their ID. Requires the super role.',

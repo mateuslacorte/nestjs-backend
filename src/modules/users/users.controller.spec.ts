@@ -15,6 +15,7 @@ import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { IUser } from './interfaces/user.interface';
 import { sanitizeUserForResponse } from './utils/sanitize-user-response.util';
+import { AUDIT_KEY } from '@common/audit/audit.constants';
 
 function createUser(overrides: Partial<IUser> = {}): IUser {
   return {
@@ -33,7 +34,7 @@ function createUser(overrides: Partial<IUser> = {}): IUser {
 describe('UsersController', () => {
   let usersService: {
     create: jest.Mock;
-    findAll: jest.Mock;
+    search: jest.Mock;
     findById: jest.Mock;
     update: jest.Mock;
     remove: jest.Mock;
@@ -43,7 +44,7 @@ describe('UsersController', () => {
   beforeEach(() => {
     usersService = {
       create: jest.fn(),
-      findAll: jest.fn(),
+      search: jest.fn(),
       findById: jest.fn(),
       update: jest.fn(),
       remove: jest.fn(),
@@ -60,7 +61,7 @@ describe('UsersController', () => {
 
     it.each([
       ['create', RequestMethod.POST, '/'],
-      ['findAll', RequestMethod.GET, '/'],
+      ['search', RequestMethod.GET, '/'],
       ['findOne', RequestMethod.GET, ':id'],
       ['update', RequestMethod.PATCH, ':id'],
       ['remove', RequestMethod.DELETE, ':id'],
@@ -84,7 +85,7 @@ describe('UsersController', () => {
     const reflector = new Reflector();
     const methods = [
       'create',
-      'findAll',
+      'search',
       'findOne',
       'update',
       'remove',
@@ -106,6 +107,20 @@ describe('UsersController', () => {
         ).toEqual([Role.SUPER]);
       },
     );
+  });
+
+  describe('audit metadata', () => {
+    const reflector = new Reflector();
+
+    it.each([
+      ['create', 'user.create'],
+      ['update', 'user.update'],
+      ['remove', 'user.delete'],
+    ] as const)('%s is audited as %s', (method, action) => {
+      expect(
+        reflector.get(AUDIT_KEY, UsersController.prototype[method]),
+      ).toEqual(expect.objectContaining({ action, category: 'user' }));
+    });
   });
 
   describe('create', () => {
@@ -141,15 +156,39 @@ describe('UsersController', () => {
     });
   });
 
-  describe('findAll', () => {
-    it('delegates to UsersService.findAll and returns sanitized users', async () => {
+  describe('search', () => {
+    it('delegates to UsersService.search and returns sanitized items', async () => {
       const users = [createUser({ googleId: 'g-1' })];
-      usersService.findAll.mockResolvedValue(users);
+      usersService.search.mockResolvedValue({
+        items: users,
+        nextCursor: 'cursor-1',
+      });
 
-      await expect(controller.findAll()).resolves.toEqual([
-        sanitizeUserForResponse(users[0]),
-      ]);
-      expect(usersService.findAll).toHaveBeenCalledTimes(1);
+      await expect(
+        controller.search(undefined, '10', 'jane', 'true'),
+      ).resolves.toEqual({
+        items: [sanitizeUserForResponse(users[0])],
+        nextCursor: 'cursor-1',
+      });
+      expect(usersService.search).toHaveBeenCalledWith({
+        cursor: undefined,
+        limit: 10,
+        q: 'jane',
+        isActive: true,
+      });
+    });
+
+    it('parses isActive=false and ignores invalid limit', async () => {
+      usersService.search.mockResolvedValue({ items: [], nextCursor: null });
+
+      await controller.search('c', 'nope', undefined, 'false');
+
+      expect(usersService.search).toHaveBeenCalledWith({
+        cursor: 'c',
+        limit: undefined,
+        q: undefined,
+        isActive: false,
+      });
     });
   });
 

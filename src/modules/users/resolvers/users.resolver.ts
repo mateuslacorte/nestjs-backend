@@ -1,6 +1,6 @@
-import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
+import { Resolver, Query, Args, Mutation, Int } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
-import { UserModel } from '../models/users.model';
+import { UserModel, UsersPageModel } from '../models/users.model';
 import { UsersService } from '../users.service';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { UpdateUserDto } from '../dtos/update-user.dto';
@@ -8,6 +8,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwtauth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { Role } from '../../auth/enums/role.enum';
+import { Audit } from '@common/audit/decorators/audit.decorator';
 
 @Resolver(() => UserModel)
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -15,13 +16,17 @@ export class UsersResolver {
     constructor(private readonly usersService: UsersService) {}
 
     /**
-     * Get all users
-     * @returns All users
+     * Search users with cursor pagination
      */
-    @Query(() => [UserModel], { nullable: true })
+    @Query(() => UsersPageModel)
     @Roles(Role.SUPER)
-    async users(): Promise<UserModel[] | null> {
-        return this.usersService.findAll();
+    async users(
+        @Args('cursor', { nullable: true }) cursor?: string,
+        @Args('limit', { type: () => Int, nullable: true }) limit?: number,
+        @Args('q', { nullable: true }) q?: string,
+        @Args('isActive', { nullable: true }) isActive?: boolean,
+    ): Promise<UsersPageModel> {
+        return this.usersService.search({ cursor, limit, q, isActive });
     }
 
     /**
@@ -53,6 +58,13 @@ export class UsersResolver {
      */
     @Mutation(() => UserModel)
     @Roles(Role.SUPER)
+    @Audit({
+        action: 'user.create',
+        category: 'user',
+        description: 'Create user (admin, GraphQL)',
+        identifierFrom: 'email',
+        userIdFrom: 'id',
+    })
     async createUser(@Args('userData') userData: CreateUserDto): Promise<UserModel> {
         return this.usersService.create(userData);
     }
@@ -65,6 +77,13 @@ export class UsersResolver {
      */
     @Mutation(() => UserModel)
     @Roles(Role.SUPER)
+    @Audit({
+        action: 'user.update',
+        category: 'user',
+        description: 'Update user (admin, GraphQL)',
+        userIdFrom: 'id',
+        userIdParam: 'id',
+    })
     async updateUser(
         @Args('id') id: string,
         @Args('userData') userData: UpdateUserDto
@@ -79,6 +98,13 @@ export class UsersResolver {
      */
     @Mutation(() => UserModel)
     @Roles(Role.SUPER)
+    @Audit({
+        action: 'user.delete',
+        category: 'user',
+        description: 'Delete user (admin, GraphQL)',
+        userIdFrom: 'id',
+        userIdParam: 'id',
+    })
     async removeUser(@Args('id') id: string): Promise<UserModel> {
         return this.usersService.remove(id);
     }

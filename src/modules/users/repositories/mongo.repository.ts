@@ -3,9 +3,9 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from '../schemas/user.schema';
 import { CreateUserDto } from '../dtos/create-user.dto';
-import { IUser } from '../interfaces/user.interface';
+import { IUser, UserSearchRepoFilter } from '../interfaces/user.interface';
 import { v4 as uuidv4 } from 'uuid';
-import {EnableCache, CacheTTL} from "@common/cache/decorators/cache.decorator";
+import {EnableCache, CacheTTL, NoCache} from "@common/cache/decorators/cache.decorator";
 import {CacheService} from "@common/cache/cache.service";
 import { hashPassword, isPasswordHashed } from '@common/crypto/password.util';
 
@@ -72,13 +72,46 @@ export class UserMongoRepository {
     }
 
     /**
-     * Find all users in the MongoDB database
-     * @returns All users
+     * Search users with keyset cursor pagination (standby store)
      */
-    @EnableCache()
-    async findAll(): Promise<IUser[]> {
-        const users = await this.userModel.find();
-        return users.map(user => this.omitPassword(user));
+    @NoCache()
+    async search(filter: UserSearchRepoFilter): Promise<IUser[]> {
+        const query: Record<string, unknown> = {};
+
+        if (typeof filter.isActive === 'boolean') {
+            query.isActive = filter.isActive;
+        }
+
+        if (filter.q?.trim()) {
+            const regex = new RegExp(filter.q.trim(), 'i');
+            query.$or = [
+                { email: regex },
+                { username: regex },
+                { firstName: regex },
+                { lastName: regex },
+            ];
+        }
+
+        if (filter.cursorCreatedAt && filter.cursorId) {
+            query.$and = [
+                {
+                    $or: [
+                        { createdAt: { $lt: filter.cursorCreatedAt } },
+                        {
+                            createdAt: filter.cursorCreatedAt,
+                            id: { $lt: filter.cursorId },
+                        },
+                    ],
+                },
+            ];
+        }
+
+        const users = await this.userModel
+            .find(query)
+            .sort({ createdAt: -1, id: -1 })
+            .limit(filter.limit);
+
+        return users.map((user) => this.omitPassword(user));
     }
 
     /**

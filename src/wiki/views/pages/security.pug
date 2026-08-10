@@ -23,6 +23,13 @@ block content
           li • #{item}
 
   section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('security.related.title')
+    a(href=wikiPath('/security/audit') class="block bg-white rounded-xl border border-gray-200 p-8 hover:border-indigo-300 transition")
+      h3(class="font-semibold text-gray-900 mb-2")= t('security.related.audit.title')
+      p(class="text-gray-700 mb-3")= t('security.related.audit.description')
+      span(class="text-indigo-600 font-medium")= t('security.related.audit.cta')
+
+  section.mb-12
     h2(class="text-2xl font-bold text-gray-900 mb-6")= t('security.structure.title')
     .bg-white.rounded-xl.border.border-gray-200.p-8
       .code-block

@@ -17,6 +17,7 @@ describe('database.config', () => {
       'POSTGRES_PASSWORD',
       'POSTGRES_DB',
       'POSTGRES_SYNCHRONIZE',
+      'POSTGRES_MIGRATIONS_RUN',
       'POSTGRES_POOL_MAX',
       'POSTGRES_POOL_MIN',
       'POSTGRES_POOL_IDLE',
@@ -47,6 +48,7 @@ describe('database.config', () => {
         password: '',
         database: 'database',
         synchronize: false,
+        migrationsRun: true,
         poolSize: 10,
         extra: {
           max: 10,
@@ -70,6 +72,7 @@ describe('database.config', () => {
     process.env.POSTGRES_PASSWORD = 'secret';
     process.env.POSTGRES_DB = 'appdb';
     process.env.POSTGRES_SYNCHRONIZE = 'true';
+    process.env.POSTGRES_MIGRATIONS_RUN = 'false';
     process.env.POSTGRES_POOL_MAX = '25';
     process.env.POSTGRES_POOL_MIN = '5';
     process.env.POSTGRES_POOL_IDLE = '15000';
@@ -85,6 +88,7 @@ describe('database.config', () => {
       waitQueueTimeoutMS: 2000,
     });
     expect(config.postgres.synchronize).toBe(true);
+    expect(config.postgres.migrationsRun).toBe(false);
     expect(config.postgres.poolSize).toBe(25);
     expect(config.postgres.extra.max).toBe(25);
     expect(config.postgres.extra.min).toBe(5);
@@ -97,4 +101,17 @@ describe('database.config', () => {
       expect(databaseConfig().postgres.synchronize).toBe(false);
     },
   );
+
+  it.each(['true', '1', 'TRUE', ''])(
+    'keeps migrationsRun true when POSTGRES_MIGRATIONS_RUN=%s',
+    (value) => {
+      process.env.POSTGRES_MIGRATIONS_RUN = value;
+      expect(databaseConfig().postgres.migrationsRun).toBe(true);
+    },
+  );
+
+  it('disables migrationsRun only when POSTGRES_MIGRATIONS_RUN=false', () => {
+    process.env.POSTGRES_MIGRATIONS_RUN = 'false';
+    expect(databaseConfig().postgres.migrationsRun).toBe(false);
+  });
 });

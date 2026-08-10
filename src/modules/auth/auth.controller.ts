@@ -25,6 +25,7 @@ import { AppRequest, AppReply } from '@common/http/app-http';
 import { sendOAuthClientRedirect } from './utils/oauth-client-redirect';
 import {ApiTags, ApiResponse, ApiBody, ApiBearerAuth, ApiOperation, ApiQuery} from '@nestjs/swagger';
 import { Public } from './decorators/public.decorator';
+import { Audit } from '@common/audit/decorators/audit.decorator';
 import {ForgotPasswordDto} from "./dtos/forgot-password.dto";
 import {ResetPasswordDto} from "./dtos/reset-password.dto";
 import {RefreshtokenDto} from "@modules/auth/dtos/refreshtoken.dto";
@@ -62,6 +63,13 @@ export class AuthController {
      * @returns The registered user
      */
     @Public()
+    @Audit({
+        action: 'auth.register',
+        category: 'auth',
+        description: 'User registration attempt',
+        identifierFrom: 'email',
+        userIdFrom: 'user.id',
+    })
     @Post('register')
     @ApiResponse({ status: 201, description: 'User successfully registered.' })
     @ApiResponse({ status: 400, description: 'Invalid data.' })
@@ -84,7 +92,9 @@ export class AuthController {
             }
         }
     })
-    async register(@Body() createUserDto: RegisterDto) {
+    async register(
+        @Body() createUserDto: RegisterDto,
+    ) {
         return await this.authService.register(createUserDto);
     }
 
@@ -94,6 +104,13 @@ export class AuthController {
      * @returns The logged in user
      */
     @Public()
+    @Audit({
+        action: 'auth.login',
+        category: 'auth',
+        description: 'Email/password login attempt',
+        identifierFrom: 'email',
+        userIdFrom: 'user.id',
+    })
     @Post('login')
     @HttpCode(HttpStatus.OK)
     @ApiResponse({ status: 200, description: 'User successfully logged in.' })
@@ -120,6 +137,13 @@ export class AuthController {
      * Login with on-prem Active Directory (LDAP/LDAPS).
      */
     @Public()
+    @Audit({
+        action: 'auth.ad.login',
+        category: 'auth',
+        description: 'Active Directory login attempt',
+        identifierFrom: 'username',
+        userIdFrom: 'user.id',
+    })
     @Post('ad/login')
     @HttpCode(HttpStatus.OK)
     @ApiOperation({
@@ -175,6 +199,12 @@ export class AuthController {
      * Verify MetaMask SIWE message + signature and return JWT tokens.
      */
     @Public()
+    @Audit({
+        action: 'auth.metamask.verify',
+        category: 'auth',
+        description: 'MetaMask SIWE login attempt',
+        userIdFrom: 'user.id',
+    })
     @Post('metamask/verify')
     @HttpCode(HttpStatus.OK)
     @ApiOperation({
@@ -222,6 +252,12 @@ export class AuthController {
      * Google OAuth2 callback — issues a one-time exchange code and redirects to the client.
      */
     @Public()
+    @Audit({
+        action: 'auth.oauth.callback',
+        category: 'auth',
+        provider: 'google',
+        description: 'Google OAuth callback — issue exchange code',
+    })
     @Get('google/callback')
     @UseGuards(GoogleAuthGuard)
     @ApiOperation({
@@ -269,6 +305,12 @@ export class AuthController {
      * Facebook OAuth2 callback — issues a one-time exchange code and redirects to the client.
      */
     @Public()
+    @Audit({
+        action: 'auth.oauth.callback',
+        category: 'auth',
+        provider: 'facebook',
+        description: 'Facebook OAuth callback — issue exchange code',
+    })
     @Get('facebook/callback')
     @UseGuards(FacebookAuthGuard)
     @ApiOperation({
@@ -316,6 +358,12 @@ export class AuthController {
      * X / Twitter OAuth2 callback — issues a one-time exchange code and redirects to the client.
      */
     @Public()
+    @Audit({
+        action: 'auth.oauth.callback',
+        category: 'auth',
+        provider: 'twitter',
+        description: 'X / Twitter OAuth callback — issue exchange code',
+    })
     @Get('twitter/callback')
     @UseGuards(TwitterAuthGuard)
     @ApiOperation({
@@ -367,6 +415,12 @@ export class AuthController {
      * GitHub OAuth2 callback — issues a one-time exchange code and redirects to the client.
      */
     @Public()
+    @Audit({
+        action: 'auth.oauth.callback',
+        category: 'auth',
+        provider: 'github',
+        description: 'GitHub OAuth callback — issue exchange code',
+    })
     @Get('github/callback')
     @UseGuards(GithubAuthGuard)
     @ApiOperation({
@@ -414,6 +468,12 @@ export class AuthController {
      * Figma OAuth2 callback — issues a one-time exchange code and redirects to the client.
      */
     @Public()
+    @Audit({
+        action: 'auth.oauth.callback',
+        category: 'auth',
+        provider: 'figma',
+        description: 'Figma OAuth callback — issue exchange code',
+    })
     @Get('figma/callback')
     @UseGuards(FigmaAuthGuard)
     @ApiOperation({
@@ -461,6 +521,12 @@ export class AuthController {
      * LinkedIn OAuth2 callback — issues a one-time exchange code and redirects to the client.
      */
     @Public()
+    @Audit({
+        action: 'auth.oauth.callback',
+        category: 'auth',
+        provider: 'linkedin',
+        description: 'LinkedIn OAuth callback — issue exchange code',
+    })
     @Get('linkedin/callback')
     @UseGuards(LinkedinAuthGuard)
     @ApiOperation({
@@ -508,6 +574,12 @@ export class AuthController {
      * Slack OAuth2 callback — issues a one-time exchange code and redirects to the client.
      */
     @Public()
+    @Audit({
+        action: 'auth.oauth.callback',
+        category: 'auth',
+        provider: 'slack',
+        description: 'Slack OAuth callback — issue exchange code',
+    })
     @Get('slack/callback')
     @UseGuards(SlackAuthGuard)
     @ApiOperation({
@@ -555,6 +627,12 @@ export class AuthController {
      * Atlassian OAuth2 callback — issues a one-time exchange code and redirects to the client.
      */
     @Public()
+    @Audit({
+        action: 'auth.oauth.callback',
+        category: 'auth',
+        provider: 'atlassian',
+        description: 'Atlassian OAuth callback — issue exchange code',
+    })
     @Get('atlassian/callback')
     @UseGuards(AtlassianAuthGuard)
     @ApiOperation({
@@ -602,6 +680,12 @@ export class AuthController {
      * GitLab OAuth2 callback — issues a one-time exchange code and redirects to the client.
      */
     @Public()
+    @Audit({
+        action: 'auth.oauth.callback',
+        category: 'auth',
+        provider: 'gitlab',
+        description: 'GitLab OAuth callback — issue exchange code',
+    })
     @Get('gitlab/callback')
     @UseGuards(GitlabAuthGuard)
     @ApiOperation({
@@ -649,6 +733,12 @@ export class AuthController {
      * Bitbucket OAuth2 callback — issues a one-time exchange code and redirects to the client.
      */
     @Public()
+    @Audit({
+        action: 'auth.oauth.callback',
+        category: 'auth',
+        provider: 'bitbucket',
+        description: 'Bitbucket OAuth callback — issue exchange code',
+    })
     @Get('bitbucket/callback')
     @UseGuards(BitbucketAuthGuard)
     @ApiOperation({
@@ -696,6 +786,12 @@ export class AuthController {
      * Discord OAuth2 callback — issues a one-time exchange code and redirects to the client.
      */
     @Public()
+    @Audit({
+        action: 'auth.oauth.callback',
+        category: 'auth',
+        provider: 'discord',
+        description: 'Discord OAuth callback — issue exchange code',
+    })
     @Get('discord/callback')
     @UseGuards(DiscordAuthGuard)
     @ApiOperation({
@@ -743,6 +839,12 @@ export class AuthController {
      * Twitch OAuth2 callback — issues a one-time exchange code and redirects to the client.
      */
     @Public()
+    @Audit({
+        action: 'auth.oauth.callback',
+        category: 'auth',
+        provider: 'twitch',
+        description: 'Twitch OAuth callback — issue exchange code',
+    })
     @Get('twitch/callback')
     @UseGuards(TwitchAuthGuard)
     @ApiOperation({
@@ -790,6 +892,12 @@ export class AuthController {
      * Amazon OAuth2 callback — issues a one-time exchange code and redirects to the client.
      */
     @Public()
+    @Audit({
+        action: 'auth.oauth.callback',
+        category: 'auth',
+        provider: 'amazon',
+        description: 'Amazon OAuth callback — issue exchange code',
+    })
     @Get('amazon/callback')
     @UseGuards(AmazonAuthGuard)
     @ApiOperation({
@@ -838,6 +946,12 @@ export class AuthController {
      * Patreon OAuth2 callback — issues a one-time exchange code and redirects to the client.
      */
     @Public()
+    @Audit({
+        action: 'auth.oauth.callback',
+        category: 'auth',
+        provider: 'patreon',
+        description: 'Patreon OAuth callback — issue exchange code',
+    })
     @Get('patreon/callback')
     @UseGuards(PatreonAuthGuard)
     @ApiOperation({
@@ -885,6 +999,12 @@ export class AuthController {
      * Dropbox OAuth2 callback — issues a one-time exchange code and redirects to the client.
      */
     @Public()
+    @Audit({
+        action: 'auth.oauth.callback',
+        category: 'auth',
+        provider: 'dropbox',
+        description: 'Dropbox OAuth callback — issue exchange code',
+    })
     @Get('dropbox/callback')
     @UseGuards(DropboxAuthGuard)
     @ApiOperation({
@@ -932,6 +1052,12 @@ export class AuthController {
      * Steam OpenID callback — issues a one-time exchange code and redirects to the client.
      */
     @Public()
+    @Audit({
+        action: 'auth.oauth.callback',
+        category: 'auth',
+        provider: 'steam',
+        description: 'Steam OpenID callback — issue exchange code',
+    })
     @Get('steam/callback')
     @UseGuards(SteamAuthGuard)
     @ApiOperation({
@@ -979,6 +1105,12 @@ export class AuthController {
      * Reddit OAuth2 callback — issues a one-time exchange code and redirects to the client.
      */
     @Public()
+    @Audit({
+        action: 'auth.oauth.callback',
+        category: 'auth',
+        provider: 'reddit',
+        description: 'Reddit OAuth callback — issue exchange code',
+    })
     @Get('reddit/callback')
     @UseGuards(RedditAuthGuard)
     @ApiOperation({
@@ -1031,6 +1163,12 @@ export class AuthController {
      * On subsequent logins only the id_token (sub + email) is available.
      */
     @Public()
+    @Audit({
+        action: 'auth.oauth.callback',
+        category: 'auth',
+        provider: 'apple',
+        description: 'Apple OAuth callback — issue exchange code',
+    })
     @Post('apple/callback')
     @UseGuards(AppleAuthGuard)
     @ApiOperation({
@@ -1055,6 +1193,12 @@ export class AuthController {
      * Exchange a one-time OAuth code for JWT tokens.
      */
     @Public()
+    @Audit({
+        action: 'auth.oauth.exchange',
+        category: 'auth',
+        description: 'OAuth/OpenID exchange code redeemed for JWT',
+        userIdFrom: 'user.id',
+    })
     @Post('exchange')
     @HttpCode(HttpStatus.OK)
     @ApiOperation({
@@ -1106,6 +1250,11 @@ export class AuthController {
      * @returns The refreshed token
      */
     @Public()
+    @Audit({
+        action: 'auth.refresh',
+        category: 'auth',
+        description: 'Refresh token rotation attempt',
+    })
     @Post('refresh-token')
     @HttpCode(HttpStatus.OK)
     @ApiOperation({
@@ -1175,6 +1324,12 @@ export class AuthController {
     @Public()
     @Post('forgot-password')
     @HttpCode(HttpStatus.OK)
+    @Audit({
+        action: 'auth.password.forgot',
+        category: 'auth',
+        description: 'Forgot password request',
+        identifierFrom: 'email',
+    })
     @ApiResponse({
         status: 200,
         description:
@@ -1202,6 +1357,11 @@ export class AuthController {
     @Public()
     @Post('reset-password')
     @HttpCode(HttpStatus.OK)
+    @Audit({
+        action: 'auth.password.reset',
+        category: 'auth',
+        description: 'Reset password with token',
+    })
     @ApiResponse({ status: 200, description: 'Password successfully reset.' })
     @ApiResponse({ status: 400, description: 'Invalid or expired token.' })
     @ApiResponse({ status: 404, description: 'User not found.' })
@@ -1221,6 +1381,11 @@ export class AuthController {
     @HttpCode(HttpStatus.OK)
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth('access-token')
+    @Audit({
+        action: 'auth.password.change',
+        category: 'auth',
+        description: 'Change password for logged-in user',
+    })
     @ApiOperation({ summary: 'Change password for logged-in user' })
     @ApiResponse({ status: 200, description: 'Password changed successfully.' })
     @ApiResponse({ status: 400, description: 'Current password is incorrect or passwords do not match.' })
@@ -1252,6 +1417,11 @@ export class AuthController {
      */
     @Public()
     @Get('verify-email')
+    @Audit({
+        action: 'auth.email.verify',
+        category: 'auth',
+        description: 'Verify email with token',
+    })
     @ApiResponse({ status: 200, description: 'Email verified successfully.' })
     @ApiResponse({ status: 400, description: 'Invalid or expired token.' })
     @ApiResponse({ status: 404, description: 'User not found.' })
@@ -1269,6 +1439,12 @@ export class AuthController {
      */
     @Public()
     @HttpCode(HttpStatus.OK)
+    @Audit({
+        action: 'auth.email.resend',
+        category: 'auth',
+        description: 'Resend email verification',
+        identifierFrom: 'email',
+    })
     @ApiResponse({ status: 200, description: 'Verification email has been resent.' })
     @ApiResponse({ status: 404, description: 'User not found.' })
     @ApiBody({

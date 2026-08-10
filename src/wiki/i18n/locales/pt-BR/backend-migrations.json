@@ -1,0 +1,57 @@
+{
+  "backendMigrations": {
+    "meta": {
+      "title": "Migrações PostgreSQL - Backend - NestJS"
+    },
+    "badge": "Migrações",
+    "hero": {
+      "titlePrefix": "Migrações TypeORM",
+      "titleHighlight": "Postgres",
+      "subtitle": "Alterações de schema versionadas no PostgreSQL. synchronize permanece desligado; migrações pendentes rodam no bootstrap do Nest ou via scripts npm."
+    },
+    "overview": {
+      "title": "Visão geral",
+      "description": "O schema do Postgres é gerenciado com migrações TypeORM em <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">src/database/migrations</code>. MongoDB/Mongoose não muda (coleções continuam orientadas ao model).",
+      "items": [
+        "POSTGRES_SYNCHRONIZE=false — não altera tabelas automaticamente a partir das entities",
+        "POSTGRES_MIGRATIONS_RUN=true (padrão) — aplica migrações pendentes ao subir a API",
+        "Scripts CLI para generate, run, revert e show",
+        "InitialSchema cria users, blocked_ips e audit"
+      ]
+    },
+    "config": {
+      "title": "Configuração",
+      "description": "As opções de conexão ficam em <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">src/config/database.config.ts</code>. O DataSource da CLI TypeORM em <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">src/database/data-source.ts</code> espalha <code class=\"px-1 py-0.5 bg-gray-100 rounded\">databaseConfig().postgres</code> — não carrega dotenv. Garanta <code class=\"px-1 py-0.5 bg-gray-100 rounded\">POSTGRES_*</code> no shell, no <code class=\"px-1 py-0.5 bg-gray-100 rounded\">env_file</code> do Docker ou no CI.",
+      "envTitle": "Ambiente",
+      "envItems": [
+        "POSTGRES_SYNCHRONIZE — deve ser false ao usar migrações",
+        "POSTGRES_MIGRATIONS_RUN — padrão true; use false só se aplicar migrações exclusivamente via CLI"
+      ],
+      "codeHeader": { "label": "Ambiente", "context": "Migrações Postgres" }
+    },
+    "bootCli": {
+      "title": "Boot vs CLI",
+      "description": "No bootstrap do Nest, o TypeORM aplica migrações pendentes quando <code class=\"px-1 py-0.5 bg-gray-100 rounded\">migrationsRun</code> é true. Use os scripts npm para geração local e controle explícito:",
+      "scripts": [
+        "npm run migration:generate — troque MigrationName no script ou passe um caminho ao typeorm",
+        "npm run migration:run — aplica migrações pendentes",
+        "npm run migration:revert — reverte a última migração",
+        "npm run migration:show — lista executadas / pendentes"
+      ]
+    },
+    "workflow": {
+      "title": "Fluxo de trabalho",
+      "description": "Fluxo típico de mudança de schema:",
+      "steps": [
+        "Atualize a entity TypeORM em src/",
+        "Gere uma migração (DB vazio ou DB alinhado ao schema anterior)",
+        "Revise o SQL gerado e faça o commit",
+        "Faça o deploy — o Nest aplica no boot, ou rode npm run migration:run"
+      ]
+    },
+    "docker": {
+      "title": "Nota Docker",
+      "description": "Se um volume Postgres existente foi criado com <code class=\"px-1 py-0.5 bg-gray-100 rounded\">synchronize=true</code>, as tabelas já existem e a migração inicial pode falhar. Recrie o volume uma vez (<code class=\"px-1 py-0.5 bg-gray-100 rounded\">docker compose down -v</code>) ou faça baseline registrando a migração na tabela TypeORM <code class=\"px-1 py-0.5 bg-gray-100 rounded\">migrations</code> sem reexecutar o DDL. Instalações novas não precisam de passo especial."
+    }
+  }
+}

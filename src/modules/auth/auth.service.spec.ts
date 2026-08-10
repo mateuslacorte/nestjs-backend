@@ -200,7 +200,6 @@ describe('AuthService', () => {
     set: jest.Mock;
     del: jest.Mock;
   };
-
   beforeEach(() => {
     usersService = {
       create: jest.fn(),
@@ -543,6 +542,14 @@ describe('AuthService', () => {
       expect(result.user).toMatchObject({
         email: 'jane@example.com',
       });
+    });
+
+    it('records failed login attempts', async () => {
+      usersService.findByEmail.mockResolvedValue(null);
+
+      await expect(service.login(loginDto)).rejects.toThrow(
+        new UnauthorizedException('Invalid credentials'),
+      );
     });
   });
 
@@ -956,7 +963,9 @@ describe('AuthService', () => {
       jwtService.verify.mockReturnValue({ id: 'user-1' });
       usersService.findById.mockResolvedValue(user);
 
-      const result = await service.refreshToken({ refreshToken: 'valid-refresh' });
+      const result = await service.refreshToken({
+        refreshToken: 'valid-refresh',
+      });
 
       expect(jwtService.verify).toHaveBeenCalledWith('valid-refresh', {
         secret: 'jwt-refresh-secret',
@@ -1019,7 +1028,7 @@ describe('AuthService', () => {
 
       await expect(
         service.refreshToken({ refreshToken: 'valid-refresh' }),
-      ).rejects.toThrow(/Invalid JWT duration format/);
+      ).rejects.toThrow(new UnauthorizedException('Invalid refresh token'));
 
       expect(cacheService.set).toHaveBeenCalledWith(
         'auth:refresh:revoke:jti-bad-ttl',

@@ -1,8 +1,11 @@
 import {InjectRepository} from "@nestjs/typeorm";
 import {ConflictException, Injectable, NotFoundException, Optional} from "@nestjs/common";
 import {UserEntity} from "@modules/users/entities/user.entity";
-import {FindOptionsWhere, Not, Repository} from "typeorm";
-import {IUser} from "@modules/users/interfaces/user.interface";
+import {Brackets, FindOptionsWhere, Not, Repository} from "typeorm";
+import {
+    IUser,
+    UserSearchRepoFilter,
+} from "@modules/users/interfaces/user.interface";
 import {EnableCache, NoCache} from "@common/cache/decorators/cache.decorator";
 import {CacheService} from "@common/cache/cache.service";
 import {CreateUserDto} from "../dtos/create-user.dto";
@@ -261,12 +264,50 @@ export class UserPostgresRepository {
     }
 
     /**
-     * Find all users in the PostgreSQL database
-     * @returns Array of IUser or null if no users found
+     * Search users with keyset cursor pagination
      */
-    @EnableCache()
-    async findAll(): Promise<IUser[] | null> {
-        const users = await this.userRepository.find({});
+    @NoCache()
+    async search(filter: UserSearchRepoFilter): Promise<IUser[]> {
+        const qb = this.userRepository.createQueryBuilder('u');
+
+        if (typeof filter.isActive === 'boolean') {
+            qb.andWhere('u.isActive = :isActive', { isActive: filter.isActive });
+        }
+
+        if (filter.q?.trim()) {
+            const q = `%${filter.q.trim()}%`;
+            qb.andWhere(
+                new Brackets((sub) => {
+                    sub.where('u.email ILIKE :q', { q })
+                        .orWhere('u.username ILIKE :q', { q })
+                        .orWhere('u.firstName ILIKE :q', { q })
+                        .orWhere('u.lastName ILIKE :q', { q });
+                }),
+            );
+        }
+
+        if (filter.cursorCreatedAt && filter.cursorId) {
+            qb.andWhere(
+                new Brackets((sub) => {
+                    sub.where('u.createdAt < :cursorCreatedAt', {
+                        cursorCreatedAt: filter.cursorCreatedAt,
+                    }).orWhere(
+                        '(u.createdAt = :cursorCreatedAt AND u.id < :cursorId)',
+                        {
+                            cursorCreatedAt: filter.cursorCreatedAt,
+                            cursorId: filter.cursorId,
+                        },
+                    );
+                }),
+            );
+        }
+
+        const users = await qb
+            .orderBy('u.createdAt', 'DESC')
+            .addOrderBy('u.id', 'DESC')
+            .take(filter.limit)
+            .getMany();
+
         return users.map((user) => this.omitPassword(user));
     }
 

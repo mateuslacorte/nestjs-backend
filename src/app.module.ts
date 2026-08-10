@@ -55,6 +55,7 @@ import { WikiModule } from "./wiki/wiki.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { SecurityModule} from "@common/security/security.module";
 import { BlockedIpGuard } from '@common/security/guards/blocked-ip.guard';
+import { AuditModule } from '@common/audit/audit.module';
 import { CacheModule } from '@common/cache/cache.module';
 import { HealthModule } from '@modules/health/health.module';
 
@@ -127,6 +128,8 @@ import { HealthModule } from '@modules/health/health.module';
                     __dirname + '/**/*.entity{.ts,.js}',
                     __dirname + '/**/*.view{.ts,.js}', // Include ViewEntity files
                 ],
+                migrations: [__dirname + '/database/migrations/*{.ts,.js}'],
+                migrationsRun: configService.get('database.postgres.migrationsRun'),
             }),
             inject: [ConfigService],
         }),
@@ -157,6 +160,7 @@ import { HealthModule } from '@modules/health/health.module';
         WikiModule,
         HealthModule,
         ScheduleModule.forRoot(),
+        AuditModule,
         // SecurityModule last so CatchAllController (prod/staging) registers after API routes
         SecurityModule,
     ],

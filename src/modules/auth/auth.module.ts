@@ -48,11 +48,13 @@ import { SessionSerializer } from './session.serializer';
 import { ConfigService } from '@nestjs/config';
 import { UsersModule } from '@modules/users/users.module';
 import { EmailModule } from '@modules/email/email.module';
+import { AuditModule } from '@common/audit/audit.module';
 
 @Module({
     imports: [
         UsersModule,
         EmailModule,
+        AuditModule,
         MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
         JwtModule.registerAsync({
             imports: [],

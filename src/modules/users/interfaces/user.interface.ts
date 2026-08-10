@@ -34,4 +34,34 @@ export interface IUser {
     passwordResetExpires?: Date;
     emailVerificationToken?: string;
     emailVerificationExpires?: Date;
+    /** Set by Postgres CreateDateColumn / Mongo timestamps */
+    createdAt?: Date;
+}
+
+export interface UserCursorPayload {
+    c: string;
+    i: string;
+}
+
+export interface SearchUsersQuery {
+    cursor?: string;
+    limit?: number;
+    q?: string;
+    isActive?: boolean;
+}
+
+export interface UsersPage {
+    items: IUser[];
+    nextCursor: string | null;
+}
+
+/**
+ * Internal repo search after the service has decoded the cursor and clamped limit.
+ */
+export interface UserSearchRepoFilter {
+    limit: number;
+    cursorCreatedAt?: Date;
+    cursorId?: string;
+    q?: string;
+    isActive?: boolean;
 }

@@ -15,6 +15,10 @@
         "title": "Instalação e Configuração",
         "description": "Docker Compose, variáveis de ambiente, pools de conexão, Kafka KRaft, Graylog, MailHog e setup Ubuntu nativo."
       },
+      "migrations": {
+        "title": "Migrações PostgreSQL",
+        "description": "Migrações TypeORM, synchronize desligado, aplicação no boot e CLI generate/run/revert."
+      },
       "users": {
         "title": "Módulo Users",
         "description": "CRUD administrativo REST e GraphQL, enum Role e regras de persistência."

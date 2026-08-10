@@ -284,9 +284,10 @@ html(lang=htmlLang)
         
         nav(class="p-4")
           -
-            const isBackendNav = currentPage === 'backend' || currentPage === 'backend-install'
+            const isBackendNav = currentPage === 'backend' || currentPage === 'backend-install' || currentPage === 'backend-migrations'
             const isAdNav = currentPage === 'auth-active-directory' || currentPage === 'auth-active-directory-ldap' || currentPage === 'auth-active-directory-ldaps'
             const isSocialNav = currentPage === 'auth-social' || (typeof currentPage === 'string' && currentPage.indexOf('auth-social-') === 0)
+            const isSecurityNav = currentPage === 'security' || currentPage === 'security-audit'
 
           .mb-6
             p(class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2")= t('nav.homeGroup')
@@ -309,6 +310,8 @@ html(lang=htmlLang)
                   path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7")
               a(href=wikiPath('/backend/install') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'backend-install' ? 'active' : ''}`)
                 span= t('nav.backendInstall')
+              a(href=wikiPath('/backend/migrations') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'backend-migrations' ? 'active' : ''}`)
+                span= t('nav.backendMigrations')
           
           .mb-6
             p(class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2")= t('nav.authGroup')
@@ -387,8 +390,18 @@ html(lang=htmlLang)
               span= t('nav.email')
             a(href=wikiPath('/whatsapp') class=`sidebar-link block px-3 py-2 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'whatsapp' ? 'active' : ''}`)
               span= t('nav.whatsapp')
-            a(href=wikiPath('/security') class=`sidebar-link block px-3 py-2 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'security' ? 'active' : ''}`)
-              span= t('nav.security')
+            details.sidebar-collapsible(open=isSecurityNav)
+              summary
+                a(
+                  href=wikiPath('/security')
+                  class=`sidebar-link block px-3 py-2 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'security' ? 'active' : ''}`
+                  onclick='event.stopPropagation()'
+                )
+                  span= t('nav.security')
+                svg(class="sidebar-chevron mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true")
+                  path(stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7")
+              a(href=wikiPath('/security/audit') class=`sidebar-link block px-3 py-2 pl-6 text-sm text-gray-700 border-l-2 border-transparent rounded-r ${currentPage === 'security-audit' ? 'active' : ''}`)
+                span= t('nav.securityAudit')
 
           .mb-6
             p(class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2")= t('nav.websocketGroup')

@@ -33,6 +33,7 @@ export type PublicUser = Pick<
     | 'email'
     | 'isActive'
     | 'roles'
+    | 'createdAt'
 >;
 
 /**

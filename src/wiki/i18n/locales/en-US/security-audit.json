@@ -1,0 +1,57 @@
+{
+  "securityAudit": {
+    "meta": {
+      "title": "Audit logging - Security - Backend NestJS"
+    },
+    "badge": "Audit",
+    "hero": {
+      "titlePrefix": "Audit events and the",
+      "titleHighlight": "@Audit decorator",
+      "subtitle": "Record security-relevant actions with Cloudflare-aware IP/port, success/failure, and optional actor userId — then query them as SUPER via GET /audit."
+    },
+    "overview": {
+      "title": "Overview",
+      "description": "The module under <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">src/common/audit</code> is CQRS-ready (Postgres active, Mongo standby). Annotate HTTP handlers with <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">@Audit()</code>; an interceptor writes a row after success or failure without changing the handler outcome.",
+      "items": [
+        "IP prefers CF-Connecting-IP; port prefers X-Forwarded-Port (Cloudflare-ready)",
+        "JWT-authenticated requests auto-fill userId from req.user.id",
+        "description — human-readable summary configured on the decorator",
+        "Optional identifierFrom / userIdFrom / provider map body or response fields",
+        "OAuth provider callbacks use action auth.oauth.callback with a per-provider description",
+        "SUPER reads events via GET /api/v1/audit with cursor pagination and q search"
+      ]
+    },
+    "decorator": {
+      "title": "Using @Audit for new events",
+      "description": "Import <code class=\"px-1 py-0.5 bg-gray-100 rounded\">AuditModule</code> in the Nest module that owns the controller, then decorate the route handler.",
+      "optionsTitle": "Options",
+      "options": [
+        "action (required) — stable name, e.g. auth.login or billing.refund",
+        "category — optional group, e.g. auth",
+        "description — human-readable summary stored on the event",
+        "identifierFrom — body path(s) for email/username (string or string[])",
+        "userIdFrom — response path for user id on success (e.g. user.id)",
+        "provider / providerFrom — static or body path provider label"
+      ],
+      "codeHeader": { "label": "TypeScript", "context": "@Audit on a controller method" }
+    },
+    "userid": {
+      "title": "Authenticated userId",
+      "description": "When the request has a JWT user (<code class=\"px-1 py-0.5 bg-gray-100 rounded\">req.user.id</code>), that id is stored on both success and failure. If <code class=\"px-1 py-0.5 bg-gray-100 rounded\">userIdFrom</code> resolves on a successful response, that value wins."
+    },
+    "api": {
+      "title": "SUPER list API",
+      "description": "Read-only. Requires <code class=\"px-1 py-0.5 bg-gray-100 rounded\">Authorization: Bearer</code> and <strong>Role.SUPER</strong>.",
+      "endpoints": [
+        "GET /api/v1/audit — cursor page { items, nextCursor }",
+        "Query: cursor, limit (1–100, default 50), q, ip, success, action, category, userId, provider"
+      ],
+      "listRequest": {
+        "codeHeader": { "label": "HTTP Request", "context": "GET /api/v1/audit" }
+      },
+      "listResponse": {
+        "codeHeader": { "label": "HTTP Response", "context": "200 OK" }
+      }
+    }
+  }
+}

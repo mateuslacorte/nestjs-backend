@@ -85,6 +85,22 @@ export class WikiController {
         );
     }
 
+    @Get('backend/migrations')
+    getBackendMigrations(
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            reply,
+            lang,
+            'pages/backend-migrations',
+            'backendMigrations',
+            'backend-migrations',
+        );
+    }
+
     @Get('auth')
     getAuth(
         @Req() req: AppRequest,
@@ -546,6 +562,22 @@ export class WikiController {
             'pages/security',
             'security',
             'security',
+        );
+    }
+
+    @Get('security/audit')
+    getSecurityAudit(
+        @Req() req: AppRequest,
+        @Res() reply: AppReply,
+        @Query('lang') lang?: string,
+    ) {
+        return this.wikiRender.renderPage(
+            req,
+            reply,
+            lang,
+            'pages/security-audit',
+            'securityAudit',
+            'security-audit',
         );
     }
 

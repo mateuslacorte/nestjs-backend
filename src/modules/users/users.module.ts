@@ -12,11 +12,13 @@ import {UsersResolver} from "@modules/users/resolvers/users.resolver";
 import {APP_GUARD} from "@nestjs/core";
 import {RolesGuard} from "@modules/auth/guards/roles.guard";
 import {JwtAuthGuard} from "@modules/auth/guards/jwtauth.guard";
+import { AuditModule } from '@common/audit/audit.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     TypeOrmModule.forFeature([UserEntity]),
+    AuditModule,
   ],
   providers: [
     UsersResolver,

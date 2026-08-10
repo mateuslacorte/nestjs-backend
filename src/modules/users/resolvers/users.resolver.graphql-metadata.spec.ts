@@ -1,12 +1,12 @@
 import 'reflect-metadata';
 import { TypeMetadataStorage } from '@nestjs/graphql';
 import { LazyMetadataStorage } from '@nestjs/graphql/dist/schema-builder/storages/lazy-metadata.storage.js';
-import { UserModel } from '../models/users.model';
+import { UserModel, UsersPageModel } from '../models/users.model';
 import { UsersResolver } from './users.resolver';
 
 describe('UsersResolver GraphQL metadata', () => {
   beforeAll(() => {
-    LazyMetadataStorage.load([UsersResolver, UserModel]);
+    LazyMetadataStorage.load([UsersResolver, UserModel, UsersPageModel]);
     TypeMetadataStorage.compile();
   });
 

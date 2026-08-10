@@ -81,9 +81,13 @@ export class AuthService {
         }
 
         // Check if user with email already exists
-        const existingUser = await this.usersService.findByEmail(userData.email);
+        const existingUser = await this.usersService.findByEmail(
+            userData.email,
+        );
         if (existingUser) {
-            throw new ConflictException('A user with this email already exists');
+            throw new ConflictException(
+                'A user with this email already exists',
+            );
         }
 
         // Create the user with isActive set to false
@@ -95,13 +99,16 @@ export class AuthService {
         });
 
         // Generate email verification token and send confirmation email
-        const verificationToken = await this.createEmailVerificationToken(newUser.email);
+        const verificationToken = await this.createEmailVerificationToken(
+            newUser.email,
+        );
         await this.sendEmailVerification(newUser.email, verificationToken);
 
         // Do not issue JWTs until email is verified (isActive=true)
         return {
             user: this.sanitizeUser(newUser),
-            message: 'Registration successful. Please check your email to confirm your account.',
+            message:
+                'Registration successful. Please check your email to confirm your account.',
         };
     }
 
@@ -325,7 +332,7 @@ export class AuthService {
                 );
             }
 
-            return this.generateTokens(user);
+            return await this.generateTokens(user);
         } catch (error) {
             if (
                 error instanceof UnauthorizedException ||
@@ -824,10 +831,14 @@ export class AuthService {
     }> {
         this.assertAnySocialAuthEnabled();
 
-        const userId = await this.oauthExchangeService.consumeExchangeCode(dto.code);
+        const userId = await this.oauthExchangeService.consumeExchangeCode(
+            dto.code,
+        );
         const user = await this.usersService.findById(userId);
         if (!user) {
-            throw new UnauthorizedException('Invalid or expired exchange code');
+            throw new UnauthorizedException(
+                'Invalid or expired exchange code',
+            );
         }
         if (!user.isActive) {
             throw new UnauthorizedException('User account is not active');

@@ -18,6 +18,8 @@ import { UserEntity } from './entities/user.entity';
 import { User } from './schemas/user.schema';
 import { JwtAuthGuard } from '@modules/auth/guards/jwtauth.guard';
 import { RolesGuard } from '@modules/auth/guards/roles.guard';
+import { AuditService } from '@common/audit/audit.service';
+import { AuditInterceptor } from '@common/audit/audit.interceptor';
 
 describe('UsersModule', () => {
   it('declares controller, exports UsersService, and registers providers', () => {
@@ -48,13 +50,13 @@ describe('UsersModule', () => {
     );
   });
 
-  it('imports Mongoose and TypeORM feature modules', () => {
+  it('imports Mongoose, TypeORM, and AuditModule feature modules', () => {
     const imports = Reflect.getMetadata(
       MODULE_METADATA.IMPORTS,
       UsersModule,
     ) as unknown[];
 
-    expect(imports).toHaveLength(2);
+    expect(imports).toHaveLength(3);
   });
 
   describe('ARGON2_OPTIONS provider', () => {
@@ -107,7 +109,7 @@ describe('UsersModule', () => {
           provide: UserPostgresRepository,
           useValue: {
             create: jest.fn(),
-            findAll: jest.fn(),
+            search: jest.fn(),
             findById: jest.fn(),
             update: jest.fn(),
             remove: jest.fn(),
@@ -132,6 +134,14 @@ describe('UsersModule', () => {
             timeCost: 2,
             parallelism: 1,
           },
+        },
+        {
+          provide: AuditService,
+          useValue: { record: jest.fn() },
+        },
+        {
+          provide: AuditInterceptor,
+          useValue: { intercept: jest.fn((_c, next) => next.handle()) },
         },
       ],
     }).compile();

@@ -186,6 +186,7 @@
         "title": "PostgreSQL",
         "items": [
           "Relational, typed schema (TypeORM)",
+          "Schema via TypeORM migrations (see <a href=\"/backend/migrations\" class=\"text-indigo-600 hover:underline\">/backend/migrations</a>) — synchronize off",
           "Repository: <code class=\"px-1 py-0.5 bg-blue-100 rounded\">ResourcePostgresRepository</code>",
           "Use as the single source of truth or as the query side in CQRS"
         ]

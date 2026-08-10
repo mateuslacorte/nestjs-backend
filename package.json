@@ -14,7 +14,12 @@
     "test:cov": "jest --coverage",
     "lint": "eslint . --ext .ts --fix",
     "prettier": "prettier --write .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
+    "migration:generate": "npm run typeorm -- migration:generate src/database/migrations/MigrationName -d src/database/data-source.ts",
+    "migration:run": "npm run typeorm -- migration:run -d src/database/data-source.ts",
+    "migration:revert": "npm run typeorm -- migration:revert -d src/database/data-source.ts",
+    "migration:show": "npm run typeorm -- migration:show -d src/database/data-source.ts"
   },
   "overrides": {
     "mailparser": "^3.9.14",
@@ -99,6 +104,7 @@
     "supertest": "",
     "ts-jest": "",
     "ts-node": "",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "~5.8.3"
   }
 }

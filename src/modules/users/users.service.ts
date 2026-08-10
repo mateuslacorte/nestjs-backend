@@ -1,10 +1,18 @@
-import {IUser} from "@modules/users/interfaces/user.interface";
+import {
+  IUser,
+  SearchUsersQuery,
+  UsersPage,
+} from "@modules/users/interfaces/user.interface";
 import {UserPostgresRepository} from "@modules/users/repositories/postgres.repository";
 import {Injectable} from "@nestjs/common";
 import { Role } from "@modules/auth/enums/role.enum";
 import { CreateUserDto } from "./dtos/create-user.dto";
 import { UpdateUserDto } from "./dtos/update-user.dto";
 import { CacheTTL, EnableCache, NoCache } from "@common/cache/decorators/cache.decorator";
+import { decodeUserCursor, encodeUserCursor } from "./utils/cursor.util";
+
+const DEFAULT_PAGE_SIZE = 50;
+const MAX_PAGE_SIZE = 100;
 
 @Injectable()
 export class UsersService {
@@ -24,13 +32,40 @@ export class UsersService {
   }
 
   /**
-   * Find all users
-   * @returns List of users or null if none found
+   * Search users with cursor pagination
    */
-  @EnableCache()
-  @CacheTTL(1800)
-  async findAll(): Promise<IUser[] | null> {
-    return this.postgresRepo.findAll();
+  @NoCache()
+  async search(query: SearchUsersQuery = {}): Promise<UsersPage> {
+    const limit = Math.min(
+      Math.max(query.limit ?? DEFAULT_PAGE_SIZE, 1),
+      MAX_PAGE_SIZE,
+    );
+
+    let cursorCreatedAt: Date | undefined;
+    let cursorId: string | undefined;
+    if (query.cursor) {
+      const decoded = decodeUserCursor(query.cursor);
+      cursorCreatedAt = decoded.createdAt;
+      cursorId = decoded.id;
+    }
+
+    const rows = await this.postgresRepo.search({
+      limit: limit + 1,
+      cursorCreatedAt,
+      cursorId,
+      q: query.q,
+      isActive: query.isActive,
+    });
+
+    const hasMore = rows.length > limit;
+    const items = hasMore ? rows.slice(0, limit) : rows;
+    const last = items[items.length - 1];
+    const nextCursor =
+      hasMore && last?.createdAt && last.id
+        ? encodeUserCursor(last.createdAt, last.id)
+        : null;
+
+    return { items, nextCursor };
   }
 
   /**

@@ -9,6 +9,7 @@ import { MODULE_METADATA } from '@nestjs/common/constants';
 import { AuthModule } from './auth.module';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
+import { AuditInterceptor } from '@common/audit/audit.interceptor';
 import { JwtStrategy } from './jwt.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
@@ -153,13 +154,13 @@ describe('AuthModule', () => {
     );
   });
 
-  it('imports UsersModule, EmailModule, Mongoose feature, and JwtModule', () => {
+  it('imports UsersModule, EmailModule, AuditModule, Mongoose feature, and JwtModule', () => {
     const imports = Reflect.getMetadata(
       MODULE_METADATA.IMPORTS,
       AuthModule,
     ) as unknown[];
 
-    expect(imports).toHaveLength(4);
+    expect(imports).toHaveLength(5);
     expect(imports.some((entry) => (entry as { module?: unknown }).module === JwtModule)).toBe(
       true,
     );
@@ -248,7 +249,13 @@ describe('AuthModule', () => {
           },
         },
       ],
-    }).compile();
+    })
+      .overrideInterceptor(AuditInterceptor)
+      .useValue({
+        intercept: (_ctx: unknown, next: { handle: () => unknown }) =>
+          next.handle(),
+      })
+      .compile();
 
     expect(moduleRef.get(AuthController)).toBeInstanceOf(AuthController);
 

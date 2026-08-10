@@ -11,7 +11,7 @@ import {
 
 type MockPostgresRepo = {
   create: jest.Mock;
-  findAll: jest.Mock;
+  search: jest.Mock;
   findById: jest.Mock;
   findByEmail: jest.Mock;
   findByUsername: jest.Mock;
@@ -67,7 +67,7 @@ describe('UsersService', () => {
 
     postgresRepo = {
       create: jest.fn(),
-      findAll: jest.fn(),
+      search: jest.fn(),
       findById: jest.fn(),
       findByEmail: jest.fn(),
       findByUsername: jest.fn(),
@@ -108,16 +108,17 @@ describe('UsersService', () => {
   });
 
   describe('cache metadata', () => {
-    it('enables cache on create, findAll, update, and remove', () => {
-      for (const method of ['create', 'findAll', 'update', 'remove'] as const) {
+    it('enables cache on create, update, and remove', () => {
+      for (const method of ['create', 'update', 'remove'] as const) {
         expect(
           Reflect.getMetadata(ENABLE_CACHE, UsersService.prototype, method),
         ).toBe(true);
       }
     });
 
-    it('marks lookups with NoCache', () => {
+    it('marks lookups and search with NoCache', () => {
       for (const method of [
+        'search',
         'findById',
         'findByEmail',
         'findByUsername',
@@ -168,17 +169,64 @@ describe('UsersService', () => {
     });
   });
 
-  describe('findAll', () => {
-    it('returns sanitized repository result', async () => {
-      const users = [createUser({ googleId: 'g-1' })];
-      postgresRepo.findAll.mockResolvedValue(users);
+  describe('search', () => {
+    it('returns a page without nextCursor when under limit', async () => {
+      const users = [
+        createUser({
+          id: 'a',
+          createdAt: new Date('2026-08-10T00:00:00.000Z'),
+        }),
+      ];
+      postgresRepo.search.mockResolvedValue(users);
 
-      await expect(service.findAll()).resolves.toBe(users);
+      await expect(service.search({ limit: 50 })).resolves.toEqual({
+        items: users,
+        nextCursor: null,
+      });
+      expect(postgresRepo.search).toHaveBeenCalledWith({
+        limit: 51,
+        cursorCreatedAt: undefined,
+        cursorId: undefined,
+        q: undefined,
+        isActive: undefined,
+      });
     });
 
-    it('returns null when repository returns null', async () => {
-      postgresRepo.findAll.mockResolvedValue(null);
-      await expect(service.findAll()).resolves.toBeNull();
+    it('sets nextCursor when more rows exist', async () => {
+      const t1 = new Date('2026-08-10T02:00:00.000Z');
+      const t2 = new Date('2026-08-10T01:00:00.000Z');
+      const t3 = new Date('2026-08-10T00:00:00.000Z');
+      postgresRepo.search.mockResolvedValue([
+        createUser({ id: 'a', createdAt: t1 }),
+        createUser({ id: 'b', createdAt: t2 }),
+        createUser({ id: 'c', createdAt: t3 }),
+      ]);
+
+      const page = await service.search({ limit: 2 });
+      expect(page.items).toHaveLength(2);
+      expect(page.nextCursor).toBeTruthy();
+    });
+
+    it('decodes cursor and forwards filters', async () => {
+      const createdAt = new Date('2026-08-09T12:00:00.000Z');
+      const { encodeUserCursor } = await import('./utils/cursor.util');
+      const cursor = encodeUserCursor(createdAt, 'prev');
+      postgresRepo.search.mockResolvedValue([]);
+
+      await service.search({
+        cursor,
+        limit: 10,
+        q: 'jane',
+        isActive: true,
+      });
+
+      expect(postgresRepo.search).toHaveBeenCalledWith({
+        limit: 11,
+        cursorCreatedAt: createdAt,
+        cursorId: 'prev',
+        q: 'jane',
+        isActive: true,
+      });
     });
   });
 

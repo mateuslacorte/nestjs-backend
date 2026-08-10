@@ -18,8 +18,17 @@
           "CatchAllController registra tentativas em rotas inválidas (só production/staging)",
           "BlockedIpPostgresRepository é o store ativo; repo Mongo é CQRS-ready / não usado",
           "Após MAX_ATTEMPTS, o IP é bloqueado (403 nas próximas)",
-          "API admin: listar, desbloquear, resetar, remover — JWT + Role.SUPER"
+          "API admin: listar, desbloquear, resetar, remover — JWT + Role.SUPER",
+          "Auditoria via @Audit — veja o guia de Auditoria em Security"
         ]
+      }
+    },
+    "related": {
+      "title": "Relacionado",
+      "audit": {
+        "title": "Auditoria",
+        "description": "Use o decorator @Audit para novos eventos e consulte com paginação por cursor como SUPER.",
+        "cta": "Abrir guia de auditoria"
       }
     },
     "structure": {

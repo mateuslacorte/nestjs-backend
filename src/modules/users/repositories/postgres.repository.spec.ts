@@ -22,6 +22,7 @@ type MockRepo = {
   create: jest.Mock;
   save: jest.Mock;
   remove: jest.Mock;
+  createQueryBuilder: jest.Mock;
 };
 
 function createEntity(overrides: Partial<UserEntity> = {}): UserEntity {
@@ -54,6 +55,7 @@ function createEntity(overrides: Partial<UserEntity> = {}): UserEntity {
     dropboxId: null,
     metamaskId: null,
     activeDirectoryId: null,
+    createdAt: new Date('2026-08-10T00:00:00.000Z'),
     ...overrides,
   } as UserEntity;
 }
@@ -70,17 +72,32 @@ describe('UserPostgresRepository', () => {
   let logSpy: jest.SpyInstance;
   const hashPasswordMock = hashPassword as jest.Mock;
   const isPasswordHashedMock = isPasswordHashed as jest.Mock;
+  let qb: {
+    andWhere: jest.Mock;
+    orderBy: jest.Mock;
+    addOrderBy: jest.Mock;
+    take: jest.Mock;
+    getMany: jest.Mock;
+  };
 
   beforeEach(() => {
         warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
     logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
 
+    qb = {
+      andWhere: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      addOrderBy: jest.fn().mockReturnThis(),
+      take: jest.fn().mockReturnThis(),
+      getMany: jest.fn().mockResolvedValue([]),
+    };
     typeOrmRepo = {
       findOne: jest.fn(),
       find: jest.fn(),
       create: jest.fn(),
       save: jest.fn(),
       remove: jest.fn(),
+      createQueryBuilder: jest.fn().mockReturnValue(qb),
     };
     cacheService = {
       get: jest.fn().mockResolvedValue(null),
@@ -589,23 +606,32 @@ describe('UserPostgresRepository', () => {
     });
   });
 
-  describe('findAll', () => {
-    it('returns users without passwords', async () => {
-      typeOrmRepo.find.mockResolvedValue([
-        createEntity(),
-        createEntity({ id: 'user-2', email: 'other@example.com' }),
-      ]);
+  describe('search', () => {
+    it('applies filters, q, cursor, and ordering', async () => {
+      const createdAt = new Date('2026-08-10T00:00:00.000Z');
+      qb.getMany.mockResolvedValue([createEntity()]);
 
-      const result = await repository.findAll();
+      const result = await repository.search({
+        limit: 11,
+        isActive: true,
+        q: 'jane',
+        cursorCreatedAt: createdAt,
+        cursorId: 'prev',
+      });
 
-      expect(typeOrmRepo.find).toHaveBeenCalledWith({});
-      expect(result).toHaveLength(2);
-      expect(result![0]).not.toHaveProperty('password');
+      expect(typeOrmRepo.createQueryBuilder).toHaveBeenCalledWith('u');
+      expect(qb.andWhere).toHaveBeenCalled();
+      expect(qb.orderBy).toHaveBeenCalledWith('u.createdAt', 'DESC');
+      expect(qb.addOrderBy).toHaveBeenCalledWith('u.id', 'DESC');
+      expect(qb.take).toHaveBeenCalledWith(11);
+      expect(result).toHaveLength(1);
+      expect(result[0]).not.toHaveProperty('password');
     });
 
-    it('returns empty array when no users exist', async () => {
-      typeOrmRepo.find.mockResolvedValue([]);
-      await expect(repository.findAll()).resolves.toEqual([]);
+    it('works with empty filter', async () => {
+      qb.getMany.mockResolvedValue([]);
+      await expect(repository.search({ limit: 50 })).resolves.toEqual([]);
+      expect(qb.take).toHaveBeenCalledWith(50);
     });
   });
 

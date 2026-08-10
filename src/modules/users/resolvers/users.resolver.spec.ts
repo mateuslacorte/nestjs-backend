@@ -9,6 +9,7 @@ import { UsersService } from '../users.service';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { UpdateUserDto } from '../dtos/update-user.dto';
 import { IUser } from '../interfaces/user.interface';
+import { AUDIT_KEY } from '@common/audit/audit.constants';
 
 function createUser(overrides: Partial<IUser> = {}): IUser {
   return {
@@ -26,7 +27,7 @@ function createUser(overrides: Partial<IUser> = {}): IUser {
 
 describe('UsersResolver', () => {
   let usersService: {
-    findAll: jest.Mock;
+    search: jest.Mock;
     findById: jest.Mock;
     findByEmail: jest.Mock;
     create: jest.Mock;
@@ -37,7 +38,7 @@ describe('UsersResolver', () => {
 
   beforeEach(() => {
     usersService = {
-      findAll: jest.fn(),
+      search: jest.fn(),
       findById: jest.fn(),
       findByEmail: jest.fn(),
       create: jest.fn(),
@@ -75,18 +76,34 @@ describe('UsersResolver', () => {
     });
   });
 
-  describe('users', () => {
-    it('returns all users from the service', async () => {
-      const users = [createUser()];
-      usersService.findAll.mockResolvedValue(users);
+  describe('audit metadata', () => {
+    const reflector = new Reflector();
 
-      await expect(resolver.users()).resolves.toBe(users);
-      expect(usersService.findAll).toHaveBeenCalledTimes(1);
+    it.each([
+      ['createUser', 'user.create'],
+      ['updateUser', 'user.update'],
+      ['removeUser', 'user.delete'],
+    ] as const)('%s is audited as %s', (method, action) => {
+      expect(
+        reflector.get(AUDIT_KEY, UsersResolver.prototype[method]),
+      ).toEqual(expect.objectContaining({ action, category: 'user' }));
     });
+  });
 
-    it('returns null when no users exist', async () => {
-      usersService.findAll.mockResolvedValue(null);
-      await expect(resolver.users()).resolves.toBeNull();
+  describe('users', () => {
+    it('returns a page from the service', async () => {
+      const page = { items: [createUser()], nextCursor: null };
+      usersService.search.mockResolvedValue(page);
+
+      await expect(resolver.users(undefined, 10, 'jane', true)).resolves.toBe(
+        page,
+      );
+      expect(usersService.search).toHaveBeenCalledWith({
+        cursor: undefined,
+        limit: 10,
+        q: 'jane',
+        isActive: true,
+      });
     });
   });
 

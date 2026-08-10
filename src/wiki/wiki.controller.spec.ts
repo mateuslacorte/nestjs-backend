@@ -83,6 +83,13 @@ describe('WikiController', () => {
         page: 'backend-install',
       },
       {
+        method: 'getBackendMigrations',
+        route: 'backend/migrations',
+        view: 'pages/backend-migrations',
+        namespace: 'backendMigrations',
+        page: 'backend-migrations',
+      },
+      {
         method: 'getAuth',
         route: 'auth',
         view: 'pages/auth',
@@ -284,6 +291,13 @@ describe('WikiController', () => {
         view: 'pages/security',
         namespace: 'security',
         page: 'security',
+      },
+      {
+        method: 'getSecurityAudit',
+        route: 'security/audit',
+        view: 'pages/security-audit',
+        namespace: 'securityAudit',
+        page: 'security-audit',
       },
       {
         method: 'getTests',

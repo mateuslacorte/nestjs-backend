@@ -186,6 +186,7 @@
         "title": "PostgreSQL",
         "items": [
           "Schema relacional e tipado (TypeORM)",
+          "Schema via migrações TypeORM (veja <a href=\"/backend/migrations\" class=\"text-indigo-600 hover:underline\">/backend/migrations</a>) — synchronize desligado",
           "Repository: <code class=\"px-1 py-0.5 bg-blue-100 rounded\">ResourcePostgresRepository</code>",
           "Use como única fonte de verdade ou como lado de queries em CQRS"
         ]

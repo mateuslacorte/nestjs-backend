@@ -1,8 +1,15 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import {
+    Entity,
+    Column,
+    PrimaryGeneratedColumn,
+    CreateDateColumn,
+    Index,
+} from 'typeorm';
 import { Role } from '@modules/auth/enums/role.enum';
 import { IUser } from '../interfaces/user.interface';
 
 @Entity('users')
+@Index(['createdAt', 'id'])
 export class UserEntity implements IUser {
     @PrimaryGeneratedColumn('uuid')
     id!: string;
@@ -100,4 +107,7 @@ export class UserEntity implements IUser {
 
     @Column({ type: 'timestamp', nullable: true })
     emailVerificationExpires?: Date;
+
+    @CreateDateColumn({ type: 'timestamp with time zone' })
+    createdAt!: Date;
 }

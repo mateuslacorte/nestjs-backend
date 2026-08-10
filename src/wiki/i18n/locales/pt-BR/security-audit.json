@@ -1,0 +1,57 @@
+{
+  "securityAudit": {
+    "meta": {
+      "title": "Auditoria - Security - Backend NestJS"
+    },
+    "badge": "Auditoria",
+    "hero": {
+      "titlePrefix": "Eventos de auditoria e o",
+      "titleHighlight": "decorator @Audit",
+      "subtitle": "Registre ações relevantes com IP/porta compatíveis com Cloudflare, sucesso/falha e userId do ator — consulte como SUPER via GET /audit."
+    },
+    "overview": {
+      "title": "Visão geral",
+      "description": "O módulo em <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">src/common/audit</code> é CQRS-ready (Postgres ativo, Mongo em standby). Anote handlers HTTP com <code class=\"px-2 py-1 bg-gray-100 rounded text-sm\">@Audit()</code>; um interceptor grava a linha após sucesso ou falha sem alterar o resultado do handler.",
+      "items": [
+        "IP prefere CF-Connecting-IP; porta prefere X-Forwarded-Port (pronto para Cloudflare)",
+        "Requisições com JWT preenchem userId a partir de req.user.id",
+        "description — resumo legível configurado no decorator",
+        "identifierFrom / userIdFrom / provider mapeiam body ou resposta",
+        "Callbacks OAuth usam action auth.oauth.callback com description por provedor",
+        "SUPER lê eventos em GET /api/v1/audit com paginação por cursor e busca q"
+      ]
+    },
+    "decorator": {
+      "title": "Usando @Audit em novos eventos",
+      "description": "Importe <code class=\"px-1 py-0.5 bg-gray-100 rounded\">AuditModule</code> no módulo Nest do controller e decore o handler da rota.",
+      "optionsTitle": "Opções",
+      "options": [
+        "action (obrigatório) — nome estável, ex.: auth.login ou billing.refund",
+        "category — grupo opcional, ex.: auth",
+        "description — resumo legível gravado no evento",
+        "identifierFrom — caminho(s) no body para email/usuário (string ou string[])",
+        "userIdFrom — caminho na resposta para o id do usuário no sucesso (ex.: user.id)",
+        "provider / providerFrom — rótulo estático ou caminho no body"
+      ],
+      "codeHeader": { "label": "TypeScript", "context": "@Audit em um método de controller" }
+    },
+    "userid": {
+      "title": "userId autenticado",
+      "description": "Quando a requisição tem usuário JWT (<code class=\"px-1 py-0.5 bg-gray-100 rounded\">req.user.id</code>), esse id é gravado em sucesso e falha. Se <code class=\"px-1 py-0.5 bg-gray-100 rounded\">userIdFrom</code> resolver na resposta de sucesso, esse valor prevalece."
+    },
+    "api": {
+      "title": "API de listagem SUPER",
+      "description": "Somente leitura. Exige <code class=\"px-1 py-0.5 bg-gray-100 rounded\">Authorization: Bearer</code> e <strong>Role.SUPER</strong>.",
+      "endpoints": [
+        "GET /api/v1/audit — página com cursor { items, nextCursor }",
+        "Query: cursor, limit (1–100, padrão 50), q, ip, success, action, category, userId, provider"
+      ],
+      "listRequest": {
+        "codeHeader": { "label": "Requisição HTTP", "context": "GET /api/v1/audit" }
+      },
+      "listResponse": {
+        "codeHeader": { "label": "Resposta HTTP", "context": "200 OK" }
+      }
+    }
+  }
+}

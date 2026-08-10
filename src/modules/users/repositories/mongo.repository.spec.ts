@@ -323,27 +323,42 @@ describe('UserMongoRepository', () => {
     });
   });
 
-  describe('findAll', () => {
+  describe('search', () => {
     it('returns users without passwords', async () => {
       const docs = [
-        createDoc(),
+        createDoc({ createdAt: new Date('2026-08-10T00:00:00.000Z') }),
         createDoc({ id: '2', email: 'other@example.com' }),
       ];
-      model.find.mockResolvedValue(docs);
+      const chain = {
+        sort: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockResolvedValue(docs),
+      };
+      model.find.mockReturnValue(chain);
 
-      const result = await repository.findAll();
+      const result = await repository.search({
+        limit: 10,
+        q: 'jane',
+        isActive: true,
+        cursorCreatedAt: new Date('2026-08-10T00:00:00.000Z'),
+        cursorId: 'prev',
+      });
 
       expect(model.find).toHaveBeenCalled();
+      expect(chain.sort).toHaveBeenCalledWith({ createdAt: -1, id: -1 });
+      expect(chain.limit).toHaveBeenCalledWith(10);
       expect(result).toHaveLength(2);
       expect(result[0]).not.toHaveProperty('password');
     });
 
-    it('returns cached list on cache hit', async () => {
-      const cached = [{ id: '1', email: 'a@b.com' }];
-      cacheService.get.mockResolvedValueOnce(cached);
+    it('works with empty filter', async () => {
+      const chain = {
+        sort: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockResolvedValue([]),
+      };
+      model.find.mockReturnValue(chain);
 
-      await expect(repository.findAll()).resolves.toEqual(cached);
-      expect(model.find).not.toHaveBeenCalled();
+      await expect(repository.search({ limit: 50 })).resolves.toEqual([]);
+      expect(chain.limit).toHaveBeenCalledWith(50);
     });
   });
 

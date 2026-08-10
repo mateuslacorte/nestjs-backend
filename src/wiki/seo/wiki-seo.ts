@@ -76,6 +76,10 @@ export const WIKI_SEO = {
             description:
                 'Install and configure the NestJS Boilerplate — environment variables, Docker stack, health checks, and running your NestJS Node.js API locally.',
         },
+        'backend-migrations': {
+            description:
+                'PostgreSQL TypeORM migrations in the NestJS Boilerplate — synchronize off, boot-time migrationsRun, CLI generate/run/revert, and Docker volume notes.',
+        },
         auth: {
             description:
                 'JWT authentication and authorization in the NestJS Boilerplate — login, refresh tokens, roles, guards, and best practices for securing NestJS APIs.',
@@ -187,6 +191,10 @@ export const WIKI_SEO = {
         security: {
             description:
                 'Security module in the NestJS Boilerplate — invalid-route protection, IP blocking, and hardening patterns for NestJS / Node.js APIs.',
+        },
+        'security-audit': {
+            description:
+                'Audit logging in the NestJS Boilerplate — use the @Audit decorator to record auth and security events, and query them as SUPER via cursor-paginated GET /audit.',
         },
         tests: {
             description:

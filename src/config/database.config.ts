@@ -19,6 +19,7 @@ export default registerAs('database', () => ({
         password: process.env.POSTGRES_PASSWORD || '',
         database: process.env.POSTGRES_DB || 'database',
         synchronize: process.env.POSTGRES_SYNCHRONIZE === 'true' || false,
+        migrationsRun: process.env.POSTGRES_MIGRATIONS_RUN !== 'false',
         poolSize: parseInt(process.env.POSTGRES_POOL_MAX || '10', 10),
         extra: {
             max: parseInt(process.env.POSTGRES_POOL_MAX || '10', 10),
