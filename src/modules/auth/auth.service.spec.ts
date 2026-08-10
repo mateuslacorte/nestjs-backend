@@ -791,6 +791,72 @@ describe('AuthService', () => {
         }),
       );
     });
+
+    it('treats missing groups as empty when resolving AD roles', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'adLdap.defaultRoles') return [Role.USER];
+        if (key === 'adLdap.groupRoleMap') return [];
+        return defaultConfig[key];
+      });
+
+      const { groups: _groups, ...profileWithoutGroups } = adProfile;
+      activeDirectoryLdapService.authenticate.mockResolvedValue(
+        profileWithoutGroups as typeof adProfile,
+      );
+      usersService.findByActiveDirectoryId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(createUser({ roles: [Role.USER] }));
+
+      await service.loginWithActiveDirectory({
+        username: 'jdoe',
+        password: 'pass',
+      });
+
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          roles: [Role.USER],
+        }),
+      );
+    });
+
+    it('syncs mapped roles when linking AD account to an existing email user', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'adLdap.defaultRoles') return [Role.USER];
+        if (key === 'adLdap.groupRoleMap') {
+          return [{ group: 'Nest-Admins', role: Role.ADMIN }];
+        }
+        if (key === 'adLdap.syncRolesOnLogin') return true;
+        return defaultConfig[key];
+      });
+
+      activeDirectoryLdapService.authenticate.mockResolvedValue({
+        ...adProfile,
+        groups: ['CN=Nest-Admins,OU=Groups,DC=example,DC=com'],
+      });
+      usersService.findByActiveDirectoryId.mockResolvedValue(null);
+      const byEmail = createUser({
+        email: adProfile.email,
+        roles: [Role.USER],
+      });
+      usersService.findByEmail.mockResolvedValue(byEmail);
+      usersService.update.mockResolvedValue({
+        ...byEmail,
+        activeDirectoryId: adProfile.activeDirectoryId,
+        roles: [Role.ADMIN],
+      });
+
+      await service.loginWithActiveDirectory({
+        username: 'jdoe',
+        password: 'pass',
+      });
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        activeDirectoryId: 'ad-guid-001',
+        isActive: true,
+        roles: [Role.ADMIN],
+      });
+    });
   });
 
   describe('issueMetamaskNonce', () => {

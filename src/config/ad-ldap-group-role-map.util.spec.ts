@@ -96,6 +96,25 @@ describe('resolveAdLdapRoles', () => {
             ),
         ).toEqual([Role.ADMIN, Role.USER]);
     });
+
+    it('ignores blank memberOf entries and blank configured groups', () => {
+        expect(
+            resolveAdLdapRoles(
+                ['', '   ', 'CN=Nest-Admins,OU=Groups,DC=ex,DC=com'],
+                [...map, { group: '   ', role: Role.SUPER }],
+                [Role.USER],
+            ),
+        ).toEqual([Role.ADMIN]);
+    });
+
+    it('defaults defaultRoles to [] when the third argument is omitted', () => {
+        expect(
+            resolveAdLdapRoles(
+                ['CN=Nest-Admins,OU=Groups,DC=ex,DC=com'],
+                map,
+            ),
+        ).toEqual([Role.ADMIN]);
+    });
 });
 
 describe('rolesEqual', () => {
