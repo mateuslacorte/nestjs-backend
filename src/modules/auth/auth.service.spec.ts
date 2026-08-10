@@ -1061,11 +1061,17 @@ describe('AuthService', () => {
         return defaultConfig[key];
       });
       const user = createUser();
-      jwtService.verify.mockReturnValue({ id: 'user-1' });
+      jwtService.verify.mockReturnValue({ id: 'user-1', jti: 'jti-fallback' });
       usersService.findById.mockResolvedValue(user);
+      cacheService.get.mockResolvedValue(undefined);
 
       await service.refreshToken({ refreshToken: 'valid-refresh' });
 
+      expect(cacheService.set).toHaveBeenCalledWith(
+        'auth:refresh:revoke:jti-fallback',
+        true,
+        604800,
+      );
       // withJitter converts default '1h' / '7d' string TTLs to seconds
       expect(jwtService.sign).toHaveBeenCalledWith(
         expect.objectContaining({ id: 'user-1' }),

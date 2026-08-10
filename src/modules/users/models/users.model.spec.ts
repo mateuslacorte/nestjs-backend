@@ -28,9 +28,14 @@ describe('UserModel GraphQL metadata', () => {
     'lastName',
     'email',
     'isActive',
-    'createdAt',
   ] as const)('exposes %s', (name) => {
     expect(field(name)?.typeFn()).toBeTruthy();
+  });
+
+  it('exposes createdAt as nullable', () => {
+    const createdAt = field('createdAt');
+    expect(createdAt?.typeFn()).toBeTruthy();
+    expect(createdAt?.options.nullable).toBe(true);
   });
 
   it.each(USER_PROVIDER_ID_FIELDS)('does not expose provider field %s', (name) => {
