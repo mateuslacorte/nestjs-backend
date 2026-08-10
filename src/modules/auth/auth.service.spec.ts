@@ -582,6 +582,7 @@ describe('AuthService', () => {
       firstName: 'John',
       lastName: 'Doe',
       samAccountName: 'jdoe',
+      groups: [] as string[],
     };
 
     it('returns sanitized user and tokens on success', async () => {
@@ -686,6 +687,107 @@ describe('AuthService', () => {
           lastName: '-',
           username: 'jdoe',
           roles: [],
+        }),
+      );
+    });
+
+    it('maps AD memberOf groups to roles and syncs on login', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'adLdap.defaultRoles') return [Role.USER];
+        if (key === 'adLdap.groupRoleMap') {
+          return [
+            { group: 'Nest-Admins', role: Role.ADMIN },
+            { group: 'Nest-Managers', role: Role.MANAGER },
+          ];
+        }
+        if (key === 'adLdap.syncRolesOnLogin') return true;
+        return defaultConfig[key];
+      });
+
+      activeDirectoryLdapService.authenticate.mockResolvedValue({
+        ...adProfile,
+        groups: [
+          'CN=Nest-Admins,OU=Groups,DC=example,DC=com',
+          'CN=Nest-Managers,OU=Groups,DC=example,DC=com',
+        ],
+      });
+      usersService.findByActiveDirectoryId.mockResolvedValue(
+        createUser({
+          activeDirectoryId: 'ad-guid-001',
+          roles: [Role.USER],
+        }),
+      );
+      usersService.update.mockResolvedValue(
+        createUser({ roles: [Role.ADMIN, Role.MANAGER] }),
+      );
+
+      await service.loginWithActiveDirectory({
+        username: 'jdoe',
+        password: 'pass',
+      });
+
+      expect(usersService.update).toHaveBeenCalledWith('user-1', {
+        roles: [Role.ADMIN, Role.MANAGER],
+      });
+    });
+
+    it('applies mapped roles when auto-provisioning a new AD user', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'adLdap.defaultRoles') return [Role.USER];
+        if (key === 'adLdap.groupRoleMap') {
+          return [{ group: 'Nest-Admins', role: Role.ADMIN }];
+        }
+        if (key === 'adLdap.syncRolesOnLogin') return true;
+        return defaultConfig[key];
+      });
+
+      activeDirectoryLdapService.authenticate.mockResolvedValue({
+        ...adProfile,
+        groups: ['CN=Nest-Admins,OU=Groups,DC=example,DC=com'],
+      });
+      usersService.findByActiveDirectoryId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(createUser({ roles: [Role.ADMIN] }));
+
+      await service.loginWithActiveDirectory({
+        username: 'jdoe',
+        password: 'pass',
+      });
+
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          roles: [Role.ADMIN],
+        }),
+      );
+    });
+
+    it('falls back to defaultRoles when group map is set but no group matches', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'adLdap.defaultRoles') return [Role.USER];
+        if (key === 'adLdap.groupRoleMap') {
+          return [{ group: 'Nest-Admins', role: Role.ADMIN }];
+        }
+        return defaultConfig[key];
+      });
+
+      activeDirectoryLdapService.authenticate.mockResolvedValue({
+        ...adProfile,
+        groups: ['CN=Other,OU=Groups,DC=example,DC=com'],
+      });
+      usersService.findByActiveDirectoryId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.findByUsername.mockResolvedValue(null);
+      usersService.create.mockResolvedValue(createUser());
+
+      await service.loginWithActiveDirectory({
+        username: 'jdoe',
+        password: 'pass',
+      });
+
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          roles: [Role.USER],
         }),
       );
     });

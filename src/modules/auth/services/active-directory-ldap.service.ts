@@ -37,17 +37,25 @@ function getAttribute(
     entry: Record<string, unknown>,
     name: string,
 ): string | undefined {
+    const values = getAttributeValues(entry, name);
+    return values[0];
+}
+
+function getAttributeValues(
+    entry: Record<string, unknown>,
+    name: string,
+): string[] {
     const value = entry[name];
     if (typeof value === 'string' && value.trim()) {
-        return value.trim();
+        return [value.trim()];
     }
-    if (Array.isArray(value) && value.length > 0) {
-        const first = value[0];
-        if (typeof first === 'string' && first.trim()) {
-            return first.trim();
-        }
+    if (Array.isArray(value)) {
+        return value
+            .filter((item): item is string => typeof item === 'string')
+            .map((item) => item.trim())
+            .filter(Boolean);
     }
-    return undefined;
+    return [];
 }
 
 function splitDisplayName(displayName: string): {
@@ -137,6 +145,7 @@ export class ActiveDirectoryLdapService {
                     'sn',
                     'displayName',
                     'sAMAccountName',
+                    'memberOf',
                 ],
             });
 
@@ -186,6 +195,7 @@ export class ActiveDirectoryLdapService {
                 firstName,
                 lastName,
                 samAccountName: getAttribute(entry, 'sAMAccountName'),
+                groups: getAttributeValues(entry, 'memberOf'),
             };
         } catch (error) {
             if (

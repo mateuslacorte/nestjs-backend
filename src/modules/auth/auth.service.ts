@@ -39,6 +39,11 @@ import { Role } from './enums/role.enum';
 import { ExchangeCodeDto } from './dtos/exchange-code.dto';
 import { verifyPassword } from '@common/crypto/password.util';
 import { generateRandomDisplayName } from './utils/generate-random-display-name.util';
+import {
+    AdGroupRoleMapping,
+    resolveAdLdapRoles,
+    rolesEqual,
+} from '@config/ad-ldap-group-role-map.util';
 
 @Injectable()
 export class AuthService {
@@ -1572,29 +1577,66 @@ export class AuthService {
         });
     }
 
+    private resolveActiveDirectoryRoles(
+        profile: ActiveDirectoryProfilePayload,
+    ): Role[] {
+        const defaultRoles =
+            this.configService.get<Role[]>('adLdap.defaultRoles') ?? [];
+        const groupRoleMap =
+            this.configService.get<AdGroupRoleMapping[]>('adLdap.groupRoleMap') ??
+            [];
+        return resolveAdLdapRoles(
+            profile.groups ?? [],
+            groupRoleMap,
+            defaultRoles,
+        );
+    }
+
+    private shouldSyncActiveDirectoryRoles(): boolean {
+        const groupRoleMap =
+            this.configService.get<AdGroupRoleMapping[]>('adLdap.groupRoleMap') ??
+            [];
+        if (!groupRoleMap.length) {
+            return false;
+        }
+        return this.configService.get<boolean>('adLdap.syncRolesOnLogin') !== false;
+    }
+
     private async findOrCreateActiveDirectoryUser(
         profile: ActiveDirectoryProfilePayload,
     ): Promise<IUser> {
+        const resolvedRoles = this.resolveActiveDirectoryRoles(profile);
+        const syncRoles = this.shouldSyncActiveDirectoryRoles();
+
         const byAd = await this.usersService.findByActiveDirectoryId(
             profile.activeDirectoryId,
         );
         if (byAd) {
+            const patch: Partial<IUser> = {};
             if (!byAd.isActive) {
-                return this.usersService.update(byAd.id!, { isActive: true });
+                patch.isActive = true;
+            }
+            if (syncRoles && !rolesEqual(byAd.roles, resolvedRoles)) {
+                patch.roles = resolvedRoles;
+            }
+            if (Object.keys(patch).length > 0) {
+                return this.usersService.update(byAd.id!, patch);
             }
             return byAd;
         }
 
         const byEmail = await this.usersService.findByEmail(profile.email);
         if (byEmail) {
-            return this.usersService.update(byEmail.id!, {
+            const patch: Partial<IUser> = {
                 activeDirectoryId: profile.activeDirectoryId,
                 isActive: true,
-            });
+            };
+            if (syncRoles && !rolesEqual(byEmail.roles, resolvedRoles)) {
+                patch.roles = resolvedRoles;
+            }
+            return this.usersService.update(byEmail.id!, patch);
         }
 
-        const defaultRoles =
-            this.configService.get<Role[]>('adLdap.defaultRoles') ?? [];
         const usernameBase =
             profile.samAccountName ?? profile.email.split('@')[0];
         const username = await this.buildUniqueUsername(usernameBase);
@@ -1606,7 +1648,7 @@ export class AuthService {
             username,
             activeDirectoryId: profile.activeDirectoryId,
             isActive: true,
-            roles: [...defaultRoles],
+            roles: [...resolvedRoles],
         });
     }
 

@@ -52,3 +52,15 @@ block content
     .bg-white.rounded-xl.border.border-gray-200.p-8
       p(class="text-gray-700 mb-0")
         != t('authActiveDirectory.userModel.description')
+
+  section.mb-12
+    h2(class="text-2xl font-bold text-gray-900 mb-6")= t('authActiveDirectory.roles.title')
+    .bg-white.rounded-xl.border.border-gray-200.p-8
+      p(class="text-gray-700 mb-6")
+        != t('authActiveDirectory.roles.description')
+      .code-block
+        .code-header
+          span= t('authActiveDirectory.roles.exampleLabel')
+          span AD_LDAP_GROUP_ROLE_MAP
+        .code-content
+          pre= t('authActiveDirectory.roles.example')

@@ -15,6 +15,8 @@ describe('ad-ldap.config', () => {
         delete process.env.AD_LDAP_TLS_REJECT_UNAUTHORIZED;
         delete process.env.AD_LDAP_CONNECT_TIMEOUT_MS;
         delete process.env.AD_LDAP_DEFAULT_ROLES;
+        delete process.env.AD_LDAP_GROUP_ROLE_MAP;
+        delete process.env.AD_LDAP_SYNC_ROLES_ON_LOGIN;
     });
 
     afterAll(() => {
@@ -33,6 +35,8 @@ describe('ad-ldap.config', () => {
             tlsRejectUnauthorized: true,
             connectTimeoutMs: 5000,
             defaultRoles: [],
+            groupRoleMap: [],
+            syncRolesOnLogin: true,
         });
     });
 
@@ -58,6 +62,9 @@ describe('ad-ldap.config', () => {
         process.env.AD_LDAP_TLS_REJECT_UNAUTHORIZED = 'false';
         process.env.AD_LDAP_CONNECT_TIMEOUT_MS = '8000';
         process.env.AD_LDAP_DEFAULT_ROLES = 'user,manager';
+        process.env.AD_LDAP_GROUP_ROLE_MAP =
+            'CN=Nest-Admins,OU=Groups,DC=example,DC=com|admin;Nest-Users|user';
+        process.env.AD_LDAP_SYNC_ROLES_ON_LOGIN = 'false';
 
         expect(adLdapConfig()).toMatchObject({
             url: 'ldaps://dc.example.com:636',
@@ -68,6 +75,14 @@ describe('ad-ldap.config', () => {
             tlsRejectUnauthorized: false,
             connectTimeoutMs: 8000,
             defaultRoles: [Role.USER, Role.MANAGER],
+            groupRoleMap: [
+                {
+                    group: 'CN=Nest-Admins,OU=Groups,DC=example,DC=com',
+                    role: Role.ADMIN,
+                },
+                { group: 'Nest-Users', role: Role.USER },
+            ],
+            syncRolesOnLogin: false,
         });
     });
 });

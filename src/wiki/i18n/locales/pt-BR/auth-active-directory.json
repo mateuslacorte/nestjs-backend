@@ -24,6 +24,12 @@
     "userModel": {
       "title": "Modelo de usuário",
       "description": "O <code class=\"px-1 py-0.5 bg-gray-100 rounded\">objectGUID</code> do AD é salvo como <code class=\"px-1 py-0.5 bg-gray-100 rounded\">activeDirectoryId</code>. Email vem de <code class=\"px-1 py-0.5 bg-gray-100 rounded\">mail</code> ou <code class=\"px-1 py-0.5 bg-gray-100 rounded\">userPrincipalName</code>."
+    },
+    "roles": {
+      "title": "Roles a partir de grupos AD",
+      "description": "Grupos de segurança atribuídos via AD / GPO aparecem no usuário como <code class=\"px-1 py-0.5 bg-gray-100 rounded\">memberOf</code>. Mapeie-os para roles da app com <code class=\"px-1 py-0.5 bg-gray-100 rounded\">AD_LDAP_GROUP_ROLE_MAP</code> (formato <code class=\"px-1 py-0.5 bg-gray-100 rounded\">groupDnOrCn|role;…</code>). Em cada login a API atualiza <code class=\"px-1 py-0.5 bg-gray-100 rounded\">user.roles</code> a partir desse mapa (desative com <code class=\"px-1 py-0.5 bg-gray-100 rounded\">AD_LDAP_SYNC_ROLES_ON_LOGIN=false</code>). Se nenhum grupo corresponder, usa-se <code class=\"px-1 py-0.5 bg-gray-100 rounded\">AD_LDAP_DEFAULT_ROLES</code>.",
+      "exampleLabel": "Exemplo",
+      "example": "AD_LDAP_GROUP_ROLE_MAP=CN=Nest-Admins,OU=Groups,DC=example,DC=com|admin;Nest-Managers|manager;Nest-Users|user\nAD_LDAP_DEFAULT_ROLES=user\nAD_LDAP_SYNC_ROLES_ON_LOGIN=true"
     }
   }
 }

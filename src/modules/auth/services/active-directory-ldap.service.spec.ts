@@ -198,7 +198,40 @@ describe('ActiveDirectoryLdapService', () => {
             firstName: 'John',
             lastName: 'Doe',
             samAccountName: 'jdoe',
+            groups: [],
         });
+    });
+
+    it('returns memberOf groups from AD', async () => {
+        mockBind.mockResolvedValue(undefined);
+        mockSearch.mockResolvedValue({
+            searchEntries: [
+                {
+                    dn: 'CN=John Doe,CN=Users,DC=example,DC=com',
+                    objectGUID: objectGuid,
+                    mail: 'jdoe@example.com',
+                    givenName: 'John',
+                    sn: 'Doe',
+                    memberOf: [
+                        'CN=Nest-Admins,OU=Groups,DC=example,DC=com',
+                        'CN=Nest-Users,OU=Groups,DC=example,DC=com',
+                    ],
+                },
+            ],
+        });
+
+        const profile = await service.authenticate('jdoe', 'pass');
+
+        expect(profile.groups).toEqual([
+            'CN=Nest-Admins,OU=Groups,DC=example,DC=com',
+            'CN=Nest-Users,OU=Groups,DC=example,DC=com',
+        ]);
+        expect(mockSearch).toHaveBeenCalledWith(
+            'DC=example,DC=com',
+            expect.objectContaining({
+                attributes: expect.arrayContaining(['memberOf']),
+            }),
+        );
     });
 
     it('normalizes string objectGUID and reads array attributes', async () => {
