@@ -7,6 +7,7 @@ import { LoginDto } from './dtos/login.dto';
 import { RefreshtokenDto } from './dtos/refreshtoken.dto';
 import { ChangePasswordDto } from './dtos/change-password.dto';
 import { IUser } from '../users/interfaces/user.interface';
+import { UpdateUserDto } from '../users/dtos/update-user.dto';
 import { randomBytes } from 'crypto';
 import {ResetPasswordDto} from "@modules/auth/dtos/reset-password.dto";
 import {EmailService} from "@modules/email/email.service";
@@ -1612,7 +1613,7 @@ export class AuthService {
             profile.activeDirectoryId,
         );
         if (byAd) {
-            const patch: Partial<IUser> = {};
+            const patch: UpdateUserDto = {};
             if (!byAd.isActive) {
                 patch.isActive = true;
             }
@@ -1627,7 +1628,7 @@ export class AuthService {
 
         const byEmail = await this.usersService.findByEmail(profile.email);
         if (byEmail) {
-            const patch: Partial<IUser> = {
+            const patch: UpdateUserDto = {
                 activeDirectoryId: profile.activeDirectoryId,
                 isActive: true,
             };
