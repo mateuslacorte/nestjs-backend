@@ -57,7 +57,7 @@ describe('UsersModule', () => {
       UsersModule,
     ) as unknown[];
 
-    expect(imports).toHaveLength(4); // CqrsModule added for CQRS command/query buses
+    expect(imports).toHaveLength(5); // CqrsModule, Mongoose, TypeORM, AuditModule, CacheWarmupModule
   });
 
   describe('ARGON2_OPTIONS provider', () => {

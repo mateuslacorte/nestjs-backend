@@ -14,6 +14,8 @@ import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from '@modules/auth/guards/roles.guard';
 import { JwtAuthGuard } from '@modules/auth/guards/jwtauth.guard';
 import { AuditModule } from '@common/audit/audit.module';
+import { CacheWarmupModule } from '@common/cache/cache-warmup.module';
+import { UsersCacheWarmer } from './cache/users-cache-warmer';
 
 // Command handlers
 import { CreateUserHandler } from './commands/handlers/create-user.handler';
@@ -39,6 +41,7 @@ const EventHandlers = [UserCreatedHandler, UserUpdatedHandler, UserDeletedHandle
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     TypeOrmModule.forFeature([UserEntity]),
     AuditModule,
+    CacheWarmupModule.forRoot([UsersCacheWarmer]),
   ],
   providers: [
     UsersResolver,
