@@ -833,6 +833,16 @@ export class AuthService {
         return this.exchangeOAuthCode(dto);
     }
 
+    /**
+     * Revoke all active sessions for a user by setting a user-level revocation
+     * timestamp in the cache. Any refresh token issued before this timestamp is
+     * considered invalid.
+     */
+    async revokeAllSessions(userId: string): Promise<void> {
+        const ttl = 7 * 24 * 60 * 60; // matches max refresh token lifetime
+        await this.cacheService.set(`auth:user:revoked:${userId}`, Date.now(), ttl);
+    }
+
     private assertGoogleAuthEnabled(): void {
         const enabled = this.configService.get<boolean>('googleOAuth.enabled');
         if (!enabled) {

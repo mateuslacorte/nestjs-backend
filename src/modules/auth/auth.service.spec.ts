@@ -3347,4 +3347,17 @@ describe('AuthService', () => {
       expect(spy).toHaveBeenCalledWith({ code: 'code-1' });
     });
   });
+
+  describe('revokeAllSessions', () => {
+    it('stores a user-level revocation timestamp in the cache', async () => {
+      await service.revokeAllSessions('user-1');
+
+      expect(cacheService.set).toHaveBeenCalledTimes(1);
+      expect(cacheService.set).toHaveBeenCalledWith(
+        'auth:user:revoked:user-1',
+        expect.any(Number),
+        7 * 24 * 60 * 60,
+      );
+    });
+  });
 });
