@@ -100,6 +100,9 @@ module.exports = {
     '!src/wiki/**/*.spec.ts',
     // Thin Nest route table: decorator instrumentation dominates branch %, logic lives in WikiRenderService
     '!src/wiki/wiki.controller.ts',
+    'src/common/metrics/**/*.ts',
+    '!src/common/metrics/**/*.spec.ts',
+    '!src/common/metrics/*.module.ts',
   ],
   moduleNameMapper: {
     '^@modules/(.*)$': '<rootDir>/src/modules/$1',
