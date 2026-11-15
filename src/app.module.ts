@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GraphQLModule } from '@nestjs/graphql';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import {
     ApolloFastifyDriver,
     ApolloFastifyDriverConfig,
@@ -57,6 +58,10 @@ import { BlockedIpGuard } from '@common/security/guards/blocked-ip.guard';
 import { AuditModule } from '@common/audit/audit.module';
 import { CacheModule } from '@common/cache/cache.module';
 import { HealthModule } from '@modules/health/health.module';
+import { PubSubModule } from '@common/pubsub/pubsub.module';
+import { DlqModule } from '@common/dlq/dlq.module';
+import { OperationsModule } from '@common/operations/operations.module';
+import { CircuitBreakerModule } from '@common/circuit-breaker/circuit-breaker.module';
 
 @Module({
     imports: [
@@ -98,11 +103,20 @@ import { HealthModule } from '@modules/health/health.module';
             ],
         }),
 
+        // Rate limiting: 120 req/min globally; auth endpoints use stricter @Throttle()
+        ThrottlerModule.forRoot([{ ttl: 60000, limit: 120 }]),
+
         // Graylog module for logging
         GraylogModule,
 
         // Cache module for Redis caching
         CacheModule,
+
+        // Pub/Sub, DLQ, Operations status, Circuit breaker (global — available project-wide)
+        PubSubModule,
+        DlqModule,
+        OperationsModule,
+        CircuitBreakerModule,
 
         WebsocketModule.forRoot(),
 
@@ -167,6 +181,10 @@ import { HealthModule } from '@modules/health/health.module';
         {
             provide: APP_GUARD,
             useClass: BlockedIpGuard,
+        },
+        {
+            provide: APP_GUARD,
+            useClass: ThrottlerGuard,
         },
         // Example providers for JWT guard to apply on all routes
         {

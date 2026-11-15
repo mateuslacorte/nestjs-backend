@@ -2,6 +2,8 @@ import {
     Body,
     Controller,
     Get,
+    HttpCode,
+    HttpStatus,
     Param,
     Patch,
     Post,
@@ -40,6 +42,7 @@ export class UsersController {
      * @returns The created user
      */
     @Post()
+    @HttpCode(HttpStatus.ACCEPTED)
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.SUPER)
     @Audit({
@@ -51,7 +54,7 @@ export class UsersController {
     })
     @ApiOperation({
         summary: 'Create a new user',
-        description: 'Creates a new user in the system. Requires the super role.',
+        description: 'Creates a new user in the system. Requires the super role. Returns 202 Accepted — the write is async; subscribe to the websocket for confirmation.',
     })
     @ApiBody({
         type: CreateUserDto,
@@ -72,15 +75,13 @@ export class UsersController {
             },
         },
     })
-    @ApiResponse({ status: 201, description: 'User successfully created.' })
+    @ApiResponse({ status: 202, description: 'User creation accepted; processing asynchronously.' })
     @ApiResponse({ status: 400, description: 'Invalid input.' })
     @ApiResponse({ status: 401, description: 'Unauthorized - JWT token is missing or invalid.' })
     @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions, requires super role.' })
     @ApiResponse({ status: 409, description: 'Conflict - email or username already exists.' })
     create(@Body() createUserDto: CreateUserDto) {
-        return this.usersService
-            .create(createUserDto)
-            .then(sanitizeUserForResponse);
+        return this.usersService.create(createUserDto);
     }
 
     /**
@@ -163,6 +164,7 @@ export class UsersController {
      * @returns The updated user
      */
     @Patch(':id')
+    @HttpCode(HttpStatus.ACCEPTED)
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.SUPER)
     @Audit({
@@ -174,7 +176,7 @@ export class UsersController {
     })
     @ApiOperation({
         summary: 'Update a user by ID',
-        description: 'Updates a specific user by their ID. Requires the super role.',
+        description: 'Updates a specific user by their ID. Requires the super role. Returns 202 Accepted — the write is async; subscribe to the websocket for confirmation.',
     })
     @ApiParam({
         name: 'id',
@@ -197,15 +199,14 @@ export class UsersController {
             },
         },
     })
-    @ApiResponse({ status: 200, description: 'User updated successfully.' })
+    @ApiResponse({ status: 202, description: 'User update accepted; processing asynchronously.' })
     @ApiResponse({ status: 400, description: 'Invalid input.' })
     @ApiResponse({ status: 401, description: 'Unauthorized - JWT token is missing or invalid.' })
     @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions, requires super role.' })
     @ApiResponse({ status: 404, description: 'User not found.' })
     @ApiResponse({ status: 409, description: 'Conflict - email or username already in use.' })
-    async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-        const user = await this.usersService.update(id, updateUserDto);
-        return sanitizeUserForResponse(user);
+    update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+        return this.usersService.update(id, updateUserDto);
     }
 
     /**
@@ -214,6 +215,7 @@ export class UsersController {
      * @returns The deleted user
      */
     @Delete(':id')
+    @HttpCode(HttpStatus.ACCEPTED)
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(Role.SUPER)
     @Audit({
@@ -225,18 +227,18 @@ export class UsersController {
     })
     @ApiOperation({
         summary: 'Delete a user by ID',
-        description: 'Deletes a specific user by their ID. Requires the super role.',
+        description: 'Deletes a specific user by their ID. Requires the super role. Returns 202 Accepted — the write is async; subscribe to the websocket for confirmation.',
     })
     @ApiParam({
         name: 'id',
         description: 'The ID of the user to delete',
         required: true
     })
-    @ApiResponse({ status: 200, description: 'User deleted successfully.' })
+    @ApiResponse({ status: 202, description: 'User deletion accepted; processing asynchronously.' })
     @ApiResponse({ status: 401, description: 'Unauthorized - JWT token is missing or invalid.' })
     @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions, requires super role.' })
     @ApiResponse({ status: 404, description: 'User not found.' })
     remove(@Param('id') id: string) {
-        return this.usersService.remove(id).then(sanitizeUserForResponse);
+        return this.usersService.remove(id);
     }
 }

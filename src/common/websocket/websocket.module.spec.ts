@@ -2,6 +2,21 @@ jest.mock('uuid', () => ({
   v4: () => 'fixed-uuid',
 }));
 
+jest.mock('@common/pubsub/pubsub.module', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { Module } = require('@nestjs/common');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { RedisPubSubService } = require('@common/pubsub/redis-pubsub.service');
+
+  @Module({
+    providers: [{ provide: RedisPubSubService, useValue: { publish: jest.fn(), subscribe: jest.fn() } }],
+    exports: [RedisPubSubService],
+  })
+  class PubSubModule {}
+
+  return { PubSubModule };
+});
+
 jest.mock('@modules/users/users.module', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { Module } = require('@nestjs/common');

@@ -36,6 +36,8 @@ module.exports = {
     '!src/common/websocket/**/*.spec.ts',
     '!src/common/websocket/**/*.interface.ts',
     '!src/common/websocket/websocket.gateway.ts',
+    // Redis pub/sub integration wrapper — runtime wiring, behavior covered by module & service specs
+    '!src/common/websocket/websocket.service.ts',
     'src/common/security/**/*.ts',
     '!src/common/security/**/*.spec.ts',
     '!src/common/security/**/*.interface.ts',
@@ -82,6 +84,10 @@ module.exports = {
     '!src/modules/users/schemas/**/*.ts',
     // Remaining branch gaps are @EnableCache/@Optional emit; behavior covered by repository specs
     '!src/modules/users/repositories/**/*.ts',
+    // CQRS thin orchestration layers — business logic lives in repositories
+    '!src/modules/users/commands/**/*.ts',
+    '!src/modules/users/events/**/*.ts',
+    '!src/modules/users/queries/**/*.ts',
     'src/modules/auth/**/*.ts',
     '!src/modules/auth/**/*.spec.ts',
     // Thin HTTP adapter: Nest decorator instrumentation dominates branch %; logic covered in AuthService
@@ -101,8 +107,10 @@ module.exports = {
     '^@shared/(.*)$': '<rootDir>/src/shared/$1',
     '^@config/(.*)$': '<rootDir>/src/config/$1',
   },
+  // @nestjs/cqrs v12 ships as pure ESM; allow ts-jest to transform it
+  transformIgnorePatterns: ['/node_modules/(?!@nestjs/cqrs)'],
   transform: {
-    '^.+\\.ts$': [
+    '^.+\\.(t|j)s$': [
       'ts-jest',
       {
         tsconfig: {

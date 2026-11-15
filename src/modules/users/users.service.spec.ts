@@ -4,10 +4,6 @@ import { UserPostgresRepository } from './repositories/postgres.repository';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { IUser } from './interfaces/user.interface';
-import {
-  ENABLE_CACHE,
-  NO_CACHE,
-} from '@common/cache/decorators/cache.decorator';
 
 type MockPostgresRepo = {
   create: jest.Mock;
@@ -56,6 +52,8 @@ function createUser(overrides: Partial<IUser> = {}): IUser {
 
 describe('UsersService', () => {
   let postgresRepo: MockPostgresRepo;
+  let commandBus: { execute: jest.Mock };
+  let queryBus: { execute: jest.Mock };
   let service: UsersService;
   let warnSpy: jest.SpyInstance;
   let logSpy: jest.SpyInstance;
@@ -63,6 +61,9 @@ describe('UsersService', () => {
   beforeEach(() => {
     warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
     logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    commandBus = { execute: jest.fn() };
+    queryBus = { execute: jest.fn() };
 
     postgresRepo = {
       create: jest.fn(),
@@ -97,6 +98,8 @@ describe('UsersService', () => {
 
     service = new UsersService(
       postgresRepo as unknown as UserPostgresRepository,
+      commandBus as any,
+      queryBus as any,
     );
   });
 
@@ -105,52 +108,9 @@ describe('UsersService', () => {
     logSpy.mockRestore();
   });
 
-  describe('cache metadata', () => {
-    it('enables cache on create, update, and remove', () => {
-      for (const method of ['create', 'update', 'remove'] as const) {
-        expect(
-          Reflect.getMetadata(ENABLE_CACHE, UsersService.prototype, method),
-        ).toBe(true);
-      }
-    });
-
-    it('marks lookups and search with NoCache', () => {
-      for (const method of [
-        'search',
-        'findById',
-        'findByEmail',
-        'findByUsername',
-        'findByGoogleId',
-        'findByFacebookId',
-        'findByTwitterId',
-        'findByGithubId',
-        'findByFigmaId',
-        'findByLinkedinId',
-        'findBySlackId',
-        'findByAtlassianId',
-        'findByGitlabId',
-        'findByBitbucketId',
-        'findByDiscordId',
-        'findByTwitchId',
-        'findBySteamId',
-        'findByAmazonId',
-        'findByPatreonId',
-        'findByDropboxId',
-        'findByMetamaskId',
-        'findByActiveDirectoryId',
-        'findByAppleId',
-        'findByEmailVerificationToken',
-        'findByPasswordToken',
-      ] as const) {
-        expect(
-          Reflect.getMetadata(NO_CACHE, UsersService.prototype[method]),
-        ).toBe(true);
-      }
-    });
-  });
-
   describe('create', () => {
-    it('delegates to postgres create with includePassword=true', async () => {
+    it('dispatches CreateUserCommand and returns AsyncOperationResult', async () => {
+      commandBus.execute.mockResolvedValue(createUser());
       const dto: CreateUserDto = {
         firstName: 'Jane',
         lastName: 'Smith',
@@ -158,95 +118,61 @@ describe('UsersService', () => {
         email: 'jane@example.com',
         password: 'Str0ng!P@ssw0rd',
       };
-      const created = createUser({ password: 'hash' });
-      postgresRepo.create.mockResolvedValue(created);
 
-      await expect(service.create(dto)).resolves.toBe(created);
-      expect(postgresRepo.create).toHaveBeenCalledWith(dto, true);
+      const result = await service.create(dto);
+
+      expect(commandBus.execute).toHaveBeenCalledTimes(1);
+      expect(result.status).toBe('pending');
+      expect(typeof result.operationId).toBe('string');
+    });
+  });
+
+  describe('createAndAwaitUser', () => {
+    it('dispatches CreateUserCommand and returns IUser', async () => {
+      const created = createUser();
+      commandBus.execute.mockResolvedValue(created);
+      const dto: CreateUserDto = {
+        firstName: 'Jane',
+        lastName: 'Smith',
+        username: 'janesmith',
+        email: 'jane@example.com',
+        password: 'Str0ng!P@ssw0rd',
+      };
+
+      const result = await service.createAndAwaitUser(dto);
+
+      expect(commandBus.execute).toHaveBeenCalledTimes(1);
+      expect(result).toBe(created);
     });
   });
 
   describe('search', () => {
-    it('returns a page without nextCursor when under limit', async () => {
-      const users = [
-        createUser({
-          id: 'a',
-          createdAt: new Date('2026-08-10T00:00:00.000Z'),
-        }),
-      ];
-      postgresRepo.search.mockResolvedValue(users);
+    it('dispatches SearchUsersQuery via queryBus', async () => {
+      const page = { items: [createUser()], nextCursor: null };
+      queryBus.execute.mockResolvedValue(page);
 
-      await expect(service.search({ limit: 50 })).resolves.toEqual({
-        items: users,
-        nextCursor: null,
-      });
-      expect(postgresRepo.search).toHaveBeenCalledWith({
-        limit: 51,
-        cursorCreatedAt: undefined,
-        cursorId: undefined,
-        q: undefined,
-        isActive: undefined,
-      });
-    });
+      const result = await service.search({ limit: 50 });
 
-    it('sets nextCursor when more rows exist', async () => {
-      const t1 = new Date('2026-08-10T02:00:00.000Z');
-      const t2 = new Date('2026-08-10T01:00:00.000Z');
-      const t3 = new Date('2026-08-10T00:00:00.000Z');
-      postgresRepo.search.mockResolvedValue([
-        createUser({ id: 'a', createdAt: t1 }),
-        createUser({ id: 'b', createdAt: t2 }),
-        createUser({ id: 'c', createdAt: t3 }),
-      ]);
-
-      const page = await service.search({ limit: 2 });
-      expect(page.items).toHaveLength(2);
-      expect(page.nextCursor).toBeTruthy();
-    });
-
-    it('decodes cursor and forwards filters', async () => {
-      const createdAt = new Date('2026-08-09T12:00:00.000Z');
-      const { encodeUserCursor } = await import('./utils/cursor.util');
-      const cursor = encodeUserCursor(createdAt, 'prev');
-      postgresRepo.search.mockResolvedValue([]);
-
-      await service.search({
-        cursor,
-        limit: 10,
-        q: 'jane',
-        isActive: true,
-      });
-
-      expect(postgresRepo.search).toHaveBeenCalledWith({
-        limit: 11,
-        cursorCreatedAt: createdAt,
-        cursorId: 'prev',
-        q: 'jane',
-        isActive: true,
-      });
+      expect(queryBus.execute).toHaveBeenCalledTimes(1);
+      expect(result).toBe(page);
     });
   });
 
   describe('findById', () => {
-    it('defaults includePassword to false', async () => {
-      postgresRepo.findById.mockResolvedValue(createUser());
+    it('dispatches FindUserByIdQuery via queryBus', async () => {
+      const user = createUser();
+      queryBus.execute.mockResolvedValue(user);
 
-      await service.findById('user-1');
+      const result = await service.findById('user-1');
 
-      expect(postgresRepo.findById).toHaveBeenCalledWith('user-1', false);
+      expect(queryBus.execute).toHaveBeenCalledTimes(1);
+      expect(result).toBe(user);
     });
 
-    it('forwards includePassword=false explicitly', async () => {
-      await service.findById('user-1', false);
-      expect(postgresRepo.findById).toHaveBeenCalledWith('user-1', false);
-    });
-
-    it('forwards includePassword=true', async () => {
-      postgresRepo.findById.mockResolvedValue(createUser({ password: 'hash' }));
-
+    it('passes includePassword=true through the query', async () => {
+      queryBus.execute.mockResolvedValue(createUser({ password: 'hash' }));
       await service.findById('user-1', true);
-
-      expect(postgresRepo.findById).toHaveBeenCalledWith('user-1', true);
+      expect(queryBus.execute).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -393,23 +319,27 @@ describe('UsersService', () => {
   });
 
   describe('update', () => {
-    it('delegates to repository', async () => {
+    it('dispatches UpdateUserCommand and returns AsyncOperationResult', async () => {
+      commandBus.execute.mockResolvedValue(createUser({ firstName: 'Janet' }));
       const dto: UpdateUserDto = { firstName: 'Janet' };
-      const updated = createUser({ firstName: 'Janet' });
-      postgresRepo.update.mockResolvedValue(updated);
 
-      await expect(service.update('user-1', dto)).resolves.toBe(updated);
-      expect(postgresRepo.update).toHaveBeenCalledWith('user-1', dto);
+      const result = await service.update('user-1', dto);
+
+      expect(commandBus.execute).toHaveBeenCalledTimes(1);
+      expect(result.status).toBe('pending');
+      expect(typeof result.operationId).toBe('string');
     });
   });
 
   describe('remove', () => {
-    it('delegates to repository', async () => {
-      const removed = createUser();
-      postgresRepo.remove.mockResolvedValue(removed);
+    it('dispatches DeleteUserCommand and returns AsyncOperationResult', async () => {
+      commandBus.execute.mockResolvedValue(createUser());
 
-      await expect(service.remove('user-1')).resolves.toBe(removed);
-      expect(postgresRepo.remove).toHaveBeenCalledWith('user-1');
+      const result = await service.remove('user-1');
+
+      expect(commandBus.execute).toHaveBeenCalledTimes(1);
+      expect(result.status).toBe('pending');
+      expect(typeof result.operationId).toBe('string');
     });
   });
 

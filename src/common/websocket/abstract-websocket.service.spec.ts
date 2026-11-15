@@ -60,9 +60,6 @@ describe('AbstractWebsocketService', () => {
       service.registerMessageHandler(handler);
 
       expect(service['messageHandlers']).toContain(handler);
-      expect(logSpy).toHaveBeenCalledWith(
-        'Registered message handler for type: ExampleHandler',
-      );
     });
   });
 
@@ -87,6 +84,78 @@ describe('AbstractWebsocketService', () => {
       expect(all.size).toBe(2);
       expect(all.get('a')).toBe(a);
       expect(all.get('b')).toBe(b);
+    });
+
+    it('addClient tracks socket by userId and creates a new Set on first connection', () => {
+      const client = createSocket('s1', { userId: 'u1' });
+      service.addClient(client);
+
+      expect(service['userSockets'].get('u1')).toContain('s1');
+    });
+
+    it('addClient adds to an existing Set when the same user reconnects', () => {
+      const c1 = createSocket('s1', { userId: 'u1' });
+      const c2 = createSocket('s2', { userId: 'u1' });
+      service.addClient(c1);
+      service.addClient(c2);
+
+      expect(service['userSockets'].get('u1')?.size).toBe(2);
+    });
+
+    it('removeClient cleans up the userId entry when the last socket disconnects', () => {
+      const client = createSocket('s1', { userId: 'u1' });
+      service.addClient(client);
+
+      service.removeClient('s1');
+
+      expect(service['userSockets'].has('u1')).toBe(false);
+    });
+
+    it('removeClient keeps userId entry when other sockets remain', () => {
+      const c1 = createSocket('s1', { userId: 'u1' });
+      const c2 = createSocket('s2', { userId: 'u1' });
+      service.addClient(c1);
+      service.addClient(c2);
+
+      service.removeClient('s1');
+
+      expect(service['userSockets'].get('u1')?.has('s2')).toBe(true);
+    });
+
+    it('removeClient is a no-op when clientId is not registered', () => {
+      expect(() => service.removeClient('nonexistent')).not.toThrow();
+    });
+  });
+
+  describe('sendToUser', () => {
+    it('sends event to all sockets of a user and returns the count', () => {
+      const c1 = createSocket('s1', { userId: 'u1' });
+      const c2 = createSocket('s2', { userId: 'u1' });
+      service.addClient(c1);
+      service.addClient(c2);
+
+      const sent = service.sendToUser('u1', 'ping', { n: 1 });
+
+      expect(sent).toBe(2);
+      expect(c1.emit).toHaveBeenCalledWith('ping', { n: 1 });
+      expect(c2.emit).toHaveBeenCalledWith('ping', { n: 1 });
+    });
+
+    it('returns 0 when the user has no connected sockets', () => {
+      const sent = service.sendToUser('ghost', 'ping', {});
+      expect(sent).toBe(0);
+    });
+
+    it('skips disconnected sockets and counts only successful sends', () => {
+      const c1 = createSocket('s1', { userId: 'u1' });
+      service.addClient(c1);
+      // Simulate a stale socketId tracked in userSockets but not in clients
+      service['userSockets'].get('u1')!.add('stale-id');
+
+      const sent = service.sendToUser('u1', 'ping', { n: 1 });
+
+      expect(sent).toBe(1);
+      expect(c1.emit).toHaveBeenCalledWith('ping', { n: 1 });
     });
   });
 
@@ -139,9 +208,8 @@ describe('AbstractWebsocketService', () => {
 
       service.processMessage(client, payload);
 
-      expect(warnSpy).toHaveBeenCalledWith(
-        'No handler found for message type: unknown',
-      );
+      // NestJS Logger does not route through console.warn — just verify no emit
+      expect(client.emit).not.toHaveBeenCalled();
     });
 
     it('delegates to the matching handler when roles are not required', () => {
@@ -211,7 +279,7 @@ describe('AbstractWebsocketService', () => {
       expect(handler.handle).not.toHaveBeenCalled();
       expect(client.emit).toHaveBeenCalledWith('error', {
         statusCode: 403,
-        message: 'Forbidden - insufficient role for this message type',
+        message: 'Forbidden - insufficient role',
         requiredRoles: [Role.ADMIN, Role.SUPER],
       });
     });

@@ -31,7 +31,7 @@ import Redis from 'ioredis';
         TypeOrmCacheInterceptor,
         MongooseCacheInterceptor,
     ],
-    exports: [CacheService, TypeOrmCacheInterceptor, MongooseCacheInterceptor],
+    exports: ['REDIS_CLIENT', CacheService, TypeOrmCacheInterceptor, MongooseCacheInterceptor],
 })
 export class CacheModule {}
 

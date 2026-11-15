@@ -90,6 +90,12 @@ describe('CacheService', () => {
       await expect(service.get('k')).resolves.toBeNull();
       expect(errorSpy).toHaveBeenCalled();
     });
+
+    it('unwraps the data field when cached value is an SWR envelope', async () => {
+      const envelope = { _swr: true, data: { id: 42 }, freshUntil: 9999, staleUntil: 9999 };
+      redis.get.mockResolvedValue(JSON.stringify(envelope));
+      await expect(service.get<{ id: number }>('swr:ns:k')).resolves.toEqual({ id: 42 });
+    });
   });
 
   describe('set', () => {
@@ -177,7 +183,7 @@ describe('CacheService', () => {
 
       await service.delPattern('a:*');
 
-      expect(warnSpy).toHaveBeenCalled();
+      expect(errorSpy).toHaveBeenCalled();
       expect(redis.keys).toHaveBeenCalledWith('a:*');
       expect(redis.del).toHaveBeenCalledWith('a:1', 'a:2');
     });
@@ -188,7 +194,7 @@ describe('CacheService', () => {
 
       await service.delPattern('empty:*');
 
-      expect(warnSpy).toHaveBeenCalled();
+      expect(errorSpy).toHaveBeenCalled();
       expect(redis.keys).toHaveBeenCalledWith('empty:*');
       expect(redis.del).not.toHaveBeenCalled();
     });
@@ -212,6 +218,109 @@ describe('CacheService', () => {
 
     it('stringifies null object params', () => {
       expect(service.generateKey('pref', null)).toBe('pref:null');
+    });
+  });
+
+  describe('getOrCompute (SWR)', () => {
+    function swrEntry<T>(data: T, freshOffset: number, staleOffset: number) {
+      const now = Date.now();
+      return JSON.stringify({
+        _swr: true,
+        data,
+        freshUntil: now + freshOffset,
+        staleUntil: now + staleOffset,
+      });
+    }
+
+    it('returns FRESH cached data without calling fetcher', async () => {
+      redis.get.mockResolvedValue(swrEntry({ id: 1 }, 60_000, 300_000));
+      const fetcher = jest.fn();
+
+      const result = await service.getOrCompute('k', fetcher);
+
+      expect(result).toEqual({ id: 1 });
+      expect(fetcher).not.toHaveBeenCalled();
+      expect(redis.setex).not.toHaveBeenCalled();
+    });
+
+    it('returns STALE data and triggers background refresh', async () => {
+      redis.get.mockResolvedValue(swrEntry({ id: 2 }, -1, 300_000));
+      const freshData = { id: 2, updated: true };
+      const fetcher = jest.fn().mockResolvedValue(freshData);
+      redis.setex.mockResolvedValue('OK');
+
+      const result = await service.getOrCompute('k', fetcher);
+
+      expect(result).toEqual({ id: 2 });
+      // allow background refresh to settle
+      await new Promise((r) => setTimeout(r, 10));
+      expect(fetcher).toHaveBeenCalled();
+    });
+
+    it('fetches fresh data when entry is fully expired', async () => {
+      redis.get.mockResolvedValue(swrEntry({ id: 3 }, -60_000, -1));
+      const fetcher = jest.fn().mockResolvedValue({ id: 3, fresh: true });
+      redis.setex.mockResolvedValue('OK');
+
+      const result = await service.getOrCompute('k', fetcher);
+
+      expect(result).toEqual({ id: 3, fresh: true });
+      expect(redis.setex).toHaveBeenCalled();
+    });
+
+    it('fetches fresh data on cache miss', async () => {
+      redis.get.mockResolvedValue(null);
+      const fetcher = jest.fn().mockResolvedValue({ id: 4 });
+      redis.setex.mockResolvedValue('OK');
+
+      const result = await service.getOrCompute('k', fetcher);
+
+      expect(result).toEqual({ id: 4 });
+      expect(redis.setex).toHaveBeenCalled();
+    });
+
+    it('falls through to fetcher when cached JSON is invalid', async () => {
+      redis.get.mockResolvedValue('{bad json');
+      const fetcher = jest.fn().mockResolvedValue({ id: 5 });
+      redis.setex.mockResolvedValue('OK');
+
+      const result = await service.getOrCompute('k', fetcher);
+
+      expect(result).toEqual({ id: 5 });
+      expect(fetcher).toHaveBeenCalled();
+    });
+
+    it('uses namespace-scoped key when namespace is provided', async () => {
+      redis.get.mockResolvedValue(null);
+      const fetcher = jest.fn().mockResolvedValue({ id: 6 });
+      redis.setex.mockResolvedValue('OK');
+
+      await service.getOrCompute('my-key', fetcher, { namespace: 'users' });
+
+      expect(redis.get).toHaveBeenCalledWith('swr:users:my-key');
+      expect(redis.setex).toHaveBeenCalledWith('swr:users:my-key', expect.any(Number), expect.any(String));
+    });
+
+    it('uses raw key when namespace is omitted', async () => {
+      redis.get.mockResolvedValue(null);
+      const fetcher = jest.fn().mockResolvedValue('v');
+      redis.setex.mockResolvedValue('OK');
+
+      await service.getOrCompute('raw-key', fetcher);
+
+      expect(redis.get).toHaveBeenCalledWith('raw-key');
+    });
+
+    it('swallows background refresh fetcher failure via logger.warn', async () => {
+      redis.get.mockResolvedValue(swrEntry({ id: 7 }, -1, 300_000));
+      const fetcher = jest.fn().mockRejectedValue(new Error('fetch failed'));
+      redis.setex.mockResolvedValue('OK');
+
+      const result = await service.getOrCompute('k', fetcher);
+      expect(result).toEqual({ id: 7 });
+
+      await new Promise((r) => setTimeout(r, 20));
+      expect(warnSpy).toHaveBeenCalled();
     });
   });
 });

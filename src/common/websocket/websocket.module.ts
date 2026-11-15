@@ -3,40 +3,44 @@ import { WebsocketGateway } from './websocket.gateway';
 import { WebsocketService } from './websocket.service';
 import { MessageHandler } from './interfaces/message-handler.interface';
 import { UsersModule } from '@modules/users/users.module';
+import { PubSubModule } from '@common/pubsub/pubsub.module';
 
 @Module({
-    imports: [forwardRef(() => UsersModule)],
-    providers: [WebsocketGateway, WebsocketService],
-    exports: [WebsocketService],
+  imports: [forwardRef(() => UsersModule), PubSubModule],
+  providers: [WebsocketGateway, WebsocketService],
+  exports: [WebsocketService],
 })
 export class WebsocketModule {
-    static forRoot(): DynamicModule {
-        return {
-            module: WebsocketModule,
-            imports: [forwardRef(() => UsersModule)],
-            providers: [WebsocketGateway, WebsocketService],
-            exports: [WebsocketService],
-        };
-    }
+  static forRoot(): DynamicModule {
+    return {
+      module: WebsocketModule,
+      imports: [forwardRef(() => UsersModule), PubSubModule],
+      providers: [WebsocketGateway, WebsocketService],
+      exports: [WebsocketService],
+    };
+  }
 
-    static forFeature(messageHandlers: MessageHandler[] = []): DynamicModule {
-        return {
-            module: WebsocketModule,
-            providers: [
-                ...messageHandlers.map(handler => ({
-                    provide: `MESSAGE_HANDLER_${handler.constructor.name}`,
-                    useValue: handler,
-                })),
-                {
-                    provide: 'MESSAGE_HANDLERS',
-                    useFactory: (websocketService: WebsocketService, ...handlers: MessageHandler[]) => {
-                        handlers.forEach(handler => websocketService.registerMessageHandler(handler));
-                        return handlers;
-                    },
-                    inject: [WebsocketService, ...messageHandlers.map(h => `MESSAGE_HANDLER_${h.constructor.name}`)],
-                },
-            ],
-            exports: [],
-        };
-    }
+  static forFeature(messageHandlers: MessageHandler[] = []): DynamicModule {
+    return {
+      module: WebsocketModule,
+      providers: [
+        ...messageHandlers.map((handler) => ({
+          provide: `MESSAGE_HANDLER_${handler.constructor.name}`,
+          useValue: handler,
+        })),
+        {
+          provide: 'MESSAGE_HANDLERS',
+          useFactory: (websocketService: WebsocketService, ...handlers: MessageHandler[]) => {
+            handlers.forEach((h) => websocketService.registerMessageHandler(h));
+            return handlers;
+          },
+          inject: [
+            WebsocketService,
+            ...messageHandlers.map((h) => `MESSAGE_HANDLER_${h.constructor.name}`),
+          ],
+        },
+      ],
+      exports: [],
+    };
+  }
 }

@@ -90,7 +90,7 @@ export class AuthService {
         }
 
         // Create the user with isActive set to false
-        const newUser = await this.usersService.create({
+        const newUser = await this.usersService.createAndAwaitUser({
             ...userData,
             password: password,
             isActive: false, // Set to false until email is confirmed
@@ -122,8 +122,7 @@ export class AuthService {
             throw new NotFoundException('User not found');
         }
 
-        // Generate a random token
-        const verificationToken = String(parseInt(randomBytes(4).toString('hex'), 16) % 1000000).padStart(6, '0');
+        const verificationToken = randomBytes(32).toString('hex');
 
         // Store the token with the user and set expiration (e.g., 24 hours from now)
         const tokenExpiry = new Date(Date.now() + 86400000); // 24 hours
@@ -355,8 +354,7 @@ export class AuthService {
             return null;
         }
 
-        // Generate a random token
-        const resetToken = String(parseInt(randomBytes(4).toString('hex'), 16) % 1000000).padStart(6, '0');
+        const resetToken = randomBytes(32).toString('hex');
 
         // Store the token with the user and set expiration (e.g., 1 hour from now)
         const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
@@ -1083,7 +1081,7 @@ export class AuthService {
                 'An account with this email already exists. Verify your email or sign in before linking a provider.',
             );
         }
-        return this.usersService.update(byEmail.id!, patch);
+        return this.usersService.updateAndAwaitUser(byEmail.id!, patch);
     }
 
     private async findOrCreateGoogleUser(
@@ -1092,7 +1090,7 @@ export class AuthService {
         const byGoogle = await this.usersService.findByGoogleId(profile.googleId);
         if (byGoogle) {
             if (!byGoogle.isActive) {
-                return this.usersService.update(byGoogle.id!, { isActive: true });
+                return this.usersService.updateAndAwaitUser(byGoogle.id!, { isActive: true });
             }
             return byGoogle;
         }
@@ -1108,7 +1106,7 @@ export class AuthService {
             this.configService.get<Role[]>('googleOAuth.defaultRoles') ?? [];
         const username = await this.buildUniqueUsername(profile.email);
 
-        return this.usersService.create({
+        return this.usersService.createAndAwaitUser({
             email: profile.email,
             firstName: profile.firstName,
             lastName: profile.lastName || '-',
@@ -1125,7 +1123,7 @@ export class AuthService {
         const byFacebook = await this.usersService.findByFacebookId(profile.facebookId);
         if (byFacebook) {
             if (!byFacebook.isActive) {
-                return this.usersService.update(byFacebook.id!, { isActive: true });
+                return this.usersService.updateAndAwaitUser(byFacebook.id!, { isActive: true });
             }
             return byFacebook;
         }
@@ -1141,7 +1139,7 @@ export class AuthService {
             this.configService.get<Role[]>('facebookOAuth.defaultRoles') ?? [];
         const username = await this.buildUniqueUsername(profile.email);
 
-        return this.usersService.create({
+        return this.usersService.createAndAwaitUser({
             email: profile.email,
             firstName: profile.firstName,
             lastName: profile.lastName || '-',
@@ -1158,7 +1156,7 @@ export class AuthService {
         const byTwitter = await this.usersService.findByTwitterId(profile.twitterId);
         if (byTwitter) {
             if (!byTwitter.isActive) {
-                return this.usersService.update(byTwitter.id!, { isActive: true });
+                return this.usersService.updateAndAwaitUser(byTwitter.id!, { isActive: true });
             }
             return byTwitter;
         }
@@ -1174,7 +1172,7 @@ export class AuthService {
             this.configService.get<Role[]>('twitterOAuth.defaultRoles') ?? [];
         const username = await this.buildUniqueUsername(profile.email);
 
-        return this.usersService.create({
+        return this.usersService.createAndAwaitUser({
             email: profile.email,
             firstName: profile.firstName,
             lastName: profile.lastName || '-',
@@ -1191,7 +1189,7 @@ export class AuthService {
         const byGithub = await this.usersService.findByGithubId(profile.githubId);
         if (byGithub) {
             if (!byGithub.isActive) {
-                return this.usersService.update(byGithub.id!, { isActive: true });
+                return this.usersService.updateAndAwaitUser(byGithub.id!, { isActive: true });
             }
             return byGithub;
         }
@@ -1207,7 +1205,7 @@ export class AuthService {
             this.configService.get<Role[]>('githubOAuth.defaultRoles') ?? [];
         const username = await this.buildUniqueUsername(profile.email);
 
-        return this.usersService.create({
+        return this.usersService.createAndAwaitUser({
             email: profile.email,
             firstName: profile.firstName,
             lastName: profile.lastName || '-',
@@ -1224,7 +1222,7 @@ export class AuthService {
         const byFigma = await this.usersService.findByFigmaId(profile.figmaId);
         if (byFigma) {
             if (!byFigma.isActive) {
-                return this.usersService.update(byFigma.id!, { isActive: true });
+                return this.usersService.updateAndAwaitUser(byFigma.id!, { isActive: true });
             }
             return byFigma;
         }
@@ -1240,7 +1238,7 @@ export class AuthService {
             this.configService.get<Role[]>('figmaOAuth.defaultRoles') ?? [];
         const username = await this.buildUniqueUsername(profile.email);
 
-        return this.usersService.create({
+        return this.usersService.createAndAwaitUser({
             email: profile.email,
             firstName: profile.firstName,
             lastName: profile.lastName || '-',
@@ -1259,7 +1257,7 @@ export class AuthService {
         );
         if (byLinkedin) {
             if (!byLinkedin.isActive) {
-                return this.usersService.update(byLinkedin.id!, { isActive: true });
+                return this.usersService.updateAndAwaitUser(byLinkedin.id!, { isActive: true });
             }
             return byLinkedin;
         }
@@ -1275,7 +1273,7 @@ export class AuthService {
             this.configService.get<Role[]>('linkedinOAuth.defaultRoles') ?? [];
         const username = await this.buildUniqueUsername(profile.email);
 
-        return this.usersService.create({
+        return this.usersService.createAndAwaitUser({
             email: profile.email,
             firstName: profile.firstName,
             lastName: profile.lastName || '-',
@@ -1292,7 +1290,7 @@ export class AuthService {
         const bySlack = await this.usersService.findBySlackId(profile.slackId);
         if (bySlack) {
             if (!bySlack.isActive) {
-                return this.usersService.update(bySlack.id!, { isActive: true });
+                return this.usersService.updateAndAwaitUser(bySlack.id!, { isActive: true });
             }
             return bySlack;
         }
@@ -1308,7 +1306,7 @@ export class AuthService {
             this.configService.get<Role[]>('slackOAuth.defaultRoles') ?? [];
         const username = await this.buildUniqueUsername(profile.email);
 
-        return this.usersService.create({
+        return this.usersService.createAndAwaitUser({
             email: profile.email,
             firstName: profile.firstName,
             lastName: profile.lastName || '-',
@@ -1327,7 +1325,7 @@ export class AuthService {
         );
         if (byAtlassian) {
             if (!byAtlassian.isActive) {
-                return this.usersService.update(byAtlassian.id!, { isActive: true });
+                return this.usersService.updateAndAwaitUser(byAtlassian.id!, { isActive: true });
             }
             return byAtlassian;
         }
@@ -1343,7 +1341,7 @@ export class AuthService {
             this.configService.get<Role[]>('atlassianOAuth.defaultRoles') ?? [];
         const username = await this.buildUniqueUsername(profile.email);
 
-        return this.usersService.create({
+        return this.usersService.createAndAwaitUser({
             email: profile.email,
             firstName: profile.firstName,
             lastName: profile.lastName || '-',
@@ -1360,7 +1358,7 @@ export class AuthService {
         const byGitlab = await this.usersService.findByGitlabId(profile.gitlabId);
         if (byGitlab) {
             if (!byGitlab.isActive) {
-                return this.usersService.update(byGitlab.id!, { isActive: true });
+                return this.usersService.updateAndAwaitUser(byGitlab.id!, { isActive: true });
             }
             return byGitlab;
         }
@@ -1376,7 +1374,7 @@ export class AuthService {
             this.configService.get<Role[]>('gitlabOAuth.defaultRoles') ?? [];
         const username = await this.buildUniqueUsername(profile.email);
 
-        return this.usersService.create({
+        return this.usersService.createAndAwaitUser({
             email: profile.email,
             firstName: profile.firstName,
             lastName: profile.lastName || '-',
@@ -1395,7 +1393,7 @@ export class AuthService {
         );
         if (byBitbucket) {
             if (!byBitbucket.isActive) {
-                return this.usersService.update(byBitbucket.id!, { isActive: true });
+                return this.usersService.updateAndAwaitUser(byBitbucket.id!, { isActive: true });
             }
             return byBitbucket;
         }
@@ -1411,7 +1409,7 @@ export class AuthService {
             this.configService.get<Role[]>('bitbucketOAuth.defaultRoles') ?? [];
         const username = await this.buildUniqueUsername(profile.email);
 
-        return this.usersService.create({
+        return this.usersService.createAndAwaitUser({
             email: profile.email,
             firstName: profile.firstName,
             lastName: profile.lastName || '-',
@@ -1428,7 +1426,7 @@ export class AuthService {
         const byDiscord = await this.usersService.findByDiscordId(profile.discordId);
         if (byDiscord) {
             if (!byDiscord.isActive) {
-                return this.usersService.update(byDiscord.id!, { isActive: true });
+                return this.usersService.updateAndAwaitUser(byDiscord.id!, { isActive: true });
             }
             return byDiscord;
         }
@@ -1444,7 +1442,7 @@ export class AuthService {
             this.configService.get<Role[]>('discordOAuth.defaultRoles') ?? [];
         const username = await this.buildUniqueUsername(profile.email);
 
-        return this.usersService.create({
+        return this.usersService.createAndAwaitUser({
             email: profile.email,
             firstName: profile.firstName,
             lastName: profile.lastName || '-',
@@ -1461,7 +1459,7 @@ export class AuthService {
         const byTwitch = await this.usersService.findByTwitchId(profile.twitchId);
         if (byTwitch) {
             if (!byTwitch.isActive) {
-                return this.usersService.update(byTwitch.id!, { isActive: true });
+                return this.usersService.updateAndAwaitUser(byTwitch.id!, { isActive: true });
             }
             return byTwitch;
         }
@@ -1477,7 +1475,7 @@ export class AuthService {
             this.configService.get<Role[]>('twitchOAuth.defaultRoles') ?? [];
         const username = await this.buildUniqueUsername(profile.email);
 
-        return this.usersService.create({
+        return this.usersService.createAndAwaitUser({
             email: profile.email,
             firstName: profile.firstName,
             lastName: profile.lastName || '-',
@@ -1494,7 +1492,7 @@ export class AuthService {
         const byAmazon = await this.usersService.findByAmazonId(profile.amazonId);
         if (byAmazon) {
             if (!byAmazon.isActive) {
-                return this.usersService.update(byAmazon.id!, { isActive: true });
+                return this.usersService.updateAndAwaitUser(byAmazon.id!, { isActive: true });
             }
             return byAmazon;
         }
@@ -1510,7 +1508,7 @@ export class AuthService {
             this.configService.get<Role[]>('amazonOAuth.defaultRoles') ?? [];
         const username = await this.buildUniqueUsername(profile.email);
 
-        return this.usersService.create({
+        return this.usersService.createAndAwaitUser({
             email: profile.email,
             firstName: profile.firstName,
             lastName: profile.lastName || '-',
@@ -1528,7 +1526,7 @@ export class AuthService {
         const byPatreon = await this.usersService.findByPatreonId(profile.patreonId);
         if (byPatreon) {
             if (!byPatreon.isActive) {
-                return this.usersService.update(byPatreon.id!, { isActive: true });
+                return this.usersService.updateAndAwaitUser(byPatreon.id!, { isActive: true });
             }
             return byPatreon;
         }
@@ -1544,7 +1542,7 @@ export class AuthService {
             this.configService.get<Role[]>('patreonOAuth.defaultRoles') ?? [];
         const username = await this.buildUniqueUsername(profile.email);
 
-        return this.usersService.create({
+        return this.usersService.createAndAwaitUser({
             email: profile.email,
             firstName: profile.firstName,
             lastName: profile.lastName || '-',
@@ -1561,7 +1559,7 @@ export class AuthService {
         const byDropbox = await this.usersService.findByDropboxId(profile.dropboxId);
         if (byDropbox) {
             if (!byDropbox.isActive) {
-                return this.usersService.update(byDropbox.id!, { isActive: true });
+                return this.usersService.updateAndAwaitUser(byDropbox.id!, { isActive: true });
             }
             return byDropbox;
         }
@@ -1577,7 +1575,7 @@ export class AuthService {
             this.configService.get<Role[]>('dropboxOAuth.defaultRoles') ?? [];
         const username = await this.buildUniqueUsername(profile.email);
 
-        return this.usersService.create({
+        return this.usersService.createAndAwaitUser({
             email: profile.email,
             firstName: profile.firstName,
             lastName: profile.lastName || '-',
@@ -1631,7 +1629,7 @@ export class AuthService {
                 patch.roles = resolvedRoles;
             }
             if (Object.keys(patch).length > 0) {
-                return this.usersService.update(byAd.id!, patch);
+                return this.usersService.updateAndAwaitUser(byAd.id!, patch);
             }
             return byAd;
         }
@@ -1654,7 +1652,7 @@ export class AuthService {
             profile.samAccountName ?? profile.email.split('@')[0];
         const username = await this.buildUniqueUsername(usernameBase);
 
-        return this.usersService.create({
+        return this.usersService.createAndAwaitUser({
             email: profile.email,
             firstName: profile.firstName,
             lastName: profile.lastName || '-',
@@ -1673,7 +1671,7 @@ export class AuthService {
         );
         if (byMetamask) {
             if (!byMetamask.isActive) {
-                return this.usersService.update(byMetamask.id!, {
+                return this.usersService.updateAndAwaitUser(byMetamask.id!, {
                     isActive: true,
                 });
             }
@@ -1685,7 +1683,7 @@ export class AuthService {
         const username = await this.buildUniqueUsername(profile.email);
         const { firstName, lastName } = generateRandomDisplayName();
 
-        return this.usersService.create({
+        return this.usersService.createAndAwaitUser({
             email: profile.email,
             firstName,
             lastName: lastName || '-',
@@ -1702,7 +1700,7 @@ export class AuthService {
         const bySteam = await this.usersService.findBySteamId(profile.steamId);
         if (bySteam) {
             if (!bySteam.isActive) {
-                return this.usersService.update(bySteam.id!, { isActive: true });
+                return this.usersService.updateAndAwaitUser(bySteam.id!, { isActive: true });
             }
             return bySteam;
         }
@@ -1718,7 +1716,7 @@ export class AuthService {
             this.configService.get<Role[]>('steamOpenId.defaultRoles') ?? [];
         const username = await this.buildUniqueUsername(profile.email);
 
-        return this.usersService.create({
+        return this.usersService.createAndAwaitUser({
             email: profile.email,
             firstName: profile.firstName,
             lastName: profile.lastName || '-',
@@ -1735,7 +1733,7 @@ export class AuthService {
         const byApple = await this.usersService.findByAppleId(profile.appleId);
         if (byApple) {
             if (!byApple.isActive) {
-                return this.usersService.update(byApple.id!, { isActive: true });
+                return this.usersService.updateAndAwaitUser(byApple.id!, { isActive: true });
             }
             return byApple;
         }
@@ -1751,7 +1749,7 @@ export class AuthService {
             this.configService.get<Role[]>('appleOAuth.defaultRoles') ?? [];
         const username = await this.buildUniqueUsername(profile.email);
 
-        return this.usersService.create({
+        return this.usersService.createAndAwaitUser({
             email: profile.email,
             firstName: profile.firstName,
             lastName: profile.lastName || '-',

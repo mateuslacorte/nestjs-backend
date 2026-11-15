@@ -1,4 +1,5 @@
 import {Controller, Post, Body, Req, Res, UseGuards, Get, Query, HttpCode, HttpStatus} from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
@@ -61,6 +62,7 @@ export class AuthController {
      * @returns The registered user
      */
     @Public()
+    @Throttle({ default: { ttl: 60000, limit: 5 } })
     @Audit({
         action: 'auth.register',
         category: 'auth',
@@ -102,6 +104,7 @@ export class AuthController {
      * @returns The logged in user
      */
     @Public()
+    @Throttle({ default: { ttl: 60000, limit: 10 } })
     @Audit({
         action: 'auth.login',
         category: 'auth',
@@ -1267,6 +1270,7 @@ export class AuthController {
      * @returns The forgot password
      */
     @Public()
+    @Throttle({ default: { ttl: 60000, limit: 3 } })
     @Post('forgot-password')
     @HttpCode(HttpStatus.OK)
     @Audit({

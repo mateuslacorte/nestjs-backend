@@ -12,6 +12,7 @@ import { UsersModule } from './users.module';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { UsersResolver } from './resolvers/users.resolver';
+import { CqrsModule } from '@nestjs/cqrs';
 import { UserMongoRepository } from './repositories/mongo.repository';
 import { UserPostgresRepository } from './repositories/postgres.repository';
 import { UserEntity } from './entities/user.entity';
@@ -56,7 +57,7 @@ describe('UsersModule', () => {
       UsersModule,
     ) as unknown[];
 
-    expect(imports).toHaveLength(3);
+    expect(imports).toHaveLength(4); // CqrsModule added for CQRS command/query buses
   });
 
   describe('ARGON2_OPTIONS provider', () => {
@@ -101,6 +102,7 @@ describe('UsersModule', () => {
 
   it('compiles UsersService with mocked repositories', async () => {
     const moduleRef = await Test.createTestingModule({
+      imports: [CqrsModule],
       controllers: [UsersController],
       providers: [
         UsersResolver,

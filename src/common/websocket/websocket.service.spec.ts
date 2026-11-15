@@ -1,30 +1,20 @@
 import { WebsocketService } from './websocket.service';
 import { AbstractWebsocketService } from './abstract-websocket.service';
+import { RedisPubSubService } from '@common/pubsub/redis-pubsub.service';
+
+function mockPubSub(): RedisPubSubService {
+  return { subscribe: jest.fn().mockResolvedValue(undefined), publish: jest.fn() } as unknown as RedisPubSubService;
+}
 
 describe('WebsocketService', () => {
-  let logSpy: jest.SpyInstance;
-
-  beforeEach(() => {
-    logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
-  });
-
-  afterEach(() => {
-    logSpy.mockRestore();
-  });
-
   it('extends AbstractWebsocketService', () => {
-    const service = new WebsocketService();
+    const service = new WebsocketService(mockPubSub());
     expect(service).toBeInstanceOf(AbstractWebsocketService);
     expect(service).toBeInstanceOf(WebsocketService);
   });
 
-  it('logs initialization on construct', () => {
-    new WebsocketService();
-    expect(logSpy).toHaveBeenCalledWith('WebSocket service initialized');
-  });
-
   it('inherits client registry behavior from the abstract base', () => {
-    const service = new WebsocketService();
+    const service = new WebsocketService(mockPubSub());
     const client = {
       id: 'sock-1',
       emit: jest.fn(),

@@ -1,6 +1,17 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 import { Role } from '@modules/auth/enums/role.enum';
 import { IUser } from "@modules/users/interfaces/user.interface";
+import { AsyncOperationResult } from '../users.service';
+
+@ObjectType()
+export class OperationResultModel implements AsyncOperationResult {
+    @Field()
+    operationId!: string;
+
+    @Field()
+    status!: 'pending';
+}
+
 
 @ObjectType()
 export class UserModel implements IUser {

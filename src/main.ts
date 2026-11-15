@@ -1,3 +1,4 @@
+import './telemetry'; // OpenTelemetry — must load before NestJS and all other imports
 import { NestFactory } from '@nestjs/core';
 import {
     FastifyAdapter,
@@ -17,6 +18,8 @@ import { existsSync } from 'fs';
 import fastifyCookie from '@fastify/cookie';
 import fastifySession from '@fastify/session';
 import fastifyPassport from '@fastify/passport';
+import fastifyHelmet from '@fastify/helmet';
+import fastifyCompress from '@fastify/compress';
 import pug from 'pug';
 
 // Polyfill for crypto.randomUUID() in Node.js 18 (required by @nestjs/schedule)
@@ -167,6 +170,15 @@ async function bootstrap() {
     // Express passport.session() breaks Fastify — use @fastify/passport instead
     await app.register(fastifyPassport.initialize() as any);
     await app.register(fastifyPassport.secureSession() as any);
+
+    // Security headers (CSP off — Swagger UI and Wiki need inline scripts)
+    await app.register(fastifyHelmet as any, {
+        contentSecurityPolicy: false,
+        crossOriginEmbedderPolicy: false,
+    });
+
+    // Response compression (brotli preferred, gzip fallback)
+    await app.register(fastifyCompress as any, { global: true });
 
     const fastify = app.getHttpAdapter().getInstance();
 

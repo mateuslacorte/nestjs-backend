@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { TypeMetadataStorage } from '@nestjs/graphql';
 import { LazyMetadataStorage } from '@nestjs/graphql/dist/schema-builder/storages/lazy-metadata.storage.js';
-import { UserModel, UsersPageModel } from '../models/users.model';
+import { UserModel, UsersPageModel, OperationResultModel } from '../models/users.model';
 import { UsersResolver } from './users.resolver';
 
 describe('UsersResolver GraphQL metadata', () => {
@@ -34,7 +34,8 @@ describe('UsersResolver GraphQL metadata', () => {
     );
     expect(mutations.length).toBeGreaterThan(0);
     for (const mutation of mutations) {
-      expect(mutation.typeFn()).toBe(UserModel);
+      // Mutations return OperationResultModel (202 async CQRS pattern)
+      expect(mutation.typeFn()).toBe(OperationResultModel);
     }
   });
 });

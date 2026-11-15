@@ -132,12 +132,10 @@ describe('UsersController', () => {
         email: 'jane@example.com',
         password: 'Str0ng!P@ssw0rd',
       };
-      const created = createUser();
-      usersService.create.mockResolvedValue(created);
+      const result = { operationId: 'op-1', status: 'pending' };
+      usersService.create.mockResolvedValue(result);
 
-      await expect(controller.create(dto)).resolves.toEqual(
-        sanitizeUserForResponse(created),
-      );
+      await expect(controller.create(dto)).resolves.toEqual(result);
       expect(usersService.create).toHaveBeenCalledWith(dto);
     });
 
@@ -207,24 +205,20 @@ describe('UsersController', () => {
   describe('update', () => {
     it('delegates to UsersService.update and returns sanitized user', async () => {
       const dto: UpdateUserDto = { firstName: 'Janet' };
-      const updated = createUser({ firstName: 'Janet', googleId: 'g-1' });
-      usersService.update.mockResolvedValue(updated);
+      const result = { operationId: 'op-2', status: 'pending' };
+      usersService.update.mockResolvedValue(result);
 
-      await expect(controller.update('user-1', dto)).resolves.toEqual(
-        sanitizeUserForResponse(updated),
-      );
+      await expect(controller.update('user-1', dto)).resolves.toEqual(result);
       expect(usersService.update).toHaveBeenCalledWith('user-1', dto);
     });
   });
 
   describe('remove', () => {
     it('delegates to UsersService.remove and returns sanitized user', async () => {
-      const removed = createUser({ googleId: 'g-1' });
-      usersService.remove.mockResolvedValue(removed);
+      const result = { operationId: 'op-3', status: 'pending' };
+      usersService.remove.mockResolvedValue(result);
 
-      await expect(controller.remove('user-1')).resolves.toEqual(
-        sanitizeUserForResponse(removed),
-      );
+      await expect(controller.remove('user-1')).resolves.toEqual(result);
       expect(usersService.remove).toHaveBeenCalledWith('user-1');
     });
   });

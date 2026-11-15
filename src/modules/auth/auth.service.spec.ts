@@ -147,6 +147,7 @@ describe('AuthService', () => {
   let service: AuthService;
   let usersService: {
     create: jest.Mock;
+    createAndAwaitUser: jest.Mock;
     findByEmail: jest.Mock;
     findById: jest.Mock;
     findByUsername: jest.Mock;
@@ -172,6 +173,7 @@ describe('AuthService', () => {
     findByEmailVerificationToken: jest.Mock;
     findByPasswordToken: jest.Mock;
     update: jest.Mock;
+    updateAndAwaitUser: jest.Mock;
     updateResetToken: jest.Mock;
     updatePassword: jest.Mock;
   };
@@ -198,6 +200,7 @@ describe('AuthService', () => {
   beforeEach(() => {
     usersService = {
       create: jest.fn(),
+      createAndAwaitUser: jest.fn().mockImplementation((...args: unknown[]) => (usersService.create as jest.Mock)(...args)),
       findByEmail: jest.fn(),
       findById: jest.fn(),
       findByUsername: jest.fn(),
@@ -223,6 +226,7 @@ describe('AuthService', () => {
       findByEmailVerificationToken: jest.fn(),
       findByPasswordToken: jest.fn(),
       update: jest.fn(),
+      updateAndAwaitUser: jest.fn().mockImplementation((...args: unknown[]) => (usersService.update as jest.Mock)(...args)),
       updateResetToken: jest.fn(),
       updatePassword: jest.fn(),
     };
@@ -366,8 +370,8 @@ describe('AuthService', () => {
 
       const token = await service.createEmailVerificationToken(user.email);
 
-      expect(token).toMatch(/^\d{6}$/);
-      expect(mockRandomBytes).toHaveBeenCalledWith(4);
+      expect(token).toMatch(/^[0-9a-f]{64}$/);
+      expect(mockRandomBytes).toHaveBeenCalledWith(32);
       expect(usersService.update).toHaveBeenCalledWith('user-1', {
         emailVerificationToken: token,
         emailVerificationExpires: expect.any(Date),
@@ -1119,8 +1123,8 @@ describe('AuthService', () => {
 
       const token = await service.createPasswordResetToken(user.email);
 
-      expect(token).toMatch(/^\d{6}$/);
-      expect(mockRandomBytes).toHaveBeenCalledWith(4);
+      expect(token).toMatch(/^[0-9a-f]{64}$/);
+      expect(mockRandomBytes).toHaveBeenCalledWith(32);
       expect(usersService.updateResetToken).toHaveBeenCalledWith('user-1', {
         passwordResetToken: token,
         passwordResetExpires: expect.any(Date),

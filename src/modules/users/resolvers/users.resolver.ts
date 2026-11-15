@@ -1,6 +1,6 @@
 import { Resolver, Query, Args, Mutation, Int } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
-import { UserModel, UsersPageModel } from '../models/users.model';
+import { UserModel, UsersPageModel, OperationResultModel } from '../models/users.model';
 import { UsersService } from '../users.service';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { UpdateUserDto } from '../dtos/update-user.dto';
@@ -15,9 +15,6 @@ import { Audit } from '@common/audit/decorators/audit.decorator';
 export class UsersResolver {
     constructor(private readonly usersService: UsersService) {}
 
-    /**
-     * Search users with cursor pagination
-     */
     @Query(() => UsersPageModel)
     @Roles(Role.SUPER)
     async users(
@@ -29,34 +26,19 @@ export class UsersResolver {
         return this.usersService.search({ cursor, limit, q, isActive });
     }
 
-    /**
-     * Get a user by ID
-     * @param id - The ID of the user to get
-     * @returns The user
-     */
     @Query(() => UserModel, { nullable: true })
     @Roles(Role.SUPER)
     async user(@Args('id') id: string): Promise<UserModel | null> {
         return this.usersService.findById(id);
     }
 
-    /**
-     * Get a user by email
-     * @param email - The email of the user to get
-     * @returns The user
-     */
     @Query(() => UserModel, { nullable: true })
     @Roles(Role.SUPER)
     async userByEmail(@Args('email') email: string): Promise<UserModel | null> {
         return this.usersService.findByEmail(email);
     }
 
-    /**
-     * Create a user
-     * @param userData - The data of the user to create
-     * @returns The created user
-     */
-    @Mutation(() => UserModel)
+    @Mutation(() => OperationResultModel)
     @Roles(Role.SUPER)
     @Audit({
         action: 'user.create',
@@ -65,17 +47,11 @@ export class UsersResolver {
         identifierFrom: 'email',
         userIdFrom: 'id',
     })
-    async createUser(@Args('userData') userData: CreateUserDto): Promise<UserModel> {
+    async createUser(@Args('userData') userData: CreateUserDto): Promise<OperationResultModel> {
         return this.usersService.create(userData);
     }
 
-    /**
-     * Update a user
-     * @param id - The ID of the user to update
-     * @param userData - The data of the user to update
-     * @returns The updated user
-     */
-    @Mutation(() => UserModel)
+    @Mutation(() => OperationResultModel)
     @Roles(Role.SUPER)
     @Audit({
         action: 'user.update',
@@ -86,17 +62,12 @@ export class UsersResolver {
     })
     async updateUser(
         @Args('id') id: string,
-        @Args('userData') userData: UpdateUserDto
-    ): Promise<UserModel> {
+        @Args('userData') userData: UpdateUserDto,
+    ): Promise<OperationResultModel> {
         return this.usersService.update(id, userData);
     }
 
-    /**
-     * Remove a user
-     * @param id - The ID of the user to remove
-     * @returns The removed user
-     */
-    @Mutation(() => UserModel)
+    @Mutation(() => OperationResultModel)
     @Roles(Role.SUPER)
     @Audit({
         action: 'user.delete',
@@ -105,7 +76,7 @@ export class UsersResolver {
         userIdFrom: 'id',
         userIdParam: 'id',
     })
-    async removeUser(@Args('id') id: string): Promise<UserModel> {
+    async removeUser(@Args('id') id: string): Promise<OperationResultModel> {
         return this.usersService.remove(id);
     }
 }
