@@ -1,13 +1,16 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { ApiProperty } from '@nestjs/swagger';
 import { Role } from '@modules/auth/enums/role.enum';
 import { IUser } from "@modules/users/interfaces/user.interface";
 import { AsyncOperationResult } from '../users.service';
 
 @ObjectType()
 export class OperationResultModel implements AsyncOperationResult {
+    @ApiProperty({ example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', description: 'Unique operation ID to poll for async result' })
     @Field()
     operationId!: string;
 
+    @ApiProperty({ example: 'pending', enum: ['pending'], description: 'Current operation status' })
     @Field()
     status!: 'pending';
 }

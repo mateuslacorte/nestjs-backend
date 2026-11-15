@@ -9,6 +9,14 @@
       { "include": "wiki/public/**/*", "watchAssets": true },
       { "include": "wiki/i18n/locales/**/*", "watchAssets": true },
       { "include": "modules/email/templates/**/*", "watchAssets": true }
+    ],
+    "plugins": [
+      {
+        "name": "@nestjs/swagger",
+        "options": {
+          "introspectComments": true
+        }
+      }
     ]
   }
 }
