@@ -21,6 +21,7 @@ import { JwtAuthGuard } from '@modules/auth/guards/jwtauth.guard';
 import { RolesGuard } from '@modules/auth/guards/roles.guard';
 import { AuditService } from '@common/audit/audit.service';
 import { AuditInterceptor } from '@common/audit/audit.interceptor';
+import { BulkheadService } from '@common/bulkhead/bulkhead.service';
 
 describe('UsersModule', () => {
   it('declares controller, exports UsersService, and registers providers', () => {
@@ -144,6 +145,10 @@ describe('UsersModule', () => {
         {
           provide: AuditInterceptor,
           useValue: { intercept: jest.fn((_c, next) => next.handle()) },
+        },
+        {
+          provide: BulkheadService,
+          useValue: { execute: jest.fn((fn: () => Promise<unknown>) => fn()), getStats: jest.fn() },
         },
       ],
     }).compile();

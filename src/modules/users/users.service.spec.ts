@@ -4,6 +4,8 @@ import { UserPostgresRepository } from './repositories/postgres.repository';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { IUser } from './interfaces/user.interface';
+import { BulkheadService } from '@common/bulkhead/bulkhead.service';
+import { BulkheadRejectedException } from '@common/bulkhead/bulkhead-rejected.exception';
 
 type MockPostgresRepo = {
   create: jest.Mock;
@@ -54,6 +56,7 @@ describe('UsersService', () => {
   let postgresRepo: MockPostgresRepo;
   let commandBus: { execute: jest.Mock };
   let queryBus: { execute: jest.Mock };
+  let bulkhead: { execute: jest.Mock; getStats: jest.Mock };
   let service: UsersService;
   let warnSpy: jest.SpyInstance;
   let logSpy: jest.SpyInstance;
@@ -64,6 +67,10 @@ describe('UsersService', () => {
 
     commandBus = { execute: jest.fn() };
     queryBus = { execute: jest.fn() };
+    bulkhead = {
+      execute: jest.fn().mockImplementation((fn: () => Promise<unknown>) => fn()),
+      getStats: jest.fn().mockReturnValue({ active: 0, limit: 50 }),
+    };
 
     postgresRepo = {
       create: jest.fn(),
@@ -100,6 +107,7 @@ describe('UsersService', () => {
       postgresRepo as unknown as UserPostgresRepository,
       commandBus as any,
       queryBus as any,
+      bulkhead as unknown as BulkheadService,
     );
   });
 
@@ -121,9 +129,23 @@ describe('UsersService', () => {
 
       const result = await service.create(dto);
 
+      expect(bulkhead.execute).toHaveBeenCalledTimes(1);
       expect(commandBus.execute).toHaveBeenCalledTimes(1);
       expect(result.status).toBe('pending');
       expect(typeof result.operationId).toBe('string');
+    });
+
+    it('propagates BulkheadRejectedException when bulkhead is full', async () => {
+      bulkhead.execute.mockRejectedValue(new BulkheadRejectedException());
+      const dto: CreateUserDto = {
+        firstName: 'Jane',
+        lastName: 'Smith',
+        username: 'janesmith',
+        email: 'jane@example.com',
+        password: 'Str0ng!P@ssw0rd',
+      };
+
+      await expect(service.create(dto)).rejects.toBeInstanceOf(BulkheadRejectedException);
     });
   });
 
@@ -325,9 +347,16 @@ describe('UsersService', () => {
 
       const result = await service.update('user-1', dto);
 
+      expect(bulkhead.execute).toHaveBeenCalledTimes(1);
       expect(commandBus.execute).toHaveBeenCalledTimes(1);
       expect(result.status).toBe('pending');
       expect(typeof result.operationId).toBe('string');
+    });
+
+    it('propagates BulkheadRejectedException when bulkhead is full', async () => {
+      bulkhead.execute.mockRejectedValue(new BulkheadRejectedException());
+
+      await expect(service.update('user-1', { firstName: 'X' })).rejects.toBeInstanceOf(BulkheadRejectedException);
     });
   });
 
@@ -337,9 +366,16 @@ describe('UsersService', () => {
 
       const result = await service.remove('user-1');
 
+      expect(bulkhead.execute).toHaveBeenCalledTimes(1);
       expect(commandBus.execute).toHaveBeenCalledTimes(1);
       expect(result.status).toBe('pending');
       expect(typeof result.operationId).toBe('string');
+    });
+
+    it('propagates BulkheadRejectedException when bulkhead is full', async () => {
+      bulkhead.execute.mockRejectedValue(new BulkheadRejectedException());
+
+      await expect(service.remove('user-1')).rejects.toBeInstanceOf(BulkheadRejectedException);
     });
   });
 
