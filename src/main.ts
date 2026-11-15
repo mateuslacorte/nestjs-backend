@@ -313,6 +313,8 @@ REST routes: \`/${apiPrefix}/...\`
             ? 'https'
             : 'http';
 
+    app.enableShutdownHooks();
+
     // Bind on all interfaces so Docker port publishing can reach the process
     await app.listen(port, '0.0.0.0');
     const publicUrl = /^https?:\/\//i.test(host)

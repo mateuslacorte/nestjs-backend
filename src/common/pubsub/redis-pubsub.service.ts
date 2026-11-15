@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnApplicationShutdown, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 
@@ -10,10 +10,11 @@ export interface PubSubMessage {
 }
 
 @Injectable()
-export class RedisPubSubService implements OnModuleInit, OnModuleDestroy {
+export class RedisPubSubService implements OnModuleInit, OnModuleDestroy, OnApplicationShutdown {
   private readonly logger = new Logger(RedisPubSubService.name);
   private subscriber!: Redis;
   private readonly listeners = new Map<string, Array<(msg: PubSubMessage) => void>>();
+  private redisShutdown = false;
 
   constructor(
     @Inject('REDIS_CLIENT') private readonly publisher: Redis,
@@ -49,8 +50,19 @@ export class RedisPubSubService implements OnModuleInit, OnModuleDestroy {
     this.logger.log('Redis PubSub service initialised');
   }
 
-  async onModuleDestroy() {
+  async onApplicationShutdown(): Promise<void> {
+    await this.quitRedis();
+  }
+
+  async onModuleDestroy(): Promise<void> {
+    await this.quitRedis();
+  }
+
+  private async quitRedis(): Promise<void> {
+    if (this.redisShutdown) return;
+    this.redisShutdown = true;
     await this.subscriber.quit();
+    await this.publisher.quit();
   }
 
   async publish(channel: string, message: PubSubMessage): Promise<void> {

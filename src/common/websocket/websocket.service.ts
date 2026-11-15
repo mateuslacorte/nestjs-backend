@@ -1,15 +1,28 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationShutdown, OnModuleInit } from '@nestjs/common';
+import { Server } from 'socket.io';
 import { AbstractWebsocketService } from './abstract-websocket.service';
 import { RedisPubSubService } from '@common/pubsub/redis-pubsub.service';
 
 export const WS_CHANNEL_DOMAIN = 'pubsub:events:domain';
 
 @Injectable()
-export class WebsocketService extends AbstractWebsocketService implements OnModuleInit {
+export class WebsocketService extends AbstractWebsocketService implements OnModuleInit, OnApplicationShutdown {
   protected readonly logger = new Logger(WebsocketService.name);
+  private server?: Server;
 
   constructor(private readonly pubSub: RedisPubSubService) {
     super();
+  }
+
+  setServer(server: Server): void {
+    this.server = server;
+  }
+
+  async onApplicationShutdown(): Promise<void> {
+    this.broadcast('server:shutdown', {});
+    if (this.server) {
+      await new Promise<void>((resolve) => this.server!.close(() => resolve()));
+    }
   }
 
   async onModuleInit() {
