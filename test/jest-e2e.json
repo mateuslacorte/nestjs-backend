@@ -1,0 +1,31 @@
+{
+  "displayName": "e2e",
+  "rootDir": "..",
+  "preset": "ts-jest",
+  "testEnvironment": "node",
+  "roots": ["<rootDir>/test"],
+  "testMatch": ["<rootDir>/test/**/*.e2e-spec.ts"],
+  "moduleFileExtensions": ["ts", "js", "json"],
+  "clearMocks": true,
+  "testTimeout": 30000,
+  "moduleNameMapper": {
+    "^@modules/(.*)$": "<rootDir>/src/modules/$1",
+    "^@common/(.*)$": "<rootDir>/src/common/$1",
+    "^@shared/(.*)$": "<rootDir>/src/shared/$1",
+    "^@config/(.*)$": "<rootDir>/src/config/$1"
+  },
+  "transformIgnorePatterns": ["/node_modules/(?!@nestjs/cqrs|uuid)"],
+  "transform": {
+    "^.+\\.(t|j)s$": ["ts-jest", {
+      "tsconfig": {
+        "rootDir": ".",
+        "esModuleInterop": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "strict": true,
+        "skipLibCheck": true,
+        "types": ["node", "jest"]
+      }
+    }]
+  }
+}
