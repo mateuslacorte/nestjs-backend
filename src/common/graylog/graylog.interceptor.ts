@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { NO_LOG_KEY } from './decorators/no-log.decorator';
 import { GraylogService } from './graylog.service';
+import { CorrelationContext } from '@common/correlation/correlation-context';
 
 const SENSITIVE_KEY =
     /pass(word)?|secret|token|authorization|refresh|cookie|client_secret|private.?key|code$/i;
@@ -50,6 +51,7 @@ export class GraylogInterceptor implements NestInterceptor {
         const request = context.switchToHttp().getRequest();
         const { method, url, body, query, params, headers } = request;
         const startedAt = Date.now();
+        const correlationId = CorrelationContext.get();
 
         this.graylogService.log(`Request: ${method} ${url}`, {
             type: 'request',
@@ -60,6 +62,7 @@ export class GraylogInterceptor implements NestInterceptor {
             params: redactValue(params),
             userAgent: headers['user-agent'] || '',
             ip: request.ip || '',
+            correlationId,
         });
 
         return next.handle().pipe(
@@ -72,6 +75,7 @@ export class GraylogInterceptor implements NestInterceptor {
                         responseTime: Date.now() - startedAt,
                         status: context.switchToHttp().getResponse().statusCode,
                         data: redactValue(data),
+                        correlationId,
                     });
                 },
                 error: () => {
@@ -80,6 +84,7 @@ export class GraylogInterceptor implements NestInterceptor {
                         method,
                         url,
                         responseTime: Date.now() - startedAt,
+                        correlationId,
                     }, 'error');
                 },
             }),

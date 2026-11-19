@@ -62,6 +62,7 @@ import { PubSubModule } from '@common/pubsub/pubsub.module';
 import { DlqModule } from '@common/dlq/dlq.module';
 import { OperationsModule } from '@common/operations/operations.module';
 import { CircuitBreakerModule } from '@common/circuit-breaker/circuit-breaker.module';
+import { CorrelationModule } from '@common/correlation/correlation.module';
 
 @Module({
     imports: [
@@ -105,6 +106,9 @@ import { CircuitBreakerModule } from '@common/circuit-breaker/circuit-breaker.mo
 
         // Rate limiting: 120 req/min globally; auth endpoints use stricter @Throttle()
         ThrottlerModule.forRoot([{ ttl: 60000, limit: 120 }]),
+
+        // Correlation ID middleware — must be registered before any other middleware
+        CorrelationModule,
 
         // Graylog module for logging
         GraylogModule,
