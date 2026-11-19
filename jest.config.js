@@ -20,6 +20,7 @@ module.exports = {
     '!src/common/file-upload/**/*.interface.ts',
     'src/common/decorators/**/*.ts',
     '!src/common/decorators/**/*.spec.ts',
+    'src/common/http/otel-http.interceptor.ts',
     'src/common/graylog/**/*.ts',
     '!src/common/graylog/**/*.spec.ts',
     'src/common/graphql/**/*.ts',

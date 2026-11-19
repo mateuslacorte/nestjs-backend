@@ -3,6 +3,10 @@ import axios from 'axios';
 import { hostname } from 'os';
 import { GraylogService } from './graylog.service';
 
+jest.mock('../http/otel-http.interceptor', () => ({
+  addOtelPropagationInterceptor: jest.fn(),
+}));
+
 type MockAxiosClient = {
   post: jest.Mock;
 };

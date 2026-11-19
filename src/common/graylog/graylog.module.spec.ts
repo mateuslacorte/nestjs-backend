@@ -16,6 +16,10 @@ jest.mock('axios', () => {
   };
 });
 
+jest.mock('../http/otel-http.interceptor', () => ({
+  addOtelPropagationInterceptor: jest.fn(),
+}));
+
 @Module({
   providers: [
     {
