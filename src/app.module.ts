@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -62,6 +62,8 @@ import { PubSubModule } from '@common/pubsub/pubsub.module';
 import { DlqModule } from '@common/dlq/dlq.module';
 import { OperationsModule } from '@common/operations/operations.module';
 import { CircuitBreakerModule } from '@common/circuit-breaker/circuit-breaker.module';
+import { CorrelationModule } from '@common/correlation/correlation.module';
+import { CorrelationMiddleware } from '@common/correlation/correlation.middleware';
 
 @Module({
     imports: [
@@ -117,6 +119,7 @@ import { CircuitBreakerModule } from '@common/circuit-breaker/circuit-breaker.mo
         DlqModule,
         OperationsModule,
         CircuitBreakerModule,
+        CorrelationModule,
 
         WebsocketModule.forRoot(),
 
@@ -193,4 +196,8 @@ import { CircuitBreakerModule } from '@common/circuit-breaker/circuit-breaker.mo
         },
     ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(CorrelationMiddleware).forRoutes('*');
+  }
+}

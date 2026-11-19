@@ -2,6 +2,7 @@ import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
 import { hostname } from 'os';
+import { CorrelationContext } from '../correlation/correlation-context';
 
 type LogLevel = 'debug' | 'verbose' | 'info' | 'warn' | 'error';
 
@@ -80,6 +81,7 @@ export class GraylogService implements OnModuleInit, OnModuleDestroy {
         }
 
         const safeContext = context === undefined ? undefined : this.safeSerialize(context);
+        const correlationId = CorrelationContext.get();
         const payload: GelfMessage = {
             version: '1.1',
             host: this.host,
@@ -90,6 +92,7 @@ export class GraylogService implements OnModuleInit, OnModuleDestroy {
             _facility: this.facility,
             _level_name: level,
             ...(safeContext === undefined ? {} : { _context: JSON.stringify(safeContext) }),
+            ...(correlationId ? { _correlationId: correlationId } : {}),
         };
 
         if (safeContext && typeof safeContext === 'object' && !Array.isArray(safeContext)) {

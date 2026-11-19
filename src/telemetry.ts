@@ -11,6 +11,26 @@ import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentation
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
+import type { SpanProcessor } from '@opentelemetry/sdk-trace';
+import type { Context } from '@opentelemetry/api';
+import { CorrelationContext } from './common/correlation/correlation-context';
+
+class CorrelationSpanProcessor implements SpanProcessor {
+  onStart(span: { setAttribute(key: string, value: string): void }, _parentContext: Context): void {
+    const id = CorrelationContext.get();
+    if (id) span.setAttribute('correlation.id', id);
+  }
+
+  onEnd(): void {}
+
+  shutdown(): Promise<void> {
+    return Promise.resolve();
+  }
+
+  forceFlush(): Promise<void> {
+    return Promise.resolve();
+  }
+}
 
 let sdk: NodeSDK | null = null;
 
@@ -31,6 +51,7 @@ if (process.env.OTEL_ENABLED === 'true') {
         '@opentelemetry/instrumentation-fs': { enabled: false },
       }),
     ],
+    spanProcessors: [new CorrelationSpanProcessor()],
   });
 
   sdk.start();
