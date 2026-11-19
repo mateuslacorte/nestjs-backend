@@ -43,6 +43,21 @@ export class HealthController {
     @Get()
     @HealthCheck()
     check() {
+        return this.runChecks();
+    }
+
+    /**
+     * Readiness probe — same checks as /health
+     */
+    @Public()
+    @NoLog()
+    @Get('ready')
+    @HealthCheck()
+    ready() {
+        return this.runChecks();
+    }
+
+    private runChecks() {
         const healthDetailed =
             process.env.HEALTH_DETAILED === 'true' ||
             process.env.HEALTH_DETAILED === '1';

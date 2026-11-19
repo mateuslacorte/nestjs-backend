@@ -1,0 +1,26 @@
+{
+  "moduleFileExtensions": ["ts", "js", "json"],
+  "rootDir": "..",
+  "testEnvironment": "node",
+  "testRegex": "test/.*\\.e2e-spec\\.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": ["ts-jest", {
+      "tsconfig": {
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "esModuleInterop": true,
+        "strict": true,
+        "skipLibCheck": true,
+        "types": ["node", "jest"]
+      }
+    }]
+  },
+  "moduleNameMapper": {
+    "^@modules/(.*)$": "<rootDir>/src/modules/$1",
+    "^@common/(.*)$": "<rootDir>/src/common/$1",
+    "^@shared/(.*)$": "<rootDir>/src/shared/$1",
+    "^@config/(.*)$": "<rootDir>/src/config/$1"
+  },
+  "transformIgnorePatterns": ["/node_modules/(?!@nestjs/cqrs)"],
+  "testTimeout": 30000
+}
