@@ -2,6 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { hostname } from 'os';
 import { GraylogService } from './graylog.service';
+import { CorrelationContext } from '../correlation/correlation-context';
 
 jest.mock('../http/otel-http.interceptor', () => ({
   addOtelPropagationInterceptor: jest.fn(),
@@ -167,6 +168,18 @@ describe('GraylogService', () => {
         }),
       );
       expect(typeof lastPayload().timestamp).toBe('number');
+    });
+
+    it('includes _correlationId in payload when CorrelationContext is active', () => {
+      CorrelationContext.run('req-abc-123', () => {
+        service.log('with correlation');
+        expect(lastPayload()._correlationId).toBe('req-abc-123');
+      });
+    });
+
+    it('omits _correlationId from payload when no CorrelationContext is active', () => {
+      service.log('no correlation');
+      expect(lastPayload()._correlationId).toBeUndefined();
     });
 
     it.each([

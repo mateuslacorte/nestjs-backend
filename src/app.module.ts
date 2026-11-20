@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -70,6 +70,7 @@ import { MetricsModule } from '@common/metrics/metrics.module';
 import { OutboxModule } from '@common/outbox/outbox.module';
 import { FeatureFlagsModule } from '@common/feature-flags/feature-flags.module';
 import { CorrelationModule } from '@common/correlation/correlation.module';
+import { CorrelationMiddleware } from '@common/correlation/correlation.middleware';
 
 @Module({
     imports: [
@@ -220,4 +221,8 @@ import { CorrelationModule } from '@common/correlation/correlation.module';
         },
     ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(CorrelationMiddleware).forRoutes('*');
+  }
+}
