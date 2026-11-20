@@ -4,6 +4,7 @@ import {
     Get,
     HttpCode,
     HttpStatus,
+    NotFoundException,
     Param,
     Patch,
     Post,
@@ -151,10 +152,10 @@ export class UsersController {
     @ApiResponse({ status: 401, description: 'Unauthorized - JWT token is missing or invalid.' })
     @ApiResponse({ status: 403, description: 'Forbidden - Insufficient permissions.' })
     @ApiResponse({ status: 404, description: 'User not found.' })
-    findOne(@Param('id') id: string) {
-        return this.usersService
-            .findById(id)
-            .then((user) => (user ? sanitizeUserForResponse(user) : null));
+    async findOne(@Param('id') id: string) {
+        const user = await this.usersService.findById(id);
+        if (!user) throw new NotFoundException('User not found');
+        return sanitizeUserForResponse(user);
     }
 
     /**

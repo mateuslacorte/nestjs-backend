@@ -1,5 +1,5 @@
 import { RequestMethod, ValidationPipe } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test, TestingModule, TestingModuleBuilder } from '@nestjs/testing';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
@@ -13,6 +13,10 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
+import { PassportStrategy } from '@nestjs/passport';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { Injectable } from '@nestjs/common';
+import * as jsonwebtoken from 'jsonwebtoken';
 
 import jwtConfig from '../../src/config/jwt.config';
 import appConfig from '../../src/config/app.config';
@@ -80,6 +84,37 @@ import { MongoPoolHealthIndicator } from '../../src/modules/health/indicators/mo
 
 export const TEST_JWT_SECRET = 'e2e-test-jwt-secret-at-least-32-chars-pad';
 export const TEST_JWT_REFRESH_SECRET = 'e2e-refresh-jwt-secret-32-chars-pad';
+
+/** Passport JWT strategy for tests: validates signature without a DB lookup. */
+@Injectable()
+export class TestJwtStrategy extends PassportStrategy(Strategy, 'jwt') {
+  constructor() {
+    super({
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ignoreExpiration: false,
+      secretOrKey: TEST_JWT_SECRET,
+    });
+  }
+
+  async validate(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+    return { id: payload['id'], email: payload['email'], roles: payload['roles'] ?? [] };
+  }
+}
+
+/** Sign a short-lived JWT for use in tests. */
+export function signTestToken(
+  payload: Record<string, unknown>,
+  expiresIn = '1h',
+): string {
+  return jsonwebtoken.sign(payload, TEST_JWT_SECRET, { expiresIn } as jsonwebtoken.SignOptions);
+}
+
+export interface CreateTestAppOptions {
+  /** Global prefix for API routes. Defaults to 'api/v1'. Set to false to skip. */
+  prefix?: string | false;
+  /** Paths excluded from the prefix (passed to setGlobalPrefix). */
+  excludePaths?: string[];
+}
 
 const mockCanActivate = { canActivate: jest.fn().mockResolvedValue(true) };
 
@@ -162,7 +197,40 @@ export interface TestContext {
   pgRepo: ReturnType<typeof createMockTypeOrmUserRepo>;
 }
 
-export async function createTestApp(): Promise<TestContext> {
+/** Build a Fastify NestJS test application from a TestingModuleBuilder (for negative-path e2e tests). */
+export async function createTestApp(
+  builder: TestingModuleBuilder,
+  options?: CreateTestAppOptions,
+): Promise<NestFastifyApplication>;
+/** Create a fully self-contained test application with all mocked infrastructure. */
+export async function createTestApp(): Promise<TestContext>;
+export async function createTestApp(
+  builderOrUndefined?: TestingModuleBuilder,
+  options: CreateTestAppOptions = {},
+): Promise<NestFastifyApplication | TestContext> {
+  if (builderOrUndefined !== undefined) {
+    const moduleFixture = await builderOrUndefined.compile();
+    const app = moduleFixture.createNestApplication<NestFastifyApplication>(new FastifyAdapter());
+
+    const prefix = options.prefix === undefined ? 'api/v1' : options.prefix;
+    if (prefix !== false) {
+      const excludePaths = options.excludePaths ?? [];
+      const excludes = excludePaths.map((path) => ({
+        path,
+        method: RequestMethod.ALL,
+      }));
+      app.setGlobalPrefix(prefix, { exclude: excludes });
+    }
+
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
+    );
+
+    await app.init();
+    await app.getHttpAdapter().getInstance().ready();
+    return app;
+  }
+
   process.env.JWT_SECRET = TEST_JWT_SECRET;
   process.env.JWT_REFRESH_SECRET = TEST_JWT_REFRESH_SECRET;
   process.env.ARGON2_MEMORY_COST = '1024';
@@ -209,7 +277,6 @@ export async function createTestApp(): Promise<TestContext> {
       { provide: MetamaskSiweService, useValue: { createNonce: jest.fn().mockResolvedValue({ nonce: 'test-nonce', expiresIn: 60 }), verifyAndGetProfile: jest.fn().mockRejectedValue(new Error('Disabled')) } },
       { provide: EmailService, useValue: { sendEmailConfirmation: jest.fn().mockResolvedValue(undefined), sendPasswordReset: jest.fn().mockResolvedValue(undefined), sendMail: jest.fn().mockResolvedValue(undefined) } },
 
-      // Mocked OAuth guards (resolved lazily per-route but DI must find them)
       { provide: GoogleAuthGuard, useValue: mockCanActivate },
       { provide: FacebookAuthGuard, useValue: mockCanActivate },
       { provide: TwitterAuthGuard, useValue: mockCanActivate },
