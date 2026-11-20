@@ -140,19 +140,19 @@ async function bootstrap() {
         process.env.SESSION_SECRET;
     if (!sessionSecret?.trim()) {
         if (isProduction) {
-            throw new Error(
-                'SESSION_SECRET must be set in production (no JWT_SECRET fallback)',
-            );
+            throw new Error('SESSION_SECRET must be set in production');
         }
-        sessionSecret =
-            configService.get<string>('jwt.secret') ||
-            process.env.JWT_SECRET ||
-            'dev-session-secret-change-me';
+        // Non-production only: use a fixed dev string. Never fall back to the
+        // JWT secret — a compromised JWT key must not also compromise sessions.
+        sessionSecret = 'dev-only-session-secret-insecure';
     }
     sessionSecret = sessionSecret.trim();
-    // @fastify/session requires secret length >= 32
+    // @fastify/session requires secret length >= 32. Reject short secrets
+    // rather than silently padding with predictable '0' bytes.
     if (sessionSecret.length < 32) {
-        sessionSecret = `${sessionSecret}`.padEnd(32, '0');
+        throw new Error(
+            `SESSION_SECRET must be at least 32 characters (got ${sessionSecret.length})`,
+        );
     }
 
     await app.register(fastifyCookie as any);
