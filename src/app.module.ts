@@ -4,6 +4,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
+import Redis from 'ioredis';
 import {
     ApolloFastifyDriver,
     ApolloFastifyDriverConfig,
@@ -51,6 +53,7 @@ import dropboxOAuthConfig from './config/dropbox-oauth.config';
 import metamaskAuthConfig from './config/metamask-auth.config';
 import adLdapConfig from './config/ad-ldap.config';
 import corsConfig from './config/cors.config';
+import throttlerConfig from './config/throttler.config';
 import { WikiModule } from "./wiki/wiki.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { SecurityModule} from "@common/security/security.module";
@@ -104,11 +107,23 @@ import { FeatureFlagsModule } from '@common/feature-flags/feature-flags.module';
                 metamaskAuthConfig,
                 adLdapConfig,
                 corsConfig,
+                throttlerConfig,
             ],
         }),
 
-        // Rate limiting: 120 req/min globally; auth endpoints use stricter @Throttle()
-        ThrottlerModule.forRoot([{ ttl: 60000, limit: 120 }]),
+        // Rate limiting: cluster-wide via Redis; auth endpoints use stricter @Throttle()
+        ThrottlerModule.forRootAsync({
+            inject: [ConfigService, 'REDIS_CLIENT'],
+            useFactory: (config: ConfigService, redisClient: Redis) => ({
+                throttlers: [
+                    {
+                        ttl: config.get<number>('throttler.ttl', 60000),
+                        limit: config.get<number>('throttler.limit', 120),
+                    },
+                ],
+                storage: new ThrottlerStorageRedisService(redisClient),
+            }),
+        }),
 
         // Graylog module for logging
         GraylogModule,
