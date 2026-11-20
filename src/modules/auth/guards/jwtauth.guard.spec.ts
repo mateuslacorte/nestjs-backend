@@ -124,12 +124,31 @@ describe('JwtAuthGuard', () => {
         getHandler: jest.fn(),
         getClass: jest.fn(),
         getType: jest.fn(() => 'http'),
+        switchToHttp: () => ({
+          getRequest: () => ({ url: '/api/users' }),
+        }),
       } as unknown as ExecutionContext;
 
       const result = guard.canActivate(context);
 
       expect(result).toBe(true);
       expect(superCanActivate).toHaveBeenCalledWith(context);
+    });
+
+    it('allows unauthenticated access to /metrics path', () => {
+      const context = {
+        getHandler: jest.fn(),
+        getClass: jest.fn(),
+        getType: jest.fn(() => 'http'),
+        switchToHttp: () => ({
+          getRequest: () => ({ url: '/metrics' }),
+        }),
+      } as unknown as ExecutionContext;
+
+      const result = guard.canActivate(context);
+
+      expect(result).toBe(true);
+      expect(superCanActivate).not.toHaveBeenCalled();
     });
 
     it('delegates to super.canActivate for non-public graphql routes', () => {

@@ -102,12 +102,17 @@ module.exports = {
     '!src/wiki/**/*.spec.ts',
     // Thin Nest route table: decorator instrumentation dominates branch %, logic lives in WikiRenderService
     '!src/wiki/wiki.controller.ts',
+    'src/common/metrics/**/*.ts',
+    '!src/common/metrics/**/*.spec.ts',
+    '!src/common/metrics/*.module.ts',
   ],
   moduleNameMapper: {
     '^@modules/(.*)$': '<rootDir>/src/modules/$1',
     '^@common/(.*)$': '<rootDir>/src/common/$1',
     '^@shared/(.*)$': '<rootDir>/src/shared/$1',
     '^@config/(.*)$': '<rootDir>/src/config/$1',
+    // @willsoto/nestjs-prometheus v7 uses @prometheus-io/client; alias to installed prom-client
+    '^@prometheus-io/client$': 'prom-client',
   },
   // @nestjs/cqrs v12 ships as pure ESM; allow ts-jest to transform it
   transformIgnorePatterns: ['/node_modules/(?!@nestjs/cqrs)'],

@@ -5,6 +5,8 @@ import { GqlExecutionContext } from '@nestjs/graphql';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { AuthenticatedSocket } from '@common/websocket/abstract-websocket.gateway';
 
+const ALWAYS_PUBLIC_PATHS = ['/metrics'];
+
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
     constructor(private reflector: Reflector) {
@@ -19,6 +21,13 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
         if (isPublic) {
             return true;
+        }
+
+        if (context.getType() === 'http') {
+            const req = context.switchToHttp().getRequest<{ url: string }>();
+            if (ALWAYS_PUBLIC_PATHS.includes(req.url)) {
+                return true;
+            }
         }
 
         // Handshake already validated JWT and attached user on the socket
