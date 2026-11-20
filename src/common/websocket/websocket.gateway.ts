@@ -3,7 +3,7 @@ import {
     SubscribeMessage,
 } from '@nestjs/websockets';
 import { UseGuards } from '@nestjs/common';
-import { Socket } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { ConfigService } from '@nestjs/config';
 import { WebsocketService } from './websocket.service';
 import { AbstractWebsocketGateway } from './abstract-websocket.gateway';
@@ -23,6 +23,11 @@ export class WebsocketGateway extends AbstractWebsocketGateway {
         protected readonly usersService: UsersService,
     ) {
         super(websocketService, configService, usersService);
+    }
+
+    afterInit(server: Server): void {
+        super.afterInit(server);
+        this.websocketService.setServer(server);
     }
 
     @SubscribeMessage('message')

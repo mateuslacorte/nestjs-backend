@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationShutdown, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Admin, Consumer, Kafka, KafkaMessage, Producer, logLevel } from 'kafkajs';
 
@@ -23,7 +23,7 @@ function h(val: Buffer | string | (Buffer | string)[] | null | undefined): strin
 }
 
 @Injectable()
-export class DlqService implements OnModuleInit, OnModuleDestroy {
+export class DlqService implements OnModuleInit, OnModuleDestroy, OnApplicationShutdown {
   private readonly logger = new Logger(DlqService.name);
   private readonly handlers = new Map<string, HandlerEntry>();
 
@@ -71,9 +71,19 @@ export class DlqService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  async onApplicationShutdown(): Promise<void> {
+    await this.disconnectKafka();
+  }
+
   async onModuleDestroy(): Promise<void> {
+    await this.disconnectKafka();
+  }
+
+  private async disconnectKafka(): Promise<void> {
     if (!this.connected) return;
+    this.connected = false;
     try {
+      await this.consumer.stop();
       await this.consumer.disconnect();
       await this.producer.disconnect();
     } catch (err) {
