@@ -62,7 +62,7 @@ describe('UsersModule', () => {
       UsersModule,
     ) as unknown[];
 
-    expect(imports).toHaveLength(5); // CqrsModule, Mongoose, TypeORM, AuditModule, EmailModule
+    expect(imports).toHaveLength(6); // CqrsModule, Mongoose, TypeORM, AuditModule, EmailModule, CacheWarmupModule
   });
 
   describe('ARGON2_OPTIONS provider', () => {

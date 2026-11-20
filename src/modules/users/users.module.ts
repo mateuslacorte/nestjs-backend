@@ -15,6 +15,8 @@ import { RolesGuard } from '@modules/auth/guards/roles.guard';
 import { JwtAuthGuard } from '@modules/auth/guards/jwtauth.guard';
 import { AuditModule } from '@common/audit/audit.module';
 import { EmailModule } from '@modules/email/email.module';
+import { CacheWarmupModule } from '@common/cache/cache-warmup.module';
+import { UsersCacheWarmer } from './cache/users-cache-warmer';
 
 // Command handlers
 import { CreateUserHandler } from './commands/handlers/create-user.handler';
@@ -48,6 +50,7 @@ const Sagas = [UserRegistrationSaga, UserDeletionSaga];
     TypeOrmModule.forFeature([UserEntity]),
     AuditModule,
     EmailModule,
+    CacheWarmupModule.forRoot([UsersCacheWarmer]),
   ],
   providers: [
     UsersResolver,
