@@ -22,6 +22,8 @@ import { RolesGuard } from '@modules/auth/guards/roles.guard';
 import { AuditService } from '@common/audit/audit.service';
 import { AuditInterceptor } from '@common/audit/audit.interceptor';
 import { BulkheadService } from '@common/bulkhead/bulkhead.service';
+import { UserRegistrationSaga } from './sagas/user-registration.saga';
+import { UserDeletionSaga } from './sagas/user-deletion.saga';
 
 describe('UsersModule', () => {
   it('declares controller, exports UsersService, and registers providers', () => {
@@ -48,6 +50,8 @@ describe('UsersModule', () => {
         UserPostgresRepository,
         { provide: APP_GUARD, useClass: JwtAuthGuard },
         { provide: APP_GUARD, useClass: RolesGuard },
+        UserRegistrationSaga,
+        UserDeletionSaga,
       ]),
     );
   });
@@ -58,7 +62,7 @@ describe('UsersModule', () => {
       UsersModule,
     ) as unknown[];
 
-    expect(imports).toHaveLength(4); // CqrsModule added for CQRS command/query buses
+    expect(imports).toHaveLength(5); // CqrsModule, Mongoose, TypeORM, AuditModule, EmailModule
   });
 
   describe('ARGON2_OPTIONS provider', () => {

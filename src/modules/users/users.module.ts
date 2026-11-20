@@ -14,11 +14,14 @@ import { APP_GUARD } from '@nestjs/core';
 import { RolesGuard } from '@modules/auth/guards/roles.guard';
 import { JwtAuthGuard } from '@modules/auth/guards/jwtauth.guard';
 import { AuditModule } from '@common/audit/audit.module';
+import { EmailModule } from '@modules/email/email.module';
 
 // Command handlers
 import { CreateUserHandler } from './commands/handlers/create-user.handler';
 import { UpdateUserHandler } from './commands/handlers/update-user.handler';
 import { DeleteUserHandler } from './commands/handlers/delete-user.handler';
+import { SendWelcomeEmailHandler } from './commands/handlers/send-welcome-email.handler';
+import { RevokeUserSessionsHandler } from './commands/handlers/revoke-user-sessions.handler';
 
 // Query handlers
 import { FindUserByIdHandler } from './queries/handlers/find-user-by-id.handler';
@@ -29,9 +32,14 @@ import { UserCreatedHandler } from './events/handlers/user-created.handler';
 import { UserUpdatedHandler } from './events/handlers/user-updated.handler';
 import { UserDeletedHandler } from './events/handlers/user-deleted.handler';
 
-const CommandHandlers = [CreateUserHandler, UpdateUserHandler, DeleteUserHandler];
+// Sagas
+import { UserRegistrationSaga } from './sagas/user-registration.saga';
+import { UserDeletionSaga } from './sagas/user-deletion.saga';
+
+const CommandHandlers = [CreateUserHandler, UpdateUserHandler, DeleteUserHandler, SendWelcomeEmailHandler, RevokeUserSessionsHandler];
 const QueryHandlers = [FindUserByIdHandler, SearchUsersHandler];
 const EventHandlers = [UserCreatedHandler, UserUpdatedHandler, UserDeletedHandler];
+const Sagas = [UserRegistrationSaga, UserDeletionSaga];
 
 @Module({
   imports: [
@@ -39,6 +47,7 @@ const EventHandlers = [UserCreatedHandler, UserUpdatedHandler, UserDeletedHandle
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     TypeOrmModule.forFeature([UserEntity]),
     AuditModule,
+    EmailModule,
   ],
   providers: [
     UsersResolver,
@@ -48,6 +57,7 @@ const EventHandlers = [UserCreatedHandler, UserUpdatedHandler, UserDeletedHandle
     ...CommandHandlers,
     ...QueryHandlers,
     ...EventHandlers,
+    ...Sagas,
     {
       provide: 'ARGON2_OPTIONS',
       useFactory: (configService: ConfigService) => ({
