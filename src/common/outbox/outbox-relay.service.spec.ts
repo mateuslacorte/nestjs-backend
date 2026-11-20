@@ -1,6 +1,7 @@
 import { OutboxRelayService } from './outbox-relay.service';
 import { OutboxEntry, OutboxStatus } from './entities/outbox-entry.entity';
 import { OutboxPostgresRepository } from './repositories/outbox-postgres.repository';
+import { OutboxMongoRepository, PendingMongoEntry } from './repositories/outbox-mongo.repository';
 import { RedisPubSubService } from '@common/pubsub/redis-pubsub.service';
 import { ConfigService } from '@nestjs/config';
 
@@ -22,18 +23,32 @@ const makeEntry = (overrides: Partial<OutboxEntry> = {}): OutboxEntry => ({
   ...overrides,
 });
 
+const makeMongoEntry = (overrides: Partial<PendingMongoEntry> = {}): PendingMongoEntry => ({
+  id: 'mongo-id-1',
+  eventType: 'user.created',
+  payload: {
+    channel: 'domain',
+    message: { event: 'user.created', operationId: 'op-1', payload: { userId: 'user-1' } },
+  },
+  retries: 0,
+  ...overrides,
+});
+
 describe('OutboxRelayService', () => {
   let outboxRepo: jest.Mocked<Pick<OutboxPostgresRepository, 'findPending' | 'update'>>;
+  let outboxMongoRepo: jest.Mocked<Pick<OutboxMongoRepository, 'findPending' | 'update'>>;
   let pubSub: jest.Mocked<Pick<RedisPubSubService, 'publish'>>;
   let configService: jest.Mocked<Pick<ConfigService, 'get'>>;
   let service: OutboxRelayService;
 
   beforeEach(() => {
-    outboxRepo = { findPending: jest.fn(), update: jest.fn() };
+    outboxRepo = { findPending: jest.fn().mockResolvedValue([]), update: jest.fn().mockResolvedValue(undefined) };
+    outboxMongoRepo = { findPending: jest.fn().mockResolvedValue([]), update: jest.fn().mockResolvedValue(undefined) };
     pubSub = { publish: jest.fn() } as unknown as jest.Mocked<Pick<RedisPubSubService, 'publish'>>;
     configService = { get: jest.fn().mockReturnValue(undefined) } as unknown as jest.Mocked<Pick<ConfigService, 'get'>>;
     service = new OutboxRelayService(
       outboxRepo as unknown as OutboxPostgresRepository,
+      outboxMongoRepo as unknown as OutboxMongoRepository,
       pubSub as unknown as RedisPubSubService,
       configService as unknown as ConfigService,
     );
@@ -61,7 +76,6 @@ describe('OutboxRelayService', () => {
     });
 
     it('fires relay on tick', async () => {
-      outboxRepo.findPending.mockResolvedValue([]);
       service.onModuleInit();
 
       jest.advanceTimersByTime(500);
@@ -84,16 +98,23 @@ describe('OutboxRelayService', () => {
   });
 
   describe('relay', () => {
-    it('finds pending entries and processes each', async () => {
-      const entries = [makeEntry({ id: 'e1' }), makeEntry({ id: 'e2' })];
-      outboxRepo.findPending.mockResolvedValue(entries);
-      pubSub.publish.mockResolvedValue(undefined);
-      outboxRepo.update.mockResolvedValue(undefined);
-
+    it('finds pending entries from both Postgres and MongoDB', async () => {
       await service.relay();
 
       expect(outboxRepo.findPending).toHaveBeenCalled();
-      expect(pubSub.publish).toHaveBeenCalledTimes(2);
+      expect(outboxMongoRepo.findPending).toHaveBeenCalled();
+    });
+
+    it('processes Postgres and MongoDB entries in one tick', async () => {
+      const pgEntries = [makeEntry({ id: 'pg-1' }), makeEntry({ id: 'pg-2' })];
+      const mongoEntries = [makeMongoEntry({ id: 'mg-1' })];
+      outboxRepo.findPending.mockResolvedValue(pgEntries);
+      outboxMongoRepo.findPending.mockResolvedValue(mongoEntries);
+      pubSub.publish.mockResolvedValue(undefined);
+
+      await service.relay();
+
+      expect(pubSub.publish).toHaveBeenCalledTimes(3);
     });
 
     it('skips when already relaying (concurrent guard)', async () => {
@@ -102,6 +123,7 @@ describe('OutboxRelayService', () => {
       await service.relay();
 
       expect(outboxRepo.findPending).not.toHaveBeenCalled();
+      expect(outboxMongoRepo.findPending).not.toHaveBeenCalled();
     });
 
     it('resets relaying flag even when findPending throws', async () => {
@@ -113,20 +135,17 @@ describe('OutboxRelayService', () => {
     });
 
     it('does nothing when no pending entries', async () => {
-      outboxRepo.findPending.mockResolvedValue([]);
-
       await service.relay();
 
       expect(pubSub.publish).not.toHaveBeenCalled();
     });
   });
 
-  describe('processEntry (via relay)', () => {
+  describe('processEntry — Postgres (via relay)', () => {
     it('publishes the message and marks entry as published', async () => {
       const entry = makeEntry();
       outboxRepo.findPending.mockResolvedValue([entry]);
       pubSub.publish.mockResolvedValue(undefined);
-      outboxRepo.update.mockResolvedValue(undefined);
 
       await service.relay();
 
@@ -145,7 +164,6 @@ describe('OutboxRelayService', () => {
       const entry = makeEntry({ retries: 0 });
       outboxRepo.findPending.mockResolvedValue([entry]);
       pubSub.publish.mockRejectedValue(new Error('redis down'));
-      outboxRepo.update.mockResolvedValue(undefined);
 
       await service.relay();
 
@@ -157,10 +175,9 @@ describe('OutboxRelayService', () => {
     });
 
     it('marks entry as FAILED after max retries exceeded', async () => {
-      const entry = makeEntry({ retries: 3 }); // 3 retries → next attempt → newRetries=4 > MAX_RETRIES=3 → FAILED
+      const entry = makeEntry({ retries: 3 });
       outboxRepo.findPending.mockResolvedValue([entry]);
       pubSub.publish.mockRejectedValue(new Error('redis down'));
-      outboxRepo.update.mockResolvedValue(undefined);
 
       await service.relay();
 
@@ -174,7 +191,6 @@ describe('OutboxRelayService', () => {
       const entry = makeEntry({ retries: 3 });
       outboxRepo.findPending.mockResolvedValue([entry]);
       pubSub.publish.mockRejectedValue('string error');
-      outboxRepo.update.mockResolvedValue(undefined);
 
       await service.relay();
 
@@ -193,11 +209,85 @@ describe('OutboxRelayService', () => {
       });
       outboxRepo.findPending.mockResolvedValue([entry]);
       pubSub.publish.mockResolvedValue(undefined);
-      outboxRepo.update.mockResolvedValue(undefined);
 
       await service.relay();
 
       expect(pubSub.publish).toHaveBeenCalledWith('my-channel', expect.objectContaining({ event: 'user.deleted' }));
+    });
+  });
+
+  describe('processMongoEntry (via relay)', () => {
+    it('publishes the message and marks mongo entry as published', async () => {
+      const entry = makeMongoEntry();
+      outboxMongoRepo.findPending.mockResolvedValue([entry]);
+      pubSub.publish.mockResolvedValue(undefined);
+
+      await service.relay();
+
+      expect(pubSub.publish).toHaveBeenCalledWith('domain', {
+        event: 'user.created',
+        operationId: 'op-1',
+        payload: { userId: 'user-1' },
+      });
+      expect(outboxMongoRepo.update).toHaveBeenCalledWith(
+        'mongo-id-1',
+        expect.objectContaining({ status: 'published' }),
+      );
+    });
+
+    it('increments retries on publish failure (below max)', async () => {
+      const entry = makeMongoEntry({ retries: 0 });
+      outboxMongoRepo.findPending.mockResolvedValue([entry]);
+      pubSub.publish.mockRejectedValue(new Error('redis down'));
+
+      await service.relay();
+
+      expect(outboxMongoRepo.update).toHaveBeenCalledWith('mongo-id-1', { retries: 1 });
+      expect(outboxMongoRepo.update).not.toHaveBeenCalledWith(
+        'mongo-id-1',
+        expect.objectContaining({ status: 'failed' }),
+      );
+    });
+
+    it('marks mongo entry as failed after max retries exceeded', async () => {
+      const entry = makeMongoEntry({ retries: 3 });
+      outboxMongoRepo.findPending.mockResolvedValue([entry]);
+      pubSub.publish.mockRejectedValue(new Error('redis down'));
+
+      await service.relay();
+
+      expect(outboxMongoRepo.update).toHaveBeenCalledWith(
+        'mongo-id-1',
+        expect.objectContaining({ status: 'failed', retries: 4 }),
+      );
+    });
+
+    it('handles non-Error throws when logging mongo failure', async () => {
+      const entry = makeMongoEntry({ retries: 3 });
+      outboxMongoRepo.findPending.mockResolvedValue([entry]);
+      pubSub.publish.mockRejectedValue('string error');
+
+      await service.relay();
+
+      expect(outboxMongoRepo.update).toHaveBeenCalledWith(
+        'mongo-id-1',
+        expect.objectContaining({ status: 'failed' }),
+      );
+    });
+
+    it('publishes to the correct channel from mongo entry payload', async () => {
+      const entry = makeMongoEntry({
+        payload: {
+          channel: 'mongo-channel',
+          message: { event: 'order.placed', operationId: 'op-3', payload: { orderId: 'o1' } },
+        },
+      });
+      outboxMongoRepo.findPending.mockResolvedValue([entry]);
+      pubSub.publish.mockResolvedValue(undefined);
+
+      await service.relay();
+
+      expect(pubSub.publish).toHaveBeenCalledWith('mongo-channel', expect.objectContaining({ event: 'order.placed' }));
     });
   });
 });

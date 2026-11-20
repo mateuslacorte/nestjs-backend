@@ -2,6 +2,7 @@ import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/commo
 import { ConfigService } from '@nestjs/config';
 import { OutboxEntry, OutboxStatus } from './entities/outbox-entry.entity';
 import { OutboxPostgresRepository } from './repositories/outbox-postgres.repository';
+import { OutboxMongoRepository, PendingMongoEntry } from './repositories/outbox-mongo.repository';
 import { RedisPubSubService, PubSubMessage } from '@common/pubsub/redis-pubsub.service';
 
 const MAX_RETRIES = 3;
@@ -15,6 +16,7 @@ export class OutboxRelayService implements OnModuleInit, OnModuleDestroy {
 
   constructor(
     private readonly outboxRepo: OutboxPostgresRepository,
+    private readonly outboxMongoRepo: OutboxMongoRepository,
     private readonly pubSub: RedisPubSubService,
     private readonly configService: ConfigService,
   ) {}
@@ -37,10 +39,16 @@ export class OutboxRelayService implements OnModuleInit, OnModuleDestroy {
     if (this.relaying) return;
     this.relaying = true;
     try {
-      const pending = await this.outboxRepo.findPending();
+      const [pgPending, mongoPending] = await Promise.all([
+        this.outboxRepo.findPending(),
+        this.outboxMongoRepo.findPending(),
+      ]);
 
-      for (const entry of pending) {
+      for (const entry of pgPending) {
         await this.processEntry(entry);
+      }
+      for (const entry of mongoPending) {
+        await this.processMongoEntry(entry);
       }
     } catch (err) {
       this.logger.error('Outbox relay error', err);
@@ -71,6 +79,32 @@ export class OutboxRelayService implements OnModuleInit, OnModuleDestroy {
       } else {
         await this.outboxRepo.update(entry.id, { retries: newRetries });
         this.logger.warn(`Outbox entry retry ${newRetries}/${MAX_RETRIES}: ${entry.id} — ${error}`);
+      }
+    }
+  }
+
+  private async processMongoEntry(entry: PendingMongoEntry): Promise<void> {
+    try {
+      const { channel, message } = entry.payload as { channel: string; message: PubSubMessage };
+      await this.pubSub.publish(channel, message);
+      await this.outboxMongoRepo.update(entry.id, {
+        status: 'published',
+        publishedAt: new Date(),
+      });
+      this.logger.debug(`Mongo outbox entry published: ${entry.id} (${entry.eventType})`);
+    } catch (err) {
+      const newRetries = entry.retries + 1;
+      const error = err instanceof Error ? err.message : String(err);
+
+      if (newRetries > MAX_RETRIES) {
+        await this.outboxMongoRepo.update(entry.id, {
+          status: 'failed',
+          retries: newRetries,
+        });
+        this.logger.error(`Mongo outbox entry failed permanently: ${entry.id} — ${error}`);
+      } else {
+        await this.outboxMongoRepo.update(entry.id, { retries: newRetries });
+        this.logger.warn(`Mongo outbox entry retry ${newRetries}/${MAX_RETRIES}: ${entry.id} — ${error}`);
       }
     }
   }

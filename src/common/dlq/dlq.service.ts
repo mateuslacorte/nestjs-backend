@@ -135,11 +135,10 @@ export class DlqService implements OnModuleInit, OnModuleDestroy, OnApplicationS
     const maxAttempts = parseInt(h(message.headers?.maxAttempts) || String(DEFAULT_MAX_ATTEMPTS), 10);
     const nextRetryAt = parseInt(h(message.headers?.nextRetryAt) || '0', 10);
 
-    // Delay enforcement: if the message isn't due yet, sleep then re-enqueue
+    // Message not yet due: re-enqueue with same nextRetryAt and move on immediately.
+    // Never sleep here — sleeping inside eachMessage blocks the entire Kafka partition.
     const now = Date.now();
     if (nextRetryAt > now) {
-      const wait = Math.min(nextRetryAt - now, 30_000);
-      await new Promise<void>((r) => setTimeout(r, wait));
       await this.reenqueue(handlerKey, message.value, message.headers, attempts, maxAttempts, nextRetryAt);
       await this.commit(topic, partition, message.offset);
       return;
