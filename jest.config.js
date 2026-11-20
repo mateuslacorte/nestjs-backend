@@ -109,6 +109,12 @@ module.exports = {
     'src/common/metrics/**/*.ts',
     '!src/common/metrics/**/*.spec.ts',
     '!src/common/metrics/*.module.ts',
+    'src/common/feature-flags/**/*.ts',
+    '!src/common/feature-flags/**/*.spec.ts',
+    // Guards and decorator are thin Nest/Reflector orchestration; decorator-metadata ternaries not reachable
+    '!src/common/feature-flags/feature-flag.guard.ts',
+    '!src/common/feature-flags/guards/feature-flag.guard.ts',
+    '!src/common/feature-flags/decorators/**/*.ts',
   ],
   moduleNameMapper: {
     '^@modules/(.*)$': '<rootDir>/src/modules/$1',

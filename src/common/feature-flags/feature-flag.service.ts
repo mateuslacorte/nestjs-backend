@@ -3,7 +3,9 @@ import Redis from 'ioredis';
 
 @Injectable()
 export class FeatureFlagService {
+    /* istanbul ignore start -- Nest DI constructor parameter emit */
     constructor(@Inject('REDIS_CLIENT') private readonly redis: Redis) {}
+    /* istanbul ignore end */
 
     async isEnabled(
         flag: string,
@@ -20,20 +22,19 @@ export class FeatureFlagService {
         }
 
         const val = await this.redis.get(`feature_flag:${flag}`);
+        if (val === null) return false;
         return val === '1' || val === 'true';
     }
 
     async enable(flag: string, target?: { userId?: string; tenantId?: string }): Promise<void> {
-        const key = this.resolveKey(flag, target);
-        await this.redis.set(key, '1');
+        await this.redis.set(this.buildKey(flag, target), '1');
     }
 
     async disable(flag: string, target?: { userId?: string; tenantId?: string }): Promise<void> {
-        const key = this.resolveKey(flag, target);
-        await this.redis.del(key);
+        await this.redis.del(this.buildKey(flag, target));
     }
 
-    private resolveKey(flag: string, target?: { userId?: string; tenantId?: string }): string {
+    private buildKey(flag: string, target?: { userId?: string; tenantId?: string }): string {
         if (target?.userId) return `feature_flag:${flag}:user:${target.userId}`;
         if (target?.tenantId) return `feature_flag:${flag}:tenant:${target.tenantId}`;
         return `feature_flag:${flag}`;
