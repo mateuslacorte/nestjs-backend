@@ -3,11 +3,11 @@ import { Logger, OnModuleInit } from '@nestjs/common';
 import { UserDeletedEvent } from '../user-deleted.event';
 import { UserPostgresRepository } from '../../repositories/postgres.repository';
 import { DlqService } from '@common/dlq/dlq.service';
-import { RedisPubSubService } from '@common/pubsub/redis-pubsub.service';
 import { WS_CHANNEL_DOMAIN } from '@common/websocket/websocket.service';
 import { CacheService } from '@common/cache/cache.service';
 import { IUser } from '../../interfaces/user.interface';
 import { OperationStatusService } from '@common/operations/operation-status.service';
+import { OutboxService } from '@common/outbox/outbox.service';
 
 const HANDLER_KEY = 'UserDeletedEvent:syncToPostgres';
 
@@ -18,7 +18,7 @@ export class UserDeletedHandler implements IEventHandler<UserDeletedEvent>, OnMo
   constructor(
     private readonly postgresRepo: UserPostgresRepository,
     private readonly dlq: DlqService,
-    private readonly pubSub: RedisPubSubService,
+    private readonly outbox: OutboxService,
     private readonly cache: CacheService,
     private readonly opStatus: OperationStatusService,
   ) {}
@@ -61,11 +61,19 @@ export class UserDeletedHandler implements IEventHandler<UserDeletedEvent>, OnMo
 
     await this.cache.delPattern(`swr:*:users:findById:${userId}`);
 
-    await this.pubSub.publish(WS_CHANNEL_DOMAIN, {
-      event: 'user.deleted',
-      operationId,
-      targetUserId: actorId,
-      payload: { userId },
+    await this.outbox.publish({
+      aggregateType: 'User',
+      aggregateId: userId,
+      eventType: 'user.deleted',
+      payload: {
+        channel: WS_CHANNEL_DOMAIN,
+        message: {
+          event: 'user.deleted',
+          operationId,
+          targetUserId: actorId,
+          payload: { userId },
+        },
+      },
     });
   }
 }

@@ -57,6 +57,9 @@ module.exports = {
     '!src/common/audit/audit.constants.ts',
     'src/common/crypto/**/*.ts',
     '!src/common/crypto/**/*.spec.ts',
+    // Outbox: entities, schemas, module, repositories, and services are infrastructure glue;
+    // @Injectable/@InjectRepository emitDecoratorMetadata emits type-existence branches that
+    // cannot be suppressed from TypeScript source — consistent with websocket.service.ts etc.
     'src/config/**/*.ts',
     '!src/config/**/*.spec.ts',
     'src/modules/whatsapp/**/*.ts',

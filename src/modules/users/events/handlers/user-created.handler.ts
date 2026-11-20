@@ -3,10 +3,10 @@ import { Logger, OnModuleInit } from '@nestjs/common';
 import { UserCreatedEvent } from '../user-created.event';
 import { UserPostgresRepository } from '../../repositories/postgres.repository';
 import { DlqService } from '@common/dlq/dlq.service';
-import { RedisPubSubService } from '@common/pubsub/redis-pubsub.service';
 import { WS_CHANNEL_DOMAIN } from '@common/websocket/websocket.service';
 import { CacheService } from '@common/cache/cache.service';
 import { OperationStatusService } from '@common/operations/operation-status.service';
+import { OutboxService } from '@common/outbox/outbox.service';
 
 const HANDLER_KEY = 'UserCreatedEvent:syncToPostgres';
 
@@ -17,7 +17,7 @@ export class UserCreatedHandler implements IEventHandler<UserCreatedEvent>, OnMo
   constructor(
     private readonly postgresRepo: UserPostgresRepository,
     private readonly dlq: DlqService,
-    private readonly pubSub: RedisPubSubService,
+    private readonly outbox: OutboxService,
     private readonly cache: CacheService,
     private readonly opStatus: OperationStatusService,
   ) {}
@@ -56,11 +56,19 @@ export class UserCreatedHandler implements IEventHandler<UserCreatedEvent>, OnMo
     // Wildcard invalidation clears all namespace variants (global, tenant:*, etc.)
     await this.cache.delPattern(`swr:*:users:findById:${user.id}`);
 
-    await this.pubSub.publish(WS_CHANNEL_DOMAIN, {
-      event: 'user.created',
-      operationId,
-      targetUserId: actorId,
-      payload: { userId: user.id, email: user.email },
+    await this.outbox.publish({
+      aggregateType: 'User',
+      aggregateId: user.id ?? '',
+      eventType: 'user.created',
+      payload: {
+        channel: WS_CHANNEL_DOMAIN,
+        message: {
+          event: 'user.created',
+          operationId,
+          targetUserId: actorId,
+          payload: { userId: user.id, email: user.email },
+        },
+      },
     });
   }
 }

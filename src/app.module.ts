@@ -64,6 +64,7 @@ import { OperationsModule } from '@common/operations/operations.module';
 import { CircuitBreakerModule } from '@common/circuit-breaker/circuit-breaker.module';
 import { BulkheadModule } from '@common/bulkhead/bulkhead.module';
 import { MetricsModule } from '@common/metrics/metrics.module';
+import { OutboxModule } from '@common/outbox/outbox.module';
 
 @Module({
     imports: [
@@ -121,6 +122,7 @@ import { MetricsModule } from '@common/metrics/metrics.module';
         CircuitBreakerModule,
         BulkheadModule,
         MetricsModule,
+        OutboxModule,
 
         WebsocketModule.forRoot(),
 
