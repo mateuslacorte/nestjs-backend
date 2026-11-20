@@ -71,6 +71,7 @@ export class AuthController {
         userIdFrom: 'user.id',
     })
     @Post('register')
+    @ApiOperation({ summary: 'Register a new user', description: 'Creates a new local user account with email and password.' })
     @ApiResponse({ status: 201, description: 'User successfully registered.' })
     @ApiResponse({ status: 400, description: 'Invalid data.' })
     @ApiResponse({ status: 409, description: 'Conflict - email or username already exists.' })
@@ -114,6 +115,7 @@ export class AuthController {
     })
     @Post('login')
     @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Login with email and password', description: 'Authenticates a user with email/password credentials and returns JWT access and refresh tokens.' })
     @ApiResponse({ status: 200, description: 'User successfully logged in.' })
     @ApiResponse({ status: 401, description: 'Invalid credentials.' })
     @ApiBody({
@@ -1279,6 +1281,7 @@ export class AuthController {
         description: 'Forgot password request',
         identifierFrom: 'email',
     })
+    @ApiOperation({ summary: 'Request password reset', description: 'Sends a password reset email. Always returns 200 regardless of whether the email exists (anti-enumeration).' })
     @ApiResponse({
         status: 200,
         description:
@@ -1311,6 +1314,7 @@ export class AuthController {
         category: 'auth',
         description: 'Reset password with token',
     })
+    @ApiOperation({ summary: 'Reset password with token', description: 'Resets the user password using the token received via email from the forgot-password flow.' })
     @ApiResponse({ status: 200, description: 'Password successfully reset.' })
     @ApiResponse({ status: 400, description: 'Invalid or expired token.' })
     @ApiResponse({ status: 404, description: 'User not found.' })
@@ -1371,6 +1375,7 @@ export class AuthController {
         category: 'auth',
         description: 'Verify email with token',
     })
+    @ApiOperation({ summary: 'Verify email address', description: 'Verifies the user email using the token from the verification email.' })
     @ApiResponse({ status: 200, description: 'Email verified successfully.' })
     @ApiResponse({ status: 400, description: 'Invalid or expired token.' })
     @ApiResponse({ status: 404, description: 'User not found.' })
@@ -1394,6 +1399,7 @@ export class AuthController {
         description: 'Resend email verification',
         identifierFrom: 'email',
     })
+    @ApiOperation({ summary: 'Resend email verification', description: 'Resends the verification email to the specified address.' })
     @ApiResponse({ status: 200, description: 'Verification email has been resent.' })
     @ApiResponse({ status: 404, description: 'User not found.' })
     @ApiBody({
