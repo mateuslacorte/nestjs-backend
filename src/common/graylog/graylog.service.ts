@@ -2,6 +2,7 @@ import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
 import { hostname } from 'os';
+import { addOtelPropagationInterceptor } from '../http/otel-http.interceptor';
 
 type LogLevel = 'debug' | 'verbose' | 'info' | 'warn' | 'error';
 
@@ -41,6 +42,7 @@ export class GraylogService implements OnModuleInit, OnModuleDestroy {
             timeout: this.configService.get<number>('graylog.timeout') || 3000,
             headers: { 'Content-Type': 'application/json' },
         });
+        addOtelPropagationInterceptor(this.client);
     }
 
     onModuleInit(): void {
