@@ -11,6 +11,8 @@ import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentation
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
+import { trace } from '@opentelemetry/api';
+import { CorrelationContext } from './common/correlation/correlation-context';
 
 let sdk: NodeSDK | null = null;
 
@@ -40,6 +42,14 @@ if (process.env.OTEL_ENABLED === 'true') {
       .shutdown()
       .catch((err) => console.error('OTel shutdown error', err));
   });
+}
+
+export function setCorrelationIdOnSpan(): void {
+  if (process.env.OTEL_ENABLED !== 'true') return;
+  const correlationId = CorrelationContext.get();
+  if (correlationId) {
+    trace.getActiveSpan()?.setAttribute('correlation.id', correlationId);
+  }
 }
 
 export { sdk };

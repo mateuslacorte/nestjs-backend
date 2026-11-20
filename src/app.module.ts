@@ -69,6 +69,7 @@ import { BulkheadModule } from '@common/bulkhead/bulkhead.module';
 import { MetricsModule } from '@common/metrics/metrics.module';
 import { OutboxModule } from '@common/outbox/outbox.module';
 import { FeatureFlagsModule } from '@common/feature-flags/feature-flags.module';
+import { CorrelationModule } from '@common/correlation/correlation.module';
 
 @Module({
     imports: [
@@ -124,6 +125,9 @@ import { FeatureFlagsModule } from '@common/feature-flags/feature-flags.module';
                 storage: new ThrottlerStorageRedisService(redisClient),
             }),
         }),
+
+        // Correlation ID middleware — must be registered before any other middleware
+        CorrelationModule,
 
         // Graylog module for logging
         GraylogModule,
