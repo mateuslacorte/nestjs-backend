@@ -11,6 +11,7 @@ import { UpdateUserCommand } from './commands/update-user.command';
 import { DeleteUserCommand } from './commands/delete-user.command';
 import { FindUserByIdQuery } from './queries/find-user-by-id.query';
 import { SearchUsersQuery } from './queries/search-users.query';
+import { BulkheadService } from '@common/bulkhead/bulkhead.service';
 
 export interface AsyncOperationResult {
   operationId: string;
@@ -23,11 +24,12 @@ export class UsersService {
     private readonly postgresRepo: UserPostgresRepository,
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
+    private readonly bulkhead: BulkheadService,
   ) {}
 
   async create(userData: CreateUserDto, actorId?: string): Promise<AsyncOperationResult> {
     const operationId = randomUUID();
-    await this.commandBus.execute(new CreateUserCommand(userData, operationId, actorId));
+    await this.bulkhead.execute(() => this.commandBus.execute(new CreateUserCommand(userData, operationId, actorId)));
     return { operationId, status: 'pending' };
   }
 
@@ -139,7 +141,7 @@ export class UsersService {
 
   async update(id: string, updateUserDto: UpdateUserDto, actorId?: string): Promise<AsyncOperationResult> {
     const operationId = randomUUID();
-    await this.commandBus.execute(new UpdateUserCommand(id, updateUserDto, operationId, actorId));
+    await this.bulkhead.execute(() => this.commandBus.execute(new UpdateUserCommand(id, updateUserDto, operationId, actorId)));
     return { operationId, status: 'pending' };
   }
 
@@ -151,7 +153,7 @@ export class UsersService {
 
   async remove(id: string, actorId?: string): Promise<AsyncOperationResult> {
     const operationId = randomUUID();
-    await this.commandBus.execute(new DeleteUserCommand(id, operationId, actorId));
+    await this.bulkhead.execute(() => this.commandBus.execute(new DeleteUserCommand(id, operationId, actorId)));
     return { operationId, status: 'pending' };
   }
 

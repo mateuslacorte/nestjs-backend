@@ -62,6 +62,7 @@ import { PubSubModule } from '@common/pubsub/pubsub.module';
 import { DlqModule } from '@common/dlq/dlq.module';
 import { OperationsModule } from '@common/operations/operations.module';
 import { CircuitBreakerModule } from '@common/circuit-breaker/circuit-breaker.module';
+import { BulkheadModule } from '@common/bulkhead/bulkhead.module';
 
 @Module({
     imports: [
@@ -117,6 +118,7 @@ import { CircuitBreakerModule } from '@common/circuit-breaker/circuit-breaker.mo
         DlqModule,
         OperationsModule,
         CircuitBreakerModule,
+        BulkheadModule,
 
         WebsocketModule.forRoot(),
 
