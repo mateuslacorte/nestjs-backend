@@ -1,5 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import CircuitBreaker from 'opossum';
+import { Counter, register } from 'prom-client';
+
+const CB_METRIC_NAME = 'circuit_breaker_state_changes_total';
 
 export interface BreakerOptions {
   /** ms before a pending call is aborted (default: 5 000) */
@@ -16,6 +19,18 @@ export interface BreakerOptions {
 export class CircuitBreakerService {
   private readonly logger = new Logger(CircuitBreakerService.name);
   private readonly breakers = new Map<string, CircuitBreaker<[() => Promise<unknown>], unknown>>();
+  private readonly eventsCounter: Counter<string>;
+
+  constructor() {
+    const existing = register.getSingleMetric(CB_METRIC_NAME);
+    this.eventsCounter = existing
+      ? (existing as unknown as Counter<string>)
+      : new Counter({
+          name: CB_METRIC_NAME,
+          help: 'Circuit breaker state change events (open, half_open, close, reject, timeout)',
+          labelNames: ['name', 'state'],
+        });
+  }
 
   /**
    * Wrap an async call in the named circuit breaker.
@@ -42,21 +57,26 @@ export class CircuitBreakerService {
         },
       );
 
-      breaker.on('open', () =>
-        this.logger.warn(`Circuit [${name}] OPEN — calls rejected until reset`),
-      );
-      breaker.on('halfOpen', () =>
-        this.logger.log(`Circuit [${name}] HALF-OPEN — probing`),
-      );
-      breaker.on('close', () =>
-        this.logger.log(`Circuit [${name}] CLOSED — healthy`),
-      );
-      breaker.on('reject', () =>
-        this.logger.warn(`Circuit [${name}] rejected (open)`),
-      );
-      breaker.on('timeout', () =>
-        this.logger.warn(`Circuit [${name}] timed out`),
-      );
+      breaker.on('open', () => {
+        this.logger.warn(`Circuit [${name}] OPEN — calls rejected until reset`);
+        this.eventsCounter.inc({ name, state: 'open' });
+      });
+      breaker.on('halfOpen', () => {
+        this.logger.log(`Circuit [${name}] HALF-OPEN — probing`);
+        this.eventsCounter.inc({ name, state: 'half_open' });
+      });
+      breaker.on('close', () => {
+        this.logger.log(`Circuit [${name}] CLOSED — healthy`);
+        this.eventsCounter.inc({ name, state: 'close' });
+      });
+      breaker.on('reject', () => {
+        this.logger.warn(`Circuit [${name}] rejected (open)`);
+        this.eventsCounter.inc({ name, state: 'reject' });
+      });
+      breaker.on('timeout', () => {
+        this.logger.warn(`Circuit [${name}] timed out`);
+        this.eventsCounter.inc({ name, state: 'timeout' });
+      });
       breaker.on('fallback', (result: unknown) =>
         this.logger.debug(`Circuit [${name}] fallback returned: ${JSON.stringify(result)}`),
       );

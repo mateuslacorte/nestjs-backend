@@ -126,6 +126,39 @@ describe('BulkheadService', () => {
     });
   });
 
+  describe('Prometheus metrics', () => {
+    it('increments rejectedCounter when all slots are taken', async () => {
+      const svc = makeService(1);
+      const d = deferred();
+      svc.execute(() => d.promise);
+
+      const incSpy = jest.spyOn(svc['rejectedCounter'], 'inc');
+      await expect(svc.execute(() => Promise.resolve())).rejects.toBeInstanceOf(BulkheadRejectedException);
+      expect(incSpy).toHaveBeenCalledTimes(1);
+
+      d.resolve(undefined);
+    });
+
+    it('increments activeGauge on task start and decrements on task end', async () => {
+      const svc = makeService(5);
+      const incSpy = jest.spyOn(svc['activeGauge'], 'inc');
+      const decSpy = jest.spyOn(svc['activeGauge'], 'dec');
+
+      await svc.execute(() => Promise.resolve());
+
+      expect(incSpy).toHaveBeenCalledTimes(1);
+      expect(decSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('decrements activeGauge even when task throws', async () => {
+      const svc = makeService(5);
+      const decSpy = jest.spyOn(svc['activeGauge'], 'dec');
+
+      await expect(svc.execute(() => Promise.reject(new Error('oops')))).rejects.toThrow('oops');
+      expect(decSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('execute — concurrency boundary', () => {
     it('rejects exactly at the limit, not before', async () => {
       const limit = 3;
