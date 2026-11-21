@@ -1,6 +1,7 @@
 import { Injectable, Logger, OnApplicationShutdown, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Admin, Consumer, Kafka, KafkaMessage, Producer, logLevel } from 'kafkajs';
+import { Counter, register } from 'prom-client';
 
 export type DlqHandler = (payload: unknown) => Promise<void>;
 
@@ -15,6 +16,7 @@ export const DLQ_TOPIC_DEAD = 'dlq.dead';
 const DEFAULT_MAX_ATTEMPTS = 3;
 const BASE_BACKOFF_MS = 10_000;
 const CONSUMER_GROUP = 'nestjs-dlq';
+const DLQ_METRIC_NAME = 'dlq_message_outcomes_total';
 
 function h(val: Buffer | string | (Buffer | string)[] | null | undefined): string {
   if (!val) return '';
@@ -26,6 +28,7 @@ function h(val: Buffer | string | (Buffer | string)[] | null | undefined): strin
 export class DlqService implements OnModuleInit, OnModuleDestroy, OnApplicationShutdown {
   private readonly logger = new Logger(DlqService.name);
   private readonly handlers = new Map<string, HandlerEntry>();
+  private readonly outcomesCounter: Counter<string>;
 
   private kafka!: Kafka;
   private producer!: Producer;
@@ -33,7 +36,16 @@ export class DlqService implements OnModuleInit, OnModuleDestroy, OnApplicationS
   private admin!: Admin;
   private connected = false;
 
-  constructor(private readonly config: ConfigService) {}
+  constructor(private readonly config: ConfigService) {
+    const existing = register.getSingleMetric(DLQ_METRIC_NAME);
+    this.outcomesCounter = existing
+      ? (existing as unknown as Counter<string>)
+      : new Counter({
+          name: DLQ_METRIC_NAME,
+          help: 'DLQ message outcomes (pushed, retry, recovered, dead)',
+          labelNames: ['handler', 'outcome'],
+        });
+  }
 
   async onModuleInit(): Promise<void> {
     const brokers: string[] = this.config.get<string[]>('kafka.brokers') ?? ['localhost:9092'];
@@ -127,6 +139,7 @@ export class DlqService implements OnModuleInit, OnModuleDestroy, OnApplicationS
       ],
     });
     this.logger.warn(`Pushed to DLQ [${handlerKey}]`);
+    this.outcomesCounter.inc({ handler: handlerKey, outcome: 'pushed' });
   }
 
   private async processMessage(topic: string, partition: number, message: KafkaMessage): Promise<void> {
@@ -164,6 +177,7 @@ export class DlqService implements OnModuleInit, OnModuleDestroy, OnApplicationS
     try {
       await registration.handler(payload);
       this.logger.log(`DLQ entry recovered [${handlerKey}] after ${attempts} retries`);
+      this.outcomesCounter.inc({ handler: handlerKey, outcome: 'recovered' });
       await this.commit(topic, partition, message.offset);
     } catch (err) {
       const newAttempts = attempts + 1;
@@ -172,6 +186,7 @@ export class DlqService implements OnModuleInit, OnModuleDestroy, OnApplicationS
       if (newAttempts >= maxAttempts) {
         this.logger.error(`DLQ permanently failed [${handlerKey}] after ${newAttempts} attempts: ${error}`);
         await this.moveToDead(handlerKey, message.value, message.headers, error);
+        this.outcomesCounter.inc({ handler: handlerKey, outcome: 'dead' });
         try {
           await registration.onPermanentFailure?.(payload);
         } catch (cbErr) {
@@ -180,6 +195,7 @@ export class DlqService implements OnModuleInit, OnModuleDestroy, OnApplicationS
       } else {
         const backoff = BASE_BACKOFF_MS * Math.pow(2, newAttempts);
         this.logger.warn(`DLQ retry ${newAttempts}/${maxAttempts} in ${backoff}ms [${handlerKey}]`);
+        this.outcomesCounter.inc({ handler: handlerKey, outcome: 'retry' });
         await this.reenqueue(handlerKey, message.value, message.headers, newAttempts, maxAttempts, Date.now() + backoff);
       }
       await this.commit(topic, partition, message.offset);

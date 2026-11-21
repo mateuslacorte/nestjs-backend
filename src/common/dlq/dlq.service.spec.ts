@@ -169,6 +169,12 @@ describe('DlqService — push', () => {
     );
   });
 
+  it('increments outcomesCounter with outcome=pushed', async () => {
+    const incSpy = jest.spyOn(service['outcomesCounter'], 'inc');
+    await service.push('my-handler', {});
+    expect(incSpy).toHaveBeenCalledWith({ handler: 'my-handler', outcome: 'pushed' });
+  });
+
   it('encodes handlerKey and attempts=0 in headers', async () => {
     await service.push('my-handler', { foo: 'bar' });
 
@@ -378,5 +384,49 @@ describe('DlqService — processMessage', () => {
     ).resolves.not.toThrow();
 
     expect(consumer.commitOffsets).toHaveBeenCalled();
+  });
+
+  describe('Prometheus metrics via outcomesCounter', () => {
+    let incSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      incSpy = jest.spyOn(service['outcomesCounter'], 'inc');
+    });
+
+    it('increments outcome=recovered when handler succeeds', async () => {
+      service.registerHandler('my-handler', jest.fn().mockResolvedValue(undefined));
+      const msg = makeMsg({
+        handlerKey: 'my-handler',
+        attempts: '1',
+        maxAttempts: '3',
+        nextRetryAt: String(Date.now() - 1000),
+      });
+      await eachMessage({ topic: 'dlq.events', partition: 0, message: msg });
+      expect(incSpy).toHaveBeenCalledWith({ handler: 'my-handler', outcome: 'recovered' });
+    });
+
+    it('increments outcome=retry when handler fails and retries remain', async () => {
+      service.registerHandler('my-handler', jest.fn().mockRejectedValue(new Error('temporary')));
+      const msg = makeMsg({
+        handlerKey: 'my-handler',
+        attempts: '0',
+        maxAttempts: '3',
+        nextRetryAt: String(Date.now() - 1000),
+      });
+      await eachMessage({ topic: 'dlq.events', partition: 0, message: msg });
+      expect(incSpy).toHaveBeenCalledWith({ handler: 'my-handler', outcome: 'retry' });
+    });
+
+    it('increments outcome=dead when max attempts reached', async () => {
+      service.registerHandler('my-handler', jest.fn().mockRejectedValue(new Error('permanent')));
+      const msg = makeMsg({
+        handlerKey: 'my-handler',
+        attempts: '2',
+        maxAttempts: '3',
+        nextRetryAt: String(Date.now() - 1000),
+      });
+      await eachMessage({ topic: 'dlq.events', partition: 0, message: msg });
+      expect(incSpy).toHaveBeenCalledWith({ handler: 'my-handler', outcome: 'dead' });
+    });
   });
 });
