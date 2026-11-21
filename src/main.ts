@@ -171,7 +171,7 @@ async function bootstrap() {
     await app.register(fastifyPassport.initialize() as any);
     await app.register(fastifyPassport.secureSession() as any);
 
-    // Security headers (CSP off — Swagger UI and Wiki need inline scripts)
+    // Security headers — CSP is applied per-route below (strict for API, omitted for Swagger/Wiki)
     await app.register(fastifyHelmet as any, {
         contentSecurityPolicy: false,
         crossOriginEmbedderPolicy: false,
@@ -198,14 +198,21 @@ async function bootstrap() {
     const apiPrefixPath = `/${apiPrefix}`;
     fastify.addHook('onSend', async (request, reply, payload) => {
         const urlPath = (request.url || '').split('?')[0];
-        if (
+        const isApiPath =
             urlPath.startsWith(apiPrefixPath) ||
             urlPath === graphqlPath ||
             urlPath.startsWith(`${graphqlPath}/`) ||
-            urlPath === '/health' ||
-            urlPath.startsWith('/swagger')
-        ) {
+            urlPath === '/health';
+
+        if (isApiPath || urlPath.startsWith('/swagger')) {
             reply.header('Cache-Control', 'no-store');
+        }
+        // Strict CSP on API and health responses; Swagger and Wiki need inline scripts
+        if (isApiPath) {
+            reply.header(
+                'Content-Security-Policy',
+                "default-src 'none'; frame-ancestors 'none'",
+            );
         }
         return payload;
     });
