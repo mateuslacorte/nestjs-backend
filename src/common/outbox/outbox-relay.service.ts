@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Counter, register } from 'prom-client';
 import { OutboxEntry, OutboxStatus } from './entities/outbox-entry.entity';
 import { OutboxPostgresRepository } from './repositories/outbox-postgres.repository';
 import { OutboxMongoRepository, PendingMongoEntry } from './repositories/outbox-mongo.repository';
@@ -7,10 +8,14 @@ import { RedisPubSubService, PubSubMessage } from '@common/pubsub/redis-pubsub.s
 
 const MAX_RETRIES = 3;
 const DEFAULT_INTERVAL_MS = 500;
+const OUTBOX_PUBLISHED_METRIC = 'outbox_published_total';
+const OUTBOX_FAILED_METRIC = 'outbox_failed_total';
 
 @Injectable()
 export class OutboxRelayService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(OutboxRelayService.name);
+  private readonly publishedCounter: Counter<string>;
+  private readonly failedCounter: Counter<string>;
   private intervalId: NodeJS.Timeout | null = null;
   private relaying = false;
 
@@ -19,7 +24,25 @@ export class OutboxRelayService implements OnModuleInit, OnModuleDestroy {
     private readonly outboxMongoRepo: OutboxMongoRepository,
     private readonly pubSub: RedisPubSubService,
     private readonly configService: ConfigService,
-  ) {}
+  ) {
+    const existingPublished = register.getSingleMetric(OUTBOX_PUBLISHED_METRIC);
+    this.publishedCounter = existingPublished
+      ? (existingPublished as unknown as Counter<string>)
+      : new Counter({
+          name: OUTBOX_PUBLISHED_METRIC,
+          help: 'Outbox entries successfully published',
+          labelNames: ['store'],
+        });
+
+    const existingFailed = register.getSingleMetric(OUTBOX_FAILED_METRIC);
+    this.failedCounter = existingFailed
+      ? (existingFailed as unknown as Counter<string>)
+      : new Counter({
+          name: OUTBOX_FAILED_METRIC,
+          help: 'Outbox entries that permanently failed (max retries exceeded)',
+          labelNames: ['store'],
+        });
+  }
 
   onModuleInit(): void {
     const intervalMs =
@@ -65,6 +88,7 @@ export class OutboxRelayService implements OnModuleInit, OnModuleDestroy {
         status: OutboxStatus.PUBLISHED,
         publishedAt: new Date(),
       });
+      this.publishedCounter.inc({ store: 'postgres' });
       this.logger.debug(`Outbox entry published: ${entry.id} (${entry.eventType})`);
     } catch (err) {
       const newRetries = entry.retries + 1;
@@ -75,6 +99,7 @@ export class OutboxRelayService implements OnModuleInit, OnModuleDestroy {
           status: OutboxStatus.FAILED,
           retries: newRetries,
         });
+        this.failedCounter.inc({ store: 'postgres' });
         this.logger.error(`Outbox entry failed permanently: ${entry.id} — ${error}`);
       } else {
         await this.outboxRepo.update(entry.id, { retries: newRetries });
@@ -91,6 +116,7 @@ export class OutboxRelayService implements OnModuleInit, OnModuleDestroy {
         status: 'published',
         publishedAt: new Date(),
       });
+      this.publishedCounter.inc({ store: 'mongo' });
       this.logger.debug(`Mongo outbox entry published: ${entry.id} (${entry.eventType})`);
     } catch (err) {
       const newRetries = entry.retries + 1;
@@ -101,6 +127,7 @@ export class OutboxRelayService implements OnModuleInit, OnModuleDestroy {
           status: 'failed',
           retries: newRetries,
         });
+        this.failedCounter.inc({ store: 'mongo' });
         this.logger.error(`Mongo outbox entry failed permanently: ${entry.id} — ${error}`);
       } else {
         await this.outboxMongoRepo.update(entry.id, { retries: newRetries });

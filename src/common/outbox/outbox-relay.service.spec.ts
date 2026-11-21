@@ -216,6 +216,70 @@ describe('OutboxRelayService', () => {
     });
   });
 
+  describe('Prometheus metrics', () => {
+    let publishedSpy: jest.SpyInstance;
+    let failedSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      publishedSpy = jest.spyOn(service['publishedCounter'], 'inc');
+      failedSpy = jest.spyOn(service['failedCounter'], 'inc');
+    });
+
+    it('increments publishedCounter with store=postgres on successful Postgres publish', async () => {
+      outboxRepo.findPending.mockResolvedValue([makeEntry()]);
+      pubSub.publish.mockResolvedValue(undefined);
+
+      await service.relay();
+
+      expect(publishedSpy).toHaveBeenCalledWith({ store: 'postgres' });
+    });
+
+    it('increments failedCounter with store=postgres when Postgres entry exceeds max retries', async () => {
+      outboxRepo.findPending.mockResolvedValue([makeEntry({ retries: 3 })]);
+      pubSub.publish.mockRejectedValue(new Error('redis down'));
+
+      await service.relay();
+
+      expect(failedSpy).toHaveBeenCalledWith({ store: 'postgres' });
+    });
+
+    it('does NOT increment failedCounter for Postgres retries below max', async () => {
+      outboxRepo.findPending.mockResolvedValue([makeEntry({ retries: 0 })]);
+      pubSub.publish.mockRejectedValue(new Error('redis down'));
+
+      await service.relay();
+
+      expect(failedSpy).not.toHaveBeenCalled();
+    });
+
+    it('increments publishedCounter with store=mongo on successful Mongo publish', async () => {
+      outboxMongoRepo.findPending.mockResolvedValue([makeMongoEntry()]);
+      pubSub.publish.mockResolvedValue(undefined);
+
+      await service.relay();
+
+      expect(publishedSpy).toHaveBeenCalledWith({ store: 'mongo' });
+    });
+
+    it('increments failedCounter with store=mongo when Mongo entry exceeds max retries', async () => {
+      outboxMongoRepo.findPending.mockResolvedValue([makeMongoEntry({ retries: 3 })]);
+      pubSub.publish.mockRejectedValue(new Error('redis down'));
+
+      await service.relay();
+
+      expect(failedSpy).toHaveBeenCalledWith({ store: 'mongo' });
+    });
+
+    it('does NOT increment failedCounter for Mongo retries below max', async () => {
+      outboxMongoRepo.findPending.mockResolvedValue([makeMongoEntry({ retries: 0 })]);
+      pubSub.publish.mockRejectedValue(new Error('redis down'));
+
+      await service.relay();
+
+      expect(failedSpy).not.toHaveBeenCalled();
+    });
+  });
+
   describe('processMongoEntry (via relay)', () => {
     it('publishes the message and marks mongo entry as published', async () => {
       const entry = makeMongoEntry();
