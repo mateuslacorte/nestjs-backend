@@ -161,7 +161,10 @@ export class UsersService {
     passwordResetToken: string | undefined;
     passwordResetExpires: Date | undefined;
   }): Promise<void> {
-    await this.postgresRepo.update(userId!, resetData);
+    if (!userId) {
+      throw new Error('Cannot update reset token: userId is required');
+    }
+    await this.postgresRepo.update(userId, resetData);
   }
 
   async updatePassword(userId: string, passwordData: {

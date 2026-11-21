@@ -391,6 +391,18 @@ describe('UsersService', () => {
 
       expect(postgresRepo.update).toHaveBeenCalledWith('user-1', resetData);
     });
+
+    it('throws when userId is undefined', async () => {
+      const resetData = {
+        passwordResetToken: 'tok',
+        passwordResetExpires: new Date('2026-01-01'),
+      };
+
+      await expect(service.updateResetToken(undefined, resetData)).rejects.toThrow(
+        'Cannot update reset token: userId is required',
+      );
+      expect(postgresRepo.update).not.toHaveBeenCalled();
+    });
   });
 
   describe('updatePassword', () => {
