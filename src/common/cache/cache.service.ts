@@ -45,7 +45,7 @@ export class CacheService {
 
   async set(key: string, value: unknown, ttl?: number): Promise<void> {
     try {
-      const ttlToUse = ttl || this.defaultTtl;
+      const ttlToUse = ttl ?? this.defaultTtl;
       const serialized = JSON.stringify(value);
       await this.redis.setex(key, ttlToUse, serialized);
       this.logger.debug(`Cache SET ${key} (TTL=${ttlToUse}s, ${serialized.length}B)`);

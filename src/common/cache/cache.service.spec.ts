@@ -111,10 +111,10 @@ describe('CacheService', () => {
       expect(redis.setex).toHaveBeenCalledWith('k', 90, '"v"');
     });
 
-    it('falls back to default TTL when ttl is falsy (0)', async () => {
+    it('passes ttl=0 as-is (??-not-||: 0 is a caller-provided value, not absent)', async () => {
       redis.setex.mockResolvedValue('OK');
       await service.set('k', 'v', 0);
-      expect(redis.setex).toHaveBeenCalledWith('k', 3600, '"v"');
+      expect(redis.setex).toHaveBeenCalledWith('k', 0, '"v"');
     });
 
     it('swallows Redis errors', async () => {
