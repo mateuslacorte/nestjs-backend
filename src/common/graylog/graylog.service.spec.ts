@@ -209,8 +209,8 @@ describe('GraylogService', () => {
     });
 
     it('sanitizes non-alphanumeric context keys when flattening', () => {
-      service.log('msg', { 'weird key!': 'value' });
-      expect(lastPayload()._weird_key_).toBe('value');
+      service.log('msg', { 'weird name!': 'value' });
+      expect(lastPayload()._weird_name_).toBe('value');
     });
 
     it('does not flatten nested object context fields as GELF extras', () => {
@@ -256,6 +256,34 @@ describe('GraylogService', () => {
       expect(context.Cookie).toBe('[REDACTED]');
       expect(context.cookies).toBe('[REDACTED]');
       expect(context.safe).toBe('ok');
+    });
+
+    it('redacts composite sensitive field names (access_token, api_key, auth_header, etc.)', () => {
+      service.log('msg', {
+        access_token: 'at',
+        refresh_token: 'rt',
+        id_token: 'it',
+        api_key: 'ak',
+        private_key: 'pk',
+        auth_header: 'ah',
+        client_secret: 'cs',
+        credentials: 'creds',
+        safe_field: 'visible',
+        userId: 'u1',
+      });
+
+      const context = JSON.parse(String(lastPayload()._context));
+      expect(context.access_token).toBe('[REDACTED]');
+      expect(context.refresh_token).toBe('[REDACTED]');
+      expect(context.id_token).toBe('[REDACTED]');
+      expect(context.api_key).toBe('[REDACTED]');
+      expect(context.private_key).toBe('[REDACTED]');
+      expect(context.auth_header).toBe('[REDACTED]');
+      expect(context.client_secret).toBe('[REDACTED]');
+      expect(context.credentials).toBe('[REDACTED]');
+      // non-sensitive fields must not be redacted
+      expect(context.safe_field).toBe('visible');
+      expect(context.userId).toBe('u1');
     });
 
     it('replaces circular references with [Circular]', () => {

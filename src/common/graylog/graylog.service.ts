@@ -7,6 +7,10 @@ import { CorrelationContext } from '../correlation/correlation-context';
 
 type LogLevel = 'debug' | 'verbose' | 'info' | 'warn' | 'error';
 
+// Redact any field whose name contains one of these substrings (case-insensitive).
+// Covers exact names (password, token) and composites (access_token, api_key, auth_header, client_secret).
+const SENSITIVE_KEY_RE = /token|secret|key|auth|credential|password|cookie/i;
+
 interface GelfMessage {
     version: '1.1';
     host: string;
@@ -125,7 +129,6 @@ export class GraylogService implements OnModuleInit, OnModuleDestroy {
 
     private safeSerialize(obj: unknown, maxDepth = 5): unknown {
         const seen = new WeakSet<object>();
-        const sensitiveFields = ['password', 'token', 'secret', 'authorization', 'cookie', 'cookies'];
 
         const serialize = (value: unknown, depth: number): unknown => {
             if (depth > maxDepth) return '[Max Depth]';
@@ -142,7 +145,7 @@ export class GraylogService implements OnModuleInit, OnModuleDestroy {
 
             const result: Record<string, unknown> = {};
             for (const [key, nestedValue] of Object.entries(value)) {
-                if (sensitiveFields.includes(key.toLowerCase())) {
+                if (SENSITIVE_KEY_RE.test(key)) {
                     result[key] = '[REDACTED]';
                 } else if (typeof nestedValue !== 'function') {
                     result[key] = serialize(nestedValue, depth + 1);
