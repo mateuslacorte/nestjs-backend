@@ -45,4 +45,10 @@ export class OutboxMongoRepository {
   ): Promise<void> {
     await this.model.findByIdAndUpdate(id, { $set: fields }).exec();
   }
+
+  async purgeOldFailed(olderThanMs: number): Promise<number> {
+    const cutoff = new Date(Date.now() - olderThanMs);
+    const result = await this.model.deleteMany({ status: 'failed', createdAt: { $lt: cutoff } }).exec();
+    return result.deletedCount ?? 0;
+  }
 }

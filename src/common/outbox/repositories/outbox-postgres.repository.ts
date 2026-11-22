@@ -29,4 +29,17 @@ export class OutboxPostgresRepository {
   async update(id: string, fields: Partial<Pick<OutboxEntry, 'status' | 'publishedAt' | 'retries'>>): Promise<void> {
     await this.repo.update(id, fields);
   }
+
+  async purgeOldFailed(olderThanMs: number): Promise<number> {
+    const cutoff = new Date(Date.now() - olderThanMs);
+    const result = await this.repo
+      .createQueryBuilder()
+      .delete()
+      .where('status = :status AND "createdAt" < :cutoff', {
+        status: OutboxStatus.FAILED,
+        cutoff,
+      })
+      .execute();
+    return result.affected ?? 0;
+  }
 }

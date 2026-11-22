@@ -8,6 +8,8 @@ import { RedisPubSubService, PubSubMessage } from '@common/pubsub/redis-pubsub.s
 
 const MAX_RETRIES = 3;
 const DEFAULT_INTERVAL_MS = 500;
+const DEFAULT_CLEANUP_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
+const DEFAULT_FAILED_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const OUTBOX_PUBLISHED_METRIC = 'outbox_published_total';
 const OUTBOX_FAILED_METRIC = 'outbox_failed_total';
 
@@ -17,6 +19,7 @@ export class OutboxRelayService implements OnModuleInit, OnModuleDestroy {
   private readonly publishedCounter: Counter<string>;
   private readonly failedCounter: Counter<string>;
   private intervalId: NodeJS.Timeout | null = null;
+  private cleanupIntervalId: NodeJS.Timeout | null = null;
   private relaying = false;
 
   constructor(
@@ -48,13 +51,22 @@ export class OutboxRelayService implements OnModuleInit, OnModuleDestroy {
     const intervalMs =
       this.configService.get<number>('outbox.relayIntervalMs') ?? DEFAULT_INTERVAL_MS;
     this.intervalId = setInterval(() => void this.relay(), intervalMs);
-    this.logger.log(`Outbox relay started (interval: ${intervalMs}ms)`);
+
+    const cleanupIntervalMs =
+      this.configService.get<number>('outbox.cleanupIntervalMs') ?? DEFAULT_CLEANUP_INTERVAL_MS;
+    this.cleanupIntervalId = setInterval(() => void this.purgeOldFailed(), cleanupIntervalMs);
+
+    this.logger.log(`Outbox relay started (interval: ${intervalMs}ms, cleanup every: ${cleanupIntervalMs}ms)`);
   }
 
   onModuleDestroy(): void {
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = null;
+    }
+    if (this.cleanupIntervalId) {
+      clearInterval(this.cleanupIntervalId);
+      this.cleanupIntervalId = null;
     }
   }
 
@@ -77,6 +89,20 @@ export class OutboxRelayService implements OnModuleInit, OnModuleDestroy {
       this.logger.error('Outbox relay error', err);
     } finally {
       this.relaying = false;
+    }
+  }
+
+  async purgeOldFailed(): Promise<void> {
+    const ttlMs =
+      this.configService.get<number>('outbox.failedTtlMs') ?? DEFAULT_FAILED_TTL_MS;
+    const [pgDeleted, mongoDeleted] = await Promise.all([
+      this.outboxRepo.purgeOldFailed(ttlMs),
+      this.outboxMongoRepo.purgeOldFailed(ttlMs),
+    ]);
+    if (pgDeleted + mongoDeleted > 0) {
+      this.logger.log(
+        `Outbox cleanup: purged ${pgDeleted} Postgres + ${mongoDeleted} Mongo FAILED entries older than ${ttlMs}ms`,
+      );
     }
   }
 

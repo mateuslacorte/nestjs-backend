@@ -35,15 +35,15 @@ const makeMongoEntry = (overrides: Partial<PendingMongoEntry> = {}): PendingMong
 });
 
 describe('OutboxRelayService', () => {
-  let outboxRepo: jest.Mocked<Pick<OutboxPostgresRepository, 'findPending' | 'update'>>;
-  let outboxMongoRepo: jest.Mocked<Pick<OutboxMongoRepository, 'findPending' | 'update'>>;
+  let outboxRepo: jest.Mocked<Pick<OutboxPostgresRepository, 'findPending' | 'update' | 'purgeOldFailed'>>;
+  let outboxMongoRepo: jest.Mocked<Pick<OutboxMongoRepository, 'findPending' | 'update' | 'purgeOldFailed'>>;
   let pubSub: jest.Mocked<Pick<RedisPubSubService, 'publish'>>;
   let configService: jest.Mocked<Pick<ConfigService, 'get'>>;
   let service: OutboxRelayService;
 
   beforeEach(() => {
-    outboxRepo = { findPending: jest.fn().mockResolvedValue([]), update: jest.fn().mockResolvedValue(undefined) };
-    outboxMongoRepo = { findPending: jest.fn().mockResolvedValue([]), update: jest.fn().mockResolvedValue(undefined) };
+    outboxRepo = { findPending: jest.fn().mockResolvedValue([]), update: jest.fn().mockResolvedValue(undefined), purgeOldFailed: jest.fn().mockResolvedValue(0) };
+    outboxMongoRepo = { findPending: jest.fn().mockResolvedValue([]), update: jest.fn().mockResolvedValue(undefined), purgeOldFailed: jest.fn().mockResolvedValue(0) };
     pubSub = { publish: jest.fn() } as unknown as jest.Mocked<Pick<RedisPubSubService, 'publish'>>;
     configService = { get: jest.fn().mockReturnValue(undefined) } as unknown as jest.Mocked<Pick<ConfigService, 'get'>>;
     service = new OutboxRelayService(
@@ -138,6 +138,56 @@ describe('OutboxRelayService', () => {
       await service.relay();
 
       expect(pubSub.publish).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('purgeOldFailed', () => {
+    it('calls purgeOldFailed on both repos with the configured TTL', async () => {
+      configService.get.mockImplementation((key: string) => {
+        if (key === 'outbox.failedTtlMs') return 86_400_000; // 1 day
+        return undefined;
+      });
+      await service.purgeOldFailed();
+      expect(outboxRepo.purgeOldFailed).toHaveBeenCalledWith(86_400_000);
+      expect(outboxMongoRepo.purgeOldFailed).toHaveBeenCalledWith(86_400_000);
+    });
+
+    it('uses default 7-day TTL when config is absent', async () => {
+      await service.purgeOldFailed();
+      const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+      expect(outboxRepo.purgeOldFailed).toHaveBeenCalledWith(sevenDaysMs);
+      expect(outboxMongoRepo.purgeOldFailed).toHaveBeenCalledWith(sevenDaysMs);
+    });
+
+    it('logs when entries are purged', async () => {
+      outboxRepo.purgeOldFailed.mockResolvedValue(3);
+      outboxMongoRepo.purgeOldFailed.mockResolvedValue(1);
+      const logSpy = jest.spyOn(service['logger'], 'log').mockImplementation(() => undefined);
+
+      await service.purgeOldFailed();
+
+      expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('purged 3 Postgres + 1 Mongo'));
+    });
+
+    it('does not log when nothing was purged', async () => {
+      outboxRepo.purgeOldFailed.mockResolvedValue(0);
+      outboxMongoRepo.purgeOldFailed.mockResolvedValue(0);
+      const logSpy = jest.spyOn(service['logger'], 'log').mockImplementation(() => undefined);
+
+      await service.purgeOldFailed();
+
+      expect(logSpy).not.toHaveBeenCalled();
+    });
+
+    it('cleanup interval is started on onModuleInit', () => {
+      service.onModuleInit();
+      expect(service['cleanupIntervalId']).not.toBeNull();
+    });
+
+    it('cleanup interval is cleared on onModuleDestroy', () => {
+      service.onModuleInit();
+      service.onModuleDestroy();
+      expect(service['cleanupIntervalId']).toBeNull();
     });
   });
 
