@@ -57,11 +57,13 @@ if (process.env.OTEL_ENABLED === 'true') {
 
   sdk.start();
 
-  process.on('SIGTERM', () => {
-    sdk!
-      .shutdown()
-      .catch((err) => console.error('OTel shutdown error', err));
-  });
+  const shutdownOtel = () => {
+    sdk!.shutdown().catch((err) => console.error('OTel shutdown error', err));
+  };
+
+  process.once('SIGTERM', shutdownOtel);
+  process.once('SIGINT', shutdownOtel);
+  process.once('SIGHUP', shutdownOtel);
 }
 
 export function setCorrelationIdOnSpan(): void {
