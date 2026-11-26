@@ -50,22 +50,36 @@ export class OutboxRelayService implements OnModuleInit, OnModuleDestroy {
   onModuleInit(): void {
     const intervalMs =
       this.configService.get<number>('outbox.relayIntervalMs') ?? DEFAULT_INTERVAL_MS;
-    this.intervalId = setInterval(() => void this.relay(), intervalMs);
+
+    const scheduleRelay = () => {
+      this.intervalId = setTimeout(async () => {
+        await this.relay();
+        if (this.intervalId !== null) scheduleRelay();
+      }, intervalMs);
+    };
+    scheduleRelay();
 
     const cleanupIntervalMs =
       this.configService.get<number>('outbox.cleanupIntervalMs') ?? DEFAULT_CLEANUP_INTERVAL_MS;
-    this.cleanupIntervalId = setInterval(() => void this.purgeOldFailed(), cleanupIntervalMs);
+
+    const scheduleCleanup = () => {
+      this.cleanupIntervalId = setTimeout(async () => {
+        await this.purgeOldFailed();
+        if (this.cleanupIntervalId !== null) scheduleCleanup();
+      }, cleanupIntervalMs);
+    };
+    scheduleCleanup();
 
     this.logger.log(`Outbox relay started (interval: ${intervalMs}ms, cleanup every: ${cleanupIntervalMs}ms)`);
   }
 
   onModuleDestroy(): void {
     if (this.intervalId) {
-      clearInterval(this.intervalId);
+      clearTimeout(this.intervalId);
       this.intervalId = null;
     }
     if (this.cleanupIntervalId) {
-      clearInterval(this.cleanupIntervalId);
+      clearTimeout(this.cleanupIntervalId);
       this.cleanupIntervalId = null;
     }
   }

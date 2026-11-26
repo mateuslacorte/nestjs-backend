@@ -122,6 +122,23 @@ describe('CacheService', () => {
       await expect(service.set('k', 1)).resolves.toBeUndefined();
       expect(errorSpy).toHaveBeenCalled();
     });
+
+    it('skips setex and warns when serialized value exceeds 1 MB', async () => {
+      const bigValue = 'x'.repeat(1024 * 1024 + 1);
+      await service.set('big-key', bigValue);
+      expect(redis.setex).not.toHaveBeenCalled();
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('exceeds'));
+    });
+
+    it('writes value that is exactly 1 MB (not over limit)', async () => {
+      redis.setex.mockResolvedValue('OK');
+      // JSON.stringify wraps strings in quotes — the serialized form is len+2.
+      // To land at exactly 1 MB bytes, the raw string must be 1 MB - 2 chars.
+      const exactValue = 'x'.repeat(1024 * 1024 - 2);
+      await service.set('exact-key', exactValue);
+      expect(redis.setex).toHaveBeenCalled();
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
   });
 
   describe('del', () => {

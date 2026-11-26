@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { BulkheadRejectedException } from './bulkhead-rejected.exception';
 import { Counter, Gauge, register } from 'prom-client';
 
@@ -12,9 +13,8 @@ export class BulkheadService {
   private readonly rejectedCounter: Counter<string>;
   private readonly activeGauge: Gauge<string>;
 
-  constructor() {
-    const envVal = process.env.BULKHEAD_MAX_CONCURRENT;
-    this.limit = envVal ? parseInt(envVal, 10) : 50;
+  constructor(private readonly configService: ConfigService) {
+    this.limit = this.configService.get<number>('bulkhead.maxConcurrent', 50);
 
     const existingCounter = register.getSingleMetric(BH_REJECTED_METRIC);
     this.rejectedCounter = existingCounter

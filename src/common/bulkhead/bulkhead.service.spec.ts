@@ -1,14 +1,18 @@
 import { BulkheadService } from './bulkhead.service';
 import { BulkheadRejectedException } from './bulkhead-rejected.exception';
 import { HttpStatus } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+
+function makeConfigService(limit?: number): ConfigService {
+  return {
+    get: jest.fn((key: string, defaultValue?: number) =>
+      key === 'bulkhead.maxConcurrent' ? (limit ?? defaultValue) : defaultValue,
+    ),
+  } as unknown as ConfigService;
+}
 
 function makeService(limit?: number): BulkheadService {
-  if (limit !== undefined) {
-    process.env.BULKHEAD_MAX_CONCURRENT = String(limit);
-  } else {
-    delete process.env.BULKHEAD_MAX_CONCURRENT;
-  }
-  return new BulkheadService();
+  return new BulkheadService(makeConfigService(limit));
 }
 
 /** Returns a promise + its external resolve/reject handles. */
@@ -20,17 +24,13 @@ function deferred<T = void>(): { promise: Promise<T>; resolve: (v: T) => void; r
 }
 
 describe('BulkheadService', () => {
-  afterEach(() => {
-    delete process.env.BULKHEAD_MAX_CONCURRENT;
-  });
-
   describe('constructor / defaults', () => {
-    it('defaults limit to 50 when env var is absent', () => {
+    it('defaults limit to 50 when config is absent', () => {
       const svc = makeService();
       expect(svc.getStats().limit).toBe(50);
     });
 
-    it('reads limit from BULKHEAD_MAX_CONCURRENT', () => {
+    it('reads limit from ConfigService', () => {
       const svc = makeService(10);
       expect(svc.getStats().limit).toBe(10);
     });

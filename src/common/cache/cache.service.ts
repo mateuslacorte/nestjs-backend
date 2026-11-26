@@ -9,6 +9,8 @@ interface SwrEntry<T> {
   staleUntil: number;
 }
 
+const MAX_VALUE_BYTES = 1024 * 1024; // 1 MB
+
 @Injectable()
 export class CacheService {
   private readonly logger = new Logger(CacheService.name);
@@ -47,6 +49,12 @@ export class CacheService {
     try {
       const ttlToUse = ttl ?? this.defaultTtl;
       const serialized = JSON.stringify(value);
+      if (serialized.length > MAX_VALUE_BYTES) {
+        this.logger.warn(
+          `Cache SET skipped: value for key "${key}" exceeds ${MAX_VALUE_BYTES}B (${serialized.length}B)`,
+        );
+        return;
+      }
       await this.redis.setex(key, ttlToUse, serialized);
       this.logger.debug(`Cache SET ${key} (TTL=${ttlToUse}s, ${serialized.length}B)`);
     } catch (error) {
