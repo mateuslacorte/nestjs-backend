@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { randomUUID } from 'crypto';
-import { Role } from '@modules/auth/enums/role.enum';
 import { IUser, SearchUsersQuery as SearchUsersQueryParams, UsersPage } from '@modules/users/interfaces/user.interface';
 import { UserPostgresRepository } from '@modules/users/repositories/postgres.repository';
 import { CreateUserDto } from './dtos/create-user.dto';
@@ -193,35 +192,4 @@ export class UsersService {
     });
   }
 
-  async updateRoles(userId: string, roles: Role[]): Promise<IUser> {
-    return this.postgresRepo.update(userId, { roles });
-  }
-
-  async addRole(userId: string, role: Role): Promise<IUser> {
-    const user = await this.postgresRepo.findById(userId);
-    if (!user) {
-      throw new Error(`User with ID ${userId} not found`);
-    }
-    if (!user.roles.includes(role)) {
-      return this.updateRoles(userId, [...user.roles, role]);
-    }
-    return user;
-  }
-
-  async removeRole(userId: string, role: Role): Promise<IUser> {
-    const user = await this.postgresRepo.findById(userId);
-    if (!user) {
-      throw new Error(`User with ID ${userId} not found`);
-    }
-    return this.updateRoles(userId, user.roles.filter(r => r !== role));
-  }
-
-  async replaceRole(userId: string, oldRole: Role, newRole: Role): Promise<IUser> {
-    const user = await this.postgresRepo.findById(userId);
-    if (!user) {
-      throw new Error(`User with ID ${userId} not found`);
-    }
-    const newRoles = [...new Set(user.roles.map(r => r === oldRole ? newRole : r))];
-    return this.updateRoles(userId, newRoles);
-  }
 }
