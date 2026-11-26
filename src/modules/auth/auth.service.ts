@@ -297,6 +297,10 @@ export class AuthService {
         if (!user || !user.isActive) {
             return null;
         }
+        const revokedAt = await this.cacheService.get<number>(`auth:user:revoked:${userId}`);
+        if (revokedAt !== null && revokedAt !== undefined) {
+            return null;
+        }
         return user;
     }
 
@@ -319,6 +323,11 @@ export class AuthService {
 
             const user = await this.usersService.findById(payload.id!);
             if (!user || !user.isActive) {
+                throw new UnauthorizedException('Invalid refresh token');
+            }
+
+            const revokedAt = await this.cacheService.get<number>(`auth:user:revoked:${payload.id!}`);
+            if (revokedAt !== null && revokedAt !== undefined) {
                 throw new UnauthorizedException('Invalid refresh token');
             }
 
@@ -831,16 +840,6 @@ export class AuthService {
     /** @deprecated Use exchangeOAuthCode — kept as alias for callers */
     async exchangeGoogleCode(dto: ExchangeCodeDto) {
         return this.exchangeOAuthCode(dto);
-    }
-
-    /**
-     * Revoke all active sessions for a user by setting a user-level revocation
-     * timestamp in the cache. Any refresh token issued before this timestamp is
-     * considered invalid.
-     */
-    async revokeAllSessions(userId: string): Promise<void> {
-        const ttl = 7 * 24 * 60 * 60; // matches max refresh token lifetime
-        await this.cacheService.set(`auth:user:revoked:${userId}`, Date.now(), ttl);
     }
 
     private assertGoogleAuthEnabled(): void {

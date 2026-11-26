@@ -953,6 +953,22 @@ describe('AuthService', () => {
 
       await expect(service.validateUserById('user-1')).resolves.toBeNull();
     });
+
+    it('returns null when user-level revocation key is set', async () => {
+      usersService.findById.mockResolvedValue(createUser());
+      cacheService.get.mockResolvedValue(Date.now());
+
+      await expect(service.validateUserById('user-1')).resolves.toBeNull();
+      expect(cacheService.get).toHaveBeenCalledWith('auth:user:revoked:user-1');
+    });
+
+    it('passes when user exists and revocation key is absent', async () => {
+      const user = createUser();
+      usersService.findById.mockResolvedValue(user);
+      cacheService.get.mockResolvedValue(null);
+
+      await expect(service.validateUserById('user-1')).resolves.toBe(user);
+    });
   });
 
   describe('refreshToken', () => {
@@ -1047,6 +1063,19 @@ describe('AuthService', () => {
     it('rejects inactive users', async () => {
       jwtService.verify.mockReturnValue({ id: 'user-1' });
       usersService.findById.mockResolvedValue(createUser({ isActive: false }));
+
+      await expect(
+        service.refreshToken({ refreshToken: 'valid-refresh' }),
+      ).rejects.toThrow(new UnauthorizedException('Invalid refresh token'));
+    });
+
+    it('rejects when user-level revocation key is set', async () => {
+      jwtService.verify.mockReturnValue({ id: 'user-1', jti: 'jti-1' });
+      usersService.findById.mockResolvedValue(createUser());
+      cacheService.get.mockImplementation((key: string) => {
+        if (key === 'auth:user:revoked:user-1') return Promise.resolve(Date.now());
+        return Promise.resolve(null);
+      });
 
       await expect(
         service.refreshToken({ refreshToken: 'valid-refresh' }),
@@ -3348,16 +3377,4 @@ describe('AuthService', () => {
     });
   });
 
-  describe('revokeAllSessions', () => {
-    it('stores a user-level revocation timestamp in the cache', async () => {
-      await service.revokeAllSessions('user-1');
-
-      expect(cacheService.set).toHaveBeenCalledTimes(1);
-      expect(cacheService.set).toHaveBeenCalledWith(
-        'auth:user:revoked:user-1',
-        expect.any(Number),
-        7 * 24 * 60 * 60,
-      );
-    });
-  });
 });
