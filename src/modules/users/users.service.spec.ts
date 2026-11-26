@@ -6,6 +6,8 @@ import { UpdateUserDto } from './dtos/update-user.dto';
 import { IUser } from './interfaces/user.interface';
 import { BulkheadService } from '@common/bulkhead/bulkhead.service';
 import { BulkheadRejectedException } from '@common/bulkhead/bulkhead-rejected.exception';
+import { CacheService } from '@common/cache/cache.service';
+import { OutboxService } from '@common/outbox/outbox.service';
 
 type MockPostgresRepo = {
   create: jest.Mock;
@@ -57,6 +59,8 @@ describe('UsersService', () => {
   let commandBus: { execute: jest.Mock };
   let queryBus: { execute: jest.Mock };
   let bulkhead: { execute: jest.Mock; getStats: jest.Mock };
+  let cache: { delPattern: jest.Mock };
+  let outbox: { publish: jest.Mock };
   let service: UsersService;
   let warnSpy: jest.SpyInstance;
   let logSpy: jest.SpyInstance;
@@ -71,6 +75,8 @@ describe('UsersService', () => {
       execute: jest.fn().mockImplementation((fn: () => Promise<unknown>) => fn()),
       getStats: jest.fn().mockReturnValue({ active: 0, limit: 50 }),
     };
+    cache = { delPattern: jest.fn().mockResolvedValue(undefined) };
+    outbox = { publish: jest.fn().mockResolvedValue(undefined) };
 
     postgresRepo = {
       create: jest.fn(),
@@ -108,6 +114,8 @@ describe('UsersService', () => {
       commandBus as any,
       queryBus as any,
       bulkhead as unknown as BulkheadService,
+      cache as unknown as CacheService,
+      outbox as unknown as OutboxService,
     );
   });
 
@@ -150,7 +158,7 @@ describe('UsersService', () => {
   });
 
   describe('createAndAwaitUser', () => {
-    it('dispatches CreateUserCommand and returns IUser', async () => {
+    it('dispatches CreateUserCommand through bulkhead and returns IUser', async () => {
       const created = createUser();
       commandBus.execute.mockResolvedValue(created);
       const dto: CreateUserDto = {
@@ -163,8 +171,28 @@ describe('UsersService', () => {
 
       const result = await service.createAndAwaitUser(dto);
 
+      expect(bulkhead.execute).toHaveBeenCalledTimes(1);
       expect(commandBus.execute).toHaveBeenCalledTimes(1);
       expect(result).toBe(created);
+    });
+  });
+
+  describe('updateAndAwaitUser', () => {
+    it('dispatches UpdateUserCommand through bulkhead and returns IUser', async () => {
+      const updated = createUser({ firstName: 'Janet' });
+      commandBus.execute.mockResolvedValue(updated);
+
+      const result = await service.updateAndAwaitUser('user-1', { firstName: 'Janet' });
+
+      expect(bulkhead.execute).toHaveBeenCalledTimes(1);
+      expect(commandBus.execute).toHaveBeenCalledTimes(1);
+      expect(result).toBe(updated);
+    });
+
+    it('propagates BulkheadRejectedException', async () => {
+      bulkhead.execute.mockRejectedValue(new BulkheadRejectedException());
+
+      await expect(service.updateAndAwaitUser('user-1', { firstName: 'X' })).rejects.toBeInstanceOf(BulkheadRejectedException);
     });
   });
 
@@ -380,7 +408,7 @@ describe('UsersService', () => {
   });
 
   describe('updateResetToken', () => {
-    it('updates reset token fields via repository', async () => {
+    it('updates reset token, clears SWR cache, and publishes outbox entry', async () => {
       const resetData = {
         passwordResetToken: 'tok',
         passwordResetExpires: new Date('2026-01-01'),
@@ -390,6 +418,12 @@ describe('UsersService', () => {
       await service.updateResetToken('user-1', resetData);
 
       expect(postgresRepo.update).toHaveBeenCalledWith('user-1', resetData);
+      expect(cache.delPattern).toHaveBeenCalledWith('swr:*:users:findById:user-1');
+      expect(outbox.publish).toHaveBeenCalledWith(expect.objectContaining({
+        aggregateType: 'User',
+        aggregateId: 'user-1',
+        eventType: 'user.password_reset_requested',
+      }));
     });
 
     it('throws when userId is undefined', async () => {
@@ -402,11 +436,13 @@ describe('UsersService', () => {
         'Cannot update reset token: userId is required',
       );
       expect(postgresRepo.update).not.toHaveBeenCalled();
+      expect(cache.delPattern).not.toHaveBeenCalled();
+      expect(outbox.publish).not.toHaveBeenCalled();
     });
   });
 
   describe('updatePassword', () => {
-    it('updates password with shouldOmitPassword=false', async () => {
+    it('updates password, clears SWR cache, and publishes outbox entry', async () => {
       const passwordData = {
         password: 'hashed',
         passwordResetToken: undefined,
@@ -416,11 +452,13 @@ describe('UsersService', () => {
 
       await service.updatePassword('user-1', passwordData);
 
-      expect(postgresRepo.update).toHaveBeenCalledWith(
-        'user-1',
-        passwordData,
-        false,
-      );
+      expect(postgresRepo.update).toHaveBeenCalledWith('user-1', passwordData, false);
+      expect(cache.delPattern).toHaveBeenCalledWith('swr:*:users:findById:user-1');
+      expect(outbox.publish).toHaveBeenCalledWith(expect.objectContaining({
+        aggregateType: 'User',
+        aggregateId: 'user-1',
+        eventType: 'user.password_changed',
+      }));
     });
   });
 

@@ -5,6 +5,13 @@ import { ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { sanitizeUserForResponse } from '@modules/users/utils/sanitize-user-response.util';
 
+interface JwtPayload {
+  id: string;
+  email: string;
+  roles: string[];
+  sub?: string;
+}
+
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
     /* istanbul ignore next -- Nest DI constructor parameter emit */
@@ -25,9 +32,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         });
     }
 
-    // Validate the payload by checking if the user exists
-    async validate(payload: any) {
-        // Assuming 'id' is the unique user identifier in your JWT token payload
+    async validate(payload: JwtPayload) {
         const user = await this.authService.validateUserById(payload.id);
         if (!user) {
             throw new Error('Unauthorized'); // or any specific error handling

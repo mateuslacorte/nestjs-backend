@@ -12,6 +12,8 @@ import { DeleteUserCommand } from './commands/delete-user.command';
 import { FindUserByIdQuery } from './queries/find-user-by-id.query';
 import { SearchUsersQuery } from './queries/search-users.query';
 import { BulkheadService } from '@common/bulkhead/bulkhead.service';
+import { CacheService } from '@common/cache/cache.service';
+import { OutboxService } from '@common/outbox/outbox.service';
 
 export interface AsyncOperationResult {
   operationId: string;
@@ -25,6 +27,8 @@ export class UsersService {
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
     private readonly bulkhead: BulkheadService,
+    private readonly cache: CacheService,
+    private readonly outbox: OutboxService,
   ) {}
 
   async create(userData: CreateUserDto, actorId?: string): Promise<AsyncOperationResult> {
@@ -36,7 +40,7 @@ export class UsersService {
   /** For auth/internal flows that need the created user immediately (Mongo write, event still fires async). */
   async createAndAwaitUser(userData: CreateUserDto, actorId?: string): Promise<IUser> {
     const operationId = randomUUID();
-    return this.commandBus.execute(new CreateUserCommand(userData, operationId, actorId)) as Promise<IUser>;
+    return this.bulkhead.execute(() => this.commandBus.execute(new CreateUserCommand(userData, operationId, actorId)) as Promise<IUser>);
   }
 
   async search(query: SearchUsersQueryParams = {}): Promise<UsersPage> {
@@ -146,9 +150,9 @@ export class UsersService {
   }
 
   /** For auth/internal flows that need the updated user immediately (Mongo write, event still fires async). */
-  async updateAndAwaitUser(id: string, updateUserDto: Partial<IUser>, actorId?: string): Promise<IUser> {
+  async updateAndAwaitUser(id: string, updateUserDto: Partial<UpdateUserDto>, actorId?: string): Promise<IUser> {
     const operationId = randomUUID();
-    return this.commandBus.execute(new UpdateUserCommand(id, updateUserDto as UpdateUserDto, operationId, actorId)) as Promise<IUser>;
+    return this.bulkhead.execute(() => this.commandBus.execute(new UpdateUserCommand(id, updateUserDto as UpdateUserDto, operationId, actorId)) as Promise<IUser>);
   }
 
   async remove(id: string, actorId?: string): Promise<AsyncOperationResult> {
@@ -165,6 +169,13 @@ export class UsersService {
       throw new Error('Cannot update reset token: userId is required');
     }
     await this.postgresRepo.update(userId, resetData);
+    await this.cache.delPattern(`swr:*:users:findById:${userId}`);
+    await this.outbox.publish({
+      aggregateType: 'User',
+      aggregateId: userId,
+      eventType: 'user.password_reset_requested',
+      payload: { userId },
+    });
   }
 
   async updatePassword(userId: string, passwordData: {
@@ -173,6 +184,13 @@ export class UsersService {
     passwordResetExpires: Date | undefined;
   }): Promise<void> {
     await this.postgresRepo.update(userId, passwordData, false);
+    await this.cache.delPattern(`swr:*:users:findById:${userId}`);
+    await this.outbox.publish({
+      aggregateType: 'User',
+      aggregateId: userId,
+      eventType: 'user.password_changed',
+      payload: { userId },
+    });
   }
 
   async updateRoles(userId: string, roles: Role[]): Promise<IUser> {

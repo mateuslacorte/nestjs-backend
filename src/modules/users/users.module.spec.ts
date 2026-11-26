@@ -22,6 +22,8 @@ import { RolesGuard } from '@modules/auth/guards/roles.guard';
 import { AuditService } from '@common/audit/audit.service';
 import { AuditInterceptor } from '@common/audit/audit.interceptor';
 import { BulkheadService } from '@common/bulkhead/bulkhead.service';
+import { CacheService } from '@common/cache/cache.service';
+import { OutboxService } from '@common/outbox/outbox.service';
 import { UserRegistrationSaga } from './sagas/user-registration.saga';
 import { UserDeletionSaga } from './sagas/user-deletion.saga';
 
@@ -153,6 +155,14 @@ describe('UsersModule', () => {
         {
           provide: BulkheadService,
           useValue: { execute: jest.fn((fn: () => Promise<unknown>) => fn()), getStats: jest.fn() },
+        },
+        {
+          provide: CacheService,
+          useValue: { delPattern: jest.fn() },
+        },
+        {
+          provide: OutboxService,
+          useValue: { publish: jest.fn() },
         },
       ],
     }).compile();
