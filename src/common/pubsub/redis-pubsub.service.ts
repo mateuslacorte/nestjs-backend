@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger, OnApplicationShutdown, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, OnApplicationShutdown, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 
@@ -11,7 +11,6 @@ export interface PubSubMessage {
 
 @Injectable()
 export class RedisPubSubService implements OnModuleInit, OnModuleDestroy, OnApplicationShutdown {
-  private readonly logger = new Logger(RedisPubSubService.name);
   private subscriber!: Redis;
   private readonly listeners = new Map<string, Array<(msg: PubSubMessage) => void>>();
   private redisShutdown = false;
@@ -38,16 +37,16 @@ export class RedisPubSubService implements OnModuleInit, OnModuleDestroy, OnAppl
         const handlers = this.listeners.get(channel) ?? [];
         for (const h of handlers) {
           try { h(msg); } catch (e) {
-            this.logger.error(`PubSub listener error on ${channel}`, e);
+            console.error(`PubSub listener error on ${channel}`, e);
           }
         }
       } catch {
-        this.logger.warn(`Malformed PubSub message on ${channel}`);
+        console.warn(`Malformed PubSub message on ${channel}`);
       }
     });
 
-    this.subscriber.on('error', (err) => this.logger.error('Redis subscriber error', err));
-    this.logger.log('Redis PubSub service initialised');
+    this.subscriber.on('error', (err) => console.error('Redis subscriber error', err));
+    console.log('Redis PubSub service initialised');
   }
 
   async onApplicationShutdown(): Promise<void> {
@@ -73,7 +72,7 @@ export class RedisPubSubService implements OnModuleInit, OnModuleDestroy, OnAppl
     if (!this.listeners.has(channel)) {
       this.listeners.set(channel, []);
       await this.subscriber.subscribe(channel);
-      this.logger.debug(`Subscribed to Redis channel: ${channel}`);
+      console.debug(`Subscribed to Redis channel: ${channel}`);
     }
     this.listeners.get(channel)!.push(handler);
   }

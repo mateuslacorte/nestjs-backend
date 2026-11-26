@@ -147,9 +147,9 @@ describe('AbstractWebsocketGateway', () => {
       usersService as unknown as UsersService,
     );
 
-    logSpy = jest.spyOn(gateway['logger'], 'log').mockImplementation();
-    warnSpy = jest.spyOn(gateway['logger'], 'warn').mockImplementation();
-    errorSpy = jest.spyOn(gateway['logger'], 'error').mockImplementation();
+    logSpy = jest.spyOn(console, 'log').mockImplementation();
+    warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+    errorSpy = jest.spyOn(console, 'error').mockImplementation();
   });
 
   afterEach(() => {
@@ -211,9 +211,9 @@ describe('AbstractWebsocketGateway', () => {
         configService,
         usersService as unknown as UsersService,
       );
-      logSpy = jest.spyOn(gateway['logger'], 'log').mockImplementation();
-      warnSpy = jest.spyOn(gateway['logger'], 'warn').mockImplementation();
-      errorSpy = jest.spyOn(gateway['logger'], 'error').mockImplementation();
+      logSpy = jest.spyOn(console, 'log').mockImplementation();
+      warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      errorSpy = jest.spyOn(console, 'error').mockImplementation();
 
       mockIsOriginAllowed.mockReturnValue(true);
       const { server } = createServer();
@@ -370,9 +370,9 @@ describe('AbstractWebsocketGateway', () => {
         configService,
         usersService as unknown as UsersService,
       );
-      logSpy = jest.spyOn(gateway['logger'], 'log').mockImplementation();
-      warnSpy = jest.spyOn(gateway['logger'], 'warn').mockImplementation();
-      errorSpy = jest.spyOn(gateway['logger'], 'error').mockImplementation();
+      logSpy = jest.spyOn(console, 'log').mockImplementation();
+      warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      errorSpy = jest.spyOn(console, 'error').mockImplementation();
 
       const { server } = createServer();
       gateway.afterInit(server);
@@ -508,8 +508,8 @@ describe('AbstractWebsocketGateway', () => {
         configService,
         usersService as unknown as UsersService,
       );
-      jest.spyOn(bare['logger'], 'log').mockImplementation();
-      jest.spyOn(bare['logger'], 'warn').mockImplementation();
+      jest.spyOn(console, 'log').mockImplementation();
+      jest.spyOn(console, 'warn').mockImplementation();
 
       const client = {
         id: 'c1',

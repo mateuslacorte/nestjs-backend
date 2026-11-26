@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import Redis from 'ioredis';
 
 export type OperationState = 'pending' | 'completed' | 'failed';
@@ -23,7 +23,6 @@ function key(operationId: string): string {
 
 @Injectable()
 export class OperationStatusService {
-  private readonly logger = new Logger(OperationStatusService.name);
 
   constructor(@Inject('REDIS_CLIENT') private readonly redis: Redis) {}
 
@@ -47,7 +46,7 @@ export class OperationStatusService {
       result,
     };
     await this.redis.setex(key(operationId), TTL_SECONDS, JSON.stringify(entry));
-    this.logger.debug(`Operation ${operationId} completed`);
+    console.debug(`Operation ${operationId} completed`);
   }
 
   async fail(operationId: string, error: string): Promise<void> {
@@ -60,7 +59,7 @@ export class OperationStatusService {
       error,
     };
     await this.redis.setex(key(operationId), TTL_SECONDS, JSON.stringify(entry));
-    this.logger.warn(`Operation ${operationId} failed: ${error}`);
+    console.warn(`Operation ${operationId} failed: ${error}`);
   }
 
   async get(operationId: string): Promise<OperationStatus> {

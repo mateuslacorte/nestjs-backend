@@ -1,4 +1,4 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 
@@ -13,7 +13,6 @@ const MAX_VALUE_BYTES = 1024 * 1024; // 1 MB
 
 @Injectable()
 export class CacheService {
-  private readonly logger = new Logger(CacheService.name);
   private readonly redis: Redis;
   private readonly defaultTtl: number;
 
@@ -40,7 +39,7 @@ export class CacheService {
       }
       return parsed as T;
     } catch (error) {
-      this.logger.error(`Cache GET failed for key ${key}`, error);
+      console.error(`Cache GET failed for key ${key}`, error);
       return null;
     }
   }
@@ -50,15 +49,15 @@ export class CacheService {
       const ttlToUse = ttl ?? this.defaultTtl;
       const serialized = JSON.stringify(value);
       if (serialized.length > MAX_VALUE_BYTES) {
-        this.logger.warn(
+        console.warn(
           `Cache SET skipped: value for key "${key}" exceeds ${MAX_VALUE_BYTES}B (${serialized.length}B)`,
         );
         return;
       }
       await this.redis.setex(key, ttlToUse, serialized);
-      this.logger.debug(`Cache SET ${key} (TTL=${ttlToUse}s, ${serialized.length}B)`);
+      console.debug(`Cache SET ${key} (TTL=${ttlToUse}s, ${serialized.length}B)`);
     } catch (error) {
-      this.logger.error(`Cache SET failed for key ${key}`, error);
+      console.error(`Cache SET failed for key ${key}`, error);
     }
   }
 
@@ -97,11 +96,11 @@ export class CacheService {
         if (entry._swr) {
           const now = Date.now();
           if (now < entry.freshUntil) {
-            this.logger.debug(`Cache SWR FRESH ${storageKey}`);
+            console.debug(`Cache SWR FRESH ${storageKey}`);
             return entry.data;
           }
           if (now < entry.staleUntil) {
-            this.logger.debug(`Cache SWR STALE (bg refresh) ${storageKey}`);
+            console.debug(`Cache SWR STALE (bg refresh) ${storageKey}`);
             void this.refreshInBackground(storageKey, fetcher, freshTtl, staleTtl);
             return entry.data;
           }
@@ -136,9 +135,9 @@ export class CacheService {
     try {
       const data = await fetcher();
       await this.setWithSwr(key, data, freshTtl, staleTtl);
-      this.logger.debug(`Cache SWR background refresh complete: ${key}`);
+      console.debug(`Cache SWR background refresh complete: ${key}`);
     } catch (err) {
-      this.logger.warn(`Cache SWR background refresh failed: ${key}`, err);
+      console.warn(`Cache SWR background refresh failed: ${key}`, err);
     }
   }
 
@@ -146,7 +145,7 @@ export class CacheService {
     try {
       await this.redis.del(key);
     } catch (error) {
-      this.logger.error(`Cache DEL failed for key ${key}`, error);
+      console.error(`Cache DEL failed for key ${key}`, error);
     }
   }
 
@@ -171,9 +170,9 @@ export class CacheService {
       for (let i = 0; i < keys.length; i += batchSize) {
         await this.redis.del(...keys.slice(i, i + batchSize));
       }
-      this.logger.debug(`Cache invalidated ${keys.length} keys for pattern ${pattern}`);
+      console.debug(`Cache invalidated ${keys.length} keys for pattern ${pattern}`);
     } catch (error) {
-      this.logger.error(`Cache DEL pattern failed: ${pattern}`, error);
+      console.error(`Cache DEL pattern failed: ${pattern}`, error);
       try {
         const keys = await this.redis.keys(pattern);
         if (keys.length) {
@@ -182,7 +181,7 @@ export class CacheService {
           }
         }
       } catch (fallbackErr) {
-        this.logger.error('Cache DEL pattern fallback also failed', fallbackErr);
+        console.error('Cache DEL pattern fallback also failed', fallbackErr);
         throw error;
       }
     }

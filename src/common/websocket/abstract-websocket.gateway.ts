@@ -5,7 +5,6 @@ import {
     OnGatewayInit,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AbstractWebsocketService } from './abstract-websocket.service';
 import { Role } from '@modules/auth/enums/role.enum';
@@ -31,7 +30,6 @@ export abstract class AbstractWebsocketGateway
     @WebSocketServer()
     server!: Server;
 
-    protected readonly logger = new Logger(AbstractWebsocketGateway.name);
 
     constructor(
         protected readonly websocketService: AbstractWebsocketService,
@@ -50,7 +48,7 @@ export abstract class AbstractWebsocketGateway
                         : undefined;
 
                 if (!isOriginAllowed(handshakeOrigin, allowed)) {
-                    this.logger.warn(
+                    console.warn(
                         `Connection rejected: Origin not allowed (${handshakeOrigin || 'none'}) for ${socket.id}`,
                     );
                     return next(new Error('Origin not allowed by CORS'));
@@ -64,7 +62,7 @@ export abstract class AbstractWebsocketGateway
                         : undefined);
 
                 if (!token) {
-                    this.logger.warn(
+                    console.warn(
                         `Connection rejected: No token provided for ${socket.id}`,
                     );
                     return next(new Error('Authentication token required'));
@@ -78,7 +76,7 @@ export abstract class AbstractWebsocketGateway
                 };
 
                 if (!decoded?.id) {
-                    this.logger.warn(
+                    console.warn(
                         `Connection rejected: Invalid token for ${socket.id}`,
                     );
                     return next(new Error('Invalid token'));
@@ -86,7 +84,7 @@ export abstract class AbstractWebsocketGateway
 
                 const dbUser = await this.usersService.findById(decoded.id);
                 if (!dbUser?.isActive) {
-                    this.logger.warn(
+                    console.warn(
                         `Connection rejected: User missing or inactive for ${socket.id}`,
                     );
                     return next(new Error('User not found or inactive'));
@@ -103,12 +101,12 @@ export abstract class AbstractWebsocketGateway
                 authSocket.user = user;
                 authSocket.data.user = user;
 
-                this.logger.log(
+                console.log(
                     `Client authenticated: ${socket.id} (userId: ${user.id})`,
                 );
                 next();
             } catch (error: any) {
-                this.logger.error(
+                console.error(
                     `Authentication error for ${socket.id}: ${error.message}`,
                 );
                 next(new Error('Authentication failed'));
@@ -120,12 +118,12 @@ export abstract class AbstractWebsocketGateway
         const authSocket = client as AuthenticatedSocket;
         const userId = authSocket.userId ?? authSocket.data?.user?.id;
         if (!userId) {
-            this.logger.warn(`Connection rejected: No userId for ${client.id}`);
+            console.warn(`Connection rejected: No userId for ${client.id}`);
             client.disconnect();
             return;
         }
 
-        this.logger.log(`Client connected: ${client.id} (userId: ${userId})`);
+        console.log(`Client connected: ${client.id} (userId: ${userId})`);
         this.websocketService.addClient(client);
         this.afterConnection(client);
     }
@@ -133,7 +131,7 @@ export abstract class AbstractWebsocketGateway
     handleDisconnect(client: Socket): void {
         const authSocket = client as AuthenticatedSocket;
         const userId = authSocket.userId ?? authSocket.data?.user?.id;
-        this.logger.log(
+        console.log(
             `Client disconnected: ${client.id} (userId: ${userId || 'unknown'})`,
         );
         this.websocketService.removeClient(client.id);

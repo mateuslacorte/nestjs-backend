@@ -42,7 +42,7 @@ export class OutboxService {
       aggregateId: input.aggregateId,
       eventType: input.eventType,
       payload: input.payload,
-      status: 'pending',
+      status: OutboxStatus.PENDING,
       createdAt: new Date(),
       publishedAt: null,
       retries: 0,

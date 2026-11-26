@@ -29,7 +29,7 @@ describe('UsersCacheWarmer', () => {
       usersService as unknown as UsersService,
       cacheService as unknown as CacheService,
     );
-    logSpy = jest.spyOn(warmer['logger'], 'log').mockImplementation();
+    logSpy = jest.spyOn(console, 'log').mockImplementation();
   });
 
   afterEach(() => {

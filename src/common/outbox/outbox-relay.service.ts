@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Counter, register } from 'prom-client';
 import { OutboxEntry, OutboxStatus } from './entities/outbox-entry.entity';
@@ -15,7 +15,6 @@ const OUTBOX_FAILED_METRIC = 'outbox_failed_total';
 
 @Injectable()
 export class OutboxRelayService implements OnModuleInit, OnModuleDestroy {
-  private readonly logger = new Logger(OutboxRelayService.name);
   private readonly publishedCounter: Counter<string>;
   private readonly failedCounter: Counter<string>;
   private intervalId: NodeJS.Timeout | null = null;
@@ -70,7 +69,7 @@ export class OutboxRelayService implements OnModuleInit, OnModuleDestroy {
     };
     scheduleCleanup();
 
-    this.logger.log(`Outbox relay started (interval: ${intervalMs}ms, cleanup every: ${cleanupIntervalMs}ms)`);
+    console.log(`Outbox relay started (interval: ${intervalMs}ms, cleanup every: ${cleanupIntervalMs}ms)`);
   }
 
   onModuleDestroy(): void {
@@ -100,7 +99,7 @@ export class OutboxRelayService implements OnModuleInit, OnModuleDestroy {
         await this.processMongoEntry(entry);
       }
     } catch (err) {
-      this.logger.error('Outbox relay error', err);
+      console.error('Outbox relay error', err);
     } finally {
       this.relaying = false;
     }
@@ -114,7 +113,7 @@ export class OutboxRelayService implements OnModuleInit, OnModuleDestroy {
       this.outboxMongoRepo.purgeOldFailed(ttlMs),
     ]);
     if (pgDeleted + mongoDeleted > 0) {
-      this.logger.log(
+      console.log(
         `Outbox cleanup: purged ${pgDeleted} Postgres + ${mongoDeleted} Mongo FAILED entries older than ${ttlMs}ms`,
       );
     }
@@ -129,7 +128,7 @@ export class OutboxRelayService implements OnModuleInit, OnModuleDestroy {
         publishedAt: new Date(),
       });
       this.publishedCounter.inc({ store: 'postgres' });
-      this.logger.debug(`Outbox entry published: ${entry.id} (${entry.eventType})`);
+      console.debug(`Outbox entry published: ${entry.id} (${entry.eventType})`);
     } catch (err) {
       const newRetries = entry.retries + 1;
       const error = err instanceof Error ? err.message : String(err);
@@ -140,10 +139,10 @@ export class OutboxRelayService implements OnModuleInit, OnModuleDestroy {
           retries: newRetries,
         });
         this.failedCounter.inc({ store: 'postgres' });
-        this.logger.error(`Outbox entry failed permanently: ${entry.id} — ${error}`);
+        console.error(`Outbox entry failed permanently: ${entry.id} — ${error}`);
       } else {
         await this.outboxRepo.update(entry.id, { retries: newRetries });
-        this.logger.warn(`Outbox entry retry ${newRetries}/${MAX_RETRIES}: ${entry.id} — ${error}`);
+        console.warn(`Outbox entry retry ${newRetries}/${MAX_RETRIES}: ${entry.id} — ${error}`);
       }
     }
   }
@@ -157,7 +156,7 @@ export class OutboxRelayService implements OnModuleInit, OnModuleDestroy {
         publishedAt: new Date(),
       });
       this.publishedCounter.inc({ store: 'mongo' });
-      this.logger.debug(`Mongo outbox entry published: ${entry.id} (${entry.eventType})`);
+      console.debug(`Mongo outbox entry published: ${entry.id} (${entry.eventType})`);
     } catch (err) {
       const newRetries = entry.retries + 1;
       const error = err instanceof Error ? err.message : String(err);
@@ -168,10 +167,10 @@ export class OutboxRelayService implements OnModuleInit, OnModuleDestroy {
           retries: newRetries,
         });
         this.failedCounter.inc({ store: 'mongo' });
-        this.logger.error(`Mongo outbox entry failed permanently: ${entry.id} — ${error}`);
+        console.error(`Mongo outbox entry failed permanently: ${entry.id} — ${error}`);
       } else {
         await this.outboxMongoRepo.update(entry.id, { retries: newRetries });
-        this.logger.warn(`Mongo outbox entry retry ${newRetries}/${MAX_RETRIES}: ${entry.id} — ${error}`);
+        console.warn(`Mongo outbox entry retry ${newRetries}/${MAX_RETRIES}: ${entry.id} — ${error}`);
       }
     }
   }

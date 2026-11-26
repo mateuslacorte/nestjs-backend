@@ -208,7 +208,7 @@ describe('AbstractWebsocketService', () => {
 
       service.processMessage(client, payload);
 
-      // NestJS Logger does not route through console.warn — just verify no emit
+      // console.warn is intercepted by Graylog; just verify no emit
       expect(client.emit).not.toHaveBeenCalled();
     });
 

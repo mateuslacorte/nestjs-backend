@@ -6,10 +6,10 @@ describe('CircuitBreakerService', () => {
 
   beforeEach(() => {
     service = new CircuitBreakerService();
-    jest.spyOn(service['logger'], 'log').mockImplementation(() => undefined);
-    jest.spyOn(service['logger'], 'warn').mockImplementation(() => undefined);
-    jest.spyOn(service['logger'], 'debug').mockImplementation(() => undefined);
-    jest.spyOn(service['logger'], 'error').mockImplementation(() => undefined);
+    jest.spyOn(console, 'log').mockImplementation(() => undefined);
+    jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    jest.spyOn(console, 'debug').mockImplementation(() => undefined);
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
   afterEach(() => {

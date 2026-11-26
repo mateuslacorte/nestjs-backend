@@ -191,7 +191,7 @@ describe('EnableCache', () => {
     }
 
     const repo = new UserPostgresRepository();
-    // Swallowed — NestJS Logger.warn does not route through console.warn/error
+    // Swallowed — console.warn intercepted by Graylog; not observable here
     await expect(repo.update('u2')).resolves.toEqual({ id: 'u2' });
   });
 

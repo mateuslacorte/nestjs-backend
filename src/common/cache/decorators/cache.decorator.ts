@@ -1,4 +1,4 @@
-import { SetMetadata, Logger } from '@nestjs/common';
+import { SetMetadata } from '@nestjs/common';
 import 'reflect-metadata';
 import { CacheService } from '../cache.service';
 import { buildCacheKey } from '../utils/cache-key-builder';
@@ -108,8 +108,6 @@ export function EnableCache() {
 
     const originalMethod = descriptor.value as (...args: unknown[]) => Promise<unknown>;
     const className = (target as { constructor: { name: string } }).constructor.name;
-    const logger = new Logger(`CacheDecorator:${className}`);
-
     descriptor.value = async function (...args: unknown[]) {
       const cacheService: CacheService | undefined = (this as { cacheService?: CacheService }).cacheService;
 
@@ -144,7 +142,7 @@ export function EnableCache() {
             await cacheService.delPattern(`${dbType}:${moduleName}:*:findById:${id}*`);
           }
         } catch (err) {
-          logger.warn(`Cache invalidation failed after ${propertyName}`, err);
+          console.warn(`Cache invalidation failed after ${propertyName}`, err);
         }
         return result;
       }
@@ -165,7 +163,7 @@ export function EnableCache() {
 
       const cached = await cacheService.get(key);
       if (cached !== null) {
-        logger.debug(`Cache HIT: ${key}`);
+        console.debug(`Cache HIT: ${key}`);
         return cached;
       }
 

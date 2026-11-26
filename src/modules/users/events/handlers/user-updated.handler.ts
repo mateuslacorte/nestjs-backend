@@ -1,5 +1,5 @@
 import { EventsHandler, IEventHandler } from '@nestjs/cqrs';
-import { Logger, OnModuleInit } from '@nestjs/common';
+import { OnModuleInit } from '@nestjs/common';
 import { UserUpdatedEvent } from '../user-updated.event';
 import { UserPostgresRepository } from '../../repositories/postgres.repository';
 import { DlqService } from '@common/dlq/dlq.service';
@@ -12,7 +12,6 @@ const HANDLER_KEY = 'UserUpdatedEvent:syncToPostgres';
 
 @EventsHandler(UserUpdatedEvent)
 export class UserUpdatedHandler implements IEventHandler<UserUpdatedEvent>, OnModuleInit {
-  private readonly logger = new Logger(UserUpdatedHandler.name);
 
   constructor(
     private readonly postgresRepo: UserPostgresRepository,
@@ -44,14 +43,14 @@ export class UserUpdatedHandler implements IEventHandler<UserUpdatedEvent>, OnMo
       await this.syncAndNotify(event.user, event.operationId, event.actorId);
       await this.opStatus.complete(event.operationId, { userId: event.user.id });
     } catch (err) {
-      this.logger.error(`Postgres sync failed for user update ${event.user.id}`, err);
+      console.error(`Postgres sync failed for user update ${event.user.id}`, err);
       await this.dlq.push(HANDLER_KEY, { user: event.user, operationId: event.operationId, actorId: event.actorId });
     }
   }
 
   private async syncAndNotify(user: Parameters<typeof this.postgresRepo.upsert>[0], operationId: string, actorId?: string): Promise<void> {
     await this.postgresRepo.upsert(user);
-    this.logger.debug(`User update synced to Postgres: ${user.id}`);
+    console.debug(`User update synced to Postgres: ${user.id}`);
 
     await this.cache.delPattern(`swr:*:users:findById:${user.id}`);
 

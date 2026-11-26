@@ -17,8 +17,8 @@ describe('CacheWarmupService', () => {
 
   function build(warmers: CacheWarmer[]): CacheWarmupService {
     const svc = new CacheWarmupService(warmers);
-    logSpy = jest.spyOn(svc['logger'], 'log').mockImplementation();
-    errorSpy = jest.spyOn(svc['logger'], 'error').mockImplementation();
+    logSpy = jest.spyOn(console, 'log').mockImplementation();
+    errorSpy = jest.spyOn(console, 'error').mockImplementation();
     return svc;
   }
 

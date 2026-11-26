@@ -22,7 +22,7 @@ describe('AuditService', () => {
     service = new AuditService(
       postgresRepo as unknown as AuditPostgresRepository,
     );
-    jest.spyOn(service['logger'], 'error').mockImplementation(() => undefined);
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
   describe('record', () => {

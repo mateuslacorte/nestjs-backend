@@ -52,10 +52,10 @@ describe('OutboxRelayService', () => {
       pubSub as unknown as RedisPubSubService,
       configService as unknown as ConfigService,
     );
-    jest.spyOn(service['logger'], 'log').mockImplementation(() => undefined);
-    jest.spyOn(service['logger'], 'debug').mockImplementation(() => undefined);
-    jest.spyOn(service['logger'], 'warn').mockImplementation(() => undefined);
-    jest.spyOn(service['logger'], 'error').mockImplementation(() => undefined);
+    jest.spyOn(console, 'log').mockImplementation(() => undefined);
+    jest.spyOn(console, 'debug').mockImplementation(() => undefined);
+    jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
   afterEach(() => {
@@ -162,7 +162,7 @@ describe('OutboxRelayService', () => {
     it('logs when entries are purged', async () => {
       outboxRepo.purgeOldFailed.mockResolvedValue(3);
       outboxMongoRepo.purgeOldFailed.mockResolvedValue(1);
-      const logSpy = jest.spyOn(service['logger'], 'log').mockImplementation(() => undefined);
+      const logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
 
       await service.purgeOldFailed();
 
@@ -172,7 +172,7 @@ describe('OutboxRelayService', () => {
     it('does not log when nothing was purged', async () => {
       outboxRepo.purgeOldFailed.mockResolvedValue(0);
       outboxMongoRepo.purgeOldFailed.mockResolvedValue(0);
-      const logSpy = jest.spyOn(service['logger'], 'log').mockImplementation(() => undefined);
+      const logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
 
       await service.purgeOldFailed();
 

@@ -42,8 +42,8 @@ describe('WhatsappService', () => {
     configOverrides?: Partial<{ key: string; url: string; instance: string }>,
   ): WhatsappService {
     const service = new WhatsappService(createConfigService(configOverrides));
-    errorSpy = jest.spyOn(service['logger'], 'error').mockImplementation();
-    debugSpy = jest.spyOn(service['logger'], 'debug').mockImplementation();
+    errorSpy = jest.spyOn(console, 'error').mockImplementation();
+    debugSpy = jest.spyOn(console, 'debug').mockImplementation();
     return service;
   }
 
@@ -77,8 +77,8 @@ describe('WhatsappService', () => {
         ),
       } as unknown as ConfigService;
       const svc = new WhatsappService(config);
-      errorSpy = jest.spyOn(svc['logger'], 'error').mockImplementation();
-      debugSpy = jest.spyOn(svc['logger'], 'debug').mockImplementation();
+      errorSpy = jest.spyOn(console, 'error').mockImplementation();
+      debugSpy = jest.spyOn(console, 'debug').mockImplementation();
 
       await expect(svc.sendMessage('5511999999999', 'hi')).rejects.toBeInstanceOf(
         ServiceUnavailableException,
@@ -100,8 +100,8 @@ describe('WhatsappService', () => {
         ),
       } as unknown as ConfigService;
       const svc = new WhatsappService(config);
-      errorSpy = jest.spyOn(svc['logger'], 'error').mockImplementation();
-      debugSpy = jest.spyOn(svc['logger'], 'debug').mockImplementation();
+      errorSpy = jest.spyOn(console, 'error').mockImplementation();
+      debugSpy = jest.spyOn(console, 'debug').mockImplementation();
 
       await expect(svc.sendMessage('5511999999999', 'hi')).rejects.toThrow(
         ServiceUnavailableException,
@@ -152,8 +152,8 @@ describe('WhatsappService', () => {
         }),
       } as unknown as ConfigService;
       const service = new WhatsappService(config);
-      errorSpy = jest.spyOn(service['logger'], 'error').mockImplementation();
-      debugSpy = jest.spyOn(service['logger'], 'debug').mockImplementation();
+      errorSpy = jest.spyOn(console, 'error').mockImplementation();
+      debugSpy = jest.spyOn(console, 'debug').mockImplementation();
 
       fetchSpy.mockResolvedValue({
         ok: true,

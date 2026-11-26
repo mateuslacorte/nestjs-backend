@@ -9,4 +9,7 @@ export default registerAs('minio', () => ({
     bucket: process.env.MINIO_BUCKET || 'bucket',
     // Public URL for generating accessible links (e.g., https://minio.yourdomain.com)
     publicUrl: process.env.MINIO_PUBLIC_URL || '',
+    publicRead:
+        process.env.MINIO_PUBLIC_READ === 'true' ||
+        process.env.MINIO_PUBLIC_READ === '1',
 }));

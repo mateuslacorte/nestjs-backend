@@ -41,10 +41,10 @@ describe('CacheService', () => {
     redis = createRedis();
     service = new CacheService(redis as never, createConfigService(3600));
 
-    errorSpy = jest.spyOn(service['logger'], 'error').mockImplementation();
-    warnSpy = jest.spyOn(service['logger'], 'warn').mockImplementation();
-    logSpy = jest.spyOn(service['logger'], 'log').mockImplementation();
-    debugSpy = jest.spyOn(service['logger'], 'debug').mockImplementation();
+    errorSpy = jest.spyOn(console, 'error').mockImplementation();
+    warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+    logSpy = jest.spyOn(console, 'log').mockImplementation();
+    debugSpy = jest.spyOn(console, 'debug').mockImplementation();
   });
 
   afterEach(() => {

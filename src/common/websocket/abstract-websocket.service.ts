@@ -1,18 +1,17 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Socket } from 'socket.io';
 import { MessageHandler, MessagePayload } from './interfaces/message-handler.interface';
 import { AuthenticatedSocket } from './abstract-websocket.gateway';
 
 @Injectable()
 export abstract class AbstractWebsocketService {
-  protected readonly logger = new Logger(AbstractWebsocketService.name);
   protected clients: Map<string, Socket> = new Map();
   protected userSockets: Map<string, Set<string>> = new Map();
   protected messageHandlers: MessageHandler[] = [];
 
   registerMessageHandler(handler: MessageHandler): void {
     this.messageHandlers.push(handler);
-    this.logger.debug(`Registered message handler: ${handler.constructor.name}`);
+    console.debug(`Registered message handler: ${handler.constructor.name}`);
   }
 
   addClient(client: Socket): void {
@@ -81,7 +80,7 @@ export abstract class AbstractWebsocketService {
     const handler = this.messageHandlers.find((h) => h.canHandle(payload.type));
 
     if (!handler) {
-      this.logger.warn(`No handler for message type: ${payload.type}`);
+      console.warn(`No handler for message type: ${payload.type}`);
       return;
     }
 

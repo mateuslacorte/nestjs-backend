@@ -196,7 +196,7 @@ describe('DlqService — push', () => {
   it('drops silently when not connected', async () => {
     service = new DlqService(configService);
     // not initialised → connected = false
-    const logSpy = jest.spyOn(service['logger'], 'error').mockImplementation(() => undefined);
+    const logSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
 
     await service.push('my-handler', {});
 
@@ -227,10 +227,10 @@ describe('DlqService — processMessage', () => {
     });
     service = new DlqService(configService);
     await service.onModuleInit();
-    jest.spyOn(service['logger'], 'log').mockImplementation(() => undefined);
-    jest.spyOn(service['logger'], 'debug').mockImplementation(() => undefined);
-    jest.spyOn(service['logger'], 'warn').mockImplementation(() => undefined);
-    jest.spyOn(service['logger'], 'error').mockImplementation(() => undefined);
+    jest.spyOn(console, 'log').mockImplementation(() => undefined);
+    jest.spyOn(console, 'debug').mockImplementation(() => undefined);
+    jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
   afterEach(async () => {

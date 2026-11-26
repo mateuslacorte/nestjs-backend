@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import {
     AuditPage,
@@ -19,7 +19,6 @@ const MAX_PAGE_SIZE = 100;
 
 @Injectable()
 export class AuditService {
-    private readonly logger = new Logger(AuditService.name);
     private readonly postgresRepo: AuditPostgresRepository;
 
     constructor(postgresRepo: {
@@ -64,7 +63,7 @@ export class AuditService {
         } catch (error) {
             const message =
                 error instanceof Error ? error.message : String(error);
-            this.logger.error(`Failed to record audit event: ${message}`);
+            console.error(`Failed to record audit event: ${message}`);
             return null;
         }
     }

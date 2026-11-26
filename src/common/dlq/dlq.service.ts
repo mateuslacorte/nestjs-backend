@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnApplicationShutdown, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnApplicationShutdown, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Admin, Consumer, Kafka, KafkaMessage, Producer, logLevel } from 'kafkajs';
 import { Counter, register } from 'prom-client';
@@ -26,7 +26,6 @@ function h(val: Buffer | string | (Buffer | string)[] | null | undefined): strin
 
 @Injectable()
 export class DlqService implements OnModuleInit, OnModuleDestroy, OnApplicationShutdown {
-  private readonly logger = new Logger(DlqService.name);
   private readonly handlers = new Map<string, HandlerEntry>();
   private readonly outcomesCounter: Counter<string>;
 
@@ -77,9 +76,9 @@ export class DlqService implements OnModuleInit, OnModuleDestroy, OnApplicationS
       });
 
       this.connected = true;
-      this.logger.log('Kafka DLQ connected and consuming dlq.events');
+      console.log('Kafka DLQ connected and consuming dlq.events');
     } catch (err) {
-      this.logger.error('Kafka DLQ failed to connect — DLQ is inactive', err);
+      console.error('Kafka DLQ failed to connect — DLQ is inactive', err);
     }
   }
 
@@ -99,7 +98,7 @@ export class DlqService implements OnModuleInit, OnModuleDestroy, OnApplicationS
       await this.consumer.disconnect();
       await this.producer.disconnect();
     } catch (err) {
-      this.logger.error('Error disconnecting Kafka DLQ', err);
+      console.error('Error disconnecting Kafka DLQ', err);
     }
   }
 
@@ -109,7 +108,7 @@ export class DlqService implements OnModuleInit, OnModuleDestroy, OnApplicationS
    */
   registerHandler(key: string, handler: DlqHandler, opts?: { onPermanentFailure?: DlqHandler }): void {
     this.handlers.set(key, { handler, onPermanentFailure: opts?.onPermanentFailure });
-    this.logger.debug(`Registered DLQ handler: ${key}`);
+    console.debug(`Registered DLQ handler: ${key}`);
   }
 
   /** Enqueue a failed payload for retry via Kafka. */
@@ -119,7 +118,7 @@ export class DlqService implements OnModuleInit, OnModuleDestroy, OnApplicationS
     opts?: { maxAttempts?: number; delayMs?: number },
   ): Promise<void> {
     if (!this.connected) {
-      this.logger.error(`DLQ inactive — dropping entry for ${handlerKey}`);
+      console.error(`DLQ inactive — dropping entry for ${handlerKey}`);
       return;
     }
     await this.producer.send({
@@ -138,7 +137,7 @@ export class DlqService implements OnModuleInit, OnModuleDestroy, OnApplicationS
         },
       ],
     });
-    this.logger.warn(`Pushed to DLQ [${handlerKey}]`);
+    console.warn(`Pushed to DLQ [${handlerKey}]`);
     this.outcomesCounter.inc({ handler: handlerKey, outcome: 'pushed' });
   }
 
@@ -159,7 +158,7 @@ export class DlqService implements OnModuleInit, OnModuleDestroy, OnApplicationS
 
     const registration = this.handlers.get(handlerKey);
     if (!registration) {
-      this.logger.error(`No DLQ handler for key: ${handlerKey} — moving to dead`);
+      console.error(`No DLQ handler for key: ${handlerKey} — moving to dead`);
       await this.moveToDead(handlerKey, message.value, message.headers, 'No handler registered');
       await this.commit(topic, partition, message.offset);
       return;
@@ -176,7 +175,7 @@ export class DlqService implements OnModuleInit, OnModuleDestroy, OnApplicationS
 
     try {
       await registration.handler(payload);
-      this.logger.log(`DLQ entry recovered [${handlerKey}] after ${attempts} retries`);
+      console.log(`DLQ entry recovered [${handlerKey}] after ${attempts} retries`);
       this.outcomesCounter.inc({ handler: handlerKey, outcome: 'recovered' });
       await this.commit(topic, partition, message.offset);
     } catch (err) {
@@ -184,17 +183,17 @@ export class DlqService implements OnModuleInit, OnModuleDestroy, OnApplicationS
       const error = err instanceof Error ? err.message : String(err);
 
       if (newAttempts >= maxAttempts) {
-        this.logger.error(`DLQ permanently failed [${handlerKey}] after ${newAttempts} attempts: ${error}`);
+        console.error(`DLQ permanently failed [${handlerKey}] after ${newAttempts} attempts: ${error}`);
         await this.moveToDead(handlerKey, message.value, message.headers, error);
         this.outcomesCounter.inc({ handler: handlerKey, outcome: 'dead' });
         try {
           await registration.onPermanentFailure?.(payload);
         } catch (cbErr) {
-          this.logger.error(`DLQ onPermanentFailure callback failed for ${handlerKey}`, cbErr);
+          console.error(`DLQ onPermanentFailure callback failed for ${handlerKey}`, cbErr);
         }
       } else {
         const backoff = BASE_BACKOFF_MS * Math.pow(2, newAttempts);
-        this.logger.warn(`DLQ retry ${newAttempts}/${maxAttempts} in ${backoff}ms [${handlerKey}]`);
+        console.warn(`DLQ retry ${newAttempts}/${maxAttempts} in ${backoff}ms [${handlerKey}]`);
         this.outcomesCounter.inc({ handler: handlerKey, outcome: 'retry' });
         await this.reenqueue(handlerKey, message.value, message.headers, newAttempts, maxAttempts, Date.now() + backoff);
       }
@@ -266,7 +265,7 @@ export class DlqService implements OnModuleInit, OnModuleDestroy, OnApplicationS
           replicationFactor: 1,
         })),
       });
-      this.logger.log(`Created Kafka topics: ${toCreate.join(', ')}`);
+      console.log(`Created Kafka topics: ${toCreate.join(', ')}`);
     }
   }
 }

@@ -1,5 +1,4 @@
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
-import { Logger } from '@nestjs/common';
 import { UpdateUserCommand } from '../update-user.command';
 import { UserMongoRepository } from '../../repositories/mongo.repository';
 import { UserUpdatedEvent } from '../../events/user-updated.event';
@@ -8,7 +7,6 @@ import { OperationStatusService } from '@common/operations/operation-status.serv
 
 @CommandHandler(UpdateUserCommand)
 export class UpdateUserHandler implements ICommandHandler<UpdateUserCommand, IUser> {
-  private readonly logger = new Logger(UpdateUserHandler.name);
 
   constructor(
     private readonly mongoRepo: UserMongoRepository,
@@ -19,7 +17,7 @@ export class UpdateUserHandler implements ICommandHandler<UpdateUserCommand, IUs
   async execute(command: UpdateUserCommand): Promise<IUser> {
     await this.opStatus.pending(command.operationId);
     const user = await this.mongoRepo.update(command.id, command.dto);
-    this.logger.debug(`User updated in Mongo: ${user.id}`);
+    console.debug(`User updated in Mongo: ${user.id}`);
     this.eventBus.publish(new UserUpdatedEvent(user, command.operationId, command.actorId));
     return user;
   }

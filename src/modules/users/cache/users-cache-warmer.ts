@@ -1,11 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CacheService } from '@common/cache/cache.service';
 import { CacheWarmer } from '@common/cache/interfaces/cache-warmer.interface';
 import { UsersService } from '../users.service';
 
 @Injectable()
 export class UsersCacheWarmer implements CacheWarmer {
-  private readonly logger = new Logger(UsersCacheWarmer.name);
 
   constructor(
     private readonly usersService: UsersService,
@@ -25,6 +24,6 @@ export class UsersCacheWarmer implements CacheWarmer {
       ),
     );
 
-    this.logger.log(`Warmed ${page.items.length} active users`);
+    console.log(`Warmed ${page.items.length} active users`);
   }
 }

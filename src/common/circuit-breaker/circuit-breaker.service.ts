@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import CircuitBreaker from 'opossum';
 import { Counter, register } from 'prom-client';
 
@@ -17,7 +17,6 @@ export interface BreakerOptions {
 
 @Injectable()
 export class CircuitBreakerService {
-  private readonly logger = new Logger(CircuitBreakerService.name);
   private readonly breakers = new Map<string, CircuitBreaker<[() => Promise<unknown>], unknown>>();
   private readonly eventsCounter: Counter<string>;
 
@@ -58,27 +57,27 @@ export class CircuitBreakerService {
       );
 
       breaker.on('open', () => {
-        this.logger.warn(`Circuit [${name}] OPEN — calls rejected until reset`);
+        console.warn(`Circuit [${name}] OPEN — calls rejected until reset`);
         this.eventsCounter.inc({ name, state: 'open' });
       });
       breaker.on('halfOpen', () => {
-        this.logger.log(`Circuit [${name}] HALF-OPEN — probing`);
+        console.log(`Circuit [${name}] HALF-OPEN — probing`);
         this.eventsCounter.inc({ name, state: 'half_open' });
       });
       breaker.on('close', () => {
-        this.logger.log(`Circuit [${name}] CLOSED — healthy`);
+        console.log(`Circuit [${name}] CLOSED — healthy`);
         this.eventsCounter.inc({ name, state: 'close' });
       });
       breaker.on('reject', () => {
-        this.logger.warn(`Circuit [${name}] rejected (open)`);
+        console.warn(`Circuit [${name}] rejected (open)`);
         this.eventsCounter.inc({ name, state: 'reject' });
       });
       breaker.on('timeout', () => {
-        this.logger.warn(`Circuit [${name}] timed out`);
+        console.warn(`Circuit [${name}] timed out`);
         this.eventsCounter.inc({ name, state: 'timeout' });
       });
       breaker.on('fallback', (result: unknown) =>
-        this.logger.debug(`Circuit [${name}] fallback returned: ${JSON.stringify(result)}`),
+        console.debug(`Circuit [${name}] fallback returned: ${JSON.stringify(result)}`),
       );
 
       this.breakers.set(name, breaker);

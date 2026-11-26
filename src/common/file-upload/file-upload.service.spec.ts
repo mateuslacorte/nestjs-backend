@@ -51,6 +51,7 @@ function createConfigService(
     secretKey: string;
     bucket: string;
     publicUrl: string;
+    publicRead: boolean;
   }> = {},
 ): ConfigService {
   const minio = {
@@ -61,6 +62,7 @@ function createConfigService(
     secretKey: 'secret',
     bucket: 'default-bucket',
     publicUrl: 'https://cdn.example.com',
+    publicRead: false,
     ...overrides,
   };
 
@@ -75,7 +77,6 @@ describe('FileUploadService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    delete process.env.MINIO_PUBLIC_READ;
     MockClientConstructor.mockImplementation(() => mockClient);
 
     mockClient.bucketExists.mockResolvedValue(true);
@@ -96,8 +97,8 @@ describe('FileUploadService', () => {
     errorSpy.mockRestore();
   });
 
-  describe('constructor / client wiring', () => {
-    it('instantiates Minio.Client with config credentials', async () => {
+  describe('constructor and onModuleInit', () => {
+    it('instantiates Minio.Client with config credentials', () => {
       const config = createConfigService({
         endPoint: 'minio.local',
         port: 9001,
@@ -107,7 +108,6 @@ describe('FileUploadService', () => {
       });
 
       new FileUploadService(config);
-      await flushPromises();
 
       expect(MockClientConstructor).toHaveBeenCalledWith({
         endPoint: 'minio.local',
@@ -120,10 +120,9 @@ describe('FileUploadService', () => {
 
     it('creates default bucket when it does not exist without public policy by default', async () => {
       mockClient.bucketExists.mockResolvedValue(false);
-      delete process.env.MINIO_PUBLIC_READ;
 
-      new FileUploadService(createConfigService());
-      await flushPromises();
+      const service = new FileUploadService(createConfigService());
+      await service.onModuleInit();
 
       expect(mockClient.bucketExists).toHaveBeenCalledWith('default-bucket');
       expect(mockClient.makeBucket).toHaveBeenCalledWith(
@@ -133,12 +132,11 @@ describe('FileUploadService', () => {
       expect(mockClient.setBucketPolicy).not.toHaveBeenCalled();
     });
 
-    it('sets public policy when MINIO_PUBLIC_READ=true', async () => {
-      process.env.MINIO_PUBLIC_READ = 'true';
+    it('sets public policy when publicRead is true', async () => {
       mockClient.bucketExists.mockResolvedValue(false);
 
-      new FileUploadService(createConfigService());
-      await flushPromises();
+      const service = new FileUploadService(createConfigService({ publicRead: true }));
+      await service.onModuleInit();
 
       expect(mockClient.setBucketPolicy).toHaveBeenCalledWith(
         'default-bucket',
@@ -161,33 +159,29 @@ describe('FileUploadService', () => {
     });
 
     it('skips makeBucket when default bucket already exists, does not set policy by default', async () => {
-      mockClient.bucketExists.mockResolvedValue(true);
-
-      new FileUploadService(createConfigService());
-      await flushPromises();
+      const service = new FileUploadService(createConfigService());
+      await service.onModuleInit();
 
       expect(mockClient.makeBucket).not.toHaveBeenCalled();
       expect(mockClient.setBucketPolicy).not.toHaveBeenCalled();
     });
 
-    it('does not crash constructor when bootstrap bucketExists rejects', async () => {
+    it('does not crash when onModuleInit bucketExists rejects', async () => {
       mockClient.bucketExists.mockRejectedValue(new Error('network down'));
 
-      expect(() => new FileUploadService(createConfigService())).not.toThrow();
-      await flushPromises();
+      const service = new FileUploadService(createConfigService());
+      await expect(service.onModuleInit()).resolves.toBeUndefined();
 
       expect(errorSpy).toHaveBeenCalledWith(
         expect.stringContaining('Failed to ensure default bucket exists'),
       );
     });
 
-    it('swallows setBucketPolicy failures during bootstrap when MINIO_PUBLIC_READ=true', async () => {
-      process.env.MINIO_PUBLIC_READ = 'true';
-      mockClient.bucketExists.mockResolvedValue(true);
+    it('swallows setBucketPolicy failures during onModuleInit when publicRead is true', async () => {
       mockClient.setBucketPolicy.mockRejectedValue(new Error('Access Denied'));
 
-      expect(() => new FileUploadService(createConfigService())).not.toThrow();
-      await flushPromises();
+      const service = new FileUploadService(createConfigService({ publicRead: true }));
+      await service.onModuleInit();
 
       expect(errorSpy).toHaveBeenCalledWith(
         expect.stringContaining('Error setting bucket policy'),

@@ -1,14 +1,12 @@
 import {
   BadGatewayException,
   Injectable,
-  Logger,
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class WhatsappService {
-  private readonly logger = new Logger(WhatsappService.name);
   private readonly apiKey: string | undefined;
   private readonly apiUrl: string | undefined;
   private readonly instance: string | undefined;
@@ -51,7 +49,7 @@ export class WhatsappService {
         requestOptions,
       );
     } catch (error) {
-      this.logger.error('Failed to reach Evolution API', error);
+      console.error('Failed to reach Evolution API', error);
       throw new BadGatewayException(
         'Failed to reach WhatsApp Evolution API',
       );
@@ -60,7 +58,7 @@ export class WhatsappService {
     const result = await response.text();
 
     if (!response.ok) {
-      this.logger.error(
+      console.error(
         `Evolution API returned ${response.status}: ${result}`,
       );
       throw new BadGatewayException(
@@ -68,6 +66,6 @@ export class WhatsappService {
       );
     }
 
-    this.logger.debug(`WhatsApp message sent to ${to}: ${result}`);
+    console.debug(`WhatsApp message sent to ${to}: ${result}`);
   }
 }

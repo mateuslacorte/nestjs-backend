@@ -12,6 +12,7 @@ describe('minio.config', () => {
     delete process.env.MINIO_SECRET_KEY;
     delete process.env.MINIO_BUCKET;
     delete process.env.MINIO_PUBLIC_URL;
+    delete process.env.MINIO_PUBLIC_READ;
   });
 
   afterAll(() => {
@@ -27,6 +28,7 @@ describe('minio.config', () => {
       secretKey: '',
       bucket: 'bucket',
       publicUrl: '',
+      publicRead: false,
     });
   });
 
@@ -47,7 +49,18 @@ describe('minio.config', () => {
       secretKey: 'secret',
       bucket: 'uploads',
       publicUrl: 'https://cdn.example.com',
+      publicRead: false,
     });
+  });
+
+  it.each(['true', '1'])('sets publicRead=true when MINIO_PUBLIC_READ=%s', (value) => {
+    process.env.MINIO_PUBLIC_READ = value;
+    expect(minioConfig().publicRead).toBe(true);
+  });
+
+  it.each(['false', '0', ''])('keeps publicRead=false when MINIO_PUBLIC_READ=%s', (value) => {
+    process.env.MINIO_PUBLIC_READ = value;
+    expect(minioConfig().publicRead).toBe(false);
   });
 
   it.each(['1', 'TRUE', 'false', ''])(

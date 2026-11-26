@@ -1,9 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ISendMailOptions, MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class EmailService {
-  private readonly logger = new Logger(EmailService.name);
 
   constructor(private readonly mailerService: MailerService) {}
 
@@ -36,7 +35,7 @@ export class EmailService {
    * Stub: SMTP template not yet wired; logs only until a template is provided.
    */
   async sendWelcomeEmail(userId: string, email: string): Promise<void> {
-    this.logger.log(`Welcome email queued for user ${userId} <${email}>`);
+    console.log(`Welcome email queued for user ${userId} <${email}>`);
   }
 
   /**
