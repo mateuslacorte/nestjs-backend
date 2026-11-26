@@ -31,32 +31,21 @@ function makeInstance(): {
 }
 
 describe('addOtelPropagationInterceptor', () => {
-  const originalOtelEnabled = process.env.OTEL_ENABLED;
-
   beforeEach(() => {
     mockActive.mockReturnValue({});
   });
 
-  afterEach(() => {
-    if (originalOtelEnabled === undefined) {
-      delete process.env.OTEL_ENABLED;
-    } else {
-      process.env.OTEL_ENABLED = originalOtelEnabled;
-    }
-  });
-
   it('registers a request interceptor on the axios instance', () => {
     const { instance } = makeInstance();
-    addOtelPropagationInterceptor(instance);
+    addOtelPropagationInterceptor(instance, false);
     expect(
       (instance.interceptors.request.use as jest.Mock).mock.calls.length,
     ).toBe(1);
   });
 
-  it('injects traceparent header when OTEL_ENABLED=true and span is active', () => {
-    process.env.OTEL_ENABLED = 'true';
+  it('injects traceparent header when otelEnabled=true and span is active', () => {
     const { instance, capturedHandler } = makeInstance();
-    addOtelPropagationInterceptor(instance);
+    addOtelPropagationInterceptor(instance, true);
 
     const mockSpan = {};
     mockGetActiveSpan.mockReturnValue(mockSpan);
@@ -76,10 +65,9 @@ describe('addOtelPropagationInterceptor', () => {
     );
   });
 
-  it('skips injection when OTEL_ENABLED=true but no active span', () => {
-    process.env.OTEL_ENABLED = 'true';
+  it('skips injection when otelEnabled=true but no active span', () => {
     const { instance, capturedHandler } = makeInstance();
-    addOtelPropagationInterceptor(instance);
+    addOtelPropagationInterceptor(instance, true);
 
     mockGetActiveSpan.mockReturnValue(undefined);
 
@@ -90,22 +78,9 @@ describe('addOtelPropagationInterceptor', () => {
     expect(mockInject).not.toHaveBeenCalled();
   });
 
-  it('skips span lookup and injection when OTEL_ENABLED is not set', () => {
-    delete process.env.OTEL_ENABLED;
+  it('skips span lookup and injection when otelEnabled=false', () => {
     const { instance, capturedHandler } = makeInstance();
-    addOtelPropagationInterceptor(instance);
-
-    const config = { headers: {} } as InternalAxiosRequestConfig;
-    capturedHandler()(config);
-
-    expect(mockGetActiveSpan).not.toHaveBeenCalled();
-    expect(mockInject).not.toHaveBeenCalled();
-  });
-
-  it('skips span lookup and injection when OTEL_ENABLED=false', () => {
-    process.env.OTEL_ENABLED = 'false';
-    const { instance, capturedHandler } = makeInstance();
-    addOtelPropagationInterceptor(instance);
+    addOtelPropagationInterceptor(instance, false);
 
     const config = { headers: {} } as InternalAxiosRequestConfig;
     capturedHandler()(config);

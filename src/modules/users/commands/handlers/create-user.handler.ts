@@ -16,9 +16,14 @@ export class CreateUserHandler implements ICommandHandler<CreateUserCommand, IUs
 
   async execute(command: CreateUserCommand): Promise<IUser> {
     await this.opStatus.pending(command.operationId);
-    const user = await this.mongoRepo.create(command.dto, false);
-    console.debug(`User created in Mongo: ${user.id}`);
-    this.eventBus.publish(new UserCreatedEvent(user, command.operationId, command.actorId));
-    return user;
+    try {
+      const user = await this.mongoRepo.create(command.dto, false);
+      console.debug(`User created in Mongo: ${user.id}`);
+      this.eventBus.publish(new UserCreatedEvent(user, command.operationId, command.actorId));
+      return user;
+    } catch (err) {
+      await this.opStatus.fail(command.operationId, (err as Error).message);
+      throw err;
+    }
   }
 }

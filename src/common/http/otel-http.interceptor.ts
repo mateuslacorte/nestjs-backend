@@ -1,10 +1,10 @@
 import { context, propagation, trace } from '@opentelemetry/api';
 import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 
-export function addOtelPropagationInterceptor(axiosInstance: AxiosInstance): void {
+export function addOtelPropagationInterceptor(axiosInstance: AxiosInstance, otelEnabled: boolean): void {
   axiosInstance.interceptors.request.use(
     (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-      if (process.env.OTEL_ENABLED !== 'true') {
+      if (!otelEnabled) {
         return config;
       }
       const span = trace.getActiveSpan();

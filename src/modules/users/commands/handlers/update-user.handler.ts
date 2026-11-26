@@ -16,9 +16,14 @@ export class UpdateUserHandler implements ICommandHandler<UpdateUserCommand, IUs
 
   async execute(command: UpdateUserCommand): Promise<IUser> {
     await this.opStatus.pending(command.operationId);
-    const user = await this.mongoRepo.update(command.id, command.dto);
-    console.debug(`User updated in Mongo: ${user.id}`);
-    this.eventBus.publish(new UserUpdatedEvent(user, command.operationId, command.actorId));
-    return user;
+    try {
+      const user = await this.mongoRepo.update(command.id, command.dto);
+      console.debug(`User updated in Mongo: ${user.id}`);
+      this.eventBus.publish(new UserUpdatedEvent(user, command.operationId, command.actorId));
+      return user;
+    } catch (err) {
+      await this.opStatus.fail(command.operationId, (err as Error).message);
+      throw err;
+    }
   }
 }

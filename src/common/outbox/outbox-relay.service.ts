@@ -152,7 +152,7 @@ export class OutboxRelayService implements OnModuleInit, OnModuleDestroy {
       const { channel, message } = entry.payload as { channel: string; message: PubSubMessage };
       await this.pubSub.publish(channel, message);
       await this.outboxMongoRepo.update(entry.id, {
-        status: 'published',
+        status: OutboxStatus.PUBLISHED,
         publishedAt: new Date(),
       });
       this.publishedCounter.inc({ store: 'mongo' });
@@ -163,7 +163,7 @@ export class OutboxRelayService implements OnModuleInit, OnModuleDestroy {
 
       if (newRetries > MAX_RETRIES) {
         await this.outboxMongoRepo.update(entry.id, {
-          status: 'failed',
+          status: OutboxStatus.FAILED,
           retries: newRetries,
         });
         this.failedCounter.inc({ store: 'mongo' });

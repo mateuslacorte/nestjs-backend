@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ClientSession, Model } from 'mongoose';
 import { OutboxEvent, OutboxEventDocument } from '../schemas/outbox-event.schema';
+import { OutboxStatus } from '../entities/outbox-entry.entity';
 
 export interface PendingMongoEntry {
   id: string;
@@ -27,7 +28,7 @@ export class OutboxMongoRepository {
 
   async findPending(): Promise<PendingMongoEntry[]> {
     const docs = await this.model
-      .find({ status: 'pending' })
+      .find({ status: OutboxStatus.PENDING })
       .sort({ createdAt: 1 })
       .limit(100)
       .exec();
@@ -41,14 +42,14 @@ export class OutboxMongoRepository {
 
   async update(
     id: string,
-    fields: { status?: string; publishedAt?: Date | null; retries?: number },
+    fields: { status?: OutboxStatus; publishedAt?: Date | null; retries?: number },
   ): Promise<void> {
     await this.model.findByIdAndUpdate(id, { $set: fields }).exec();
   }
 
   async purgeOldFailed(olderThanMs: number): Promise<number> {
     const cutoff = new Date(Date.now() - olderThanMs);
-    const result = await this.model.deleteMany({ status: 'failed', createdAt: { $lt: cutoff } }).exec();
+    const result = await this.model.deleteMany({ status: OutboxStatus.FAILED, createdAt: { $lt: cutoff } }).exec();
     return result.deletedCount ?? 0;
   }
 }

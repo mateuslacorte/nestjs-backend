@@ -16,9 +16,14 @@ export class DeleteUserHandler implements ICommandHandler<DeleteUserCommand, IUs
 
   async execute(command: DeleteUserCommand): Promise<IUser> {
     await this.opStatus.pending(command.operationId);
-    const user = await this.mongoRepo.remove(command.id);
-    console.debug(`User deleted from Mongo: ${command.id}`);
-    this.eventBus.publish(new UserDeletedEvent(user, command.operationId, command.actorId));
-    return user;
+    try {
+      const user = await this.mongoRepo.remove(command.id);
+      console.debug(`User deleted from Mongo: ${command.id}`);
+      this.eventBus.publish(new UserDeletedEvent(user, command.operationId, command.actorId));
+      return user;
+    } catch (err) {
+      await this.opStatus.fail(command.operationId, (err as Error).message);
+      throw err;
+    }
   }
 }

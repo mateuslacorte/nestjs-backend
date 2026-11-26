@@ -47,7 +47,7 @@ export class GraylogService implements OnModuleInit, OnModuleDestroy {
             timeout: this.configService.get<number>('graylog.timeout') || 3000,
             headers: { 'Content-Type': 'application/json' },
         });
-        addOtelPropagationInterceptor(this.client);
+        addOtelPropagationInterceptor(this.client, this.configService.get<boolean>('otel.enabled') ?? false);
     }
 
     onModuleInit(): void {

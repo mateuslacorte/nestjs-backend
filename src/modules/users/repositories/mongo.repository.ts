@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ConflictException, Optional } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { FilterQuery, Model } from 'mongoose';
 import { User } from '../schemas/user.schema';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { IUser, UserSearchRepoFilter } from '../interfaces/user.interface';
@@ -141,7 +141,7 @@ export class UserMongoRepository {
         }
 
         if (updateUserDto.username || updateUserDto.email) {
-            const query: any = { _id: { $ne: id } };
+            const query: FilterQuery<User> = { _id: { $ne: id } };
             if (updateUserDto.username) query.username = updateUserDto.username;
             if (updateUserDto.email) query.email = updateUserDto.email;
 

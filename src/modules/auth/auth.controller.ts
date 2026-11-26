@@ -1359,7 +1359,7 @@ export class AuthController {
         }
     })
     async changePassword(@Req() req: AppRequest, @Body() changePasswordDto: ChangePasswordDto) {
-        const user = req.user as any;
+        const user = req.user as { id: string };
         return await this.authService.changePassword(user.id, changePasswordDto);
     }
 

@@ -71,7 +71,7 @@ export class AuthService {
      * @param registerDto - User registration data
      * @returns The created user and access token
      */
-    async register(registerDto: RegisterDto): Promise<any> {
+    async register(registerDto: RegisterDto): Promise<{ user: IUser; message: string }> {
         const { password, confirmPassword, ...userData } = registerDto;
 
         // Check if passwords match
@@ -305,7 +305,7 @@ export class AuthService {
      * @param refreshTokenDto - Refresh token data
      * @returns New access token and refresh token
      */
-    async refreshToken(refreshTokenDto: RefreshtokenDto): Promise<any> {
+    async refreshToken(refreshTokenDto: RefreshtokenDto): Promise<{ accessToken: string; refreshToken: string }> {
         const { refreshToken } = refreshTokenDto;
 
         try {

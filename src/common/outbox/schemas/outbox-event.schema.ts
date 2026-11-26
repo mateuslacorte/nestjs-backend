@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { OutboxStatus } from '../entities/outbox-entry.entity';
 
 @Schema({ timestamps: false, collection: 'outbox_events' })
 export class OutboxEvent extends Document {
@@ -15,8 +16,8 @@ export class OutboxEvent extends Document {
   @Prop({ type: Object, required: true })
   payload!: Record<string, unknown>;
 
-  @Prop({ required: true, enum: ['pending', 'published', 'failed'], default: 'pending' })
-  status!: string;
+  @Prop({ required: true, type: String, enum: Object.values(OutboxStatus), default: OutboxStatus.PENDING })
+  status!: OutboxStatus;
 
   @Prop({ required: true, type: Date })
   createdAt!: Date;
