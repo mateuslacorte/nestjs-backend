@@ -5,8 +5,7 @@ import { Global, Module } from '@nestjs/common';
 import throttlerConfig from './config/throttler.config';
 
 const mockStorage: ThrottlerStorage = {
-  getRecord: jest.fn(),
-  addRecord: jest.fn(),
+  increment: jest.fn(),
 };
 
 const mockStorageCtor = jest.fn(() => mockStorage);

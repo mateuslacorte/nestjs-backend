@@ -31,8 +31,8 @@ describe('CircuitBreakerService', () => {
 
     it('applies custom options on first creation', () => {
       const breaker = service.getOrCreate('custom-opts', { timeout: 1000, volumeThreshold: 2 });
-      expect(breaker.options.timeout).toBe(1000);
-      expect(breaker.options.volumeThreshold).toBe(2);
+      expect((breaker as any).options.timeout).toBe(1000);
+      expect((breaker as any).options.volumeThreshold).toBe(2);
     });
   });
 

@@ -13,7 +13,6 @@ import { hashPassword, isPasswordHashed } from '@common/crypto/password.util';
 export class UserMongoRepository {
 
     constructor(
-        // @ts-expect-error NestJS emitDecoratorMetadata incompatibility with this Mongoose overload
         @InjectModel(User.name) private userModel: Model<User>,
         @Optional()
         private cacheService?: CacheService

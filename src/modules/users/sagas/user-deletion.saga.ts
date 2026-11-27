@@ -10,9 +10,9 @@ export class UserDeletionSaga {
   @Saga()
   userDeletion = (events$: Observable<unknown>): Observable<ICommand> => {
     return events$.pipe(
-      ofType(UserDeletedEvent),
+      ofType(UserDeletedEvent) as any,
       map(
-        (event) =>
+        (event: UserDeletedEvent) =>
           new RevokeUserSessionsCommand(event.user.id!, event.operationId),
       ),
     );

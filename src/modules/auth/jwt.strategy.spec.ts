@@ -81,7 +81,7 @@ describe('JwtStrategy', () => {
       };
       authService.validateUserById.mockResolvedValue(user as never);
 
-      const result = await strategy.validate({ id: 'user-1' });
+      const result = await strategy.validate({ id: 'user-1', email: 'user@example.com', roles: [] });
 
       expect(result).toEqual({
         id: 'user-1',
@@ -101,7 +101,7 @@ describe('JwtStrategy', () => {
       const strategy = createStrategy('secret');
       authService.validateUserById.mockResolvedValue(null);
 
-      await expect(strategy.validate({ id: 'missing' })).rejects.toThrow(
+      await expect(strategy.validate({ id: 'missing', email: 'missing@example.com', roles: [] })).rejects.toThrow(
         'Unauthorized',
       );
       expect(authService.validateUserById).toHaveBeenCalledWith('missing');

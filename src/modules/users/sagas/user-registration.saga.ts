@@ -10,9 +10,9 @@ export class UserRegistrationSaga {
   @Saga()
   userRegistration = (events$: Observable<unknown>): Observable<ICommand> => {
     return events$.pipe(
-      ofType(UserCreatedEvent),
+      ofType(UserCreatedEvent) as any,
       map(
-        (event) =>
+        (event: UserCreatedEvent) =>
           new SendWelcomeEmailCommand(
             event.user.id!,
             event.user.email,

@@ -71,7 +71,7 @@ export class AuthService {
      * @param registerDto - User registration data
      * @returns The created user and access token
      */
-    async register(registerDto: RegisterDto): Promise<{ user: IUser; message: string }> {
+    async register(registerDto: RegisterDto): Promise<{ user: PublicUser; message: string }> {
         const { password, confirmPassword, ...userData } = registerDto;
 
         // Check if passwords match
