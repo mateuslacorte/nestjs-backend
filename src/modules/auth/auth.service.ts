@@ -177,7 +177,7 @@ export class AuthService {
         // Update the user to be active and clear the verification token
         await this.usersService.update(user.id!, {
             isActive: true,
-            emailVerificationToken: "",
+            emailVerificationToken: undefined,
             emailVerificationExpires: undefined,
         });
 
@@ -415,7 +415,7 @@ export class AuthService {
         // Update the user's password and clear the reset token
         await this.usersService.updatePassword(user.id!, {
             password: password,
-            passwordResetToken: "",
+            passwordResetToken: undefined,
             passwordResetExpires: undefined,
         });
 

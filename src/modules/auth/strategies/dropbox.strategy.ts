@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { Strategy } from 'passport-oauth2';
@@ -61,12 +61,12 @@ export class DropboxStrategy extends PassportStrategy(Strategy, 'dropbox') {
         );
 
         if (!data?.account_id) {
-            throw new Error('Dropbox account did not provide an account id');
+            throw new UnauthorizedException('Dropbox account did not provide an account id');
         }
 
         const email = data.email?.trim();
         if (!email) {
-            throw new Error('Dropbox account did not provide an email');
+            throw new UnauthorizedException('Dropbox account did not provide an email');
         }
 
         let firstName = (data.name?.given_name ?? '').trim();

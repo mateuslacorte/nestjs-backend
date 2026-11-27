@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { Strategy } from 'passport-oauth2';
@@ -61,10 +61,10 @@ export class AtlassianStrategy extends PassportStrategy(Strategy, 'atlassian') {
         );
 
         if (!data?.account_id) {
-            throw new Error('Atlassian account did not provide a user id');
+            throw new UnauthorizedException('Atlassian account did not provide a user id');
         }
         if (!data.email) {
-            throw new Error('Atlassian account did not provide an email');
+            throw new UnauthorizedException('Atlassian account did not provide an email');
         }
 
         const nameParts = (data.name || '').trim().split(/\s+/).filter(Boolean);

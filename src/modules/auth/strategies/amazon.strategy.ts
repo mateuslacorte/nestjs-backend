@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { Strategy } from 'passport-oauth2';
@@ -49,10 +49,10 @@ export class AmazonStrategy extends PassportStrategy(Strategy, 'amazon') {
         );
 
         if (!data?.user_id) {
-            throw new Error('Amazon account did not provide a user id');
+            throw new UnauthorizedException('Amazon account did not provide a user id');
         }
         if (!data.email) {
-            throw new Error('Amazon account did not provide an email');
+            throw new UnauthorizedException('Amazon account did not provide an email');
         }
 
         const nameParts = (data.name || '')

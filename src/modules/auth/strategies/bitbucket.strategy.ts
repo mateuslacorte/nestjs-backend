@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { Strategy } from 'passport-oauth2';
@@ -70,7 +70,7 @@ export class BitbucketStrategy extends PassportStrategy(Strategy, 'bitbucket') {
         );
 
         if (!user?.uuid) {
-            throw new Error('Bitbucket account did not provide a user id');
+            throw new UnauthorizedException('Bitbucket account did not provide a user id');
         }
 
         const { data: emails } = await axios.get<BitbucketEmailsResponse>(
@@ -80,7 +80,7 @@ export class BitbucketStrategy extends PassportStrategy(Strategy, 'bitbucket') {
 
         const email = this.pickEmail(emails?.values);
         if (!email) {
-            throw new Error('Bitbucket account did not provide an email');
+            throw new UnauthorizedException('Bitbucket account did not provide an email');
         }
 
         const nameParts = (user.display_name || '')

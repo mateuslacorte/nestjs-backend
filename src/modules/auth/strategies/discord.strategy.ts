@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { Strategy } from 'passport-oauth2';
@@ -51,10 +51,10 @@ export class DiscordStrategy extends PassportStrategy(Strategy, 'discord') {
         );
 
         if (!data?.id) {
-            throw new Error('Discord account did not provide a user id');
+            throw new UnauthorizedException('Discord account did not provide a user id');
         }
         if (!data.email) {
-            throw new Error('Discord account did not provide an email');
+            throw new UnauthorizedException('Discord account did not provide an email');
         }
 
         const nameParts = (data.global_name || '')

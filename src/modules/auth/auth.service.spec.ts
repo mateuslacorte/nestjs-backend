@@ -450,7 +450,7 @@ describe('AuthService', () => {
       await expect(service.verifyEmail('123456')).resolves.toBe(true);
       expect(usersService.update).toHaveBeenCalledWith('user-1', {
         isActive: true,
-        emailVerificationToken: '',
+        emailVerificationToken: undefined,
         emailVerificationExpires: undefined,
       });
     });
@@ -1233,7 +1233,7 @@ describe('AuthService', () => {
       await expect(service.resetPassword(resetDto)).resolves.toBe(true);
       expect(usersService.updatePassword).toHaveBeenCalledWith('user-1', {
         password: 'NewP@ssw0rd1',
-        passwordResetToken: '',
+        passwordResetToken: undefined,
         passwordResetExpires: undefined,
       });
     });

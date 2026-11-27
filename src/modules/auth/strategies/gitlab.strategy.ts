@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { Strategy } from 'passport-oauth2';
@@ -51,10 +51,10 @@ export class GitlabStrategy extends PassportStrategy(Strategy, 'gitlab') {
         );
 
         if (data?.id === undefined || data?.id === null || data.id === '') {
-            throw new Error('GitLab account did not provide a user id');
+            throw new UnauthorizedException('GitLab account did not provide a user id');
         }
         if (!data.email) {
-            throw new Error('GitLab account did not provide an email');
+            throw new UnauthorizedException('GitLab account did not provide an email');
         }
 
         const nameParts = (data.name || '').trim().split(/\s+/).filter(Boolean);

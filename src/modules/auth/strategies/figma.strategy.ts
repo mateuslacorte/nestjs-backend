@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { Strategy } from 'passport-oauth2';
@@ -57,10 +57,10 @@ export class FigmaStrategy extends PassportStrategy(Strategy, 'figma') {
         );
 
         if (!data?.id) {
-            throw new Error('Figma account did not provide a user id');
+            throw new UnauthorizedException('Figma account did not provide a user id');
         }
         if (!data.email) {
-            throw new Error('Figma account did not provide an email');
+            throw new UnauthorizedException('Figma account did not provide an email');
         }
 
         const handle = (data.handle || '').trim();

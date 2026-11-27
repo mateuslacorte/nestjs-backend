@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { Strategy } from 'passport-oauth2';
@@ -53,10 +53,10 @@ export class SlackStrategy extends PassportStrategy(Strategy, 'slack') {
         );
 
         if (!data?.sub) {
-            throw new Error('Slack account did not provide a user id');
+            throw new UnauthorizedException('Slack account did not provide a user id');
         }
         if (!data.email) {
-            throw new Error('Slack account did not provide an email');
+            throw new UnauthorizedException('Slack account did not provide an email');
         }
 
         let firstName = (data.given_name || '').trim();

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { Strategy } from 'passport-oauth2';
@@ -59,13 +59,13 @@ export class PatreonStrategy extends PassportStrategy(Strategy, 'patreon') {
 
         const user = data?.data;
         if (!user?.id) {
-            throw new Error('Patreon account did not provide a user id');
+            throw new UnauthorizedException('Patreon account did not provide a user id');
         }
 
         const attrs = user.attributes ?? {};
         const email = attrs.email?.trim();
         if (!email) {
-            throw new Error('Patreon account did not provide an email');
+            throw new UnauthorizedException('Patreon account did not provide an email');
         }
 
         let firstName = (attrs.first_name ?? '').trim();

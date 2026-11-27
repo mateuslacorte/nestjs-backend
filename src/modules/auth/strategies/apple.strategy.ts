@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import Strategy from 'passport-apple';
@@ -92,7 +92,7 @@ export class AppleStrategy extends PassportStrategy(Strategy, 'apple', 6) {
 
         const response = await fetch(APPLE_JWKS_URL);
         if (!response.ok) {
-            throw new Error(
+            throw new UnauthorizedException(
                 `Failed to fetch Apple JWKS: HTTP ${response.status}`,
             );
         }
@@ -111,14 +111,14 @@ export class AppleStrategy extends PassportStrategy(Strategy, 'apple', 6) {
             typeof decodedComplete === 'string' ||
             !decodedComplete.header?.kid
         ) {
-            throw new Error('Apple id_token header missing kid');
+            throw new UnauthorizedException('Apple id_token header missing kid');
         }
 
         const kid = decodedComplete.header.kid;
         const keys = await this.fetchAppleJwks();
         const jwk = keys.find((key) => key.kid === kid);
         if (!jwk) {
-            throw new Error(`Apple id_token kid not found in JWKS: ${kid}`);
+            throw new UnauthorizedException(`Apple id_token kid not found in JWKS: ${kid}`);
         }
 
         const publicKey = createPublicKey({ key: jwk, format: 'jwk' });
@@ -139,12 +139,12 @@ export class AppleStrategy extends PassportStrategy(Strategy, 'apple', 6) {
         const decoded = await this.verifyAppleIdToken(idToken);
 
         if (!decoded?.sub) {
-            throw new Error('Apple id_token did not provide a subject (sub)');
+            throw new UnauthorizedException('Apple id_token did not provide a subject (sub)');
         }
 
         const email = decoded.email;
         if (!email) {
-            throw new Error('Apple id_token did not provide an email');
+            throw new UnauthorizedException('Apple id_token did not provide an email');
         }
 
         // Apple only sends user name on the very first consent grant

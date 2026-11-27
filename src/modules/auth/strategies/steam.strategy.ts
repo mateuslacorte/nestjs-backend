@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { Strategy as PassportStrategyBase } from 'passport-strategy';
@@ -109,21 +109,21 @@ export class SteamOpenIdPassportStrategy extends PassportStrategyBase {
         const q = req.query;
         const mode = String(q['openid.mode'] || '');
         if (mode !== 'id_res') {
-            throw new Error('Invalid Steam OpenID mode');
+            throw new UnauthorizedException('Invalid Steam OpenID mode');
         }
 
         const opEndpoint = String(q['openid.op_endpoint'] || '');
         if (opEndpoint !== STEAM_OPENID_ENDPOINT) {
-            throw new Error('Invalid Steam OpenID endpoint');
+            throw new UnauthorizedException('Invalid Steam OpenID endpoint');
         }
 
         const claimedId = String(q['openid.claimed_id'] || '');
         if (!claimedId.startsWith(STEAM_CLAIMED_ID_PREFIX)) {
-            throw new Error('Invalid Steam claimed_id');
+            throw new UnauthorizedException('Invalid Steam claimed_id');
         }
         const steamId = claimedId.slice(STEAM_CLAIMED_ID_PREFIX.length);
         if (!STEAM_ID64_RE.test(steamId)) {
-            throw new Error('Invalid Steam ID');
+            throw new UnauthorizedException('Invalid Steam ID');
         }
 
         const returnTo = String(q['openid.return_to'] || '');
@@ -132,7 +132,7 @@ export class SteamOpenIdPassportStrategy extends PassportStrategyBase {
             !returnTo.startsWith(`${this.returnURL}?`) &&
             !returnTo.startsWith(`${this.returnURL}&`)
         ) {
-            throw new Error('Steam OpenID return_to mismatch');
+            throw new UnauthorizedException('Steam OpenID return_to mismatch');
         }
 
         const body = new URLSearchParams();
@@ -159,7 +159,7 @@ export class SteamOpenIdPassportStrategy extends PassportStrategyBase {
         );
 
         if (!/is_valid\s*:\s*true/i.test(verification)) {
-            throw new Error('Steam OpenID verification failed');
+            throw new UnauthorizedException('Steam OpenID verification failed');
         }
 
         let firstName = 'Steam';
