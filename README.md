@@ -10,7 +10,7 @@ NestJS template with REST + GraphQL, JWT authentication, on-prem Active Director
 - Redis, Apache Kafka, MinIO
 - Graylog + OpenSearch (logs)
 - Health checks with `@nestjs/terminus` at `GET /health`
-- **Jest** — unit tests, global coverage (≥ 80%), and Husky pre-commit hook
+- **Jest** — unit tests, branch coverage ≥ 97% / line coverage ≥ 80%, and Husky pre-commit hook
 
 ## Persistence and CQRS-ready
 
@@ -28,10 +28,10 @@ Data access uses the **Repository pattern**. Today `UsersService` reads and writ
 ```bash
 npm test              # unit suite
 npm run test:watch    # watch mode
-npm run test:cov      # tests + coverage (global 80% threshold)
+npm run test:cov      # tests + coverage (branches ≥ 97%, lines ≥ 80%)
 ```
 
-The Husky pre-commit hook runs `npm run test:cov` and blocks the commit if tests fail or coverage drops below 80%. Details in the wiki: [/tests](/tests).
+The Husky pre-commit hook runs `npm run test:cov` and blocks the commit if tests fail or coverage drops below the threshold (branches ≥ 97%, lines ≥ 80%). Details in the wiki: [/tests](/tests).
 
 ## Quickstart (Docker)
 
@@ -89,7 +89,7 @@ Contributions are welcome. Suggested flow:
 6. Run `npm run test:cov` and ensure the suite passes with global coverage ≥ 80%.
 7. Open a Pull Request describing the problem, the solution, and how to test.
 
-The Husky pre-commit hook runs `npm run test:cov` automatically; commits with failing tests or coverage below the threshold are rejected. Full guide: [/tests](/tests).
+The Husky pre-commit hook runs `npm run test:cov` automatically; commits with failing tests or coverage below the threshold (branches ≥ 97%, lines ≥ 80%) are rejected. Full guide: [/tests](/tests).
 
 By contributing, you agree that the code will be distributed under [GPL-3.0](./LICENSE).
 

@@ -145,7 +145,8 @@
         "Só coloque na allowlist redirects que você controla — open redirects são rejeitados",
         "Trate códigos de exchange como segredo: uso único, TTL curto; não logue",
         "POST /auth/exchange é compartilhado entre provedores; responde 503 se todos estiverem desligados",
-        "Contas existentes com o mesmo e-mail verificado são vinculadas (id do provedor; roles inalteradas)"
+        "Contas existentes com o mesmo e-mail verificado são vinculadas (id do provedor; roles inalteradas)",
+        "Todas as estratégias de provedor lançam <code class=\"px-1 py-0.5 bg-gray-100 rounded\">UnauthorizedException</code> quando o IdP não retorna id ou e-mail — o callback retorna <strong>HTTP 401</strong>, nunca 500"
       ]
     },
     "related": {

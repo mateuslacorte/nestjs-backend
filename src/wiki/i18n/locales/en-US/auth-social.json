@@ -145,7 +145,8 @@
         "Only allowlist redirects you control — open redirects are rejected",
         "Treat exchange codes as secrets: one-time, short TTL; never log them",
         "POST /auth/exchange is shared across providers; it returns 503 if all social providers are disabled",
-        "Existing accounts with the same verified email are linked (provider id attached; roles unchanged)"
+        "Existing accounts with the same verified email are linked (provider id attached; roles unchanged)",
+        "All provider strategies throw <code class=\"px-1 py-0.5 bg-gray-100 rounded\">UnauthorizedException</code> when the IdP returns no id or email — the callback returns <strong>HTTP 401</strong>, never 500"
       ]
     },
     "related": {
