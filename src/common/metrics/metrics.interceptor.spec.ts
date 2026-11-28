@@ -1,5 +1,5 @@
 import { ExecutionContext, CallHandler } from '@nestjs/common';
-import { Counter, Histogram } from 'prom-client';
+import { Counter, Histogram } from '@prometheus-io/client';
 import { of, throwError } from 'rxjs';
 import { firstValueFrom } from 'rxjs';
 import { MetricsInterceptor } from './metrics.interceptor';

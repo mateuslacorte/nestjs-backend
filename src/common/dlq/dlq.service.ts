@@ -1,7 +1,7 @@
 import { Injectable, OnApplicationShutdown, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Admin, Consumer, Kafka, KafkaMessage, Producer, logLevel } from 'kafkajs';
-import { Counter, register } from 'prom-client';
+import { Counter, register } from '@prometheus-io/client';
 
 export type DlqHandler = (payload: unknown) => Promise<void>;
 

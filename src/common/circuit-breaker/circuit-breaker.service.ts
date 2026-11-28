@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import CircuitBreaker from 'opossum';
-import { Counter, register } from 'prom-client';
+import { Counter, register } from '@prometheus-io/client';
 
 const CB_METRIC_NAME = 'circuit_breaker_state_changes_total';
 

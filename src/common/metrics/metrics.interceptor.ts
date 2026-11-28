@@ -5,7 +5,7 @@ import {
     NestInterceptor,
 } from '@nestjs/common';
 import { InjectMetric } from '@willsoto/nestjs-prometheus';
-import { Counter, Histogram } from 'prom-client';
+import { Counter, Histogram } from '@prometheus-io/client';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 

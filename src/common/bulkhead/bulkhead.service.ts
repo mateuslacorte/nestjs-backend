@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { BulkheadRejectedException } from './bulkhead-rejected.exception';
-import { Counter, Gauge, register } from 'prom-client';
+import { Counter, Gauge, register } from '@prometheus-io/client';
 
 const BH_REJECTED_METRIC = 'bulkhead_rejections_total';
 const BH_ACTIVE_METRIC = 'bulkhead_active_calls';
@@ -24,7 +24,7 @@ export class BulkheadService {
     const existingGauge = register.getSingleMetric(BH_ACTIVE_METRIC);
     this.activeGauge = existingGauge
       ? (existingGauge as unknown as Gauge<string>)
-      : new Gauge({ name: BH_ACTIVE_METRIC, help: 'Currently active bulkhead calls', labelNames: [] });
+      : new Gauge({ name: BH_ACTIVE_METRIC, help: 'Currently active bulkhead calls', labelNames: [] as string[] });
   }
 
   async execute<T>(fn: () => Promise<T>): Promise<T> {

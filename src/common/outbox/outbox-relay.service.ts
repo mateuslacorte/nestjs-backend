@@ -1,6 +1,6 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Counter, register } from 'prom-client';
+import { Counter, register } from '@prometheus-io/client';
 import { OutboxEntry, OutboxStatus } from './entities/outbox-entry.entity';
 import { OutboxPostgresRepository } from './repositories/outbox-postgres.repository';
 import { OutboxMongoRepository, PendingMongoEntry } from './repositories/outbox-mongo.repository';
