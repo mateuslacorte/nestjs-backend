@@ -52,7 +52,6 @@
     "test-exclude": "^8.0.0",
     "babel-plugin-istanbul": "^8.0.2",
     "subscriptions-transport-ws": "https://registry.npmjs.org/subscriptions-transport-ws/-/subscriptions-transport-ws-0.11.0.tgz",
-    "stream-json": "^3.9.0",
     "@graphql-tools/utils": "^12.1.0",
     "decode-uri-component": "^0.5.1",
     "minimatch": "^11.0.1"

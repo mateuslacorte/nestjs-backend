@@ -1,3 +1,4 @@
+import { ModuleRef } from '@nestjs/core';
 import { UsersCacheWarmer } from './users-cache-warmer';
 import { UsersService } from '../users.service';
 import { CacheService } from '@common/cache/cache.service';
@@ -19,14 +20,16 @@ function makeUser(id: string): IUser {
 describe('UsersCacheWarmer', () => {
   let usersService: jest.Mocked<Pick<UsersService, 'search'>>;
   let cacheService: jest.Mocked<Pick<CacheService, 'getOrCompute'>>;
+  let moduleRef: jest.Mocked<Pick<ModuleRef, 'get'>>;
   let warmer: UsersCacheWarmer;
   let logSpy: jest.SpyInstance;
 
   beforeEach(() => {
     usersService = { search: jest.fn() };
     cacheService = { getOrCompute: jest.fn().mockResolvedValue(undefined) };
+    moduleRef = { get: jest.fn().mockReturnValue(usersService) };
     warmer = new UsersCacheWarmer(
-      usersService as unknown as UsersService,
+      moduleRef as unknown as ModuleRef,
       cacheService as unknown as CacheService,
     );
     logSpy = jest.spyOn(console, 'log').mockImplementation();

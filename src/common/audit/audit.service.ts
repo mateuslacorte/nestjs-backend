@@ -19,14 +19,7 @@ const MAX_PAGE_SIZE = 100;
 
 @Injectable()
 export class AuditService {
-    private readonly postgresRepo: AuditPostgresRepository;
-
-    constructor(postgresRepo: {
-        create: AuditPostgresRepository['create'];
-        search: AuditPostgresRepository['search'];
-    }) {
-        this.postgresRepo = postgresRepo as AuditPostgresRepository;
-    }
+    constructor(private readonly postgresRepo: AuditPostgresRepository) {}
 
     /**
      * Persist an audit event. Never throws to callers.
